@@ -1,0 +1,257 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === docs/timesheet/ files ===
+agent_prompt_and_db_code.md	       next.md
+bom_and_site_management_guide.md       nocodb_setup_guide.md
+contractor_taxonomy.json	       product_catalog_db_design.md
+db_performance_and_splitting_guide.md  schema_design.md
+developer_learnings.md		       schema.sql
+earned_value_and_stages.md	       site_specific_example.json
+hybrid_architecture_spec.md	       timesheet_agent_and_contracts.md
+hybrid_validation_plan.md	       timesheet_integration_guide.md
+manual_admin.md			       transcription_example_and_db_design.md
+manual_user.md			       writable_view_pattern.md
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/workorders/ files ===
+ bom_troubleshooting.md
+ DATABASE_BACKUP_RESTORE.md
+ HOW_TO_CREATE_WORK_ORDER.md
+ implementation_progress.md
+ LESSONS_LEARNED.md
+ PDR.md
+ phase1_summary.md
+ Phase_2_App_Working.md
+ Phase_2B_Frontend_Complete.md
+ Phase_2C_Complete.md
+ Phase_2D_FRONTEND_COMPLETE.md
+ Phase_2D_FRONTEND_SESSION_PROMPT.md
+ Phase_2D_PROGRESS.md
+ Phase_2D_Template_Hierarchy_IMPLEMENTATION.md
+ Phase_2_NEXT_SESSION_PROMPT.md
+ Phase_2_Template_Seeding_Complete.md
+ Phase_3A_IMPLEMENTATION_COMPLETE.md
+ PHASE_3_QUICK_START.md
+ Phase_3_SESSION_PROMPT.md
+ planning_conversation.md
+ PLANNING_TO_IMPLEMENTATION_MAP.md
+ QUICK_START_Phase_2D.md
+ schedule.md
+"Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf"
+ SESSION_SUMMARY_2026-02-03.md
+ SUCCESS.md
+ supabase_troubleshooting.md
+ Template_Hierarchy_Design.md
+ TEMPLATE_LIBRARIES.md
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/general/ ===
+docs/general does not exist yet
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/a2a/README.md ===
+# A2A Protocol Implementation
+
+This API implements [Google's Agent-to-Agent (A2A) protocol](https://github.com/a2aproject/A2A) natively in the Hono backend, enabling other AI agents to discover and interact with the construction work order system via a standardized JSON-RPC 2.0 interface.
+
+## Overview
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/.well-known/agent.json` | GET | Agent discovery card |
+| `/a2a` | POST | JSON-RPC 2.0 endpoint |
+
+No additional dependencies were added. The implementation uses the existing Hono, Supabase, and Claude API stack.
+
+## Architecture
+
+```
+apps/api/src/
+  routes/
+    a2a.ts                          # Hono route: agent card + JSON-RPC
+  services/
+    a2a/
+      types.ts                      # A2A protocol type definitions
+      taskStore.ts                  # In-memory task storage (1000 cap, FIFO)
+      agentCard.ts                  # Agent card configuration (8 skills)
+      skillRouter.ts                # Skill dispatch + text matching
+      skills/
+        workOrders.ts               # query, get, create, update status, update step
+        units.ts                    # query units
+        documents.ts                # parse PDF with Claude vision
+        progress.ts                 # project progress aggregation
+```
+
+## Agent Card
+
+The agent card at `GET /.well-known/agent.json` describes the agent's identity, capabilities, and available skills. Other A2A-compatible agents use this for discovery.
+
+Key fields:
+- **name**: VoiceLog Construction Agent
+- **url**: `http://localhost:3000/a2a`
+- **protocolVersion**: 0.2.5
+- **capabilities**: No streaming, no push notifications (synchronous only)
+- **securitySchemes**: None (open access, no auth required currently)
+
+## Available Skills
+
+| Skill ID | Description | Required Params |
+|----------|-------------|-----------------|
+| `query_work_orders` | List/filter work orders | `unit_id?`, `status?`, `trade?` |
+| `get_work_order` | Get work order with tasks and notes | `id` |
+| `create_work_order` | Create from template | `unit_id`, `template_id` |
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/gemini_plan.md (first 80 lines) ===
+# Construction Voice Platform: Comprehensive Developer Handbook
+
+> [!NOTE]
+> This document serves as the master architectural guide for the Construction Voice Platform. It is designed to be a living document that teaches *why* we made these technical choices, not just *how* to use them.
+
+## 1. The Philosophy: Lean, Type-Safe, and Distributed
+
+We are building a **Collection of Apps**, not a monolithic disaster. A construction company needs a Dashboard for the office, a Mobile App for the site, and potentially a Kiosk for the warehouse. These apps are different, but they share the same DNA: the **Data Model**.
+
+### Core Principles
+
+1.  **Monorepo (Single Source of Truth)**: We use a monorepo so that when we update a data model (e.g., "A Brick now weighs 2kg"), that change propagates instantly to the Backend, the Dashboard, and the Mobile App. No desyncs. No "it works on my machine."
+2.  **Schema-First Development**: We do not write code until we define the Shape of the data. We use **Zod** as our contract. If it's not in the Zod schema, it doesn't exist.
+3.  **Visual Grounding**: Voice without context is useless. When a user says "Delete it," our system must know what "it" is by inspecting the user's screen state.
+4.  **Local-First / Edge-Ready**: We develop locally with Supabase and Hono, but our architecture is designed to run on the Edge (Cloudflare Workers) for low latency.
+
+---
+
+## 2. The High-Performance Stack
+
+This stack is chosen for speed (both runtime and development velocity) and type safety.
+
+| Component | Technology | Why? |
+| :--- | :--- | :--- |
+| **Monorepo Manager** | **Turborepo** + **pnpm** | Fast builds, efficient caching, and top-tier workspace support. |
+| **Frontend** | **SolidJS** | True reactivity (signals) without the virtual DOM overhead. Performance defaults. |
+| **Backend** | **Hono** | Ultra-lightweight web standard compliant framework. Runs anywhere (Node, Cloudflare, Deno). |
+| **API Communication** | **Hono RPC** | End-to-end type safety without generating SDKs. The frontend imports the backend's *types*. |
+| **Database & Auth** | **Supabase** | Postgres power with easy Auth, Realtime subscriptions, and Storage. |
+| **Validation** | **Zod** | Runtime validation + Static Type inference. The backbone of our system. |
+| **Voice Processing** | **OpenAI Whisper** + **LLM** | High-fidelity transcription followed by structured data extraction. |
+
+---
+
+## 3. Project Architecture
+
+The directory structure is critical. It separates "Runnable Apps" from "Shared Logic".
+
+```text
+/construction-voice-platform
+├── /apps                     # EXECUTABLE APPLICATIONS
+│   ├── /web-dashboard       # SolidJS (Admin/Office view)
+│   ├── /site-companion      # SolidJS PWA (Mobile view for workers)
+│   └── /api                 # Hono server (The Brain / Voice Orchestrator)
+├── /packages                 # SHARED LOGIC (The "Glue")
+│   ├── /db                  # Supabase generated types + DB utilities
+│   ├── /schemas             # THE CONTRACT (Shared Zod schemas)
+│   ├── /ui                  # Shared SolidJS components (Buttons, Layouts)
+│   └── /tsconfig            # Shared TS configurations
+├── /supabase                 # Database config
+│   ├── config.toml
+│   └── /migrations          # SQL files (Single source of truth for DB structure)
+├── /docs                     # Documentation (ADRs, Guides)
+├── turbo.json                # Build orchestration config
+├── package.json              # Root dependencies
+└── README.md
+```
+
+> [!TIP]
+> **Junior Dev Tip**: Never import from `apps/` into `packages/`. Logic flows *down* from packages to apps. Packages are stateless utilities; Apps are stateful implementations.
+
+---
+
+## 4. The "Contract": Schema-First Development
+
+This is the most important section. We do not guess types. We define them in `packages/schemas`.
+
+### Why?
+If the Backend expects a `deliveryDate` (string) and the Frontend sends a `date` (Date object), the app crashes. By sharing the Zod schema, the Frontend form *automatically* knows it needs a string, and the Backend *automatically* validates it.
+
+### Implementation
+**File:** `packages/schemas/src/delivery.ts`
+
+```typescript
+import { z } from 'zod';
+
+// Refine the "Shape" of a Delivery
+export const CreateDeliverySchema = z.object({
+  projectId: z.string().uuid({ message: "Invalid Project ID" }),
+  material: z.string().min(2, { message: "Material name too short" }),
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/understanding_architecture.md (first 80 lines) ===
+# Understanding the Monorepo & Supabase
+
+You asked some great questions about the folder structure. Here is exactly what is happening under the hood.
+
+## 1. The Mystery Folder: `node_modules/@repo/tsconfig`
+
+You noticed this path:
+`packages/schemas/node_modules/@repo/tsconfig`
+
+### What is it?
+This is a **Symlink** (Symbolic Link). Think of it as a "Portal" or "Shortcut".
+
+### Why is it there?
+In `packages/schemas/package.json`, we have this dependency:
+```json
+"devDependencies": {
+  "@repo/tsconfig": "workspace:*"
+}
+```
+The `workspace:*` tells pnpm: "Don't go to the internet (npm registry) to find this. Look in my modules folder."
+
+So, pnpm creates a shortcut:
+*   **From**: `packages/schemas/node_modules/@repo/tsconfig`
+*   **To**: `packages/tsconfig` (The actual folder where your JSON lives)
+
+**Benefit**: If you edit `packages/tsconfig/base.json`, the changes apply *instantly* to `packages/schemas` because they are literally looking at the same file on your disk.
+
+---
+
+## 2. "Installing" Supabase
+
+Supabase is unique. It is not just a library; it is a full **Infrastructure Stack** (Postgres Database, Auth Server, Realtime Server, Storage Server).
+
+### How to Install it
+You don't "npm install" the database itself. You run it using **Docker**.
+
+1.  **Initialize Config** (I am doing this for you now):
+    ```bash
+    npx supabase init
+    ```
+    This creates a `/supabase` folder with a `config.toml`.
+
+2.  **Start the Engine**:
+    ```bash
+    npx supabase start
+    ```
+    This command:
+    *   Downloads Docker images for Postgres, Auth, etc.
+    *   Spins them up on your computer.
+    *   Gives you an **API URL** and **Anon Key**.
+
+---
+
+## 3. The Relationship: `packages/db` vs. "Supabase"
+
+It is easy to confuse the **Tool** with the **Code**.
+
+| Component | What it is | Where it lives |
+| :--- | :--- | :--- |
+| **Supabase Service** | The Engine. Holds your actual data (Users, Tasks). | **Docker Deployment** (or Cloud) |
+| **`@repo/db`** | The Connector. Just TypeScript files. | **`packages/db/src`** |
+
+### How they talk
+1.  **Supabase Service** runs on `localhost:54321`.
+2.  **`@repo/db`** imports the `createClient` function from the `@supabase/supabase-js` library.
+3.  **`@repo/db`** holds the **TypeScript Definitions** (`database.types.ts`).
+    *   When you add a table to Supabase, you run `pnpm db:types`.
+    *   Supabase CLI looks at your Database.
+    *   It writes the text file to `packages/db/src/database.types.ts`.
+    *   Now `@repo/db` knows that `table_users` exists.
+
+### Summary
+*   **`@repo/db`**: The Map of the House.
+
+### 6. Vite & Shared Packages (Critical)
+
+> [!IMPORTANT]
+> **Port Conflicts**: We map specific ports to specific apps to ensure stable CORS. See [docs/ports.md](./docs/ports.md) for the registry.
+
+When building **Web Apps** (Dashboard, Companion) that consume shared packages like `@repo/utils` or `@repo/config`, you **MUST** configure Vite to treat them as source code, not external dependencies.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,29 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# > > >    column_name    |        data_type
+------------------+--------------------------
+ id               | character varying
+ source_id        | character varying
+ base_id          | character varying
+ table_name       | character varying
+ title            | character varying
+ type             | character varying
+ meta             | text
+ schema           | text
+ enabled          | boolean
+ mm               | boolean
+ tags             | character varying
+ pinned           | boolean
+ deleted          | boolean
+ order            | real
+ description      | text
+ synced           | boolean
+ fk_workspace_id  | character varying
+ created_by       | character varying
+ owned_by         | character varying
+ uuid             | character varying
+ password         | character varying
+ fk_custom_url_id | character varying
+ created_at       | timestamp with time zone
+ updated_at       | timestamp with time zone
+(24 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

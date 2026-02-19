@@ -1,0 +1,21 @@
+AdminConfigPage created
+src/
+  App.tsx (2025 bytes)
+  index.css (1134 bytes)
+  index.tsx (239 bytes)
+  components/
+    DataGrid.tsx (4142 bytes)
+    EditableCell.tsx (2357 bytes)
+    Layout.tsx (4849 bytes)
+    LoadingSpinner.tsx (321 bytes)
+    Pagination.tsx (1451 bytes)
+  lib/
+    router.ts (842 bytes)
+    supabase.ts (403 bytes)
+    types.ts (1950 bytes)
+  pages/
+    AdminConfigPage.tsx (13192 bytes)
+    DashboardPage.tsx (2992 bytes)
+    LoginPage.tsx (5280 bytes)
+    TableViewPage.tsx (7334 bytes)
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

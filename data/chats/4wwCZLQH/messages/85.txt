@@ -1,0 +1,34 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 1:import { config } from 'dotenv';
+2:import { resolve } from 'path';
+6:import { serve } from '@hono/node-server';
+7:import { OpenAPIHono } from '@hono/zod-openapi';
+8:import { swaggerUI } from '@hono/swagger-ui';
+9:import { logger } from 'hono/logger';
+10:import { cors } from 'hono/cors';
+11:import { z } from 'zod';
+15:import { deliveryRoute } from './routes/delivery';
+16:import { todosRoute } from './routes/todos';
+17:import { voiceRoute } from './routes/voice';
+18:import materials from './routes/materials';
+19:import taxonomyRoute from './routes/taxonomy';
+20:import projectDefinitionsRoute from './routes/project-definitions';
+21:import unitsRoute from './routes/units';
+22:import { workOrdersRoute } from './routes/work-orders';
+23:import { documentsRoute } from './routes/documents';
+24:import { a2aRoute } from './routes/a2a';
+26:import { reviewsRoute } from './routes/reviews';
+27:import { entityCreationRoute } from './routes/entity-creation';
+36:app.route('/delivery', deliveryRoute);
+37:app.route('/todos', todosRoute);
+38:app.route('/voice', voiceRoute);
+39:app.route('/materials', materials);
+40:app.route('/taxonomy', taxonomyRoute);
+41:app.route('/projects', projectDefinitionsRoute);
+42:app.route('/units', unitsRoute);
+43:app.route('/work-orders', workOrdersRoute);
+44:app.route('/work-orders', documentsRoute);
+46:app.route('/reviews', reviewsRoute);
+47:app.route('/entity', entityCreationRoute);
+50:app.route('', a2aRoute);       // /.well-known/agent.json
+51:app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

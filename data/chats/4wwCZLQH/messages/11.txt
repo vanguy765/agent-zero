@@ -1,0 +1,161 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === apps/work-orders/src/App.tsx ===
+import type { Component } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Units from './pages/Units';
+import Templates from './pages/Templates';
+import TemplateDetail from './pages/TemplateDetail';
+import WorkOrderDetail from './pages/WorkOrderDetail';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
+import NewProject from './pages/NewProject';
+import ProjectDocuments from './pages/ProjectDocuments';
+import './index.css';
+
+const App: Component = () => {
+  return (
+    <Router root={Layout}>
+      <Route path="/" component={Dashboard} />
+      <Route path="/units" component={Units} />
+      <Route path="/templates" component={Templates} />
+      <Route path="/templates/:id" component={TemplateDetail} />
+      <Route path="/work-orders/:id" component={WorkOrderDetail} />
+      <Route path="/projects" component={Projects} />
+      <Route path="/projects/new" component={NewProject} />
+      <Route path="/projects/:id" component={ProjectDetail} />
+      <Route path="/projects/:id/documents" component={ProjectDocuments} />
+    </Router>
+  );
+};
+
+export default App;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/site-companion/src/App.tsx ===
+
+import { Component } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import { isSupabaseConfigured } from './lib/supabase';
+
+// Pages
+import UnitList from './pages/UnitList';
+import UnitDetail from './pages/UnitDetail';
+import VoiceTest from './pages/VoiceTest';
+
+const Layout: Component = (props: any) => {
+    return (
+        <div style={{ "min-height": "100vh", "background-color": "#f7fafc" }}>
+            <nav style={{ padding: "1rem", "background-color": "#ffffff", "border-bottom": "1px solid #e2e8f0", display: "flex", gap: "1rem" }}>
+                <a href="/units" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🏢 Units</a>
+                <a href="/voice" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🎤 Voice Test</a>
+            </nav>
+            <main style={{ padding: "1rem" }}>
+                {props.children}
+            </main>
+        </div>
+    );
+};
+
+const App: Component = () => {
+    return (
+        <>
+            {!isSupabaseConfigured && (
+                <div style={{ "background-color": "#e53e3e", color: "white", padding: "1rem", "text-align": "center", "font-weight": "bold" }}>
+                    CONFIG ERROR: Missing Supabase Environment Variables. Check .env file.
+                </div>
+            )}
+            <Router root={Layout}>
+                <Route path="/" component={UnitList} />
+                <Route path="/units" component={UnitList} />
+                <Route path="/units/:id" component={UnitDetail} />
+                <Route path="/voice" component={VoiceTest} />
+            </Router>
+        </>
+    );
+};
+
+export default App;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/web-dashboard/src/App.tsx ===
+import { Component, createSignal } from 'solid-js';
+import { Button } from '@repo/ui';
+import { Login } from './Login';
+import { TodoList } from './components/TodoList';
+import { VoiceLogList } from './components/VoiceLogList';
+import { logger } from '@repo/logger';
+
+const App: Component = () => {
+    const [token, setToken] = createSignal<string | null>(null);
+
+    return (
+        <div>
+            {!token() ? (
+                <Login onLogin={(t) => setToken(t)} />
+            ) : (
+                <div style={{ padding: '20px', "max-width": "600px", margin: "0 auto" }}>
+                    <div style={{ display: "flex", "justify-content": "space-between", "align-items": "center" }}>
+                        <h1>Web Dashboard</h1>
+                        <Button onClick={() => {
+                            logger.info('Logged out');
+                            setToken(null);
+                        }}>Logout</Button>
+                    </div>
+                    <hr />
+                    <TodoList token={token()!} />
+                    <hr />
+                    <VoiceLogList />
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default App;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/material-admin/src/App.tsx ===
+import { Component, createSignal } from 'solid-js';
+import { Button } from '@repo/ui';
+import { Login } from './Login';
+import { TodoList } from './components/TodoList';
+import { MaterialsView } from './components/MaterialsView';
+import { TaxonomyView } from './components/TaxonomyView';
+import { ProjectDefinitionsView } from './components/ProjectDefinitionsView';
+import { UnitOverridesView } from './components/UnitOverridesView';
+import { logger } from '@repo/logger';
+
+const App: Component = () => {
+    const [token, setToken] = createSignal<string | null>(null);
+    const [view, setView] = createSignal<'materials' | 'taxonomy' | 'projects' | 'units'>('materials');
+
+    return (
+        <div>
+            {!token() ? (
+                <Login onLogin={(t) => setToken(t)} />
+            ) : (
+                <div style={{ padding: '20px', "max-width": "800px", margin: "0 auto" }}>
+                    <div style={{ display: "flex", "justify-content": "space-between", "align-items": "center" }}>
+                        <h1>Material Admin</h1>
+                        <Button onClick={() => {
+                            logger.info('Logged out');
+                            setToken(null);
+                        }}>Logout</Button>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "10px", margin: "20px 0" }}>
+                        <button onClick={() => setView('materials')} class={view() === 'materials' ? 'font-bold underline' : ''}>Materials</button>
+                        <button onClick={() => setView('taxonomy')} class={view() === 'taxonomy' ? 'font-bold underline' : ''}>Taxonomy</button>
+                        <button onClick={() => setView('projects')} class={view() === 'projects' ? 'font-bold underline' : ''}>Projects</button>
+                        <button onClick={() => setView('units')} class={view() === 'units' ? 'font-bold underline' : ''}>Units</button>
+                    </div>
+
+                    <hr />
+
+                    {view() === 'materials' && <MaterialsView token={token()!} />}
+                    {view() === 'taxonomy' && <TaxonomyView />}
+                    {view() === 'projects' && <ProjectDefinitionsView />}
+                    {view() === 'units' && <UnitOverridesView />}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default App;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

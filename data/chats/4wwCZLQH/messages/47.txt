@@ -1,0 +1,64 @@
+Signin: 200
+User info: 200 -> {
+  "id": "us8yot9o4tm0xv36",
+  "email": "admin@example.com",
+  "email_verified": null,
+  "roles": {
+    "org-level-creator": true,
+    "super": true
+  },
+  "token_version": "5f8cc9c44d1c6e78ae0b388338c5952c3933198ee0fce9784901c1f45c51f0c5704c78cbca516a4a",
+  "blocked": 0,
+  "blocked_reason": null,
+  "deleted_at": null,
+  "is_deleted": 0,
+  "meta": null,
+  "display_name": null,
+  "user_name": null,
+  "bio": null,
+  "location": null,
+  "website": null,
+  "avatar": null,
+  "is_new_user": 0,
+  "base_roles": null,
+  "isAuthorized": true,
+  "workspace_roles": null
+}
+List bases: 200 -> {
+  "list": [
+    {
+      "is_meta": 1,
+      "id": "pbtifpzehv2r2cw",
+      "title": "VoiceLog",
+      "prefix": "nc_xg_g__",
+      "status": null,
+      "description": null,
+      "meta": "{\"iconColor\":\"#FCBE3A\"}",
+      "color": null,
+      "uuid": null,
+      "password": null,
+      "roles": null,
+      "deleted": 0,
+      "order": 1,
+      "type": "database",
+      "fk_workspace_id": null,
+      "is_snapshot": 0,
+      "fk_custom_url_id": null,
+      "version": 2,
+      "default_role": null,
+      "created_at": "2026-02-19 04:31:51+00:00",
+      "updated_at": "2026-02-19 04:31:51+00:00",
+      "sources": []
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 1,
+    "page": 1,
+    "pageSize": 1,
+    "isFirstPage": true,
+    "isLastPage": true
+  }
+}
+Create base (v2): 500 -> {"msg":"Internal server error"}
+Create base (v1): 500 -> {"msg":"Internal server error"}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

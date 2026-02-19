@@ -1,0 +1,17 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 36:export const RoomSchema = z.object({
+44:export type Room = z.infer<typeof RoomSchema>;
+67:export const TemplateDefinitionSchema = z.object({
+77:export type TemplateDefinition = z.infer<typeof TemplateDefinitionSchema>;
+80:export const WorkOrderTemplateSchema = z.object({
+86:    definition: TemplateDefinitionSchema,
+91:export type WorkOrderTemplate = z.infer<typeof WorkOrderTemplateSchema>;
+94:export const WorkOrderSchema = z.object({
+111:export type WorkOrder = z.infer<typeof WorkOrderSchema>;
+162:export const CreateWorkOrderRequestSchema = z.object({
+168:export type CreateWorkOrderRequest = z.infer<typeof CreateWorkOrderRequestSchema>;
+191:export const RoomExtendedSchema = RoomSchema.extend({
+203:export const WorkOrderTemplateExtendedSchema = WorkOrderTemplateSchema.extend({
+255:export const CreateWorkOrderRequestExtendedSchema = CreateWorkOrderRequestSchema.extend({
+262:export const WorkOrderResponseSchema = WorkOrderSchema.extend({
+310:    definition: TemplateDefinitionSchema.optional(),
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

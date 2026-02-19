@@ -1,0 +1,215 @@
+import { SupabaseClient } from '@supabase/supabase-js';
+
+export type SkillHandler = (
+    params: Record<string, unknown>,
+    supabase: SupabaseClient
+) => Promise<{ data?: unknown; error?: string }>;
+
+/**
+ * query_work_orders - List/filter work orders
+ * Params: { unit_id?, status?, trade? }
+ */
+export const handleQueryWorkOrders: SkillHandler = async (params, supabase) => {
+    let query = supabase
+        .from('work_orders')
+        .select(`
+            *,
+            unit:units(unit_number, unit_type, floor),
+            template:work_order_templates(trade_name, definition)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (params.unit_id) query = query.eq('unit_id', params.unit_id as string);
+    if (params.status) query = query.eq('status', params.status as string);
+    if (params.trade) query = query.eq('trade_name', params.trade as string);
+
+    const { data, error } = await query;
+    if (error) return { error: error.message };
+    return { data: { work_orders: data, count: data?.length ?? 0 } };
+};
+
+/**
+ * get_work_order - Get work order with tasks and notes
+ * Params: { id }
+ */
+export const handleGetWorkOrder: SkillHandler = async (params, supabase) => {
+    if (!params.id) return { error: 'Missing required parameter: id' };
+
+    const { data, error } = await supabase
+        .from('work_orders')
+        .select(`
+            *,
+            unit:units(*),
+            template:work_order_templates(*),
+            tasks:work_order_tasks(*, room:rooms(name, display_order)),
+            notes:work_order_notes(*, author:author_id(email))
+        `)
+        .eq('id', params.id as string)
+        .single();
+
+    if (error) return { error: error.message };
+    return { data };
+};
+
+/**
+ * create_work_order - Create from template
+ * Params: { unit_id, template_id, assigned_contractor_id? }
+ */
+export const handleCreateWorkOrder: SkillHandler = async (params, supabase) => {
+    const { unit_id, template_id, assigned_contractor_id } = params as {
+        unit_id?: string;
+        template_id?: string;
+        assigned_contractor_id?: string;
+    };
+
+    if (!unit_id || !template_id) {
+        return { error: 'Missing required parameters: unit_id and template_id' };
+    }
+
+    // Get template
+    const { data: template, error: templateError } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('id', template_id)
+        .single();
+    if (templateError) return { error: 'Template not found' };
+
+    // Get organization_id from unit
+    const { data: unit, error: unitError } = await supabase
+        .from('units')
+        .select('organization_id')
+        .eq('id', unit_id)
+        .single();
+    if (unitError) return { error: 'Unit not found' };
+
+    // Create work order
+    const { data: workOrder, error: woError } = await supabase
+        .from('work_orders')
+        .insert({
+            organization_id: unit.organization_id,
+            unit_id,
+            template_id,
+            trade_name: template.trade_name,
+            assigned_contractor_id: assigned_contractor_id || null,
+            status: 'pending',
+        })
+        .select()
+        .single();
+    if (woError) return { error: woError.message };
+
+    // Get rooms (prefer unit_rooms mappings, fall back to all org rooms)
+    const { data: unitRooms, error: unitRoomsError } = await supabase
+        .from('unit_rooms')
+        .select('room_id, rooms(id, name, display_order)')
+        .eq('unit_id', unit_id);
+    if (unitRoomsError) return { error: unitRoomsError.message };
+
+    let rooms: any[];
+    if (unitRooms && unitRooms.length > 0) {
+        rooms = unitRooms
+            .map((ur: any) => ur.rooms)
+            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    } else {
+        const { data: orgRooms, error: orgRoomsError } = await supabase
+            .from('rooms')
+            .select('*')
+            .eq('organization_id', unit.organization_id)
+            .order('display_order', { ascending: true });
+        if (orgRoomsError) return { error: orgRoomsError.message };
+        rooms = orgRooms || [];
+    }
+
+    // Create tasks for each room
+    const tasks = rooms.map((room: any, index: number) => ({
+        work_order_id: workOrder.id,
+        room_id: room.id,
+        row_order: index,
+        task_data: {
+            steps: Object.values(template.definition.sections).flatMap((section: any) =>
+                section.columns.map((col: any) => ({
+                    key: col.key,
+                    label: col.label,
+                    status: 'pending',
+                    not_applicable: col.default_na || false,
+                }))
+            ),
+        },
+    }));
+
+    const { error: tasksError } = await supabase
+        .from('work_order_tasks')
+        .insert(tasks);
+    if (tasksError) return { error: tasksError.message };
+
+    return { data: workOrder };
+};
+
+/**
+ * update_work_order_status - Change status
+ * Params: { id, status }
+ */
+export const handleUpdateWorkOrderStatus: SkillHandler = async (params, supabase) => {
+    if (!params.id || !params.status) {
+        return { error: 'Missing required parameters: id and status' };
+    }
+
+    const { data, error } = await supabase
+        .from('work_orders')
+        .update({ status: params.status as string })
+        .eq('id', params.id as string)
+        .select()
+        .single();
+
+    if (error) return { error: error.message };
+    return { data };
+};
+
+/**
+ * update_task_step - Mark task steps complete/pending/blocked
+ * Params: { task_id, step_key, status, not_applicable? }
+ */
+export const handleUpdateTaskStep: SkillHandler = async (params, supabase) => {
+    const { task_id, step_key, status, not_applicable } = params as {
+        task_id?: string;
+        step_key?: string;
+        status?: string;
+        not_applicable?: boolean;
+    };
+
+    if (!task_id || !step_key || !status) {
+        return { error: 'Missing required parameters: task_id, step_key, and status' };
+    }
+
+    // Get current task
+    const { data: task, error: fetchError } = await supabase
+        .from('work_order_tasks')
+        .select('task_data')
+        .eq('id', task_id)
+        .single();
+    if (fetchError) return { error: fetchError.message };
+
+    // Update the specific step
+    const updatedSteps = task.task_data.steps.map((step: any) => {
+        if (step.key === step_key) {
+            return {
+                ...step,
+                status,
+                not_applicable: not_applicable ?? step.not_applicable,
+                completed_by: status === 'complete' ? 'a2a-agent' : step.completed_by,
+                completed_at: status === 'complete' ? Date.now() : step.completed_at,
+            };
+        }
+        return step;
+    });
+
+    const { data, error } = await supabase
+        .from('work_order_tasks')
+        .update({ task_data: { steps: updatedSteps } })
+        .eq('id', task_id)
+        .select()
+        .single();
+
+    if (error) return { error: error.message };
+    return { data };
+};
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,11 @@
+Total statement blocks: 1288
+App tables: 18
+Functions: 7
+Views: 5
+Indexes on app tables: 41
+Triggers on app tables: 11
+ALTER TABLE on app tables: 71
+
+Tables found: ['agent_memories', 'document_images', 'image_links', 'metric_definitions', 'organizations', 'project_documents', 'rooms', 'template_libraries', 'unit_documents', 'unit_room_calculations', 'unit_room_measurements', 'unit_rooms', 'units', 'wo_projects', 'work_order_notes', 'work_order_tasks', 'work_order_templates', 'work_orders']
+Views found: ['v_all_calculations', 'v_budget_tracker', 'v_project_cost_summary', 'v_trade_cost_comparison', 'v_unit_cost_sheet']
+(venv) root@2c00128c0233:/tmp#

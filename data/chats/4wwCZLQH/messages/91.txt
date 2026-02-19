@@ -1,0 +1,142 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 595 /a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/platform_analysis.md
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 8:## 1. What You're Building
+24:## 2. Architecture Overview
+26:### 2.1 Philosophy
+34:### 2.2 Technology Stack
+49:### 2.3 Service Topology
+92:### 2.4 Port Allocation
+111:## 3. Data Model
+113:### 3.1 Entity Relationship Summary
+137:### 3.2 The Template Hierarchy (Three-Tier)
+149:### 3.3 The JSONB Strategy
+163:### 3.4 Key Database Tables (Public Schema)
+196:## 4. Shared Packages
+198:### 4.1 `packages/schemas` — The Contract
+212:### 4.2 `packages/config` — Centralized Configuration
+216:### 4.3 `packages/db` — Database Types
+220:### 4.4 `packages/ui` — Shared Components
+224:### 4.5 `packages/logger` — Structured Logging
+228:### 4.6 `packages/tsconfig` — TypeScript Configuration
+234:## 5. Applications
+236:### 5.1 API (`apps/api`) — The Brain
+263:### 5.2 Work Orders App (`apps/work-orders`)
+280:### 5.3 Site Companion (`apps/site-companion`)
+293:### 5.4 Material Admin (`apps/material-admin`)
+307:### 5.5 Web Dashboard (`apps/web-dashboard`)
+318:### 5.6 Tenant Portal (`apps/tenant-portal`)
+354:## 6. Supporting Services
+356:### 6.1 Doc Parser (`doc-parser/`)
+371:### 6.2 NocoDB (`nocodb/`)
+382:### 6.3 A2A Protocol
+391:## 7. Current State Assessment
+393:### 7.1 What's Built and Working
+416:### 7.2 What's Designed but Not Yet Implemented
+433:## 8. Data Flow Patterns
+435:### 8.1 Work Order Lifecycle
+451:### 8.2 Voice Processing Pipeline
+468:### 8.3 Document Processing Pipeline
+486:### 8.4 NocoDB ↔ Custom App Integration
+500:### 8.5 Tenant Portal Access Flow
+519:## 9. Strategic Direction & Recommendations
+521:### 9.1 Immediate Next Steps
+531:### 9.2 Architecture Strengths
+539:### 9.3 Architecture Risks
+548:## 10. File Structure Reference
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# === API src structure ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/index.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/delivery.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/agentCard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/progress.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/taskStore.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/types.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/claudePdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/pdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/placeholderGenerator.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/reviewService.ts
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# === Each app src files ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# > > > \n--- material-admin ---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/client.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/common/JsonTreeEditor.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/MaterialsView.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/ProductForm.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/ProjectDefinitionsView.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/SupplierForm.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/TaxonomyView.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/TodoList.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/components/UnitOverridesView.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/index.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src/Login.tsx
+\n--- site-companion ---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/index.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/pages/UnitDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/pages/UnitList.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src/pages/VoiceTest.tsx
+\n--- tenant-portal ---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/components/DataGrid.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/components/EditableCell.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/components/Layout.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/components/LoadingSpinner.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/components/Pagination.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/index.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/lib/router.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/lib/types.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/pages/AdminConfigPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/pages/DashboardPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/pages/LoginPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src/pages/TableViewPage.tsx
+\n--- web-dashboard ---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/client.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/components/TodoList.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/components/VoiceLogList.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/Login.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src/types.ts
+\n--- work-orders ---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/assets/solid.svg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/Layout.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Dashboard.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/NewProject.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Projects.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Templates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Units.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/WorkOrderDetail.tsx
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

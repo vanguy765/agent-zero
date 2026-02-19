@@ -8,7 +8,7 @@ RUN if [ -z "$BRANCH" ]; then echo "ERROR: BRANCH is not set!" >&2; exit 1; fi
 ENV BRANCH=$BRANCH
 
 # Copy filesystem files to root
-COPY ./fs/ /
+COPY docker/run/fs/ /
 
 # pre installation steps
 RUN bash /ins/pre_install.sh $BRANCH

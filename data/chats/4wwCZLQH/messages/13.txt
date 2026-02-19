@@ -1,0 +1,479 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === packages/schemas/src/work-orders.ts ===
+import { z } from 'zod';
+
+// ============================================================================
+// Work Orders Schemas
+// ============================================================================
+
+// Organization
+export const OrganizationSchema = z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1),
+    slug: z.string().min(1),
+    settings: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type Organization = z.infer<typeof OrganizationSchema>;
+
+// WorkOrderUnit (renamed to avoid conflict with renovation.ts Unit)
+export const WorkOrderUnitSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    unit_number: z.string().min(1),
+    unit_type: z.string().nullable(),
+    floor: z.number().int().nullable(),
+    area_sf: z.number().nullable(),
+    status: z.enum(['not_started', 'in_progress', 'complete']),
+    metadata: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderUnit = z.infer<typeof WorkOrderUnitSchema>;
+
+// Room
+export const RoomSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    name: z.string().min(1),
+    display_order: z.number().int(),
+    created_at: z.string().datetime(),
+});
+
+export type Room = z.infer<typeof RoomSchema>;
+
+// Template Column Definition
+export const TemplateColumnSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    type: z.enum(['checkbox', 'text', 'number', 'date']),
+    synonyms: z.array(z.string()).optional(),
+    default_na: z.boolean().optional(), // Default to "Not Applicable"
+    tooltip: z.string().optional(),
+});
+
+export type TemplateColumn = z.infer<typeof TemplateColumnSchema>;
+
+// Template Section
+export const TemplateSectionSchema = z.object({
+    label: z.string(),
+    columns: z.array(TemplateColumnSchema),
+});
+
+export type TemplateSection = z.infer<typeof TemplateSectionSchema>;
+
+// Work Order Template Definition (JSONB structure)
+export const TemplateDefinitionSchema = z.object({
+    sections: z.record(TemplateSectionSchema),
+    logic: z.object({
+        rules: z.array(z.object({
+            if: z.record(z.any()),
+            then: z.record(z.any()),
+        })),
+    }).optional(),
+});
+
+export type TemplateDefinition = z.infer<typeof TemplateDefinitionSchema>;
+
+// Work Order Template
+export const WorkOrderTemplateSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    trade_name: z.string().min(1),
+    version: z.number().int(),
+    is_active: z.boolean(),
+    definition: TemplateDefinitionSchema,
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderTemplate = z.infer<typeof WorkOrderTemplateSchema>;
+
+// Work Order
+export const WorkOrderSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    unit_id: z.string().uuid(),
+    template_id: z.string().uuid(),
+    trade_name: z.string().min(1),
+    status: z.enum(['pending', 'in_progress', 'complete', 'on_hold']),
+    assigned_contractor_id: z.string().uuid().nullable(),
+    inspector_id: z.string().uuid().nullable(),
+    start_date: z.string().datetime().nullable(),
+    completion_date: z.string().datetime().nullable(),
+    inspector_signoff_date: z.string().datetime().nullable(),
+    metadata: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrder = z.infer<typeof WorkOrderSchema>;
+
+// Task Step (within task_data JSONB)
+export const TaskStepSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    status: z.enum(['pending', 'complete', 'blocked']),
+    completed_by: z.string().uuid().nullable().optional(),
+    completed_at: z.number().nullable().optional(), // Unix timestamp
+    not_applicable: z.boolean().optional(),
+});
+
+export type TaskStep = z.infer<typeof TaskStepSchema>;
+
+// Work Order Task Data (JSONB structure)
+export const TaskDataSchema = z.object({
+    steps: z.array(TaskStepSchema),
+});
+
+export type TaskData = z.infer<typeof TaskDataSchema>;
+
+// Work Order Task
+export const WorkOrderTaskSchema = z.object({
+    id: z.string().uuid(),
+    work_order_id: z.string().uuid(),
+    room_id: z.string().uuid(),
+    row_order: z.number().int(),
+    task_data: TaskDataSchema,
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderTask = z.infer<typeof WorkOrderTaskSchema>;
+
+// Work Order Note
+export const WorkOrderNoteSchema = z.object({
+    id: z.string().uuid(),
+    work_order_id: z.string().uuid(),
+    author_id: z.string().uuid(),
+    content: z.string().min(1),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderNote = z.infer<typeof WorkOrderNoteSchema>;
+
+// ============================================================================
+// API Request/Response Schemas
+// ============================================================================
+
+// Create Work Order Request
+export const CreateWorkOrderRequestSchema = z.object({
+    unit_id: z.string().uuid(),
+    template_id: z.string().uuid(),
+    assigned_contractor_id: z.string().uuid().optional(),
+});
+
+export type CreateWorkOrderRequest = z.infer<typeof CreateWorkOrderRequestSchema>;
+
+// Update Task Step Request
+export const UpdateTaskStepRequestSchema = z.object({
+    step_key: z.string(),
+    status: z.enum(['pending', 'complete', 'blocked']),
+    not_applicable: z.boolean().optional(),
+});
+
+export type UpdateTaskStepRequest = z.infer<typeof UpdateTaskStepRequestSchema>;
+
+// Create Note Request
+export const CreateNoteRequestSchema = z.object({
+    content: z.string().min(1),
+});
+
+export type CreateNoteRequest = z.infer<typeof CreateNoteRequestSchema>;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/src/materials.ts (first 80 lines) ===
+import { z } from 'zod';
+
+// --- Suppliers ---
+export const SupplierSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1, "Name is required"),
+  website: z.string().url().optional().or(z.literal('')),
+  contact_info: z.record(z.any()).optional(), // JSONB
+  created_at: z.string().nullish()
+});
+
+export const CreateSupplierSchema = SupplierSchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type Supplier = z.infer<typeof SupplierSchema>;
+export type CreateSupplier = z.infer<typeof CreateSupplierSchema>;
+
+
+// --- Products (Major Items) ---
+export const ProductSchema = z.object({
+  id: z.string().uuid(),
+  supplier_id: z.string().uuid(),
+  subject_key: z.string().min(1, "Subject key is required"), // e.g. "gas_stove"
+  name: z.string().min(1, "Name is required"),
+  model_number: z.string().nullish(),
+  description: z.string().nullish(),
+  attributes: z.record(z.any()).default({}), // JSONB for spec matching
+  unit_price: z.number().min(0),
+  product_page_url: z.string().nullish(),
+  image_url: z.string().nullish(),
+  notes: z.string().nullish(),
+  availability_status: z.enum(['in_stock', 'order', 'discontinued']).default('in_stock'),
+  created_at: z.string().nullish()
+});
+
+export const CreateProductSchema = ProductSchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type Product = z.infer<typeof ProductSchema>;
+export type CreateProduct = z.infer<typeof CreateProductSchema>;
+
+
+// --- Project Supplies (Consumables) ---
+export const ProjectSupplySchema = z.object({
+  id: z.string().uuid(),
+  supplier_id: z.string().uuid(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  product_page_url: z.string().nullish(),
+  image_url: z.string().nullish(),
+  notes: z.string().optional(),
+  created_at: z.string().nullish()
+});
+
+export const CreateProjectSupplySchema = ProjectSupplySchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type ProjectSupply = z.infer<typeof ProjectSupplySchema>;
+export type CreateProjectSupply = z.infer<typeof CreateProjectSupplySchema>;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/src/renovation.ts (first 80 lines) ===
+
+import { z } from 'zod';
+
+export const UnitStatusEnum = z.enum(['pending', 'in_progress', 'completed', 'verified']);
+
+export const UnitSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid().nullable(),
+  unit_number: z.string(),
+  unit_type: z.string().nullable(),
+  floor_plan_image: z.string().nullable(),
+  created_at: z.string().datetime().optional()
+});
+
+export const UnitScopeItemSchema = z.object({
+  id: z.string().uuid(),
+  unit_id: z.string().uuid(),
+  zone: z.string().nullable(),
+  category: z.string().nullable(),
+  item: z.string().nullable(),
+  action: z.string().nullable(),
+  trade: z.string().nullable(),
+  notes: z.string().nullable(),
+  status: UnitStatusEnum.default('pending'),
+  created_at: z.string().datetime().optional()
+});
+
+export type Unit = z.infer<typeof UnitSchema>;
+export type UnitScopeItem = z.infer<typeof UnitScopeItemSchema>;
+export type UnitStatus = z.infer<typeof UnitStatusEnum>;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== README.md ===
+# Construction Voice Platform (Scaffold)
+
+> **Current Status**: 🚧 Clean Scaffold / Starter Kit
+> This repository is a configured foundation for building a high-performance, distributed application suite. It is not yet a feature-complete product.
+
+## What is this?
+
+This is a **Modern Monorepo Architecture** designed for teams building a "Collection of Apps" that share a single data model and "Brain".
+
+It is pre-configured to build:
+1.  **Admin Dashboards**: High-density office interfaces (SolidJS + Vite).
+2.  **Field Companion Apps**: Offline-capable mobile PWAs for workers (SolidJS).
+3.  **Voice-Enabled APIs**: A backend optimized for Audio processing, LLM extraction, and Realtime data (Hono).
+4.  **Native Mobile Apps**: Ready for Flutter integration via OpenAPI generation.
+
+## Why this stack?
+
+*   **Type Safety**: If you change the database, the Mobile App break at *compile time*, not in production.
+*   **Speed**: Uses `pnpm` and `Turborepo` for instant builds.
+*   **Reactivity**: Uses `SolidJS` for raw performance (no Virtual DOM).
+*   **Unified Logic**: Shared `packages/schemas` ensure the API and Frontend always speak the same language.
+
+## Directory Structure
+
+```text
+/
+├── apps/
+│   ├── api/             # Hono Backend (The Brain)
+│   │                    #  - Exposes OpenAPI / Swagger
+│   │                    #  - Handles Voice Processing & Auth
+│   ├── web-dashboard/   # SolidJS (Office Admin Admin)
+│   ├── site-companion/  # SolidJS PWA (Mobile Field Worker)
+│   └── mobile-flutter/  # (Placeholder) Future Native App
+├── packages/
+│   ├── schemas/         # THE SOURCE OF TRUTH (Zod definitions)
+│   ├── db/              # Database Types (Auto-generated from Supabase)
+│   └── ui/              # Shared Design System
+```
+
+## Where to Begin Development?
+
+**1. The Mental Model: "Schema First"**
+Don't start by building a button. Start by defining the **Data**.
+*   **Step 1**: Go to `packages/schemas/src`. Define what a "Task" or "Material" looks like.
+*   **Step 2**: Go to `apps/api/src/routes`. Create an endpoint that accepts that Schema.
+*   **Step 3**: Go to `apps/web`. Build the UI that sends that Data.
+
+**2. Setup**
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Start the Database (Docker)
+npx supabase start
+
+### 3. Start Development
+```bash
+pnpm dev
+```
+This runs all apps in parallel.
+*   **API**: http://localhost:3000
+*   **Web Dashboard**: http://localhost:3001
+*   **Material Admin**: http://localhost:3002
+*   *(See [docs/ports.md](./docs/ports.md) for full list)*
+
+**3. Useful Commands**
+*   `pnpm db:types`: Run this after you add a table to Supabase. It updates the TypeScript definitions in configured packages.
+*   `http://localhost:3000/ui`: View the Swagger API documentation.
+
+## Documentation
+See the `/docs` folder for deep dives:
+*   [A2A Protocol (Agent-to-Agent)](./docs/a2a/README.md) - JSON-RPC endpoint for AI agent interop
+*   [Gemini Plan / Handbook](./docs/gemini_plan.md)
+*   [Flutter Integration](./docs/flutter_integration.md)
+*   [Architecture Explainer](./docs/understanding_architecture.md)
+
+## 🔧 Troubleshooting & Known Issues
+
+### Supabase Local Config
+If `supabase start` fails with parsing errors, ensure `supabase/config.toml` does **not** contain deprecated keys for your CLI version:
+*   `deno_version`: Comment this out if using standard CLI.
+*   `health_timeout`: Comment this out if causing parsing errors.
+*   `major_version`: Must match your valid data directory (default is **17**, do not downgrade to 15 unless starting fresh).
+
+### Realtime Updates Not Appearing
+If the Dashboard connects (`SUBSCRIBED`) but receives no data:
+1.  **RLS Policies**: Realtime respects RLS. If you are "Anonymous", strict policies (`uid=user_id`) will hide data. Use a permissive policy for testing or ensure `Authorization` headers are sent.
+2.  **Versioning**: Ensure the table is in the `supabase_realtime` publication (`alter publication supabase_realtime add table ...`).
+
+### Login/Seed Issues
+`supabase db reset` might fail on complex seed files. Use the API scripts in `apps/api/scripts/` to reliably seed data:
+*   `create_user.ts`: Creates the default 'Alice' user.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== doc-parser/README.md ===
+# Document Parser Service (FastAPI)
+
+This service provides a GPU-accelerated document parsing API using **Detectron2**, **LayoutParser**, and **PyMuPDF**. It extracts text, renders pages to images (uploaded to Supabase), and identifies structured data like tables and landmarks (floor plans).
+
+## Getting Started
+
+The service is configured to run automatically as a FastAPI server on port **5000** when you start the container.
+
+### 1. Configure Environment
+Ensure your `docker-compose.yml` has the correct `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`.
+
+### 2. Start the Service
+```bash
+cd doc-parser
+docker compose up -d
+```
+
+## API Endpoints
+
+### `GET /`
+Health check endpoint. Returns GPU availability and Supabase connection status.
+
+### `POST /parse`
+Main parsing endpoint.
+- **Form Data**:
+    - `project_name`: The name of the project (used for Supabase storage paths).
+    - `file`: The PDF or image file to parse.
+
+**Returns**: JSON containing page metadata, text content, image URLs, and detected landmarks.
+
+## Integration Examples
+
+### Node.js (using fetch)
+
+Instead of executing commands directly, you can now call the service via HTTP. This is much faster and more robust.
+
+```javascript
+const fs = require('fs');
+const FormData = require('form-data');
+
+async function parseDocument(projectId, filePath) {
+    const form = new FormData();
+    form.append('project_name', projectId);
+    form.append('file', fs.createReadStream(filePath));
+
+    try {
+        const response = await fetch('http://localhost:5000/parse', {
+            method: 'POST',
+            body: form,
+            headers: form.getHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Parsed Data:', data);
+        return data;
+    } catch (error) {
+        console.error('Parsing failed:', error);
+    }
+}
+```
+
+## Cross-Container Networking
+
+If you are trying to reach this service from another Docker container (e.g., **Agent Zero** or another microservice), you have two main options:
+
+### 1. Using `host.docker.internal` (Recommended for Windows/Mac)
+If your other container is also running on Docker Desktop, it can reach the host machine using a special DNS name. Use this address in your other container:
+- **Address**: `http://host.docker.internal:5000/parse`
+
+### 2. Using a Shared Docker Network (Cleaner)
+You can create a shared network so containers can talk to each other using their service names.
+
+**Step 1: Create a network (if you don't have one)**:
+```bash
+docker network create agent-zero-network
+```
+
+**Step 2: Update `docker-compose.yml`**:
+Add the network to your `doc-parser` service:
+```yaml
+services:
+  doc-parser:
+    ...
+    networks:
+      - agent-zero-network
+
+networks:
+  agent-zero-network:
+    external: true
+```
+
+**Step 3: Access from another container**:
+Once the other container is also joined to `agent-zero-network`, it can reach this service using the service name as the hostname:
+- **Address**: `http://doc-parser:5000/parse`
+
+## Development
+
+The container is set up with `--reload`, so changes to `server.py` will automatically restart the FastAPI server inside the container.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

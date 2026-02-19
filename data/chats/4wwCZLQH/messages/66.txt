@@ -1,0 +1,346 @@
+=== TABLES ===
+
+## agent_memories (9 cols)
+  id                             uuid            NOT NULL
+  content                        text            NOT NULL
+  metadata                       jsonb           NULL
+  area                           text            NOT NULL
+  source                         text            NULL
+  source_memory_id               text            NULL
+  embedding                      vector          NULL
+  created_at                     timestamptz     NULL
+  updated_at                     timestamptz     NULL
+
+## document_images (8 cols)
+  id                             uuid            NOT NULL
+  document_id                    uuid            NULL
+  image_url                      text            NOT NULL
+  page_number                    int4            NULL
+  image_type                     text            NULL
+  caption                        text            NULL
+  metadata                       jsonb           NULL
+  created_at                     timestamptz     NULL
+
+## image_links (6 cols)
+  id                             uuid            NOT NULL
+  image_id                       uuid            NULL
+  entity_type                    text            NOT NULL
+  entity_id                      uuid            NOT NULL
+  link_type                      text            NULL
+  created_at                     timestamptz     NULL
+
+## metric_definitions (8 cols)
+  metric_key                     text            NOT NULL
+  metric_label                   text            NOT NULL
+  category                       text            NOT NULL
+  trade_key                      text            NULL
+  unit_of_measure                text            NULL
+  default_formula                text            NULL
+  description                    text            NULL
+  sort_order                     int4            NULL
+
+## organizations (6 cols)
+  id                             uuid            NOT NULL
+  name                           text            NOT NULL
+  slug                           text            NOT NULL
+  settings                       jsonb           NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+
+## portal_table_config (18 cols)
+  id                             uuid            NOT NULL
+  organization_id                uuid            NOT NULL
+  table_name                     text            NOT NULL
+  display_name                   text            NULL
+  access_level                   text            NOT NULL
+  visible_columns                _text           NULL
+  editable_columns               _text           NULL
+  hidden_columns                 _text           NULL
+  column_order                   _text           NULL
+  sort_column                    text            NULL
+  sort_direction                 text            NULL
+  filter_conditions              jsonb           NULL
+  page_size                      int4            NULL
+  display_order                  int4            NULL
+  icon                           text            NULL
+  description                    text            NULL
+  created_at                     timestamptz     NULL
+  updated_at                     timestamptz     NULL
+
+## project_documents (11 cols)
+  id                             uuid            NOT NULL
+  project_id                     uuid            NULL
+  title                          text            NOT NULL
+  description                    text            NULL
+  file_url                       text            NOT NULL
+  file_type                      text            NOT NULL
+  file_size_bytes                int8            NULL
+  uploaded_by                    uuid            NULL
+  uploaded_at                    timestamptz     NULL
+  metadata                       jsonb           NULL
+  created_at                     timestamptz     NULL
+
+## rooms (5 cols)
+  id                             uuid            NOT NULL
+  organization_id                uuid            NOT NULL
+  name                           text            NOT NULL
+  display_order                  int4            NULL
+  created_at                     timestamptz     NOT NULL
+
+## template_libraries (13 cols)
+  id                             uuid            NOT NULL
+  name                           text            NOT NULL
+  description                    text            NULL
+  project_type                   text            NOT NULL
+  scope                          text            NOT NULL
+  organization_id                uuid            NULL
+  icon                           text            NULL
+  color                          text            NULL
+  metadata                       jsonb           NULL
+  is_active                      bool            NOT NULL
+  is_default                     bool            NOT NULL
+  created_at                     timestamptz     NULL
+  updated_at                     timestamptz     NULL
+
+## unit_documents (5 cols)
+  id                             uuid            NOT NULL
+  unit_id                        uuid            NULL
+  document_id                    uuid            NULL
+  relationship_type              text            NULL
+  created_at                     timestamptz     NULL
+
+## unit_room_calculations (26 cols)
+  id                             uuid            NOT NULL
+  unit_room_id                   uuid            NOT NULL
+  metric_key                     text            NOT NULL
+  metric_label                   text            NULL
+  category                       text            NOT NULL
+  trade_key                      text            NULL
+  value_numeric                  numeric         NULL
+  value_text                     text            NULL
+  unit_of_measure                text            NULL
+  is_calculated                  bool            NULL
+  is_editable                    bool            NULL
+  source                         text            NULL
+  formula                        text            NULL
+  created_at                     timestamptz     NULL
+  updated_at                     timestamptz     NULL
+  rate                           numeric         NULL
+  rate_unit                      text            NULL
+  quantity                       numeric         NULL
+  quantity_source                text            NULL
+  product_estimated              text            NULL
+  product_actual                 text            NULL
+  price_estimated                numeric         NULL
+  price_actual                   numeric         NULL
+  hours_estimated                numeric         NULL
+  hours_actual                   numeric         NULL
+  percent_complete               numeric         NULL
+
+## unit_room_measurements (22 cols)
+  id                             uuid            NOT NULL
+  unit_room_id                   uuid            NOT NULL
+  area_sf                        numeric         NULL
+  area_m2                        numeric         NULL
+  wall_length_total_lf           numeric         NULL
+  wall_length_cabinets_lf        numeric         NULL
+  wall_length_paintable_lf       numeric         NULL
+  baseboard_length_lf            numeric         NULL
+  ceiling_height_ft              numeric         NULL
+  wall_area_sf                   numeric         NULL
+  ceiling_area_sf                numeric         NULL
+  window_count                   int4            NULL
+  door_count                     int4            NULL
+  width_ft                       numeric         NULL
+  depth_ft                       numeric         NULL
+  width_mm                       numeric         NULL
+  depth_mm                       numeric         NULL
+  source                         text            NULL
+  extraction_confidence          numeric         NULL
+  extras                         jsonb           NULL
+  created_at                     timestamptz     NULL
+  updated_at                     timestamptz     NULL
+
+## unit_rooms (10 cols)
+  id                             uuid            NOT NULL
+  unit_id                        uuid            NULL
+  room_id                        uuid            NULL
+  area_sf                        numeric         NULL
+  baseboard_length_ft            numeric         NULL
+  notes                          text            NULL
+  created_at                     timestamptz     NULL
+  wall_length_total_ft           numeric         NULL
+  wall_length_cabinets_ft        numeric         NULL
+  dimensions                     jsonb           NULL
+
+## units (14 cols)
+  id                             uuid            NOT NULL
+  organization_id                uuid            NOT NULL
+  unit_number                    text            NOT NULL
+  unit_type                      text            NULL
+  floor                          int4            NULL
+  area_sf                        numeric         NULL
+  status                         text            NULL
+  metadata                       jsonb           NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+  project_id                     uuid            NULL
+  floor_plan_image               text            NULL
+  dimensions                     jsonb           NULL
+  bedrooms                       int4            NULL
+
+## wo_projects (10 cols)
+  id                             uuid            NOT NULL
+  organization_id                uuid            NOT NULL
+  name                           text            NOT NULL
+  description                    text            NULL
+  status                         text            NOT NULL
+  metadata                       jsonb           NULL
+  created_at                     timestamptz     NULL
+  updated_at                     timestamptz     NULL
+  project_type                   text            NULL
+  library_id                     uuid            NULL
+
+## work_order_notes (6 cols)
+  id                             uuid            NOT NULL
+  work_order_id                  uuid            NOT NULL
+  author_id                      uuid            NOT NULL
+  content                        text            NOT NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+
+## work_order_tasks (7 cols)
+  id                             uuid            NOT NULL
+  work_order_id                  uuid            NOT NULL
+  room_id                        uuid            NOT NULL
+  row_order                      int4            NULL
+  task_data                      jsonb           NOT NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+
+## work_order_templates (15 cols)
+  id                             uuid            NOT NULL
+  organization_id                uuid            NULL
+  trade_name                     text            NOT NULL
+  version                        int4            NULL
+  is_active                      bool            NULL
+  definition                     jsonb           NOT NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+  scope                          text            NOT NULL
+  project_id                     uuid            NULL
+  parent_template_id             uuid            NULL
+  copied_from_template_id        uuid            NULL
+  created_by                     uuid            NULL
+  updated_by                     uuid            NULL
+  library_id                     uuid            NULL
+
+## work_orders (14 cols)
+  id                             uuid            NOT NULL
+  organization_id                uuid            NOT NULL
+  unit_id                        uuid            NOT NULL
+  template_id                    uuid            NOT NULL
+  trade_name                     text            NOT NULL
+  status                         text            NULL
+  assigned_contractor_id         uuid            NULL
+  inspector_id                   uuid            NULL
+  start_date                     timestamptz     NULL
+  completion_date                timestamptz     NULL
+  inspector_signoff_date         timestamptz     NULL
+  metadata                       jsonb           NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+
+## workspace (24 cols)
+  id                             varchar         NOT NULL
+  title                          varchar         NULL
+  description                    text            NULL
+  meta                           text            NULL
+  fk_user_id                     varchar         NULL
+  deleted                        bool            NULL
+  deleted_at                     timestamptz     NULL
+  order                          float4          NULL
+  status                         int2            NULL
+  message                        varchar         NULL
+  plan                           varchar         NULL
+  infra_meta                     text            NULL
+  fk_org_id                      varchar         NULL
+  stripe_customer_id             varchar         NULL
+  grace_period_start_at          timestamptz     NULL
+  api_grace_period_start_at      timestamptz     NULL
+  automation_grace_period_start_at timestamptz     NULL
+  loyal                          bool            NULL
+  loyalty_discount_used          bool            NULL
+  db_job_id                      varchar         NULL
+  fk_db_instance_id              varchar         NULL
+  segment_code                   int4            NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+
+## workspace_user (11 cols)
+  fk_workspace_id                varchar         NOT NULL
+  fk_user_id                     varchar         NOT NULL
+  roles                          varchar         NULL
+  invite_token                   varchar         NULL
+  invite_accepted                bool            NULL
+  deleted                        bool            NULL
+  deleted_at                     timestamptz     NULL
+  order                          float4          NULL
+  invited_by                     varchar         NULL
+  created_at                     timestamptz     NOT NULL
+  updated_at                     timestamptz     NOT NULL
+
+
+=== VIEWS ===
+  v_all_calculations
+  v_budget_tracker
+  v_project_cost_summary
+  v_trade_cost_comparison
+  v_unit_cost_sheet
+
+
+=== FOREIGN KEYS ===
+  document_images.document_id → project_documents.id
+  image_links.image_id → document_images.id
+  portal_table_config.organization_id → organizations.id
+  project_documents.project_id → wo_projects.id
+  rooms.organization_id → organizations.id
+  template_libraries.organization_id → organizations.id
+  unit_documents.unit_id → units.id
+  unit_documents.document_id → project_documents.id
+  unit_room_calculations.unit_room_id → unit_rooms.id
+  unit_room_measurements.unit_room_id → unit_rooms.id
+  unit_rooms.room_id → rooms.id
+  unit_rooms.unit_id → units.id
+  units.organization_id → organizations.id
+  units.project_id → wo_projects.id
+  wo_projects.organization_id → organizations.id
+  wo_projects.library_id → template_libraries.id
+  work_order_notes.work_order_id → work_orders.id
+  work_order_tasks.room_id → rooms.id
+  work_order_tasks.work_order_id → work_orders.id
+  work_order_templates.copied_from_template_id → work_order_templates.id
+  work_order_templates.parent_template_id → work_order_templates.id
+  work_order_templates.library_id → template_libraries.id
+  work_order_templates.project_id → wo_projects.id
+  work_order_templates.organization_id → organizations.id
+  work_orders.unit_id → units.id
+  work_orders.organization_id → organizations.id
+  work_orders.template_id → work_order_templates.id
+
+
+=== RLS STATUS ===
+  document_images: RLS ENABLED
+  image_links: RLS ENABLED
+  organizations: RLS ENABLED
+  portal_table_config: RLS ENABLED
+  project_documents: RLS ENABLED
+  rooms: RLS ENABLED
+  unit_documents: RLS ENABLED
+  unit_rooms: RLS ENABLED
+  units: RLS ENABLED
+  work_order_notes: RLS ENABLED
+  work_order_tasks: RLS ENABLED
+  work_order_templates: RLS ENABLED
+  work_orders: RLS ENABLED
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,15 @@
+Tables: 18
+Functions: 7
+Views: 5
+Indexes: 41
+Triggers: 11
+FK constraints: 29
+PK constraints: 18
+Default blocks: 0
+Sequence blocks: 0
+
+Tables: ['agent_memories', 'document_images', 'image_links', 'metric_definitions', 'organizations', 'project_documents', 'rooms', 'template_libraries', 'unit_documents', 'unit_room_calculations', 'unit_room_measurements', 'unit_rooms', 'units', 'wo_projects', 'work_order_notes', 'work_order_tasks', 'work_order_templates', 'work_orders']
+
+PK tables: ['agent_memories', 'document_images', 'image_links', 'metric_definitions', 'organizations', 'project_documents', 'rooms', 'template_libraries', 'unit_documents', 'unit_room_calculations', 'unit_room_measurements', 'unit_rooms', 'units', 'wo_projects', 'work_order_notes', 'work_order_tasks', 'work_order_templates', 'work_orders']
+Default tables: []
+(venv) root@2c00128c0233:/tmp#

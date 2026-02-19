@@ -1,0 +1,497 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Supabase migrations ===
+total 72
+drwxrwxrwx 1 root root  4096 Feb 17 02:18 .
+drwxrwxrwx 1 root root  4096 Feb 17 02:18 ..
+-rwxrwxrwx 1 root root  9681 Feb 17 02:18 20260201200500_create_work_orders.sql
+-rwxrwxrwx 1 root root  7985 Feb 17 02:18 20260201200501_seed_work_orders.sql
+-rwxrwxrwx 1 root root 16632 Feb 17 02:18 20260202210000_seed_remaining_templates.sql
+-rwxrwxrwx 1 root root  7057 Feb 17 02:18 20260203000000_template_hierarchy.sql
+-rwxrwxrwx 1 root root  9003 Feb 17 02:18 20260203170000_template_libraries.sql
+-rwxrwxrwx 1 root root 11732 Feb 17 02:18 20260204000000_document_storage.sql
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== supabase/migrations/20260201200500_create_work_orders.sql (first 80 lines) ===
+-- ============================================================================
+-- Work Orders Foundation Schema
+-- Multi-tenant construction project management system
+-- ============================================================================
+
+-- Organizations (Multi-tenancy)
+CREATE TABLE IF NOT EXISTS public.organizations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    settings JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Units (Physical spaces being renovated)
+CREATE TABLE IF NOT EXISTS public.units (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    unit_number TEXT NOT NULL,
+    unit_type TEXT, -- e.g., "A", "B", "C" (from architectural drawings)
+    floor INTEGER,
+    area_sf NUMERIC,
+    status TEXT DEFAULT 'not_started', -- not_started, in_progress, complete
+    metadata JSONB DEFAULT '{}'::jsonb, -- For unit-specific notes, special instructions
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(organization_id, unit_number)
+);
+
+-- Rooms (Spaces within units)
+CREATE TABLE IF NOT EXISTS public.rooms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL, -- e.g., "Kitchen", "Bedroom", "Bathroom"
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Work Order Templates (Definitions of work for each trade)
+CREATE TABLE IF NOT EXISTS public.work_order_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    trade_name TEXT NOT NULL, -- e.g., "Painting", "Carpentry", "Plumbing"
+    version INTEGER DEFAULT 1,
+    is_active BOOLEAN DEFAULT true,
+    definition JSONB NOT NULL, -- The template structure (columns, logic rules, etc.)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(organization_id, trade_name, version)
+);
+
+-- Work Orders (Instance of a template for a specific unit)
+CREATE TABLE IF NOT EXISTS public.work_orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    unit_id UUID NOT NULL REFERENCES public.units(id) ON DELETE CASCADE,
+    template_id UUID NOT NULL REFERENCES public.work_order_templates(id) ON DELETE RESTRICT,
+    trade_name TEXT NOT NULL, -- Denormalized for easy filtering
+    status TEXT DEFAULT 'pending', -- pending, in_progress, complete, on_hold
+    assigned_contractor_id UUID, -- References auth.users (contractor)
+    inspector_id UUID, -- References auth.users (inspector)
+    start_date TIMESTAMP WITH TIME ZONE,
+    completion_date TIMESTAMP WITH TIME ZONE,
+    inspector_signoff_date TIMESTAMP WITH TIME ZONE,
+    metadata JSONB DEFAULT '{}'::jsonb, -- Contractor info, special notes
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(organization_id, unit_id, trade_name)
+);
+
+-- Work Order Tasks (The granular checklist items - "Snapshot" of template)
+CREATE TABLE IF NOT EXISTS public.work_order_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_order_id UUID NOT NULL REFERENCES public.work_orders(id) ON DELETE CASCADE,
+    room_id UUID NOT NULL REFERENCES public.rooms(id) ON DELETE RESTRICT,
+    row_order INTEGER DEFAULT 0,
+    task_data JSONB NOT NULL, -- Snapshot of template columns + execution state
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+\n=== supabase/migrations/20260201200501_seed_work_orders.sql (first 80 lines) ===
+-- ============================================================================
+-- Work Orders Seed Data
+-- Bill Hennessy Place (Sch'eyk Housing Society) - Initial Data
+-- ============================================================================
+
+-- Create the organization
+INSERT INTO public.organizations (id, name, slug, settings)
+VALUES (
+    '00000000-0000-0000-0000-000000000001'::UUID,
+    'Bill Hennessy Place',
+    'bill-hennessy-place',
+    '{
+        "address": "501 E Hastings, Vancouver, BC",
+        "project_type": "renovation",
+        "total_units": 22
+    }'::jsonb
+) ON CONFLICT (slug) DO NOTHING;
+
+-- Create standard rooms (used across all units)
+INSERT INTO public.rooms (id, organization_id, name, display_order) VALUES
+    ('10000000-0000-0000-0000-000000000001'::UUID, '00000000-0000-0000-0000-000000000001'::UUID, 'Entry', 1),
+    ('10000000-0000-0000-0000-000000000002'::UUID, '00000000-0000-0000-0000-000000000001'::UUID, 'Kitchen', 2),
+    ('10000000-0000-0000-0000-000000000003'::UUID, '00000000-0000-0000-0000-000000000001'::UUID, 'Bathroom', 3),
+    ('10000000-0000-0000-0000-000000000004'::UUID, '00000000-0000-0000-0000-000000000001'::UUID, 'Living', 4),
+    ('10000000-0000-0000-0000-000000000005'::UUID, '00000000-0000-0000-0000-000000000001'::UUID, 'Bedroom', 5),
+    ('10000000-0000-0000-0000-000000000006'::UUID, '00000000-0000-0000-0000-000000000001'::UUID, 'Storage', 6)
+ON CONFLICT DO NOTHING;
+
+-- Create units based on architectural drawings
+-- Type A (1 bed): 486 SF - Units 304, 404, 504
+INSERT INTO public.units (organization_id, unit_number, unit_type, floor, area_sf, status) VALUES
+    ('00000000-0000-0000-0000-000000000001'::UUID, '304', 'A', 3, 486, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '404', 'A', 4, 486, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '504', 'A', 5, 486, 'not_started')
+ON CONFLICT (organization_id, unit_number) DO NOTHING;
+
+-- Type B (Studio): 336 SF - Units 209, 306, 308, 309, 507, 510
+INSERT INTO public.units (organization_id, unit_number, unit_type, floor, area_sf, status) VALUES
+    ('00000000-0000-0000-0000-000000000001'::UUID, '209', 'B', 2, 336, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '306', 'B', 3, 336, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '308', 'B', 3, 336, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '309', 'B', 3, 336, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '507', 'B', 5, 336, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '510', 'B', 5, 336, 'not_started')
+ON CONFLICT (organization_id, unit_number) DO NOTHING;
+
+-- Type C (2 bed): 576-578 SF - Units 214, 414, 602, 702
+INSERT INTO public.units (organization_id, unit_number, unit_type, floor, area_sf, status) VALUES
+    ('00000000-0000-0000-0000-000000000001'::UUID, '214', 'C', 2, 576, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '414', 'C', 4, 576, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '602', 'C', 6, 578, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '702', 'C', 7, 578, 'not_started')
+ON CONFLICT (organization_id, unit_number) DO NOTHING;
+
+-- Type D (1 bed): 480 SF - Units 201, 401
+INSERT INTO public.units (organization_id, unit_number, unit_type, floor, area_sf, status) VALUES
+    ('00000000-0000-0000-0000-000000000001'::UUID, '201', 'D', 2, 480, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '401', 'D', 4, 480, 'not_started')
+ON CONFLICT (organization_id, unit_number) DO NOTHING;
+
+-- Type E (1 bed): 380-480 SF - Units 212, 511, 512, 705
+INSERT INTO public.units (organization_id, unit_number, unit_type, floor, area_sf, status) VALUES
+    ('00000000-0000-0000-0000-000000000001'::UUID, '212', 'E', 2, 480, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '511', 'E', 5, 380, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '512', 'E', 5, 380, 'not_started'),
+    ('00000000-0000-0000-0000-000000000001'::UUID, '705', 'E', 7, 380, 'not_started')
+ON CONFLICT (organization_id, unit_number) DO NOTHING;
+
+-- Type F (1 bed): 488 SF - Unit 413
+INSERT INTO public.units (organization_id, unit_number, unit_type, floor, area_sf, status) VALUES
+    ('00000000-0000-0000-0000-000000000001'::UUID, '413', 'F', 4, 488, 'not_started')
+ON CONFLICT (organization_id, unit_number) DO NOTHING;
+
+-- Create a sample Painting template
+INSERT INTO public.work_order_templates (id, organization_id, trade_name, version, is_active, definition)
+VALUES (
+    '20000000-0000-0000-0000-000000000001'::UUID,
+    '00000000-0000-0000-0000-000000000001'::UUID,
+    'Painting',
+    1,
+\n=== supabase/migrations/20260202210000_seed_remaining_templates.sql (first 80 lines) ===
+-- ============================================================================
+-- Work Orders - Remaining Templates Seed Data
+-- Bill Hennessy Place (Sch'eyk Housing Society)
+-- Reference: docs/workorders/planning_conversation.md lines 333-484
+-- ============================================================================
+
+-- ========================================
+-- PLUMBING TEMPLATE
+-- Reference: planning_conversation.md lines 333-372
+-- ========================================
+INSERT INTO public.work_order_templates (id, organization_id, trade_name, version, is_active, definition)
+VALUES (
+    '20000000-0000-0000-0000-000000000003'::UUID,
+    '00000000-0000-0000-0000-000000000001'::UUID,
+    'Plumbing',
+    1,
+    true,
+    '{
+        "sections": {
+            "kitchen_plumbing": {
+                "label": "Kitchen Plumbing",
+                "order": 1,
+                "columns": [
+                    {"key": "shut_off_water", "label": "Shut Off Water", "type": "checkbox", "order": 1},
+                    {"key": "disconnect_old", "label": "Disconnect Old", "type": "checkbox", "order": 2},
+                    {"key": "remove_old", "label": "Remove Old", "type": "checkbox", "order": 3},
+                    {"key": "check_rough_in", "label": "Check Rough-in", "type": "checkbox", "order": 4},
+                    {"key": "install_new", "label": "Install New", "type": "checkbox", "order": 5},
+                    {"key": "connect_supply", "label": "Connect Supply Lines", "type": "checkbox", "order": 6},
+                    {"key": "connect_drain", "label": "Connect Drain", "type": "checkbox", "order": 7},
+                    {"key": "test_leaks", "label": "Test/Check Leaks", "type": "checkbox", "order": 8},
+                    {"key": "cleanup", "label": "Cleanup", "type": "checkbox", "order": 9}
+                ],
+                "items": ["Double Sink", "Kitchen Faucet"]
+            },
+            "bathroom_fixtures": {
+                "label": "Bathroom Plumbing - Fixtures",
+                "order": 2,
+                "columns": [
+                    {"key": "shut_off_water", "label": "Shut Off Water", "type": "checkbox", "order": 1},
+                    {"key": "disconnect_old", "label": "Disconnect Old", "type": "checkbox", "order": 2},
+                    {"key": "remove_old", "label": "Remove Old", "type": "checkbox", "order": 3},
+                    {"key": "check_rough_in", "label": "Check Rough-in", "type": "checkbox", "order": 4},
+                    {"key": "install_new", "label": "Install New", "type": "checkbox", "order": 5},
+                    {"key": "connect_supply", "label": "Connect Supply", "type": "checkbox", "order": 6},
+                    {"key": "connect_drain", "label": "Connect Drain", "type": "checkbox", "order": 7},
+                    {"key": "seal_caulk", "label": "Seal/Caulk", "type": "checkbox", "order": 8},
+                    {"key": "test_leaks", "label": "Test Leaks", "type": "checkbox", "order": 9}
+                ],
+                "items": ["Lavatory", "Lavatory Faucet", "Toilet"]
+            },
+            "bathtub_repair": {
+                "label": "Bathtub Repair & Accessories",
+                "order": 3,
+                "columns": [
+                    {"key": "inspect", "label": "Inspect", "type": "checkbox", "order": 1},
+                    {"key": "repair_surface", "label": "Repair Tub Surface", "type": "checkbox", "order": 2},
+                    {"key": "install_surround", "label": "Install Surround", "type": "checkbox", "order": 3},
+                    {"key": "install_diverter", "label": "Install Diverter", "type": "checkbox", "order": 4},
+                    {"key": "install_drain", "label": "Install Drain", "type": "checkbox", "order": 5},
+                    {"key": "install_handheld", "label": "Install Hand-held Shower", "type": "checkbox", "order": 6},
+                    {"key": "install_rod", "label": "Install Shower Rod", "type": "checkbox", "order": 7},
+                    {"key": "install_grab_bars", "label": "Install Grab Bars", "type": "checkbox", "order": 8},
+                    {"key": "caulk_seal", "label": "Caulk/Seal", "type": "checkbox", "order": 9},
+                    {"key": "test", "label": "Test", "type": "checkbox", "order": 10}
+                ],
+                "items": ["Bathtub Repair", "Grab Bars (2)"]
+            },
+            "bathroom_accessories": {
+                "label": "Bathroom Accessories",
+                "order": 4,
+                "columns": [
+                    {"key": "measure_mark", "label": "Measure & Mark", "type": "checkbox", "order": 1},
+                    {"key": "check_blocking", "label": "Check Blocking", "type": "checkbox", "order": 2},
+                    {"key": "install_backing", "label": "Install Backing (if needed)", "type": "checkbox", "order": 3},
+                    {"key": "mount_accessory", "label": "Mount Accessory", "type": "checkbox", "order": 4},
+                    {"key": "level_secure", "label": "Level & Secure", "type": "checkbox", "order": 5},
+                    {"key": "caulk", "label": "Caulk (if needed)", "type": "checkbox", "order": 6}
+                ],
+                "items": ["Medicine Cabinet (mirror)", "TP Holder", "Towel Rack #1", "Towel Rack #2"]
+\n=== supabase/migrations/20260203000000_template_hierarchy.sql (first 80 lines) ===
+-- ============================================================================
+-- TEMPLATE HIERARCHY SYSTEM
+-- ============================================================================
+-- This migration implements a three-tier template hierarchy:
+-- 1. App-level (system defaults)
+-- 2. Company-level (tenant defaults)
+-- 3. Project-level (project-specific)
+
+BEGIN;
+
+-- ============================================================================
+-- 1. CREATE PROJECTS TABLE (Work Orders)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS wo_projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived')),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    
+    CONSTRAINT unique_wo_project_name_per_org UNIQUE (organization_id, name)
+);
+
+CREATE INDEX idx_wo_projects_org ON wo_projects(organization_id);
+CREATE INDEX idx_wo_projects_status ON wo_projects(status);
+
+COMMENT ON TABLE wo_projects IS 'Work Order Projects/properties within an organization';
+
+-- ============================================================================
+-- 2. UPDATE WORK_ORDER_TEMPLATES TABLE
+-- ============================================================================
+
+-- Add new columns
+ALTER TABLE work_order_templates
+    ADD COLUMN IF NOT EXISTS scope TEXT NOT NULL DEFAULT 'company'
+        CHECK (scope IN ('app', 'company', 'project')),
+    ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES wo_projects(id) ON DELETE CASCADE,
+    ADD COLUMN IF NOT EXISTS parent_template_id UUID REFERENCES work_order_templates(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS copied_from_template_id UUID REFERENCES work_order_templates(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES auth.users(id),
+    ADD COLUMN IF NOT EXISTS updated_by UUID REFERENCES auth.users(id);
+
+-- Make organization_id nullable (for app-level templates)
+ALTER TABLE work_order_templates
+    ALTER COLUMN organization_id DROP NOT NULL;
+
+-- Add constraints
+ALTER TABLE work_order_templates
+    ADD CONSTRAINT valid_app_scope CHECK (
+        (scope = 'app' AND organization_id IS NULL AND project_id IS NULL)
+        OR scope != 'app'
+    ),
+    ADD CONSTRAINT valid_company_scope CHECK (
+        (scope = 'company' AND organization_id IS NOT NULL AND project_id IS NULL)
+        OR scope != 'company'
+    ),
+    ADD CONSTRAINT valid_project_scope CHECK (
+        (scope = 'project' AND organization_id IS NOT NULL AND project_id IS NOT NULL)
+        OR scope != 'project'
+    );
+
+-- Create indexes
+CREATE INDEX idx_templates_scope ON work_order_templates(scope);
+CREATE INDEX idx_templates_project ON work_order_templates(project_id);
+CREATE INDEX idx_templates_parent ON work_order_templates(parent_template_id);
+CREATE INDEX idx_templates_copied_from ON work_order_templates(copied_from_template_id);
+
+-- ============================================================================
+-- 3. UPDATE UNITS TABLE
+-- ============================================================================
+
+ALTER TABLE units
+    ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES wo_projects(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_units_project ON units(project_id);
+
+\n=== supabase/migrations/20260203170000_template_libraries.sql (first 80 lines) ===
+-- ============================================================================
+-- TEMPLATE LIBRARIES & PROJECT TYPES
+-- ============================================================================
+-- This migration adds support for different project types with their own
+-- template libraries (e.g., Commercial Apartments, Residential Houses, etc.)
+
+BEGIN;
+
+-- ============================================================================
+-- 1. CREATE TEMPLATE LIBRARIES TABLE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS template_libraries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    project_type TEXT NOT NULL, -- 'residential_house', 'commercial_apartment', 'office', 'retail', etc.
+    scope TEXT NOT NULL DEFAULT 'app' CHECK (scope IN ('app', 'company')),
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    
+    -- Visual/metadata
+    icon TEXT, -- Icon identifier (e.g., 'home', 'building', 'office')
+    color TEXT, -- Hex color for UI display
+    metadata JSONB DEFAULT '{}',
+    
+    -- Status
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    is_default BOOLEAN NOT NULL DEFAULT false, -- One default library per project_type at app level
+    
+    -- Audit
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    
+    -- Constraints
+    CONSTRAINT valid_app_library CHECK (
+        (scope = 'app' AND organization_id IS NULL)
+        OR scope != 'app'
+    ),
+    CONSTRAINT valid_company_library CHECK (
+        (scope = 'company' AND organization_id IS NOT NULL)
+        OR scope != 'company'
+    ),
+    CONSTRAINT unique_app_library_name UNIQUE (name, scope, organization_id)
+);
+
+CREATE INDEX idx_template_libraries_scope ON template_libraries(scope);
+CREATE INDEX idx_template_libraries_org ON template_libraries(organization_id);
+CREATE INDEX idx_template_libraries_type ON template_libraries(project_type);
+CREATE INDEX idx_template_libraries_active ON template_libraries(is_active) WHERE is_active = true;
+
+-- Ensure only one default library per project type at app level
+CREATE UNIQUE INDEX idx_unique_default_app_library
+    ON template_libraries(project_type, scope)
+    WHERE is_default = true AND scope = 'app';
+
+COMMENT ON TABLE template_libraries IS 'Collections of templates for different project types (e.g., residential, commercial)';
+COMMENT ON COLUMN template_libraries.project_type IS 'Type of project this library is designed for';
+COMMENT ON COLUMN template_libraries.is_default IS 'Whether this is the default library for this project type (app-level only)';
+
+-- ============================================================================
+-- 2. UPDATE WORK_ORDER_TEMPLATES TABLE
+-- ============================================================================
+
+-- Add library association
+ALTER TABLE work_order_templates
+    ADD COLUMN IF NOT EXISTS library_id UUID REFERENCES template_libraries(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_templates_library ON work_order_templates(library_id);
+
+COMMENT ON COLUMN work_order_templates.library_id IS 'Optional: Template library this template belongs to';
+
+-- ============================================================================
+-- 3. UPDATE WO_PROJECTS TABLE
+-- ============================================================================
+
+-- Add project type and library reference
+ALTER TABLE wo_projects
+    ADD COLUMN IF NOT EXISTS project_type TEXT,
+    ADD COLUMN IF NOT EXISTS library_id UUID REFERENCES template_libraries(id) ON DELETE SET NULL;
+
+\n=== supabase/migrations/20260204000000_document_storage.sql (first 80 lines) ===
+-- Phase 3A: Document Storage & Image Extraction
+-- Migration to support PDF uploads, image extraction, and document management
+
+-- Project documents table
+CREATE TABLE project_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES wo_projects(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    file_url TEXT NOT NULL, -- Supabase Storage URL
+    file_type TEXT NOT NULL, -- 'pdf', 'image', 'dwg', etc.
+    file_size_bytes BIGINT,
+    uploaded_by UUID REFERENCES auth.users(id),
+    uploaded_at TIMESTAMPTZ DEFAULT NOW(),
+    metadata JSONB, -- {page_count, dimensions, etc.}
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Extracted images from documents
+CREATE TABLE document_images (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID REFERENCES project_documents(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL, -- Supabase Storage URL
+    page_number INTEGER,
+    image_type TEXT, -- 'floor_plan', 'elevation', 'detail', etc.
+    caption TEXT,
+    metadata JSONB, -- {width, height, extracted_text, etc.}
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Link documents to units
+CREATE TABLE unit_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+    document_id UUID REFERENCES project_documents(id) ON DELETE CASCADE,
+    relationship_type TEXT, -- 'floor_plan', 'upgrade_list', 'specification', etc.
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(unit_id, document_id)
+);
+
+-- Link images to specific entities (units, work orders, rooms)
+CREATE TABLE image_links (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    image_id UUID REFERENCES document_images(id) ON DELETE CASCADE,
+    entity_type TEXT NOT NULL, -- 'unit', 'work_order', 'room', etc.
+    entity_id UUID NOT NULL,
+    link_type TEXT, -- 'floor_plan', 'before_photo', 'after_photo', etc.
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add floor plan image and dimensions to units table
+ALTER TABLE units ADD COLUMN IF NOT EXISTS floor_plan_image TEXT;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS dimensions JSONB; -- {length_mm: 7310, width_mm: 4675, ...}
+
+-- Room dimensions table
+CREATE TABLE unit_rooms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+    room_id UUID REFERENCES rooms(id),
+    area_sf DECIMAL(10,2),
+    baseboard_length_ft DECIMAL(10,2),
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create indexes for performance
+CREATE INDEX idx_project_documents_project_id ON project_documents(project_id);
+CREATE INDEX idx_document_images_document_id ON document_images(document_id);
+CREATE INDEX idx_unit_documents_unit_id ON unit_documents(unit_id);
+CREATE INDEX idx_unit_documents_document_id ON unit_documents(document_id);
+CREATE INDEX idx_image_links_entity ON image_links(entity_type, entity_id);
+CREATE INDEX idx_image_links_image_id ON image_links(image_id);
+CREATE INDEX idx_unit_rooms_unit_id ON unit_rooms(unit_id);
+
+-- RLS Policies for multi-tenant isolation
+
+-- Enable RLS on new tables
+ALTER TABLE project_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE document_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE unit_documents ENABLE ROW LEVEL SECURITY;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

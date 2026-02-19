@@ -1,0 +1,596 @@
+# Voicelog Scaffold — Comprehensive Platform Analysis
+
+> **Generated**: 2026-02-18 | **Author**: Agent Zero (Developer)
+> **Scope**: Full monorepo architecture, data model, services, current state, and strategic direction
+
+---
+
+## 1. What You're Building
+
+A **construction renovation management platform** — a suite of interconnected applications that digitize the entire lifecycle of multi-unit renovation projects, from initial scope definition through work execution, inspection, and closeout.
+
+The platform solves a specific industry pain point: construction teams juggle spreadsheets, paper checklists, voice memos, and disconnected tools. This system unifies everything into a single data model where:
+
+- **Office staff** define project scopes, manage templates, upload architectural drawings, and track progress from dashboards
+- **Field workers** execute work orders room-by-room using mobile-optimized checklists, log time via voice, and capture site conditions
+- **Tenants** access their project data through a configurable portal with read-only or editable views
+- **AI agents** process voice recordings into structured data, parse architectural documents, and interoperate via the A2A protocol
+- **NocoDB** provides a spreadsheet-like interface for bulk data management and ad-hoc queries without custom UI development
+
+The platform is **multi-tenant** (organizations), **multi-project** (wo_projects), and **multi-trade** (painting, plumbing, carpentry, etc.).
+
+---
+
+## 2. Architecture Overview
+
+### 2.1 Philosophy
+
+Three core principles drive every technical decision:
+
+1. **Schema-First**: Zod schemas in `packages/schemas` are the single source of truth. If it's not in a schema, it doesn't exist. This guarantees type safety from database to UI.
+2. **Monorepo with Shared DNA**: Multiple apps share the same data model, validation logic, and configuration. A change to a schema propagates instantly to all consumers.
+3. **Hybrid Relational + JSONB**: Relational columns for indexing, foreign keys, and permissions. JSONB columns for deeply nested hierarchical data (template definitions, scope trees, overrides).
+
+### 2.2 Technology Stack
+
+| Layer | Technology | Rationale |
+|---|---|---|
+| **Monorepo** | Turborepo + pnpm | Fast parallel builds, workspace linking, dependency deduplication |
+| **Frontend** | SolidJS + Vite | True reactivity via signals (no virtual DOM), sub-second HMR |
+| **Backend** | Hono (OpenAPIHono) | Lightweight, web-standard, runs on Node/Edge/Deno. Built-in OpenAPI generation |
+| **Database** | Supabase (PostgreSQL) | Managed Postgres with Auth, Realtime subscriptions, Storage, and Row-Level Security |
+| **Validation** | Zod | Runtime validation + static TypeScript inference from a single definition |
+| **Styling** | Tailwind CSS | Utility-first, consistent design system across apps |
+| **Voice/AI** | Anthropic Claude + OpenAI Whisper | Voice transcription → LLM structured extraction |
+| **Document Parsing** | FastAPI + Detectron2 + LayoutParser | GPU-accelerated PDF parsing, floor plan detection, image extraction |
+| **Spreadsheet UI** | NocoDB | No-code database interface for bulk editing relational data |
+| **Agent Protocol** | A2A (Agent-to-Agent) | JSON-RPC interoperability between AI agents |
+
+### 2.3 Service Topology
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        USER DEVICES                             │
+├──────────┬──────────┬──────────┬──────────┬─────────────────────┤
+│ Work     │ Material │ Site     │ Web      │ Tenant   │ NocoDB   │
+│ Orders   │ Admin    │ Companion│ Dashboard│ Portal   │ Spread   │
+│ :3004    │ :3002    │ :3003    │ :3001    │ :3005    │ :8082    │
+│ SolidJS  │ SolidJS  │ SolidJS  │ SolidJS  │ SolidJS  │ Docker   │
+│ Tailwind │ Tailwind │ PWA      │ Legacy   │ Tailwind │          │
+└────┬─────┴────┬─────┴────┬─────┴────┬─────┴──────────┬──────────┘
+     │          │          │          │                │
+     └──────────┴──────────┴──────────┘                │
+                      │                                │
+              ┌───────▼────────┐                       │
+              │   Hono API     │                       │
+              │   :3000        │                       │
+              │                │                       │
+              │ /work-orders   │                       │
+              │ /materials     │                       │
+              │ /voice         │                       │
+              │ /projects      │                       │
+              │ /units         │                       │
+              │ /taxonomy      │                       │
+              │ /a2a           │                       │
+              │ /ui (Swagger)  │                       │
+              └───────┬────────┘                       │
+                      │                                │
+              ┌───────▼────────────────────────────────▼──────────┐
+              │              Supabase (PostgreSQL)                 │
+              │              :54321 (API) / :54322 (DB)            │
+              │                                                    │
+              │  Auth · Realtime · Storage · Row-Level Security    │
+              └───────┬────────────────────────────────────────────┘
+                      │
+              ┌───────▼────────┐       ┌──────────────────┐
+              │  Doc Parser    │       │   Agent Zero      │
+              │  FastAPI :5000 │       │   :5080           │
+              │  GPU/Detectron │       │   A2A Client      │
+              └────────────────┘       └──────────────────┘
+```
+
+### 2.4 Port Allocation
+
+| Port | Service | Technology |
+|------|---------|------------|
+| 3000 | API (Hono) | Node/TypeScript |
+| 3001 | Web Dashboard | SolidJS (legacy/reference) |
+| 3002 | Material Admin | SolidJS + Tailwind |
+| 3003 | Site Companion | SolidJS PWA |
+| 3004 | Work Orders | SolidJS + Tailwind |
+| 3005 | Tenant Portal | SolidJS + Tailwind |
+| 5000 | Doc Parser | FastAPI/Python |
+| 5080 | Agent Zero | Python |
+| 8082 | NocoDB | Docker |
+| 54321 | Supabase API | PostgREST |
+| 54322 | PostgreSQL | Direct DB |
+| 54323 | Supabase Studio | Web UI |
+
+---
+
+## 3. Data Model
+
+### 3.1 Entity Relationship Summary
+
+```
+Organization (tenant)
+  ├── Units (physical spaces: apartments, condos)
+  │     ├── Unit Rooms (rooms within a unit + measurements)
+  │     ├── Unit Documents (linked architectural drawings)
+  │     └── Work Orders (one per trade per unit)
+  │           ├── Work Order Tasks (room × template checklist)
+  │           └── Work Order Notes (comments, voice logs)
+  │
+  ├── Rooms (master list: Kitchen, Bathroom, Bedroom...)
+  │
+  ├── Work Order Templates (trade checklists)
+  │     └── Template Definition (JSONB: sections → columns → steps)
+  │
+  ├── WO Projects (properties/job sites)
+  │     ├── Project Documents (uploaded PDFs, drawings)
+  │     │     └── Document Images (extracted pages/floor plans)
+  │     └── Project-scoped Template overrides
+  │
+  └── Template Libraries (importable template collections)
+```
+
+### 3.2 The Template Hierarchy (Three-Tier)
+
+This is the most architecturally significant design decision in the system:
+
+| Tier | Scope | Purpose | Example |
+|------|-------|---------|--------|
+| **App** | System-wide | Factory defaults, read-only | "Standard Painting Checklist v1" |
+| **Company** | Per organization | Tenant customizations | "Acme Painting Checklist" (adds extra steps) |
+| **Project** | Per wo_project | Job-specific overrides | "123 Main St Painting" (removes N/A rooms) |
+
+Templates cascade: a project template inherits from its company parent, which inherits from the app default. The `parent_template_id` and `copied_from_template_id` columns track lineage.
+
+### 3.3 The JSONB Strategy
+
+Relational tables handle entities that need indexing, joins, and permissions. JSONB handles deeply nested hierarchical data:
+
+| Table | JSONB Column | Contains |
+|-------|-------------|----------|
+| `work_order_templates` | `definition` | `{ sections: { "Prep": { columns: [...] }, "Finish": { columns: [...] } }, logic: { rules: [...] } }` |
+| `work_order_tasks` | `task_data` | `{ steps: [{ key, label, status, completed_by, completed_at, not_applicable }] }` |
+| `units` | `metadata` | Flexible unit-specific notes, special instructions |
+| `project_definitions` | `floorplan_definitions` | Nested room/item trees per floor plan type |
+| `products` | `attributes` | Spec matching data (dimensions, colors, materials) |
+
+A SQL view (`view_project_bom`) flattens the JSONB trees into rows for NocoDB consumption.
+
+### 3.4 Key Database Tables (Public Schema)
+
+**Core Business:**
+- `organizations` — Multi-tenant root
+- `units` — Physical spaces (apartments)
+- `rooms` — Room type catalog
+- `wo_projects` — Job sites/properties
+- `work_order_templates` — Trade checklist definitions
+- `work_orders` — Template instances per unit
+- `work_order_tasks` — Room-level checklist execution
+- `work_order_notes` — Comments and voice log entries
+- `template_libraries` — Importable template collections
+
+**Documents & Media:**
+- `project_documents` — Uploaded PDFs, drawings
+- `document_images` — Extracted page images
+- `unit_documents` — Links documents to units
+- `image_links` — Links images to any entity
+- `unit_rooms` — Room instances with measurements
+- `unit_room_measurements` — Detailed dimension data
+- `unit_room_calculations` — Computed areas/volumes
+
+**Tenant Portal:**
+- `portal_table_config` — Per-organization table access configuration (access levels, column visibility, editable columns)
+
+**Materials (Planned/Partial):**
+- `metric_definitions` — Measurement metrics
+
+**NocoDB (~90 tables):**
+- `nc_*` — NocoDB's internal metadata for its spreadsheet interface
+
+---
+
+## 4. Shared Packages
+
+### 4.1 `packages/schemas` — The Contract
+
+The most critical package. Every data shape is defined here as Zod schemas:
+
+| File | Exports | Used By |
+|------|---------|--------|
+| `work-orders.ts` | Organization, Unit, Room, Template, WorkOrder, Task, Note schemas + API request/response types | API routes, Work Orders app |
+| `materials.ts` | Supplier, Product, ProjectSupply schemas | Material Admin, API |
+| `renovation.ts` | Unit, UnitScopeItem schemas (legacy?) | Site Companion |
+| `taxonomy.ts` | Taxonomy categories (actions, room types) | Material Admin, API |
+| `delivery.ts` | Delivery tracking schemas | API |
+| `todo.ts` | Simple todo schemas | Web Dashboard |
+| `zod.ts` | Shared Zod utilities | All |
+
+### 4.2 `packages/config` — Centralized Configuration
+
+Hardcoded Supabase URLs, API keys, port assignments, and CORS origins. All apps import from here for consistency.
+
+### 4.3 `packages/db` — Database Types
+
+Auto-generated TypeScript types from Supabase schema via `pnpm db:types`. Provides compile-time safety for direct database queries.
+
+### 4.4 `packages/ui` — Shared Components
+
+Reusable SolidJS components (buttons, layouts) for consistent design across apps.
+
+### 4.5 `packages/logger` — Structured Logging
+
+Shared logging utility for consistent output formatting.
+
+### 4.6 `packages/tsconfig` — TypeScript Configuration
+
+Base TypeScript configuration inherited by all packages and apps via `workspace:*` symlinks.
+
+---
+
+## 5. Applications
+
+### 5.1 API (`apps/api`) — The Brain
+
+**Framework**: Hono (OpenAPIHono) on Node.js
+**Port**: 3000
+**Key Dependencies**: `@anthropic-ai/sdk`, `@supabase/supabase-js`, `pdfjs-dist`, `@napi-rs/canvas`
+
+**Routes:**
+
+| Route | Purpose | Key Operations |
+|-------|---------|----------------|
+| `/work-orders` | Work order CRUD | Create from template, update task steps, manage lifecycle |
+| `/work-orders` (documents) | Document management | Upload PDFs, link to projects/units |
+| `/materials` | Supplier/product catalog | CRUD for suppliers, products, project supplies |
+| `/taxonomy` | Category management | Actions, room types, item categories |
+| `/projects` | Project definitions | JSONB scope trees, floorplan definitions |
+| `/units` | Unit management | CRUD with metadata, scope items |
+| `/voice` | Voice processing | Audio → Whisper transcription → LLM structured extraction |
+| `/delivery` | Delivery tracking | Delivery scheduling and status |
+| `/todos` | Simple todos | Basic CRUD (reference/demo) |
+| `/a2a` | Agent-to-Agent protocol | JSON-RPC endpoint for AI agent interop |
+| `/ui` | Swagger UI | Interactive API documentation |
+| `/doc` | OpenAPI JSON | Machine-readable API spec |
+
+**Services Layer** (`src/services/`): Business logic separated from route handlers.
+**Middleware** (`src/middleware/`): Auth, validation, error handling.
+**Scripts** (`scripts/`): 50+ utility scripts for seeding, migration, testing, and verification.
+
+### 5.2 Work Orders App (`apps/work-orders`)
+
+**Framework**: SolidJS + Tailwind CSS + Vite
+**Port**: 3004
+**Purpose**: Primary management interface for work order lifecycle
+
+**Pages:**
+- `Dashboard` — Overview of all work orders, status summaries
+- `Units` — Browse and manage physical spaces
+- `Templates` — View/edit work order template definitions
+- `TemplateDetail` — Deep dive into a single template's sections and columns
+- `WorkOrderDetail` — Execute a work order: room-by-room checklist with step completion
+- `Projects` — Manage wo_projects (job sites)
+- `ProjectDetail` — Single project view with units, work orders, documents
+- `NewProject` — Project creation wizard
+- `ProjectDocuments` — Upload and manage architectural drawings/PDFs
+
+### 5.3 Site Companion (`apps/site-companion`)
+
+**Framework**: SolidJS PWA
+**Port**: 3003
+**Purpose**: Mobile-optimized field worker interface
+
+**Pages:**
+- `UnitList` — Browse assigned units
+- `UnitDetail` — View unit scope, execute work items
+- `VoiceTest` — Voice recording → transcription → structured data extraction
+
+**Key Feature**: Designed as a Progressive Web App for offline-capable field use. Workers can record voice memos that get transcribed and parsed into structured work log entries.
+
+### 5.4 Material Admin (`apps/material-admin`)
+
+**Framework**: SolidJS + Tailwind CSS
+**Port**: 3002
+**Purpose**: Supplier catalog, product management, taxonomy editing
+
+**Features:**
+- Supplier CRUD with contact info
+- Product catalog with JSONB attributes for spec matching
+- Project supplies (consumables) management
+- Taxonomy editing (room types, actions, categories)
+- JSON tree editor for complex nested definitions
+- BOM (Bill of Materials) flattened view
+
+### 5.5 Web Dashboard (`apps/web-dashboard`)
+
+**Framework**: SolidJS (minimal)
+**Port**: 3001
+**Purpose**: Legacy/reference admin view
+
+**Features:**
+- Login via Supabase Auth
+- Basic todo management (reference implementation)
+- Hono RPC client integration example
+
+### 5.6 Tenant Portal (`apps/tenant-portal`)
+
+**Framework**: SolidJS + Tailwind CSS + Vite
+**Port**: 3005
+**Purpose**: Configurable, embeddable data portal for external tenants
+
+**Features:**
+- **Authentication**: Supabase Auth with email/password and magic link support
+- **Dynamic Table Viewer**: Renders any configured table with pagination, sorting, and column filtering
+- **Inline Editing**: Click-to-edit cells for tables marked as editable, with automatic type detection
+- **Config-Driven Access**: `portal_table_config` table controls per-organization visibility:
+  - **Hidden**: Table not shown to tenant
+  - **Read Only**: Tenant can view but not modify data
+  - **Editable**: Tenant can inline-edit specified columns
+- **Column-Level Control**: Admins can hide columns, restrict which are editable, and set custom display order
+- **Admin Configuration Page**: Service-role powered interface to configure table access per organization
+- **Embeddable**: Hash-based routing (`#/dashboard`, `#/table/:name`, `#/admin`) works in iframes
+- **RLS Enforced**: All tenant queries use the anon key with Row-Level Security for automatic data isolation
+
+**Pages:**
+- `LoginPage` — Email/password + magic link toggle
+- `DashboardPage` — Card grid of available tables with access level badges
+- `TableViewPage` — Dynamic data grid with sort, pagination, inline editing
+- `AdminConfigPage` — Per-organization table access configuration (uses service role key)
+
+**Data Flow:**
+```
+Tenant → Login (Supabase Auth) → Dashboard
+  → portal_table_config (RLS filtered) → shows available tables
+  → Click table → supabase.from(tableName).select() (RLS filtered)
+  → DataGrid renders with readonly/editable mode per config
+  → Editable cells → supabase.from(tableName).update() → RLS enforced
+```
+
+---
+
+## 6. Supporting Services
+
+### 6.1 Doc Parser (`doc-parser/`)
+
+**Framework**: FastAPI (Python)
+**Port**: 5000
+**Infrastructure**: Docker with GPU support (Detectron2, LayoutParser)
+
+**Capabilities:**
+- PDF upload and page rendering
+- Layout analysis (text blocks, tables, figures)
+- Floor plan detection and extraction
+- Image upload to Supabase Storage
+- Text extraction via PyMuPDF
+
+**Integration**: Called via HTTP from the Hono API or directly from Agent Zero. Uploads extracted images to Supabase Storage and returns structured metadata.
+
+### 6.2 NocoDB (`nocodb/`)
+
+**Port**: 8082
+**Purpose**: Spreadsheet interface directly connected to the Supabase PostgreSQL database
+
+**Use Cases:**
+- Bulk editing relational data (units, rooms, taxonomy)
+- Viewing flattened SQL views of JSONB data (`view_project_bom`)
+- Ad-hoc queries without building custom UI
+- Deep linking to the Material Admin app for complex JSONB editing
+
+### 6.3 A2A Protocol
+
+The API exposes an Agent-to-Agent JSON-RPC endpoint at `/a2a` with an agent card at `/.well-known/agent.json`. This enables:
+- External AI agents (like Agent Zero) to discover and interact with the platform
+- Structured task delegation (e.g., "create a work order for unit 101")
+- Multi-agent workflows across different AI systems
+
+---
+
+## 7. Current State Assessment
+
+### 7.1 What's Built and Working
+
+| Component | Status | Maturity |
+|-----------|--------|----------|
+| Monorepo infrastructure | ✅ Complete | Production-ready |
+| Supabase schema + migrations | ✅ Complete | 6 migrations, well-structured |
+| Shared schemas (Zod) | ✅ Complete | Comprehensive type coverage |
+| API routes (Hono) | ✅ Complete | 10 route modules, OpenAPI docs |
+| Work Orders app | ✅ Complete | Full CRUD, template hierarchy, documents |
+| Material Admin app | ✅ Complete | Suppliers, products, taxonomy, JSON editor |
+| Site Companion app | ⚠️ Scaffold | Basic unit list, voice test page |
+| Web Dashboard | ⚠️ Legacy | Login + todos only |
+| Doc Parser | ✅ Complete | GPU pipeline, Supabase integration |
+| NocoDB integration | ✅ Complete | Connected to Supabase DB |
+| Tenant Portal | ✅ Complete | Auth, dynamic tables, inline editing, admin config |
+| A2A Protocol | ✅ Complete | Agent card + JSON-RPC endpoint |
+| Template hierarchy (3-tier) | ✅ Complete | App/Company/Project scoping |
+| Document storage | ✅ Complete | Upload, extraction, linking |
+| Voice processing | ⚠️ Partial | Transcription works, structured extraction in progress |
+| Timesheet system | 📋 Designed | Schema designed, not yet implemented |
+| Auth / RLS | ⚠️ Partial | Supabase Auth configured, RLS policies need hardening |
+| Realtime subscriptions | ⚠️ Partial | Infrastructure ready, limited app integration |
+
+### 7.2 What's Designed but Not Yet Implemented
+
+**Timesheet System** (documented in `docs/timesheet/`):
+- `timesheets` table — daily time containers per user
+- `work_logs` table — links hours to specific BOM items (`site_item_id`)
+- Milestone tracking (e.g., "Prime 30%", "Finish 100%")
+- Earned value calculations
+- Voice-to-timesheet pipeline (speak → transcribe → extract hours + items → create work_log)
+
+**Materials/BOM System** (partially documented):
+- `site_items` table — exploded BOM from JSONB definitions
+- Product-to-scope matching via JSONB attributes
+- Supplier order management
+- Project supplies tracking
+
+---
+
+## 8. Data Flow Patterns
+
+### 8.1 Work Order Lifecycle
+
+```
+1. Admin creates Template (definition JSONB with sections/columns)
+         ↓
+2. Admin creates Work Order for Unit + Trade
+         ↓
+3. System "snapshots" template → creates WorkOrderTasks (one per room)
+         ↓
+4. Field worker opens Site Companion → sees room checklist
+         ↓
+5. Worker completes steps (task_data JSONB updated)
+         ↓
+6. Inspector reviews → signs off → work order marked complete
+```
+
+### 8.2 Voice Processing Pipeline
+
+```
+1. Field worker records voice memo in Site Companion
+         ↓
+2. Audio sent to API /voice endpoint
+         ↓
+3. Whisper transcribes audio → text
+         ↓
+4. Anthropic Claude extracts structured data:
+   - Hours worked
+   - Items completed
+   - Issues/notes
+         ↓
+5. Structured data creates/updates work_logs, work_order_tasks
+```
+
+### 8.3 Document Processing Pipeline
+
+```
+1. Admin uploads PDF (architectural drawings) via Work Orders app
+         ↓
+2. File stored in Supabase Storage, metadata in project_documents
+         ↓
+3. Doc Parser service called:
+   - Renders pages to images
+   - Detects layout (tables, figures, floor plans)
+   - Extracts text
+   - Uploads images to Supabase Storage
+         ↓
+4. Extracted images stored in document_images table
+         ↓
+5. Images linked to units/rooms via image_links table
+```
+
+### 8.4 NocoDB ↔ Custom App Integration
+
+```
+1. NocoDB reads relational data directly from PostgreSQL
+         ↓
+2. Complex JSONB data exposed via SQL views (view_project_bom)
+         ↓
+3. "Edit in App" deep links open Material Admin with URL params
+         ↓
+4. Material Admin's JsonTreeEditor modifies JSONB directly
+         ↓
+5. Changes visible in NocoDB immediately (same database)
+```
+
+### 8.5 Tenant Portal Access Flow
+
+```
+1. Admin configures portal_table_config for an organization
+   (sets tables as hidden/readonly/editable, column visibility)
+         ↓
+2. Tenant logs in via Supabase Auth (email/password or magic link)
+         ↓
+3. Dashboard fetches portal_table_config (RLS filters by org)
+         ↓
+4. Tenant clicks a table → TableViewPage queries supabase.from(tableName)
+   (RLS automatically filters to tenant's organization data)
+         ↓
+5. For editable tables: click cell → inline edit → supabase.update()
+   (RLS prevents cross-tenant writes)
+```
+
+---
+
+## 9. Strategic Direction & Recommendations
+
+### 9.1 Immediate Next Steps
+
+1. **Implement Timesheet Tables**: The schema is designed (`docs/timesheet/schema_design.md`). Create the migration for `timesheets`, `work_logs`, and `site_items` tables.
+
+2. **Voice-to-Timesheet Pipeline**: Connect the existing voice transcription to the timesheet data model. This is the platform's killer feature — workers speak their hours and the system creates structured time entries.
+
+3. **Site Companion Buildout**: The PWA scaffold exists but needs the full work order execution UI (room checklists, step completion, photo capture).
+
+4. **RLS Policy Hardening**: Current policies are permissive for development. Production requires proper `organization_id` scoping and role-based access.
+
+### 9.2 Architecture Strengths
+
+- **Schema-first approach** prevents data model drift across 5+ applications
+- **JSONB hybrid** elegantly handles the tension between structured queries and deeply nested domain data
+- **Template hierarchy** is a sophisticated solution to the "every project is slightly different" problem
+- **Monorepo with Turborepo** enables rapid iteration without dependency hell
+- **A2A protocol** future-proofs for AI agent integration
+
+### 9.3 Architecture Risks
+
+- **JSONB complexity**: The flattened SQL views are read-only. Any write path for nested data requires the custom app, creating a dependency on the Material Admin for certain operations.
+- **NocoDB coupling**: ~90 NocoDB tables in the same database adds metadata overhead and potential migration conflicts.
+- **Config package hardcoding**: Supabase URLs and keys are hardcoded in `packages/config`. Should migrate to environment variables for deployment flexibility.
+- **Single API server**: All routes in one Hono instance. As the platform grows, consider splitting into domain-specific services.
+
+---
+
+## 10. File Structure Reference
+
+```
+voicelog-scaffold/
+├── apps/
+│   ├── api/                  # Hono backend (The Brain)
+│   │   ├── src/
+│   │   │   ├── routes/       # 10 route modules
+│   │   │   ├── services/     # Business logic
+│   │   │   ├── middleware/   # Auth, validation
+│   │   │   └── index.ts      # App entry + route mounting
+│   │   └── scripts/          # 50+ utility scripts
+│   ├── work-orders/          # Work order management UI
+│   ├── material-admin/       # Supplier/product/taxonomy UI
+│   ├── site-companion/       # Mobile PWA for field workers
+│   ├── web-dashboard/        # Legacy admin reference
+│   └── tenant-portal/        # Configurable tenant data portal
+│       ├── src/
+│       │   ├── pages/        # Login, Dashboard, TableView, AdminConfig
+│       │   ├── components/   # Layout, DataGrid, EditableCell, Pagination
+│       │   └── lib/          # Supabase clients, router, types
+│       └── [config files]    # Vite, Tailwind, TypeScript
+├── packages/
+│   ├── schemas/              # Zod schemas (THE CONTRACT)
+│   ├── db/                   # Auto-generated Supabase types
+│   ├── config/               # Centralized configuration
+│   ├── ui/                   # Shared SolidJS components
+│   ├── logger/               # Structured logging
+│   ├── utils/                # Shared utilities
+│   └── tsconfig/             # Base TypeScript config
+├── supabase/
+│   ├── config.toml           # Supabase local config
+│   └── migrations/           # 6 SQL migrations
+├── doc-parser/               # FastAPI document parsing service
+├── nocodb/                   # NocoDB Docker config
+├── docs/                     # Comprehensive documentation
+│   ├── general/              # This analysis
+│   ├── workorders/           # Work order implementation docs
+│   ├── timesheet/            # Timesheet design docs
+│   └── a2a/                  # Agent protocol docs
+├── turbo.json                # Turborepo build config
+├── pnpm-workspace.yaml       # Workspace definition
+└── package.json              # Root dependencies
+```
+
+---
+
+*This document reflects the state of the codebase as of 2026-02-18. It should be updated as major architectural decisions are made or new subsystems are implemented.*
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

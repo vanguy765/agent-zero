@@ -1,0 +1,33 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# > > > >        table_name
+------------------------
+ unit_documents
+ unit_room_calculations
+ unit_room_measurements
+ unit_rooms
+ units
+ v_unit_cost_sheet
+(6 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# ---SEP---
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 50:workOrdersRoute.get('/units', async (c) => {
+66:workOrdersRoute.get('/units/:id', async (c) => {
+83:workOrdersRoute.patch('/units/:id', async (c) => {
+106:workOrdersRoute.get('/projects', async (c) => {
+121:workOrdersRoute.get('/projects/:id', async (c) => {
+138:workOrdersRoute.post('/projects', async (c) => {
+155:workOrdersRoute.patch('/projects/:id', async (c) => {
+174:workOrdersRoute.delete('/projects/:id', async (c) => {
+194:workOrdersRoute.get('/template-libraries', async (c) => {
+218:workOrdersRoute.get('/template-libraries/:id', async (c) => {
+244:workOrdersRoute.get('/template-libraries/default/:projectType', async (c) => {
+268:workOrdersRoute.get('/templates', async (c) => {
+284:workOrdersRoute.get('/templates/:id', async (c) => {
+301:workOrdersRoute.post('/templates', async (c) => {
+332:workOrdersRoute.get('/work-orders', async (c) => {
+360:workOrdersRoute.get('/work-orders/:id', async (c) => {
+389:workOrdersRoute.post('/work-orders', async (c) => {
+648:workOrdersRoute.patch('/work-orders/:id', async (c) => {
+671:workOrdersRoute.patch('/work-orders/:workOrderId/tasks/:taskId', async (c) => {
+728:workOrdersRoute.post('/work-orders/:id/notes', async (c) => {
+756:workOrdersRoute.get('/work-orders/:id/notes', async (c) => {
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

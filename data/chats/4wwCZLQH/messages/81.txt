@@ -1,0 +1,35 @@
+ALTER TABLE
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql:13: NOTICE:  constraint "chk_template_status" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql:24: NOTICE:  constraint "chk_template_gen_source" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql:38: NOTICE:  constraint "chk_room_status" of relation "rooms" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql:49: NOTICE:  constraint "chk_room_gen_source" of relation "rooms" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+COMMENT
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql:130: ERROR:  relation "profiles" does not exist
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql:137: ERROR:  relation "profiles" does not exist
+CREATE TRIGGER
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

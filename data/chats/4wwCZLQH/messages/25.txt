@@ -1,0 +1,18 @@
+Parsed: 18 tables, 7 functions, 5 views
+  41 indexes, 11 triggers, 29 FKs, 18 PKs
+
+Migration sizes (chars):
+   1. extensions           526 chars
+   2. functions            3,397 chars
+   3. core_tables          2,913 chars
+   4. work_orders          4,540 chars
+   5. units                4,522 chars
+   6. documents            1,869 chars
+   7. agent_memories       989 chars
+   8. foreign_keys         5,186 chars
+   9. indexes              4,159 chars
+  10. views                15,933 chars
+  11. triggers             1,884 chars
+
+Ready to write files.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,201 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# [32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v3/data/:baseName/:modelId/links/:columnId/:rowId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v3/data/:baseName/:modelId/links/:columnId/:rowId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v3/data/:baseName/:modelId/count, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v3/data/:baseName/:modelId/records/:rowId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mJobsController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/jobs/listen, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mDuplicateController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/duplicate/:workspaceId/shared/:sharedBaseId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/duplicate/:baseId/:sourceId?, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/duplicate/:baseId/:sourceId?, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/duplicate/:baseId/table/:modelId, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/duplicate/:baseId/table/:modelId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/duplicate/:baseId/column/:columnId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/duplicate/:baseId/column/:columnId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMigrateController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/migrate/:baseId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAtImportController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/syncs/:syncId/trigger, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/syncs/:syncId/trigger, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/syncs/:syncId/abort, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/syncs/:syncId/abort, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMetaSyncController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/projects/:baseId/meta-diff, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/bases/:baseId/meta-diff, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/bases/:baseId/meta-diff/:sourceId, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/projects/:baseId/meta-diff, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/bases/:baseId/meta-diff, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/bases/:baseId/meta-diff/:sourceId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSourceCreateController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/projects/:baseId/bases, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/bases/:baseId/sources, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSourceDeleteController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/db/meta/projects/:baseId/bases/:sourceId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/meta/bases/:baseId/sources/:sourceId, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mDataExportController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/export/:viewId/:exportAs, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mPublicDataExportController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/public/export/:publicDataUuid/:exportAs, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOAuthController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/public/oauth/client/:clientId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/oauth/authorize, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/oauth/authorize, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/oauth/token, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/oauth/revoke, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mNotFoundV3Controller {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v3/*, ALL} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mApiVersionNotFoundController {/}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v1/*, ALL} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v2/*, ALL} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/v:apiVersion(\d+)/*, ALL} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 8  - [39m02/11/2026, 6:23:58 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +9ms[39m
+UnauthorizedException: Unauthorized
+    at GlobalGuard.handleRequest (/usr/src/app/node_modules/@nestjs/passport/dist/auth.guard.js:60:30)
+    at /usr/src/app/node_modules/@nestjs/passport/dist/auth.guard.js:44:124
+    at /usr/src/app/node_modules/@nestjs/passport/dist/auth.guard.js:83:24
+    at allFailed (/usr/src/app/node_modules/passport/lib/middleware/authenticate.js:114:18)
+    at attempt (/usr/src/app/node_modules/passport/lib/middleware/authenticate.js:183:28)
+    at strategy.fail (/usr/src/app/node_modules/passport/lib/middleware/authenticate.js:314:9)
+    at /usr/src/app/node_modules/passport-jwt/lib/strategy.js:106:33
+    at /usr/src/app/node_modules/jsonwebtoken/verify.js:171:14
+    at getSecret (/usr/src/app/node_modules/jsonwebtoken/verify.js:97:14)
+    at module.exports [as verify] (/usr/src/app/node_modules/jsonwebtoken/verify.js:101:10) {
+  response: { message: 'Unauthorized', statusCode: 401 },
+  status: 401,
+  options: {}
+}
+docker : [31m[Nest] 8  - [39m02/11/2026,
+6:25:00 AM [31m  ERROR[39m
+[38;5;3m[GlobalExceptionFilter]
+[39m[31mWorkspace ID is required[39m
+At line:1 char:1
++ docker logs nocodb > nocodb_logs.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (
+   [31m[Nest] 8  ...s required[39m:String) [
+  ], RemoteException
+    + FullyQualifiedErrorId : NativeCommandErr
+   or
+ 
+Error: Workspace ID is required
+    at NcErrorV1.metaError
+(/usr/src/app/docker/main.js:24:835087)
+    at NcError.metaError
+(/usr/src/app/docker/main.js:1333:73167)
+    at MetaService.metaInsert2
+(/usr/src/app/docker/main.js:1375:7786)
+    at process.processTicksAndRejections
+(node:internal/process/task_queues:105:5)
+    at async Source.createBase
+(/usr/src/app/docker/main.js:1421:312547)
+    at async Base.createProject
+(/usr/src/app/docker/main.js:1421:114824)
+    at async BasesService.baseCreate
+(/usr/src/app/docker/main.js:1532:450351)
+    at async BasesController.baseCreate
+(/usr/src/app/docker/main.js:207:20126)
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# does not exist[39m
+> [31m[Nest] 9  -
+[39m01/21/2026, 6:04:16 AM [31m
+ ERROR[39m
+[38;5;3m[GlobalExceptionFilter]
+[39m[31mPlease check server log
+for more details[39m
+> Error: Please check server log
+for more details
+>     at
+NcErrorCodexManager.generateError
+(/usr/src/app/docker/main.js:24:82
+5292)
+>     at
+NcErrorV1.internalServerError (/us
+r/src/app/docker/main.js:24:829834
+)
+      at /usr/src/app/docker/main.
+js:1575:72702
+      at
+process.processTicksAndRejections
+(node:internal/process/task_queues
+:105:5)
+      at async Promise.all (index
+1)
+      at async
+DatasService.getDataList (/usr/src
+/app/docker/main.js:1575:72101)
+      at async
+DatasService.dataList (/usr/src/ap
+p/docker/main.js:1575:69060)
+      at async
+DataAliasController.dataList (/usr
+/src/app/docker/main.js:207:53032)
+> [31m[Nest] 9  -
+[39m01/21/2026, 6:04:45 AM [31m
+ ERROR[39m
+[38;5;3m[DatasService]
+[39m[31mError fetching data[39m
+> [31m[Nest] 9  -
+[39m01/21/2026, 6:04:45 AM [31m
+ ERROR[39m
+[38;5;3m[DatasService]
+[39m[31merror: select
+"public"."view_project_bom"."id"
+as "cmdndhhzyb9nnro", "public"."vi
+ew_project_bom"."project_id" as
+"candsnwzir7s2me", "public"."view_
+project_bom"."floorplan_name" as
+"cr75jiz1x9vnfx1", "public"."view_
+project_bom"."room_name" as
+"cz0g5m11drz4rmu", "public"."view_
+project_bom"."item_name" as
+"c11038la36qon8f", "public"."view_
+project_bom"."action" as
+"cs58fw7584fmung", "public"."view_
+project_bom"."measure" as
+"cu56zgsf8blxag1", "public"."view_
+project_bom"."quantity" as
+"ci3off74popjd9a", "public"."view_
+project_bom"."other_attributes"
+as "cvq5c9yjhaf8or6" from
+"public"."view_project_bom" order
+by "project_id" asc nulls FIRST
+limit 100 - column
+view_project_bom.floorplan_name
+does not exist[39m
+> [31m[Nest] 9  -
+[39m01/21/2026, 6:04:45 AM [31m
+ ERROR[39m
+[38;5;3m[GlobalExceptionFilter]
+[39m[31mPlease check server log
+for more details[39m
+> Error: Please check server log
+for more details
+>     at
+NcErrorCodexManager.generateError
+(/usr/src/app/docker/main.js:24:82
+5292)
+>     at
+NcErrorV1.internalServerError (/us
+r/src/app/docker/main.js:24:829834
+)
+      at /usr/src/app/docker/main.
+js:1575:72702
+      at
+process.processTicksAndRejections
+(node:internal/process/task_queues
+:105:5)
+      at async Promise.all (index
+1)
+      at async
+DatasService.getDataList (/usr/src
+/app/docker/main.js:1575:72101)
+      at async
+DatasService.dataList (/usr/src/ap
+p/docker/main.js:1575:69060)
+
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# {"message":"OK","timestamp":1771394287658,"uptime":581.553419706}(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

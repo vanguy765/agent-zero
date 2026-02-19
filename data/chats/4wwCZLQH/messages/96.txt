@@ -1,0 +1,52 @@
+595 docs/general/platform_analysis.md
+# Voicelog Scaffold — Comprehensive Platform Analysis
+
+> **Generated**: 2026-02-18 | **Author**: Agent Zero (Developer)
+> **Scope**: Full monorepo architecture, data model, services, current state, and strategic direction
+
+---
+
+## 1. What You're Building
+
+A **construction renovation management platform** — a suite of interconnected applications that digitize the entire lifecycle of multi-unit renovation projects, from initial scope definition through work execution, inspection, and closeout.
+
+The platform solves a specific industry pain point: construction teams juggle spreadsheets, paper checklists, voice memos, and disconnected tools. This system unifies everything into a single data model where:
+
+- **Office staff** define project scopes, manage templates, upload architectural drawings, and track progress from dashboards
+- **Field workers** execute work orders room-by-room using mobile-optimized checklists, log time via voice, and capture site conditions
+- **Tenants** access their project data through a configurable portal with read-only or editable views
+- **AI agents** process voice recordings into structured data, parse architectural documents, and interoperate via the A2A protocol
+- **NocoDB** provides a spreadsheet-like interface for bulk data management and ad-hoc queries without custom UI development
+
+The platform is **multi-tenant** (organizations), **multi-project** (wo_projects), and **multi-trade** (painting, plumbing, carpentry, etc.).
+
+---
+
+## 2. Architecture Overview
+
+### 2.1 Philosophy
+
+Three core principles drive every technical decision:
+
+1. **Schema-First**: Zod schemas in `packages/schemas` are the single source of truth. If it's not in a schema, it doesn't exist. This guarantees type safety from database to UI.
+2. **Monorepo with Shared DNA**: Multiple apps share the same data model, validation logic, and configuration. A change to a schema propagates instantly to all consumers.
+3. **Hybrid Relational + JSONB**: Relational columns for indexing, foreign keys, and permissions. JSONB columns for deeply nested hierarchical data (template definitions, scope trees, overrides).
+
+### 2.2 Technology Stack
+
+| Layer | Technology | Rationale |
+|---|---|---|
+| **Monorepo** | Turborepo + pnpm | Fast parallel builds, workspace linking, dependency deduplication |
+| **Frontend** | SolidJS + Vite | True reactivity via signals (no virtual DOM), sub-second HMR |
+| **Backend** | Hono (OpenAPIHono) | Lightweight, web-standard, runs on Node/Edge/Deno. Built-in OpenAPI generation |
+| **Database** | Supabase (PostgreSQL) | Managed Postgres with Auth, Realtime subscriptions, Storage, and Row-Level Security |
+| **Validation** | Zod | Runtime validation + static TypeScript inference from a single definition |
+| **Styling** | Tailwind CSS | Utility-first, consistent design system across apps |
+| **Voice/AI** | Anthropic Claude + OpenAI Whisper | Voice transcription → LLM structured extraction |
+| **Document Parsing** | FastAPI + Detectron2 + LayoutParser | GPU-accelerated PDF parsing, floor plan detection, image extraction |
+| **Spreadsheet UI** | NocoDB | No-code database interface for bulk editing relational data |
+| **Agent Protocol** | A2A (Agent-to-Agent) | JSON-RPC interoperability between AI agents |
+
+### 2.3 Service Topology
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

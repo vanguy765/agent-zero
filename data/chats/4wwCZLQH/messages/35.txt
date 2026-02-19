@@ -1,0 +1,42 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# pg_dump: warning: there are circular foreign-key constraints on this table:
+pg_dump: detail: work_order_templates
+pg_dump: hint: You might not be able to restore the dump without using --disable-triggers or temporarily dropping the constraints.
+pg_dump: hint: Consider using a full dump instead of a --data-only dump to avoid this problem.
+--
+-- PostgreSQL database dump
+--
+
+\restrict BaNb3QUMPIQ71QsdO0bSZbk7o3EASv5LBjCKCdPvKyyRcehZOaCMrArNNsxlZGY
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 18.1 (Debian 18.1-2)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.organizations (id, name, slug, settings, created_at, updated_at) VALUES ('00000000-0000-0000-0000-000000000001', 'Bill Hennessy Place', 'bill-hennessy-place', '{"address": "501 E Hastings, Vancouver, BC", "total_units": 22, "project_type": "renovation"}', '2026-02-12 02:02:43.973884+00', '2026-02-12 02:02:43.973884+00');
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# INSERT INTO public.work_order_tasks (id, work_order_id, room_id, row_order, task_data, created_at, updated_at) VALUES ('fd32544f-926b-4479-ad4d-17f85740e791', 'a963f3ee-9cbb-4aae-a192-5f442e0076d2', '10000000-0000-0000-0000-000000000011', 6, '{"steps": [{"key": "remove_doors", "label": "Remove Doors", "status": "pending", "not_applicable": false}, {"key": "remove_tracking", "label": "Remove Tracking", "status": "pending", "not_applicable": false}, {"key": "close_baseboard", "label": "Close Baseboard", "status": "pending", "not_applicable": false}, {"key": "patch", "label": "Patch", "status": "pending", "not_applicable": false}, {"key": "caulk", "label": "Caulk", "status": "pending", "not_applicable": false}]}', '2026-02-15 21:24:10.402117+00', '2026-02-15 21:24:10.402117+00');
+INSERT INTO public.work_order_tasks (id, work_order_id, room_id, row_order, task_data, created_at, updated_at) VALUES ('7f12f0cb-968c-45f7-a6ab-e49d0dd1cb17', 'a963f3ee-9cbb-4aae-a192-5f442e0076d2', '10000000-0000-0000-0000-000000000014', 7, '{"steps": [{"key": "remove_doors", "label": "Remove Doors", "status": "pending", "not_applicable": false}, {"key": "remove_tracking", "label": "Remove Tracking", "status": "pending", "not_applicable": false}, {"key": "close_baseboard", "label": "Close Baseboard", "status": "pending", "not_applicable": false}, {"key": "patch", "label": "Patch", "status": "pending", "not_applicable": false}, {"key": "caulk", "label": "Caulk", "status": "pending", "not_applicable": false}]}', '2026-02-15 21:24:10.402117+00', '2026-02-15 21:24:10.402117+00');
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict BaNb3QUMPIQ71QsdO0bSZbk7o3EASv5LBjCKCdPvKyyRcehZOaCMrArNNsxlZGY
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

@@ -1,0 +1,38 @@
+9:## Quick Reference
+26:## Entity Relationship Overview
+55:## 1. Core / Tenancy
+57:### `organizations`
+73:### `wo_projects`
+91:### `rooms`
+106:### `template_libraries`
+127:## 2. Work Orders
+129:### `work_order_templates`
+154:### `work_orders`
+178:### `work_order_tasks`
+195:### `work_order_notes`
+211:## 3. Units & Rooms
+213:### `units`
+237:### `unit_rooms`
+257:### `unit_documents`
+272:## 4. Measurements & Costs
+274:### `unit_room_measurements`
+300:### `unit_room_calculations`
+331:### `metric_definitions`
+347:## 5. Documents & Media
+349:### `project_documents`
+370:### `document_images`
+388:### `image_links`
+404:## 6. Tenant Portal
+406:### `portal_table_config`
+434:## 7. AI / Agent
+436:### `agent_memories`
+455:## 8. Views (Reporting)
+459:### `v_unit_cost_sheet`
+468:### `v_project_cost_summary`
+475:### `v_budget_tracker`
+482:### `v_trade_cost_comparison`
+487:### `v_all_calculations`
+492:## 9. NocoDB Residual Tables
+505:## 10. RLS (Row-Level Security) Status
+533:## 11. Foreign Key Map
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

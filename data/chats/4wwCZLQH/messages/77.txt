@@ -1,0 +1,193 @@
+import { z } from 'zod';
+
+// ============================================================================
+// Work Orders Schemas
+// ============================================================================
+
+// Organization
+export const OrganizationSchema = z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1),
+    slug: z.string().min(1),
+    settings: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type Organization = z.infer<typeof OrganizationSchema>;
+
+// WorkOrderUnit (renamed to avoid conflict with renovation.ts Unit)
+export const WorkOrderUnitSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    unit_number: z.string().min(1),
+    unit_type: z.string().nullable(),
+    floor: z.number().int().nullable(),
+    area_sf: z.number().nullable(),
+    status: z.enum(['not_started', 'in_progress', 'complete']),
+    metadata: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderUnit = z.infer<typeof WorkOrderUnitSchema>;
+
+// Room
+export const RoomSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    name: z.string().min(1),
+    display_order: z.number().int(),
+    created_at: z.string().datetime(),
+});
+
+export type Room = z.infer<typeof RoomSchema>;
+
+// Template Column Definition
+export const TemplateColumnSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    type: z.enum(['checkbox', 'text', 'number', 'date']),
+    synonyms: z.array(z.string()).optional(),
+    default_na: z.boolean().optional(), // Default to "Not Applicable"
+    tooltip: z.string().optional(),
+});
+
+export type TemplateColumn = z.infer<typeof TemplateColumnSchema>;
+
+// Template Section
+export const TemplateSectionSchema = z.object({
+    label: z.string(),
+    columns: z.array(TemplateColumnSchema),
+});
+
+export type TemplateSection = z.infer<typeof TemplateSectionSchema>;
+
+// Work Order Template Definition (JSONB structure)
+export const TemplateDefinitionSchema = z.object({
+    sections: z.record(TemplateSectionSchema),
+    logic: z.object({
+        rules: z.array(z.object({
+            if: z.record(z.any()),
+            then: z.record(z.any()),
+        })),
+    }).optional(),
+});
+
+export type TemplateDefinition = z.infer<typeof TemplateDefinitionSchema>;
+
+// Work Order Template
+export const WorkOrderTemplateSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    trade_name: z.string().min(1),
+    version: z.number().int(),
+    is_active: z.boolean(),
+    definition: TemplateDefinitionSchema,
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderTemplate = z.infer<typeof WorkOrderTemplateSchema>;
+
+// Work Order
+export const WorkOrderSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    unit_id: z.string().uuid(),
+    template_id: z.string().uuid(),
+    trade_name: z.string().min(1),
+    status: z.enum(['pending', 'in_progress', 'complete', 'on_hold']),
+    assigned_contractor_id: z.string().uuid().nullable(),
+    inspector_id: z.string().uuid().nullable(),
+    start_date: z.string().datetime().nullable(),
+    completion_date: z.string().datetime().nullable(),
+    inspector_signoff_date: z.string().datetime().nullable(),
+    metadata: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrder = z.infer<typeof WorkOrderSchema>;
+
+// Task Step (within task_data JSONB)
+export const TaskStepSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    status: z.enum(['pending', 'complete', 'blocked']),
+    completed_by: z.string().uuid().nullable().optional(),
+    completed_at: z.number().nullable().optional(), // Unix timestamp
+    not_applicable: z.boolean().optional(),
+});
+
+export type TaskStep = z.infer<typeof TaskStepSchema>;
+
+// Work Order Task Data (JSONB structure)
+export const TaskDataSchema = z.object({
+    steps: z.array(TaskStepSchema),
+});
+
+export type TaskData = z.infer<typeof TaskDataSchema>;
+
+// Work Order Task
+export const WorkOrderTaskSchema = z.object({
+    id: z.string().uuid(),
+    work_order_id: z.string().uuid(),
+    room_id: z.string().uuid(),
+    row_order: z.number().int(),
+    task_data: TaskDataSchema,
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderTask = z.infer<typeof WorkOrderTaskSchema>;
+
+// Work Order Note
+export const WorkOrderNoteSchema = z.object({
+    id: z.string().uuid(),
+    work_order_id: z.string().uuid(),
+    author_id: z.string().uuid(),
+    content: z.string().min(1),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderNote = z.infer<typeof WorkOrderNoteSchema>;
+
+// ============================================================================
+// API Request/Response Schemas
+// ============================================================================
+
+// Create Work Order Request
+export const CreateWorkOrderRequestSchema = z.object({
+    unit_id: z.string().uuid(),
+    template_id: z.string().uuid(),
+    assigned_contractor_id: z.string().uuid().optional(),
+});
+
+export type CreateWorkOrderRequest = z.infer<typeof CreateWorkOrderRequestSchema>;
+
+// Update Task Step Request
+export const UpdateTaskStepRequestSchema = z.object({
+    step_key: z.string(),
+    status: z.enum(['pending', 'complete', 'blocked']),
+    not_applicable: z.boolean().optional(),
+});
+
+export type UpdateTaskStepRequest = z.infer<typeof UpdateTaskStepRequestSchema>;
+
+// Create Note Request
+export const CreateNoteRequestSchema = z.object({
+    content: z.string().min(1),
+});
+
+export type CreateNoteRequest = z.infer<typeof CreateNoteRequestSchema>;
+---SEP---
+export * from './todo';
+export * from './delivery';
+export * from './zod';
+export * from './materials';
+export * from './taxonomy';
+export * from './renovation';
+export * from './work-orders';
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

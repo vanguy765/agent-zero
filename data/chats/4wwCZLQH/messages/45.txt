@@ -1,0 +1,23 @@
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiaWQiOiJ1czZ2bHV1bDM3NWMxMTkwIiwicm9sZXMiOnsib3JnLWxldmVsLWNyZWF0b3IiOnRydWUsInN1cGVyIjp0cnVlfSwidG9rZW5fdmVyc2lvbiI6ImRkMWMwNmQzYWY3NWU3NDU2YzM4OGRlMzdlMGNiNTgzYzcxYzMyOGVlOTJhNjkwZmM5MzI2ZjBiMTBiNTJiODk0NmRmM2I1YTQ4OGZiNGI2IiwiaWF0IjoxNzcxNDcyODgwLCJleHAiOjE3NzE1MDg4ODB9.DB__CLUQTPhvm8swK-R-udPu-XiamQo1swmtaBTIWcU"}(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# > > > Accept: */*
+> Content-Type: application/json
+> Content-Length: 55
+>
+} [55 bytes data]
+* upload completely sent off: 55 bytes
+< HTTP/1.1 200 OK
+< X-Powered-By: Express
+< Access-Control-Allow-Origin: *
+< Set-Cookie: refresh_token=7f3130b619aeab140dffc6ffccb930c9d03f185248deca9942c8857a6fd2c6e3d3a53987a5db0a7e; Path=/; Expires=Sat, 21 Mar 2026 03:48:11 GMT; HttpOnly
+< Content-Type: application/json; charset=utf-8
+< Content-Length: 405
+< ETag: W/"195-KPxG95uqgOXaHd0gMTADirO4iPg"
+< Date: Thu, 19 Feb 2026 03:48:11 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+<
+{ [405 bytes data]
+* Connection #0 to host host.docker.internal:8082 left intact
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiaWQiOiJ1czZ2bHV1bDM3NWMxMTkwIiwicm9sZXMiOnsib3JnLWxldmVsLWNyZWF0b3IiOnRydWUsInN1cGVyIjp0cnVlfSwidG9rZW5fdmVyc2lvbiI6ImRkMWMwNmQzYWY3NWU3NDU2YzM4OGRlMzdlMGNiNTgzYzcxYzMyOGVlOTJhNjkwZmM5MzI2ZjBiMTBiNTJiODk0NmRmM2I1YTQ4OGZiNGI2IiwiaWF0IjoxNzcxNDcyODkxLCJleHAiOjE3NzE1MDg4OTF9.8_iyM7_v4sg4Hp_12Me6iBrzmJaFyX81OQ-MAxTr33w"}(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n---
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# {"error":"ERR_AUTHENTICATION_REQUIRED","message":"Authentication required - Invalid token"}(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

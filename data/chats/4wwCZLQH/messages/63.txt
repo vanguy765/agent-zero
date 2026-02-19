@@ -1,0 +1,16 @@
+3:> **Generated**: 2026-02-18 | **Author**: Agent Zero (Developer)
+57:│ :3004    │ :3002    │ :3003    │ :3001    │ :3005    │ :8082    │
+101:| 3005 | Tenant Portal | SolidJS + Tailwind |
+185:**Tenant Portal:**
+186:- `portal_table_config` — Per-organization table access configuration (access levels, column visibility, editable columns)
+318:### 5.6 Tenant Portal (`apps/tenant-portal`)
+321:**Port**: 3005
+328:- **Config-Driven Access**: `portal_table_config` table controls per-organization visibility:
+346:  → portal_table_config (RLS filtered) → shows available tables
+407:| Tenant Portal | ✅ Complete | Auth, dynamic tables, inline editing, admin config |
+500:### 8.5 Tenant Portal Access Flow
+503:1. Admin configures portal_table_config for an organization
+508:3. Dashboard fetches portal_table_config (RLS filters by org)
+564:│   └── tenant-portal/        # Configurable tenant data portal
+595:*This document reflects the state of the codebase as of 2026-02-18. It should be updated as major architectural decisions are made or new subsystems are implemented.*
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

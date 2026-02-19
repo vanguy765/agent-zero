@@ -1,0 +1,4 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# Exit code: 127
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# 1 /tmp/full_schema_dump.sql
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: pg_dump: command not found
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

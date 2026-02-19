@@ -1,0 +1,5 @@
+✅ ports.md updated with tenant-portal row
+  | **3004**  | **Work Orders**     | `apps/work-orders`    | Work Orders Management                                                |
+  | **3005**  | **Tenant Portal**   | `apps/tenant-portal`  | Configurable Tenant Data Portal (SolidJS)                             |
+  | **5000**  | **Doc Parser**      | `doc-parser`          | Python FastAPI Service for LayoutParser                               |
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

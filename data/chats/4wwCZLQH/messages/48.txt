@@ -1,0 +1,105 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# {"currentVersion":"0.301.1","releaseVersion":"0.301.2"}(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# # NocoDB Setup & Integration Guide
+
+This guide details how to connect NocoDB to your local Supabase instance to enable the **Hybrid Architecture**: managing relational data in NocoDB while editing complex JSON trees in the Custom App.
+
+## 1. Prerequisites
+
+*   **Supabase/Postgres** running locally (Port `54322`).
+*   **Docker** installed and running.
+*   **Materials App** running on `http://localhost:3002`.
+
+## 2. Launch NocoDB
+
+Run this command to start NocoDB in a simplified mode (using SQLite for its own metadata, but connecting to Postgres for data):
+
+```bash
+docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
+```
+
+*   **Access**: Open [http://localhost:8080](http://localhost:8080) in your browser.
+*   **First Run**: Create a local email/password (this is just for NocoDB login, not your database).
+
+## 3. Connect to Database
+
+1.  Click **"New Project"** > **"Create by connecting to an external database"**.
+2.  **Connection Details**:
+    *   **Display Name**: `Voicelog Local`
+    *   **Database Type**: `PostgreSQL`
+    *   **Host Address**: `host.docker.internal` (Crucial for Docker to see your host machine)
+    *   **Port**: `54322`
+    *   **Username**: `postgres`
+    *   **Password**: `postgres`
+    *   **Database Name**: `postgres`
+3.  Click **"Test Database Connection"**. If green, click **"Submit"**.
+
+## 4. Setup Content Views
+
+### A. The Flattened BOM (Read-Only)
+1.  In the left sidebar, click `Table`.
+2.  Find `view_project_bom` (This is the SQL view we created).
+3.  **Verify**: You should see your project scopes flattened into rows (`Plan AStudio`, `Kitchenette`, `Cabinets`, `qty: 12`).
+4.  **Edit**: You CAN now edit `quantity` and `action` cells directly.
+5.  **Test Update**: Change a quantity from `12` to `99`. Refresh the table. The change persists.
+6.  **Verify JSON**: Check the `project_definitions` table or your App to see the JSONB has been updated.
+
+### B. The Taxonomy (Editable)
+1.  Find the `taxonomies` table (or whatever we named the master list).
+2.  **Test**: Add a new row (e.g., `Category: Room`, `Value: Wine_Cellar`).
+3.  **Verify**: Go to your App -> Project Definitions. Open a "Room" dropdown. "Wine_Cellar" should appear instantly.
+
+## 5. Setup "Deep Link" Edit Button
+
+To edit the complex trees in `view_project_bom`, we link back to the App.
+
+1.  Open the `view_project_bom` table in NocoDB.
+2.  Click **"+"** to add a new column.
+3.  **Column Type**: `Formula`.
+4.  **Column Name**: `Open in App`.
+5.  **Formula**:
+    ```sql
+    CONCAT('http://localhost:3002/definitions?project_id=', {project_id})
+    ```
+6.  **Set Primary Key (CRITICAL)**:
+    *   By default, NocoDB sees Views as "Read Only" because they lack a Primary Key.
+    *   Locate the **`id`** column (it should be the first one).
+    *   **Right-click** the column header -> Select **Set as Primary Key**.
+    *   *If you don't see this option:* Go to **Project Settings** (gear icon) -> **Data** -> Select `view_project_bom` -> Click **Set PK** next to the `id` column.
+    *   Once set, a "key" icon will appear, and the grid will become editable.
+
+7.  **Verify**: Click the link in any row. It should open your App and auto-load that project.
+
+## 6. Configure "Select" Options
+
+To match the App's validation, configure these columns as **SingleSelect** in NocoDB.
+
+### A. Action (Column: `action`)
+*   `replace`
+*   `keep`
+*   `install_new`
+*   `repair`
+*   `complete`
+
+### B. Measure (Column: `measure`)
+*   `length_ft`
+*   `area_sqft`
+*   `count`
+*   `volume_cuft`
+
+### C. Floorplan Base Type (Column: `base_type`)
+*   `Studio`
+*   `One_Bedroom`
+*   `Two_Bedroom`
+
+### D. Room Name (Column: `room_name`)
+*   `Living_Room`, `Kitchen`, `Bedroom`, `Bathroom`, `Hallway`
+*   `Main_Living_Sleeping`, `Kitchenette`, `Master_Bedroom`
+*   `Master_Bath`, `Guest_Bedroom`, `Guest_Bath`, `Closet`
+*   `Exterior_Envelope`, `Exterior_Grounds`
+
+## Troubleshooting
+
+*   **Connection Refused**: Ensure your local Postgres is actually on port `54322`. If using default Postgres, try port `5432`.
+*   **Link doesn't load project**: Ensure your App is running on port `3002` and that you updated `ProjectDefinitionsView.tsx` with the `onMount` logic.
+*   **No Data in View**: If NocoDB shows headers but no data for a SQL View, it likely needs a Primary Key. We added a generated `id` column to `view_project_bom` to fix this. Ensure you **Sync Metadata** in NocoDB.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

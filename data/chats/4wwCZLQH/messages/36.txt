@@ -1,0 +1,43 @@
+Total lines: 2199
+Contains \restrict: False
+Contains session_replication_role replica: True
+Contains session_replication_role origin: True
+INSERT count: 2095
+
+  1: --
+  2: -- PostgreSQL database dump
+  3: --
+  4:
+  5:
+  6: -- Dumped from database version 17.6
+  7: -- Dumped by pg_dump version 18.1 (Debian 18.1-2)
+  8:
+  9: SET statement_timeout = 0;
+ 10: SET lock_timeout = 0;
+ 11: SET idle_in_transaction_session_timeout = 0;
+ 12: SET transaction_timeout = 0;
+ 13: SET client_encoding = 'UTF8';
+ 14: SET standard_conforming_strings = on;
+ 15: SELECT pg_catalog.set_config('search_path', '', false);
+ 16: SET check_function_bodies = false;
+ 17: SET xmloption = content;
+ 18: SET client_min_messages = warning;
+ 19: SET row_security = off;
+ 20:
+ 21:
+ 22: -- Disable FK constraints during seeding (handles circular refs)
+ 23: SET session_replication_role = 'replica';
+ 24:
+ 25: --
+...
+
+--
+-- PostgreSQL database dump complete
+--
+
+
+
+-- Re-enable FK constraints
+SET session_replication_role = 'origin';
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

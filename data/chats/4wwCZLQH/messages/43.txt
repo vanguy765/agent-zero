@@ -1,0 +1,15 @@
+id        |       email       |          roles          | invite_token |       created_at
+------------------+-------------------+-------------------------+--------------+------------------------
+ usb1dr901pfkxp1h | admin@example.com | org-level-creator,super |              | 2026-02-17 04:46:53+00
+(1 row)
+
+        key         |                value
+--------------------+--------------------------------------
+ nc_auth_jwt_secret | 35cd3877-913a-4189-b3bd-4735e5bea3e5
+(1 row)
+
+ id | title | slug | fk_user_id | meta | image | is_share_enabled | deleted | order | fk_db_instance_id | stripe_customer_id | created_at | updated_at
+----+-------+------+------------+------+-------+------------------+---------+-------+-------------------+--------------------+------------+------------
+(0 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

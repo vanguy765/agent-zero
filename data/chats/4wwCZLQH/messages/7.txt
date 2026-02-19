@@ -1,0 +1,434 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === packages/schemas/src files ===
+delivery.ts  materials.ts   taxonomy.ts        todo.ts	       zod.ts
+index.ts     renovation.ts  test_materials.ts  work-orders.ts
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/package.json ===
+{
+  "name": "@repo/schemas",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "^1.2.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "typescript": "latest"
+  }
+}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/src/delivery.ts ===
+import { z } from './zod';
+
+// Refine the "Shape" of a Delivery
+export const CreateDeliverySchema = z.object({
+  projectId: z.string().uuid({ message: "Invalid Project ID" }),
+  material: z.string().min(2, { message: "Material name too short" }),
+  quantity: z.number().positive({ message: "Quantity must be positive" }),
+  unit: z.enum(['kg', 'tons', 'pallets', 'pieces']),
+  notes: z.string().max(500).optional(),
+  // "Visual Grounding" fields (optional context)
+  context: z.object({
+    screen: z.string(),
+    selectedSection: z.string().optional()
+  }).optional()
+});
+
+// Export the Type for the Frontend to use
+export type CreateDelivery = z.infer<typeof CreateDeliverySchema>;
+\n=== packages/schemas/src/index.ts ===
+export * from './todo';
+export * from './delivery';
+export * from './zod';
+export * from './materials';
+export * from './taxonomy';
+export * from './renovation';
+export * from './work-orders';
+\n=== packages/schemas/src/materials.ts ===
+import { z } from 'zod';
+
+// --- Suppliers ---
+export const SupplierSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1, "Name is required"),
+  website: z.string().url().optional().or(z.literal('')),
+  contact_info: z.record(z.any()).optional(), // JSONB
+  created_at: z.string().nullish()
+});
+
+export const CreateSupplierSchema = SupplierSchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type Supplier = z.infer<typeof SupplierSchema>;
+export type CreateSupplier = z.infer<typeof CreateSupplierSchema>;
+
+
+// --- Products (Major Items) ---
+export const ProductSchema = z.object({
+  id: z.string().uuid(),
+  supplier_id: z.string().uuid(),
+  subject_key: z.string().min(1, "Subject key is required"), // e.g. "gas_stove"
+  name: z.string().min(1, "Name is required"),
+  model_number: z.string().nullish(),
+  description: z.string().nullish(),
+  attributes: z.record(z.any()).default({}), // JSONB for spec matching
+  unit_price: z.number().min(0),
+  product_page_url: z.string().nullish(),
+  image_url: z.string().nullish(),
+  notes: z.string().nullish(),
+  availability_status: z.enum(['in_stock', 'order', 'discontinued']).default('in_stock'),
+  created_at: z.string().nullish()
+});
+
+export const CreateProductSchema = ProductSchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type Product = z.infer<typeof ProductSchema>;
+export type CreateProduct = z.infer<typeof CreateProductSchema>;
+
+
+// --- Project Supplies (Consumables) ---
+export const ProjectSupplySchema = z.object({
+  id: z.string().uuid(),
+  supplier_id: z.string().uuid(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  product_page_url: z.string().nullish(),
+  image_url: z.string().nullish(),
+  notes: z.string().optional(),
+  created_at: z.string().nullish()
+});
+
+export const CreateProjectSupplySchema = ProjectSupplySchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type ProjectSupply = z.infer<typeof ProjectSupplySchema>;
+export type CreateProjectSupply = z.infer<typeof CreateProjectSupplySchema>;
+\n=== packages/schemas/src/renovation.ts ===
+
+import { z } from 'zod';
+
+export const UnitStatusEnum = z.enum(['pending', 'in_progress', 'completed', 'verified']);
+
+export const UnitSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid().nullable(),
+  unit_number: z.string(),
+  unit_type: z.string().nullable(),
+  floor_plan_image: z.string().nullable(),
+  created_at: z.string().datetime().optional()
+});
+
+export const UnitScopeItemSchema = z.object({
+  id: z.string().uuid(),
+  unit_id: z.string().uuid(),
+  zone: z.string().nullable(),
+  category: z.string().nullable(),
+  item: z.string().nullable(),
+  action: z.string().nullable(),
+  trade: z.string().nullable(),
+  notes: z.string().nullable(),
+  status: UnitStatusEnum.default('pending'),
+  created_at: z.string().datetime().optional()
+});
+
+export type Unit = z.infer<typeof UnitSchema>;
+export type UnitScopeItem = z.infer<typeof UnitScopeItemSchema>;
+export type UnitStatus = z.infer<typeof UnitStatusEnum>;
+\n=== packages/schemas/src/taxonomy.ts ===
+import { z } from 'zod';
+
+export const TaxonomySchema = z.object({
+  id: z.string().uuid(),
+  version: z.string().min(1, "Version is required"), // e.g. "1.0.0" or timestamp
+  data: z.record(z.any()), // The full JSON taxonomy object
+  is_active: z.boolean().default(false),
+  created_at: z.string().datetime().optional()
+});
+
+export const CreateTaxonomySchema = TaxonomySchema.omit({
+  id: true,
+  created_at: true
+});
+
+export type Taxonomy = z.infer<typeof TaxonomySchema>;
+export type CreateTaxonomy = z.infer<typeof CreateTaxonomySchema>;
+\n=== packages/schemas/src/test_materials.ts ===
+import { CreateSupplierSchema, CreateProductSchema, CreateTaxonomySchema } from './index';
+
+/* eslint-disable no-console */
+console.log('Running Schema Validation Tests...');
+
+const errors: string[] = [];
+
+// 1. Valid Supplier
+const validSupplier = {
+  name: 'Home Depot',
+  website: 'https://homedepot.com',
+  contact_info: { phone: '555-0199' }
+};
+const r1 = CreateSupplierSchema.safeParse(validSupplier);
+if (!r1.success) errors.push('Failed to parse valid supplier: ' + JSON.stringify(r1.error));
+
+// 2. Invalid Supplier (Product missing name)
+const invalidSupplier = {
+  website: 'bad-supplier'
+};
+const r2 = CreateSupplierSchema.safeParse(invalidSupplier);
+if (r2.success) errors.push('Incorrectly accepted invalid supplier (missing name)');
+
+// 3. Valid Product
+const validProduct = {
+  supplier_id: '123e4567-e89b-12d3-a456-426614174000',
+  subject_key: 'gas_stove',
+  name: 'Viking 3000',
+  unit_price: 1200.50,
+  attributes: { finish: 'stainless' }
+};
+const r3 = CreateProductSchema.safeParse(validProduct);
+if (!r3.success) errors.push('Failed to parse valid product: ' + JSON.stringify(r3.error));
+
+// 4. Valid Taxonomy
+const validTaxonomy = {
+    version: '1.0.0',
+    data: { trades: { painting: {} } },
+    is_active: true
+};
+const r4 = CreateTaxonomySchema.safeParse(validTaxonomy);
+if (!r4.success) errors.push('Failed to parse valid taxonomy: ' + JSON.stringify(r4.error));
+
+if (errors.length > 0) {
+  console.error('❌ Validation Failed:');
+  errors.forEach(e => console.error(e));
+  process.exit(1);
+} else {
+  console.log('✅ All Schema Validations Passed!');
+}
+\n=== packages/schemas/src/todo.ts ===
+import { z } from './zod';
+
+export const CreateTodoSchema = z.object({
+  task: z.string().min(1, "Task cannot be empty"),
+  is_completed: z.boolean().optional().default(false)
+});
+
+export const UpdateTodoSchema = z.object({
+  task: z.string().min(1).optional(),
+  is_completed: z.boolean().optional()
+});
+
+export const TodoSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  task: z.string(),
+  is_completed: z.boolean(),
+  created_at: z.string()
+});
+\n=== packages/schemas/src/work-orders.ts ===
+import { z } from 'zod';
+
+// ============================================================================
+// Work Orders Schemas
+// ============================================================================
+
+// Organization
+export const OrganizationSchema = z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1),
+    slug: z.string().min(1),
+    settings: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type Organization = z.infer<typeof OrganizationSchema>;
+
+// WorkOrderUnit (renamed to avoid conflict with renovation.ts Unit)
+export const WorkOrderUnitSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    unit_number: z.string().min(1),
+    unit_type: z.string().nullable(),
+    floor: z.number().int().nullable(),
+    area_sf: z.number().nullable(),
+    status: z.enum(['not_started', 'in_progress', 'complete']),
+    metadata: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderUnit = z.infer<typeof WorkOrderUnitSchema>;
+
+// Room
+export const RoomSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    name: z.string().min(1),
+    display_order: z.number().int(),
+    created_at: z.string().datetime(),
+});
+
+export type Room = z.infer<typeof RoomSchema>;
+
+// Template Column Definition
+export const TemplateColumnSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    type: z.enum(['checkbox', 'text', 'number', 'date']),
+    synonyms: z.array(z.string()).optional(),
+    default_na: z.boolean().optional(), // Default to "Not Applicable"
+    tooltip: z.string().optional(),
+});
+
+export type TemplateColumn = z.infer<typeof TemplateColumnSchema>;
+
+// Template Section
+export const TemplateSectionSchema = z.object({
+    label: z.string(),
+    columns: z.array(TemplateColumnSchema),
+});
+
+export type TemplateSection = z.infer<typeof TemplateSectionSchema>;
+
+// Work Order Template Definition (JSONB structure)
+export const TemplateDefinitionSchema = z.object({
+    sections: z.record(TemplateSectionSchema),
+    logic: z.object({
+        rules: z.array(z.object({
+            if: z.record(z.any()),
+            then: z.record(z.any()),
+        })),
+    }).optional(),
+});
+
+export type TemplateDefinition = z.infer<typeof TemplateDefinitionSchema>;
+
+// Work Order Template
+export const WorkOrderTemplateSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    trade_name: z.string().min(1),
+    version: z.number().int(),
+    is_active: z.boolean(),
+    definition: TemplateDefinitionSchema,
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderTemplate = z.infer<typeof WorkOrderTemplateSchema>;
+
+// Work Order
+export const WorkOrderSchema = z.object({
+    id: z.string().uuid(),
+    organization_id: z.string().uuid(),
+    unit_id: z.string().uuid(),
+    template_id: z.string().uuid(),
+    trade_name: z.string().min(1),
+    status: z.enum(['pending', 'in_progress', 'complete', 'on_hold']),
+    assigned_contractor_id: z.string().uuid().nullable(),
+    inspector_id: z.string().uuid().nullable(),
+    start_date: z.string().datetime().nullable(),
+    completion_date: z.string().datetime().nullable(),
+    inspector_signoff_date: z.string().datetime().nullable(),
+    metadata: z.record(z.any()).optional(),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrder = z.infer<typeof WorkOrderSchema>;
+
+// Task Step (within task_data JSONB)
+export const TaskStepSchema = z.object({
+    key: z.string(),
+    label: z.string(),
+    status: z.enum(['pending', 'complete', 'blocked']),
+    completed_by: z.string().uuid().nullable().optional(),
+    completed_at: z.number().nullable().optional(), // Unix timestamp
+    not_applicable: z.boolean().optional(),
+});
+
+export type TaskStep = z.infer<typeof TaskStepSchema>;
+
+// Work Order Task Data (JSONB structure)
+export const TaskDataSchema = z.object({
+    steps: z.array(TaskStepSchema),
+});
+
+export type TaskData = z.infer<typeof TaskDataSchema>;
+
+// Work Order Task
+export const WorkOrderTaskSchema = z.object({
+    id: z.string().uuid(),
+    work_order_id: z.string().uuid(),
+    room_id: z.string().uuid(),
+    row_order: z.number().int(),
+    task_data: TaskDataSchema,
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderTask = z.infer<typeof WorkOrderTaskSchema>;
+
+// Work Order Note
+export const WorkOrderNoteSchema = z.object({
+    id: z.string().uuid(),
+    work_order_id: z.string().uuid(),
+    author_id: z.string().uuid(),
+    content: z.string().min(1),
+    created_at: z.string().datetime(),
+    updated_at: z.string().datetime(),
+});
+
+export type WorkOrderNote = z.infer<typeof WorkOrderNoteSchema>;
+
+// ============================================================================
+// API Request/Response Schemas
+// ============================================================================
+
+// Create Work Order Request
+export const CreateWorkOrderRequestSchema = z.object({
+    unit_id: z.string().uuid(),
+    template_id: z.string().uuid(),
+    assigned_contractor_id: z.string().uuid().optional(),
+});
+
+export type CreateWorkOrderRequest = z.infer<typeof CreateWorkOrderRequestSchema>;
+
+// Update Task Step Request
+export const UpdateTaskStepRequestSchema = z.object({
+    step_key: z.string(),
+    status: z.enum(['pending', 'complete', 'blocked']),
+    not_applicable: z.boolean().optional(),
+});
+
+export type UpdateTaskStepRequest = z.infer<typeof UpdateTaskStepRequestSchema>;
+
+// Create Note Request
+export const CreateNoteRequestSchema = z.object({
+    content: z.string().min(1),
+});
+
+export type CreateNoteRequest = z.infer<typeof CreateNoteRequestSchema>;
+\n=== packages/schemas/src/zod.ts ===
+import { z as zHono } from '@hono/zod-openapi';
+import { extendZodWithOpenApi } from '@hono/zod-openapi';
+
+// Hono's z might not be extended by default in all versions, or it might be lazy.
+// The safe bet is to use the one from the lib.
+// Docs say: import { z } from '@hono/zod-openapi'
+// We will also ensure it is extended just in case.
+
+// extendZodWithOpenApi(zHono);
+
+export const z = zHono;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

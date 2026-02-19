@@ -1,0 +1,142 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === package.json ===
+{
+  "name": "construction-voice-platform",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts"
+  },
+  "devDependencies": {
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@types/pdf-parse": "^1.1.5",
+    "pdf2json": "^4.0.2",
+    "zod": "3.23.8"
+  }
+}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== turbo.json ===
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== pnpm-workspace.yaml ===
+packages:
+  - "apps/*"
+  - "packages/*"
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== README.md ===
+# Construction Voice Platform (Scaffold)
+
+> **Current Status**: 🚧 Clean Scaffold / Starter Kit
+> This repository is a configured foundation for building a high-performance, distributed application suite. It is not yet a feature-complete product.
+
+## What is this?
+
+This is a **Modern Monorepo Architecture** designed for teams building a "Collection of Apps" that share a single data model and "Brain".
+
+It is pre-configured to build:
+1.  **Admin Dashboards**: High-density office interfaces (SolidJS + Vite).
+2.  **Field Companion Apps**: Offline-capable mobile PWAs for workers (SolidJS).
+3.  **Voice-Enabled APIs**: A backend optimized for Audio processing, LLM extraction, and Realtime data (Hono).
+4.  **Native Mobile Apps**: Ready for Flutter integration via OpenAPI generation.
+
+## Why this stack?
+
+*   **Type Safety**: If you change the database, the Mobile App break at *compile time*, not in production.
+*   **Speed**: Uses `pnpm` and `Turborepo` for instant builds.
+*   **Reactivity**: Uses `SolidJS` for raw performance (no Virtual DOM).
+*   **Unified Logic**: Shared `packages/schemas` ensure the API and Frontend always speak the same language.
+
+## Directory Structure
+
+```text
+/
+├── apps/
+│   ├── api/             # Hono Backend (The Brain)
+│   │                    #  - Exposes OpenAPI / Swagger
+│   │                    #  - Handles Voice Processing & Auth
+│   ├── web-dashboard/   # SolidJS (Office Admin Admin)
+│   ├── site-companion/  # SolidJS PWA (Mobile Field Worker)
+│   └── mobile-flutter/  # (Placeholder) Future Native App
+├── packages/
+│   ├── schemas/         # THE SOURCE OF TRUTH (Zod definitions)
+│   ├── db/              # Database Types (Auto-generated from Supabase)
+│   └── ui/              # Shared Design System
+```
+
+## Where to Begin Development?
+
+**1. The Mental Model: "Schema First"**
+Don't start by building a button. Start by defining the **Data**.
+*   **Step 1**: Go to `packages/schemas/src`. Define what a "Task" or "Material" looks like.
+*   **Step 2**: Go to `apps/api/src/routes`. Create an endpoint that accepts that Schema.
+*   **Step 3**: Go to `apps/web`. Build the UI that sends that Data.
+
+**2. Setup**
+```bash
+# 1. Install dependencies
+pnpm install
+
+# 2. Start the Database (Docker)
+npx supabase start
+
+### 3. Start Development
+```bash
+pnpm dev
+```
+This runs all apps in parallel.
+*   **API**: http://localhost:3000
+*   **Web Dashboard**: http://localhost:3001
+*   **Material Admin**: http://localhost:3002
+*   *(See [docs/ports.md](./docs/ports.md) for full list)*
+
+**3. Useful Commands**
+*   `pnpm db:types`: Run this after you add a table to Supabase. It updates the TypeScript definitions in configured packages.
+*   `http://localhost:3000/ui`: View the Swagger API documentation.
+
+## Documentation
+See the `/docs` folder for deep dives:
+*   [A2A Protocol (Agent-to-Agent)](./docs/a2a/README.md) - JSON-RPC endpoint for AI agent interop
+*   [Gemini Plan / Handbook](./docs/gemini_plan.md)
+*   [Flutter Integration](./docs/flutter_integration.md)
+*   [Architecture Explainer](./docs/understanding_architecture.md)
+
+## 🔧 Troubleshooting & Known Issues
+
+### Supabase Local Config
+If `supabase start` fails with parsing errors, ensure `supabase/config.toml` does **not** contain deprecated keys for your CLI version:
+*   `deno_version`: Comment this out if using standard CLI.
+*   `health_timeout`: Comment this out if causing parsing errors.
+*   `major_version`: Must match your valid data directory (default is **17**, do not downgrade to 15 unless starting fresh).
+
+### Realtime Updates Not Appearing
+If the Dashboard connects (`SUBSCRIBED`) but receives no data:
+1.  **RLS Policies**: Realtime respects RLS. If you are "Anonymous", strict policies (`uid=user_id`) will hide data. Use a permissive policy for testing or ensure `Authorization` headers are sent.
+2.  **Versioning**: Ensure the table is in the `supabase_realtime` publication (`alter publication supabase_realtime add table ...`).
+
+### Login/Seed Issues
+`supabase db reset` might fail on complex seed files. Use the API scripts in `apps/api/scripts/` to reliably seed data:
+*   `create_user.ts`: Creates the default 'Alice' user.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

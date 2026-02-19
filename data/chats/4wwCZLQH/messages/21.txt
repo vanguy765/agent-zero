@@ -1,0 +1,31 @@
+(venv) root@2c00128c0233:/tmp# > > > > > > agent_memories|c
+document_images|c
+image_links|c
+metric_definitions|c
+notification|c
+organizations|c
+project_documents|c
+rooms|c
+template_libraries|c
+unit_documents|c
+unit_room_calculations|c
+unit_room_measurements|c
+unit_rooms|c
+units|c
+v_all_calculations|c
+v_budget_tracker|c
+v_project_cost_summary|c
+v_trade_cost_comparison|c
+v_unit_cost_sheet|c
+wo_projects|c
+work_order_notes|c
+work_order_tasks|c
+work_order_templates|c
+work_orders|c
+workspace|c
+workspace_user|c
+xc_knex_migrationsv0|c
+xc_knex_migrationsv0_lock|c
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== SEQUENCES ===
+(venv) root@2c00128c0233:/tmp# > > > > > (venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== CHECK EXISTING MIGRATIONS ===
+(venv) root@2c00128c0233:/tmp#

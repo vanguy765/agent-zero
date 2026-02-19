@@ -1,0 +1,24 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# > > > > > > > > > > > > > > > work_order_tasks|1584
+work_orders|220
+unit_rooms|144
+v_unit_cost_sheet|144
+metric_definitions|40
+rooms|32
+v_all_calculations|29
+unit_room_calculations|29
+v_trade_cost_comparison|29
+units|20
+v_project_cost_summary|20
+work_order_templates|11
+unit_room_measurements|8
+template_libraries|5
+v_budget_tracker|5
+organizations|1
+wo_projects|1
+unit_documents|0
+agent_memories|0
+project_documents|0
+document_images|0
+work_order_notes|0
+image_links|0
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

@@ -1,0 +1,28 @@
+=== README files exist? ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# > > > > api: 118 lines
+material-admin: 94 lines
+site-companion: 87 lines
+tenant-portal: 111 lines
+web-dashboard: 85 lines
+work-orders: 120 lines
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# === ports.md tenant-portal entry ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# | **3005**  | **Tenant Portal**   | `apps/tenant-portal`  | Configurable Tenant Data Portal (SolidJS)                             |
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# === platform_analysis.md updates ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# Total lines: 626
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 188:**Placeholder Recovery & Reviews:**
+416:| Placeholder Recovery | ✅ Complete | Smart defaults, review queue, approval workflow |
+525:### 8.6 Placeholder Recovery Flow
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 263:| `/entity-creation` | Placeholder generation | Smart defaults for missing templates/rooms |
+586:│   │   │   ├── routes/       # 12 route modules (incl. entity-creation, reviews)
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# 3:> **Generated**: 2026-02-18 (Updated: 2026-02-18) | **Author**: Agent Zero (Developer)
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# === platform_analysis.md link in READMEs ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# > > > > api: 2 references to platform_analysis.md
+material-admin: 2 references to platform_analysis.md
+site-companion: 2 references to platform_analysis.md
+tenant-portal: 2 references to platform_analysis.md
+web-dashboard: 2 references to platform_analysis.md
+work-orders: 2 references to platform_analysis.md
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

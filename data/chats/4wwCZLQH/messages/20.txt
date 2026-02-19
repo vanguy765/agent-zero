@@ -1,0 +1,100 @@
+(venv) root@2c00128c0233:/tmp# > > > > > > CREATE EXTENSION IF NOT EXISTS "pg_graphql" WITH SCHEMA graphql;
+CREATE EXTENSION IF NOT EXISTS "pg_net" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA vault;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA public;
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== RLS POLICIES ===
+(venv) root@2c00128c0233:/tmp# > > > > > > > document_images|Users can delete images from their organization documents|PERMISSIVE|{public}|DELETE|(EXISTS ( SELECT 1
+   FROM project_documents
+  WHERE ((project_documents.id = document_images.document_id) AND (get_project_organization_id(project_documents.project_id) = current_user_organization_id()))))|
+document_images|Users can insert images to their organization documents|PERMISSIVE|{public}|INSERT||(EXISTS ( SELECT 1
+   FROM project_documents
+  WHERE ((project_documents.id = document_images.document_id) AND (get_project_organization_id(project_documents.project_id) = current_user_organization_id()))))
+document_images|Users can update images from their organization documents|PERMISSIVE|{public}|UPDATE|(EXISTS ( SELECT 1
+   FROM project_documents
+  WHERE ((project_documents.id = document_images.document_id) AND (get_project_organization_id(project_documents.project_id) = current_user_organization_id()))))|
+document_images|Users can view images from their organization documents|PERMISSIVE|{public}|SELECT|(EXISTS ( SELECT 1
+   FROM project_documents
+  WHERE ((project_documents.id = document_images.document_id) AND (get_project_organization_id(project_documents.project_id) = current_user_organization_id()))))|
+image_links|Users can create image links for their organization entities|PERMISSIVE|{public}|INSERT||(((entity_type = 'unit'::text) AND (EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = image_links.entity_id) AND (units.organization_id = current_user_organization_id()))))) OR ((entity_type = 'work_order'::text) AND (EXISTS ( SELECT 1
+   FROM work_orders
+  WHERE ((work_orders.id = image_links.entity_id) AND (work_orders.organization_id = current_user_organization_id()))))) OR ((entity_type = 'room'::text) AND (EXISTS ( SELECT 1
+   FROM rooms
+  WHERE ((rooms.id = image_links.entity_id) AND (rooms.organization_id = current_user_organization_id()))))))
+image_links|Users can delete image links from their organization|PERMISSIVE|{public}|DELETE|(((entity_type = 'unit'::text) AND (EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = image_links.entity_id) AND (units.organization_id = current_user_organization_id()))))) OR ((entity_type = 'work_order'::text) AND (EXISTS ( SELECT 1
+   FROM work_orders
+  WHERE ((work_orders.id = image_links.entity_id) AND (work_orders.organization_id = current_user_organization_id()))))) OR ((entity_type = 'room'::text) AND (EXISTS ( SELECT 1
+   FROM rooms
+  WHERE ((rooms.id = image_links.entity_id) AND (rooms.organization_id = current_user_organization_id()))))))|
+image_links|Users can view image links from their organization|PERMISSIVE|{public}|SELECT|(((entity_type = 'unit'::text) AND (EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = image_links.entity_id) AND (units.organization_id = current_user_organization_id()))))) OR ((entity_type = 'work_order'::text) AND (EXISTS ( SELECT 1
+   FROM work_orders
+  WHERE ((work_orders.id = image_links.entity_id) AND (work_orders.organization_id = current_user_organization_id()))))) OR ((entity_type = 'room'::text) AND (EXISTS ( SELECT 1
+   FROM rooms
+  WHERE ((rooms.id = image_links.entity_id) AND (rooms.organization_id = current_user_organization_id()))))))|
+organizations|Users can view their organization|PERMISSIVE|{public}|SELECT|(id = current_user_organization_id())|
+project_documents|Users can delete documents from their organization|PERMISSIVE|{public}|DELETE|(get_project_organization_id(project_id) = current_user_organization_id())|
+project_documents|Users can insert documents to their organization projects|PERMISSIVE|{public}|INSERT||(get_project_organization_id(project_id) = current_user_organization_id())
+project_documents|Users can update documents from their organization|PERMISSIVE|{public}|UPDATE|(get_project_organization_id(project_id) = current_user_organization_id())|
+project_documents|Users can view documents from their organization|PERMISSIVE|{public}|SELECT|(get_project_organization_id(project_id) = current_user_organization_id())|
+rooms|Tenant isolation for rooms|PERMISSIVE|{public}|ALL|(organization_id = current_user_organization_id())|
+template_libraries|app_libraries_select|PERMISSIVE|{public}|SELECT|(scope = 'app'::text)|
+template_libraries|company_libraries_modify|PERMISSIVE|{public}|ALL|((scope = 'company'::text) AND (organization_id = current_user_organization_id()))|
+template_libraries|company_libraries_select|PERMISSIVE|{public}|SELECT|((scope = 'company'::text) AND (organization_id = current_user_organization_id()))|
+unit_documents|Users can delete unit document links from their organization|PERMISSIVE|{public}|DELETE|(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_documents.unit_id) AND (units.organization_id = current_user_organization_id()))))|
+unit_documents|Users can link documents to their organization units|PERMISSIVE|{public}|INSERT||(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_documents.unit_id) AND (units.organization_id = current_user_organization_id()))))
+unit_documents|Users can view unit documents from their organization|PERMISSIVE|{public}|SELECT|(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_documents.unit_id) AND (units.organization_id = current_user_organization_id()))))|
+unit_rooms|Users can delete unit rooms from their organization|PERMISSIVE|{public}|DELETE|(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_rooms.unit_id) AND (units.organization_id = current_user_organization_id()))))|
+unit_rooms|Users can insert unit rooms for their organization|PERMISSIVE|{public}|INSERT||(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_rooms.unit_id) AND (units.organization_id = current_user_organization_id()))))
+unit_rooms|Users can update unit rooms from their organization|PERMISSIVE|{public}|UPDATE|(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_rooms.unit_id) AND (units.organization_id = current_user_organization_id()))))|
+unit_rooms|Users can view unit rooms from their organization|PERMISSIVE|{public}|SELECT|(EXISTS ( SELECT 1
+   FROM units
+  WHERE ((units.id = unit_rooms.unit_id) AND (units.organization_id = current_user_organization_id()))))|
+units|Tenant isolation for units|PERMISSIVE|{public}|ALL|(organization_id = current_user_organization_id())|
+wo_projects|wo_projects_tenant_isolation|PERMISSIVE|{public}|ALL|(organization_id = current_user_organization_id())|
+work_order_notes|Tenant isolation for notes|PERMISSIVE|{public}|ALL|(EXISTS ( SELECT 1
+   FROM work_orders
+  WHERE ((work_orders.id = work_order_notes.work_order_id) AND (work_orders.organization_id = current_user_organization_id()))))|
+work_order_tasks|Tenant isolation for tasks|PERMISSIVE|{public}|ALL|(EXISTS ( SELECT 1
+   FROM work_orders
+  WHERE ((work_orders.id = work_order_tasks.work_order_id) AND (work_orders.organization_id = current_user_organization_id()))))|
+work_order_templates|Tenant isolation for templates|PERMISSIVE|{public}|ALL|(organization_id = current_user_organization_id())|
+work_order_templates|app_templates_select|PERMISSIVE|{public}|SELECT|(scope = 'app'::text)|
+work_order_templates|company_templates_modify|PERMISSIVE|{public}|ALL|((scope = 'company'::text) AND (organization_id = current_user_organization_id()))|
+work_order_templates|company_templates_select|PERMISSIVE|{public}|SELECT|((scope = 'company'::text) AND (organization_id = current_user_organization_id()))|
+work_order_templates|project_templates_modify|PERMISSIVE|{public}|ALL|((scope = 'project'::text) AND (organization_id = current_user_organization_id()))|
+work_order_templates|project_templates_select|PERMISSIVE|{public}|SELECT|((scope = 'project'::text) AND (organization_id = current_user_organization_id()))|
+work_orders|Tenant isolation for work orders|PERMISSIVE|{public}|ALL|(organization_id = current_user_organization_id())|
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== RLS ENABLED TABLES ===
+(venv) root@2c00128c0233:/tmp# > > > > > > document_images|t
+image_links|t
+organizations|t
+project_documents|t
+rooms|t
+unit_documents|t
+unit_rooms|t
+units|t
+work_order_notes|t
+work_order_tasks|t
+work_order_templates|t
+work_orders|t
+(venv) root@2c00128c0233:/tmp#

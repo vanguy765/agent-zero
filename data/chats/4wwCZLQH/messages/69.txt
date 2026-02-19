@@ -1,0 +1,32 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts:54:                makeErrorResponse(body.id, JSON_RPC_ERRORS.METHOD_NOT_FOUND, `Method not found: ${body.method}`),
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts:101:            makeErrorResponse(req.id, JSON_RPC_ERRORS.TASK_NOT_FOUND, `Task not found: ${params.id}`),
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts:126:            makeErrorResponse(req.id, JSON_RPC_ERRORS.TASK_NOT_FOUND, `Task not found: ${params.id}`),
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:196:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:239:        return c.json({ error: 'Document not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:277:        return c.json({ error: 'Document not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:314:            return c.json({ error: 'Document not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:400:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:472:            return c.json({ error: 'Document not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:544:            return c.json({ error: 'Document not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:661:            return c.json({ error: 'Document not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts:66:      404: { description: 'Project not found' }
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts:81:    // Return null if not found (frontend should handle it) or create default?
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts:40:      404: { description: 'Taxonomy not found' },
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts:55:      // If not found, returning empty or error
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts:56:      return c.json({ error: 'Not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts:37:      404: { description: 'Unit not found' }
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts:49:       return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:66:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:121:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:227:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:247:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:284:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:372:        return c.json({ error: error.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:397:        return c.json({ error: 'Template not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:408:        return c.json({ error: 'Unit not found' }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:532:        return c.json({ error: fetchError.message }, 404);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts:21:    if (fetchError || !document) return { error: 'Document not found' };
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts:75:    if (templateError) return { error: 'Template not found' };
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts:83:    if (unitError) return { error: 'Unit not found' };
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/pdfParser.ts:260:            throw new Error('Image not found');
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

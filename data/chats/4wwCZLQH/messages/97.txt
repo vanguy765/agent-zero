@@ -1,0 +1,14 @@
+101:| 3005 | Tenant Portal | SolidJS + Tailwind |
+163:### 3.4 Key Database Tables (Public Schema)
+185:**Tenant Portal:**
+236:### 5.1 API (`apps/api`) — The Brain
+259:**Services Layer** (`src/services/`): Business logic separated from route handlers.
+318:### 5.6 Tenant Portal (`apps/tenant-portal`)
+393:### 7.1 What's Built and Working
+407:| Tenant Portal | ✅ Complete | Auth, dynamic tables, inline editing, admin config |
+500:### 8.5 Tenant Portal Access Flow
+548:## 10. File Structure Reference
+553:│   ├── api/                  # Hono backend (The Brain)
+555:│   │   │   ├── routes/       # 10 route modules
+556:│   │   │   ├── services/     # Business logic
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

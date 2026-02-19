@@ -1,0 +1,30 @@
+column_name       |        data_type         |   column_default
+-------------------------+--------------------------+--------------------
+ id                      | uuid                     | uuid_generate_v4()
+ unit_id                 | uuid                     |
+ room_id                 | uuid                     |
+ area_sf                 | numeric                  |
+ baseboard_length_ft     | numeric                  |
+ notes                   | text                     |
+ created_at              | timestamp with time zone | now()
+ wall_length_total_ft    | numeric                  |
+ wall_length_cabinets_ft | numeric                  |
+ dimensions              | jsonb                    | '{}'::jsonb
+(10 rows)
+
+---SEP---
+   column_name   |        data_type         |  column_default
+-----------------+--------------------------+-------------------
+ id              | uuid                     | gen_random_uuid()
+ organization_id | uuid                     |
+ name            | text                     |
+ description     | text                     |
+ status          | text                     | 'active'::text
+ metadata        | jsonb                    | '{}'::jsonb
+ created_at      | timestamp with time zone | now()
+ updated_at      | timestamp with time zone | now()
+ project_type    | text                     |
+ library_id      | uuid                     |
+(10 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,26 @@
+tablename
+----------------
+ organizations
+ workspace_user
+(2 rows)
+
+---SEP---
+            policyname             |      tablename      |                                                               qual
+-----------------------------------+---------------------+----------------------------------------------------------------------------------------------------------------------------------
+ portal_config_admin               | portal_table_config | true
+ portal_config_select              | portal_table_config | (organization_id = (current_setting('app.current_organization_id'::text, true))::uuid)
+ Users can view their organization | organizations       | (id = current_user_organization_id())
+ Tenant isolation for work orders  | work_orders         | (organization_id = current_user_organization_id())
+ Tenant isolation for tasks        | work_order_tasks    | (EXISTS ( SELECT 1                                                                                                              +
+                                   |                     |    FROM work_orders                                                                                                             +
+                                   |                     |   WHERE ((work_orders.id = work_order_tasks.work_order_id) AND (work_orders.organization_id = current_user_organization_id()))))
+ Tenant isolation for notes        | work_order_notes    | (EXISTS ( SELECT 1                                                                                                              +
+                                   |                     |    FROM work_orders                                                                                                             +
+                                   |                     |   WHERE ((work_orders.id = work_order_notes.work_order_id) AND (work_orders.organization_id = current_user_organization_id()))))
+ wo_projects_tenant_isolation      | wo_projects         | (organization_id = current_user_organization_id())
+ Tenant isolation for rooms        | rooms               | (organization_id = current_user_organization_id())
+ app_libraries_select              | template_libraries  | (scope = 'app'::text)
+ company_libraries_modify          | template_libraries  | ((scope = 'company'::text) AND (organization_id = current_user_organization_id()))
+(10 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

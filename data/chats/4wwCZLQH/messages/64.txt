@@ -1,0 +1,560 @@
+NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- PROJECTS
+-- ========================================
+CREATE TABLE projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NULL REFERENCES organizations(id),
+  name TEXT NOT NULL,
+  address TEXT,
+  client_name TEXT,
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'completed', 'archived')),
+  created_at TIMESTAMP DEFAULT NOW(),
+  created_by UUID REFERENCES auth.users(id),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- PROJECT DOCUMENTS
+-- ========================================
+CREATE TABLE project_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  file_name TEXT NOT NULL,
+  file_url TEXT NOT NULL,
+  file_type TEXT NOT NULL,
+  file_size INTEGER,
+  uploaded_at TIMESTAMP DEFAULT NOW(),
+  uploaded_by UUID REFERENCES auth.users(id)
+);
+
+CREATE TABLE parsed_document_data (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  document_id UUID NOT NULL REFERENCES project_documents(id) ON DELETE CASCADE,
+  parsed_content JSONB NOT NULL,
+  confidence_score DECIMAL(3,2),
+  requires_review BOOLEAN DEFAULT FALSE,
+  reviewed_by UUID NULL REFERENCES auth.users(id),
+  reviewed_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- UNITS
+-- ========================================
+CREATE TABLE units (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  organization_id UUID NULL REFERENCES organizations(id),
+  unit_number TEXT NOT NULL,
+  type TEXT, -- A, B, C, D, E, F
+  bedrooms INTEGER,
+  area_sf INTEGER,
+  floor INTEGER,
+  status TEXT DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_progress', 'completed')),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(project_id, unit_number)
+);
+
+-- ========================================
+-- WORK ORDERS
+-- ========================================
+CREATE TABLE work_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  unit_id UUID NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+  organization_id UUID NULL REFERENCES organizations(id),
+  trade TEXT NOT NULL,
+  contractor_name TEXT,
+  contractor_id UUID NULL REFERENCES auth.users(id),
+  start_date DATE,
+  completion_date DATE,
+  status TEXT DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_progress', 'completed')),
+  inspector_signoff_by UUID NULL REFERENCES auth.users(id),
+  inspector_signoff_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- WORK ORDER TASKS (Checkboxes)
+-- ========================================
+CREATE TABLE work_order_tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_order_id UUID NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
+  organization_id UUID NULL REFERENCES organizations(id),
+  room TEXT NOT NULL,
+  task_column TEXT NOT NULL,
+  task_order INTEGER NOT NULL DEFAULT 0,
+  checked BOOLEAN DEFAULT FALSE,
+  not_applicable BOOLEAN DEFAULT FALSE,
+  checked_at TIMESTAMP NULL,
+  checked_by UUID NULL REFERENCES auth.users(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- WORK ORDER TASK HISTORY (For analytics)
+-- ========================================
+CREATE TABLE work_order_task_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  task_id UUID NOT NULL REFERENCES work_order_tasks(id) ON DELETE CASCADE,
+  checked BOOLEAN NOT NULL,
+  changed_by UUID NOT NULL REFERENCES auth.users(id),
+  changed_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Trigger to auto-populate history
+CREATE OR REPLACE FUNCTION log_task_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF (TG_OP = 'UPDATE' AND OLD.checked != NEW.checked) THEN
+    INSERT INTO work_order_task_history (task_id, checked, changed_by, changed_at)
+    VALUES (NEW.id, NEW.checked, NEW.checked_by, NEW.checked_at);
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER task_change_logger
+  AFTER UPDATE ON work_order_tasks
+  FOR EACH ROW
+  EXECUTE FUNCTION log_task_change();
+
+-- ========================================
+-- WORK ORDER NOTES
+-- ========================================
+CREATE TABLE work_order_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_order_id UUID NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
+  note_text TEXT NOT NULL,
+  created_by UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- TIME ESTIMATES
+-- ========================================
+CREATE TABLE work_order_time_estimates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_order_id UUID NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
+  estimated_hours DECIMAL(6,2),
+  estimated_start_date DATE,
+  estimated_completion_date DATE,
+  notes TEXT,
+  created_by UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- TIME ENTRIES (Future timesheet integration)
+-- ========================================
+CREATE TABLE work_order_time_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_order_id UUID NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id),
+  task_id UUID NULL REFERENCES work_order_tasks(id),
+  hours DECIMAL(5,2) NOT NULL,
+  entry_date DATE NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ========================================
+-- PROGRESS SNAPSHOTS
+-- ========================================
+CREATE TABLE work_order_progress_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  work_order_id UUID NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
+  snapshot_at TIMESTAMP DEFAULT NOW(),
+  total_tasks INTEGER NOT NULL,
+  completed_tasks INTEGER NOT NULL,
+  completion_percentage DECIMAL(5,2) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Function to take snapshot
+CREATE OR REPLACE FUNCTION take_progress_snapshot(wo_id UUID)
+RETURNS void AS $$
+DECLARE
+  total INTEGER;
+  completed INTEGER;
+  percentage DECIMAL(5,2);
+BEGIN
+  SELECT
+    COUNT(*) FILTER (WHERE NOT not_applicable),
+    COUNT(*) FILTER (WHERE checked AND NOT not_applicable)
+  INTO total, completed
+  FROM work_order_tasks
+  WHERE work_order_id = wo_id;
+  
+  percentage := CASE WHEN total > 0 THEN (completed::DECIMAL / total * 100) ELSE 0 END;
+  
+  INSERT INTO work_order_progress_snapshots
+    (work_order_id, total_tasks, completed_tasks, completion_percentage)
+  VALUES
+    (wo_id, total, completed, percentage);
+END;
+$$ LANGUAGE plpgsql;
+
+-- ========================================
+-- INDEXES
+-- ========================================
+CREATE INDEX idx_projects_org ON projects(organization_id);
+CREATE INDEX idx_units_project ON units(project_id);
+CREATE INDEX idx_units_org ON units(organization_id);
+CREATE INDEX idx_units_project_org ON units(project_id, organization_id);
+CREATE INDEX idx_work_orders_unit ON work_orders(unit_id);
+CREATE INDEX idx_work_orders_org ON work_orders(organization_id);
+CREATE INDEX idx_work_orders_unit_trade ON work_orders(unit_id, trade);
+CREATE INDEX idx_tasks_work_order ON work_order_tasks(work_order_id);
+CREATE INDEX idx_tasks_org ON work_order_tasks(organization_id);
+CREATE INDEX idx_task_history_task ON work_order_task_history(task_id);
+CREATE INDEX idx_notes_work_order ON work_order_notes(work_order_id);
+CREATE INDEX idx_time_estimates_wo ON work_order_time_estimates(work_order_id);
+CREATE INDEX idx_time_entries_wo ON work_order_time_entries(work_order_id);
+CREATE INDEX idx_time_entries_user ON work_order_time_entries(user_id);
+CREATE INDEX idx_progress_snapshots_wo ON work_order_progress_snapshots(work_order_id);
+CREATE INDEX idx_documents_project ON project_documents(project_id);
+CREATE INDEX idx_parsed_data_document ON parsed_document_data(document_id);
+
+-- ========================================
+-- VIEWS (Helper views for common queries)
+-- ========================================
+CREATE VIEW work_order_progress AS
+SELECT
+  wo.id AS work_order_id,
+  wo.unit_id,
+  wo.trade,
+  COUNT(*) FILTER (WHERE NOT t.not_applicable) AS total_tasks,
+  COUNT(*) FILTER (WHERE t.checked AND NOT t.not_applicable) AS completed_tasks,
+  ROUND(
+    CASE
+      WHEN COUNT(*) FILTER (WHERE NOT t.not_applicable) > 0
+      THEN (COUNT(*) FILTER (WHERE t.checked AND NOT t.not_applicable)::DECIMAL /
+            COUNT(*) FILTER (WHERE NOT t.not_applicable) * 100)
+      ELSE 0
+    END,
+    2
+  ) AS completion_percentage
+FROM work_orders wo
+LEFT JOIN work_order_tasks t ON t.work_order_id = wo.id
+GROUP BY wo.id, wo.unit_id, wo.trade;
+
+CREATE VIEW unit_progress AS
+SELECT
+  u.id AS unit_id,
+  u.unit_number,
+  u.project_id,
+  COUNT(DISTINCT wo.id) AS total_work_orders,
+  COUNT(DISTINCT wo.id) FILTER (WHERE wo.status = 'completed') AS completed_work_orders,
+  ROUND(AVG(wop.completion_percentage), 2) AS avg_completion_percentage
+FROM units u
+LEFT JOIN work_orders wo ON wo.unit_id = u.id
+LEFT JOIN work_order_progress wop ON wop.work_order_id = wo.id
+GROUP BY u.id, u.unit_number, u.project_id;
+
+-- ========================================
+-- FUTURE: RLS Policies (commented out for single-tenant)
+-- ========================================
+-- ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE units ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE work_orders ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE work_order_tasks ENABLE ROW LEVEL SECURITY;
+
+-- CREATE POLICY "Users see only their org data"
+--   ON projects FOR ALL
+--   USING (organization_id = current_setting('app.current_organization_id')::UUID);
+```
+
+---
+
+## Summary of Updates
+
+### 1. **Checkbox State Management**: ✅
+- Bidirectional sync between UI and database
+- Real-time updates via Supabase Realtime
+- Optimistic UI updates
+- History tracking for analytics
+
+### 2. **Time Tracking**: ✅
+- Admin-provided estimates (hours, start/end dates)
+- Progress snapshots over time
+- Future timesheet integration structure
+- Progress charts (estimated vs actual)
+
+### 3. **Image Upload & Parsing**: ✅
+- Upload architectural drawings (PDF/images)
+- AI/OCR parsing to extract unit data
+- Review interface for parsed data
+- Automated project and work order generation
+- Confidence scoring and flagging for review
+
+### 4. **Multi-Tenant Ready Architecture**: ✅
+- All tables have `organization_id` (nullable)
+- Service layer pattern for easy org-scoping
+- Consistent naming conventions
+- Context providers ready for multi-tenant
+- RLS policies prepared (commented out)
+- Proper indexes for future scaling
+- Configuration-driven feature flags
+
+**Development Time Estimates:**
+- Single-tenant MVP: **10-12 weeks**
+- Add multi-tenancy later: **+8-10 weeks**
+- Total if multi-tenant from start: **18-22 weeks**
+
+**Recommendation:** Build single-tenant first, validate with Sch'eyk Housing Society, then add multi-tenancy based on demand.
+
+curl https://openrouter.ai/api/v1/models -H "Authorization: Bearer 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"
+
+
+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
+
+
+Do you use tsx, ts-node, or bun to run TypeScript scripts
+
+
+
+
+I want jolly_hodgkin to be renamed agent-zero, run on network agent-zero-network, and use volume agent-zero.
+
+
+
+# 📖 Measurements & Calculations System — Reference Guide
+
+---
+
+## Understanding Cost Types
+
+You're right — not everything relates to square footage. The system handles **three distinct cost models**:
+
+| Cost Model | Measured By | Examples |
+|---|---|---|
+| **Area-based** | $/SF or $/m² | Paint, flooring, drywall, ceiling tiles |
+| **Linear-based** | $/LF | Baseboards, crown molding, caulking, countertop edges |
+| **Per-item (count)** | $/each | Toilets, sinks, faucets, appliances, doors, light fixtures, outlets |
+
+The `cost_per_sf` column in the views only applies to area-based costs. For a toilet at $350, that number stands alone — dividing it by room area would be meaningless.
+
+---
+
+## 🗄️ Table 1: `unit_room_measurements`
+
+**What it is:** The physical reality of each room — dimensions you'd get from a tape measure or floor plan.
+
+**One row per room per unit** (1:1 with `unit_rooms`).
+
+| Column | Meaning | Example | How It's Used |
+|---|---|---|---|
+| `unit_room_id` | Links to which unit + room | Kitchen in Unit 201 | Joins everything together |
+| `area_sf` | Floor area in square feet | 49.5 | Calculate flooring material needed, cost per SF comparisons |
+| `area_m2` | Same area in metric | 4.60 | For metric-system suppliers or international reporting |
+| `wall_length_total_lf` | Total wall perimeter | 28.2 LF | Starting point for baseboard, chair rail, wainscoting estimates |
+| `wall_length_cabinets_lf` | Wall hidden by cabinets | 8.5 LF | Subtracted from paintable wall — you don't paint behind cabinets |
+| `wall_length_paintable_lf` | Exposed wall length | 19.7 LF | Multiply by ceiling height = paintable wall area |
+| `baseboard_length_lf` | Baseboard run | 19.7 LF | Order this many linear feet of baseboard material |
+| `ceiling_height_ft` | Floor to ceiling | 8.0 | Multiplied by wall length = wall area for paint/drywall |
+| `wall_area_sf` | Total wall surface | 157.6 SF | Paint coverage calculation (÷ 350 = gallons needed) |
+| `ceiling_area_sf` | Ceiling surface | 49.5 SF | Ceiling paint, tiles, or drywall |
+| `window_count` | Number of windows | 1 | Window replacement quotes, blind/curtain ordering |
+| `door_count` | Number of doors | 1 | Door replacement quotes, subtract from baseboard length |
+| `width_ft` / `depth_ft` | Room dimensions | 7.5 × 6.6 | Layout planning, furniture fit, appliance sizing |
+| `width_mm` / `depth_mm` | Same in millimeters | 2255 × 2010 | Precision ordering for countertops, custom cabinetry |
+| `source` | Where data came from | `pdf_extraction` | Audit trail — was this measured on-site or from drawings? |
+| `extraction_confidence` | AI confidence score | 0.85 | Flag low-confidence rooms for manual verification |
+| `extras` | JSONB overflow | `{"has_soffit": true}` | Anything unusual that doesn't fit standard columns |
+
+### 💡 Practical Uses
+- **"How much flooring do I need for the whole project?"** → `SELECT SUM(area_sf) * 1.10 FROM unit_room_measurements` (10% waste)
+- **"Which rooms have the most paintable wall?"** → Sort by `wall_area_sf` descending
+- **"Flag rooms where AI wasn't confident"** → Filter `extraction_confidence < 0.75`
+
+---
+
+## 🗄️ Table 2: `unit_room_calculations`
+
+**What it is:** Your extensible cost ledger. Every supply estimate, material cost, labor hour, appliance price, and invoice allocation lives here.
+
+**Multiple rows per room** — one row per metric. This is what makes it infinitely extensible.
+
+| Column | Meaning | Example | How It's Used |
+|---|---|---|---|
+| `unit_room_id` | Which room | Bathroom in Unit 201 | Links to measurements |
+| `metric_key` | Machine identifier | `appliance_cost` | Used in formulas and view pivots |
+| `metric_label` | Human-readable name | "Appliance Cost" | What you see in NocoDB column headers |
+| `category` | Grouping | `cost`, `supply`, `invoice`, `labor`, `measurement` | Filter in NocoDB: show me only costs, only supplies |
+| `trade_key` | Which trade | `plumbing`, `painting`, `appliances` | Filter by trade, roll up trade totals |
+| `value_numeric` | The number | 350.00 | The actual value — dollars, gallons, hours, count |
+| `value_text` | Text/notes | "Kohler K-3817 toilet" | Product names, vendor notes, descriptions |
+| `unit_of_measure` | Units | `$`, `gal`, `lf`, `ea`, `hrs` | Tells you what value_numeric means |
+| `is_calculated` | Auto-computed? | `true` | If true, recalculate when inputs change |
+| `is_editable` | User can change? | `true` | All rows are editable in NocoDB by default |
+| `source` | Origin | `user_input`, `formula`, `invoice` | Track where numbers came from |
+| `formula` | How it was computed | `wall_area_sf / 350` | Human-readable — helps you understand and verify |
+
+### 💡 Examples of What Goes Here
+
+**Area-based metrics:**
+| metric_key | value_numeric | unit_of_measure | How calculated |
+|---|---|---|---|
+| `paint_wall_gal` | 0.45 | gal | wall_area_sf ÷ 350 (coverage rate) |
+| `flooring_sf` | 54.5 | sf | area_sf × 1.10 (10% waste) |
+| `flooring_cost` | 245.25 | $ | flooring_sf × cost_per_sf |
+
+**Per-item metrics (NOT area-based):**
+| metric_key | value_numeric | unit_of_measure | Notes |
+|---|---|---|---|
+| `appliance_cost` | 4,200 | $ | Fridge + stove + dishwasher — flat cost |
+| `toilet_cost` | 350 | $ | Per unit, not per SF |
+| `faucet_cost` | 185 | $ | Per item |
+| `door_cost_per_unit` | 220 | $ | Per door × door_count |
+| `light_fixture_cost` | 95 | ea/$ | Per fixture |
+
+**Invoice proportioning:**
+| metric_key | value_numeric | unit_of_measure | Notes |
+|---|---|---|---|
+| `sub_invoice_allocated` | 877.22 | $ | This room's share of a $50K painting contract |
+| `sub_invoice_share_pct` | 27.6 | % | Based on wall area ratio |
+
+**Labor:**
+| metric_key | value_numeric | unit_of_measure | Notes |
+|---|---|---|---|
+| `labor_hours_est` | 4.5 | hrs | Estimated time for this room |
+| `labor_rate_hr` | 45.00 | $/hr | Crew rate |
+| `labor_cost` | 202.50 | $ | hours × rate |
+
+### 💡 Practical Uses
+- **"What's the total appliance budget?"** → Filter `metric_key = 'appliance_cost'`, sum `value_numeric`
+- **"Show me everything the plumber needs"** → Filter `trade_key = 'plumbing'`
+- **"What did the user manually enter vs what was calculated?"** → Filter by `source`
+- **Add a new metric anytime** — just insert a row with a new `metric_key`. No migration needed.
+
+---
+
+## 🗄️ Table 3: `metric_definitions`
+
+**What it is:** A dictionary of known metric types. Think of it as a dropdown menu for NocoDB — when adding a new calculation, pick from this list for consistency.
+
+| Column | Meaning | Example |
+|---|---|---|
+| `metric_key` | Unique identifier | `paint_wall_gal` |
+| `metric_label` | Display name | "Wall Paint (gal)" |
+| `category` | Group | `supply` |
+| `trade_key` | Trade | `painting` |
+| `unit_of_measure` | Units | `gal` |
+| `default_formula` | Suggested calculation | `wall_area_sf / 350` |
+| `description` | Explanation | "Gallons for walls at 350sf/gal coverage" |
+| `sort_order` | Display ordering | 100 |
+
+### 💡 Practical Use
+- **Consistency** — everyone uses `toilet_cost` not "toilet price" or "wc cost"
+- **Onboarding** — new team members see what metrics exist and how they're calculated
+- **You can add new definitions anytime** — e.g., `vanity_cost`, `tile_sf`, `grout_bags`
+
+---
+
+## 👁️ View 1: `v_unit_cost_sheet`
+
+**What it is:** Your **main working spreadsheet**. Every room in every unit as a row, with measurements and the most common cost metrics pivoted into columns.
+
+**144 rows** (one per unit-room across all 20 units)
+
+| Column | What You See |
+|---|---|
+| `unit_number`, `floor`, `unit_type`, `bedrooms` | Unit identity |
+| `room_name` | Which room |
+| `area_sf` through `door_count` | Physical measurements from the wide table |
+| `paint_wall_gal` | Gallons of wall paint needed |
+| `flooring_sf`, `flooring_cost` | Flooring material and cost |
+| `baseboard_lf`, `baseboard_cost` | Baseboard linear feet and cost |
+| `appliance_cost` | Per-item appliance total (not area-based) |
+| `door_cost_total` | Per-item door total |
+| `labor_cost` | Labor estimate |
+| `sub_invoice_allocated` | This room's share of subcontractor invoices |
+| `total_cost` | Everything summed |
+
+### 💡 How to Use in NocoDB
+- **Filter** by `floor = 3` to see just third-floor rooms
+- **Sort** by `flooring_cost` descending to find the most expensive flooring jobs
+- **Group** by `unit_number` to see per-unit breakdowns
+- **Hide columns** you don't need for a specific meeting or report
+- **NULL values** mean no data yet — rooms without calculations show blank, not zero
+
+---
+
+## 👁️ View 2: `v_project_cost_summary`
+
+**What it is:** **One row per unit** — everything rolled up. Your executive dashboard.
+
+**20 rows** (one per unit)
+
+| Column | What You See |
+|---|---|
+| `unit_number`, `floor`, `bedrooms` | Unit identity |
+| `room_count` | How many rooms in this unit |
+| `total_room_area_sf` | Combined floor area of all rooms |
+| `total_wall_area_sf` | Combined wall surface |
+| `total_flooring_cost` | Sum of all flooring costs |
+| `total_paint_gal` | Total paint gallons (wall + ceiling) |
+| `total_appliance_cost` | Sum of all appliance costs (per-item, not per-SF) |
+| `total_invoice_allocated` | Sum of all subcontractor allocations |
+| `total_cost` | Grand total for the unit |
+| `cost_per_sf` | Total cost ÷ unit area — **only meaningful for area-based costs** |
+
+### 💡 How to Use
+- **"Which unit is most expensive?"** → Sort by `total_cost`
+- **"Compare cost per SF across unit types"** → Group by `unit_type`, compare `cost_per_sf`
+- **"How much paint for the whole project?"** → Sum the `total_paint_gal` column
+- **"Budget report for the owner"** → Export this view as CSV
+
+---
+
+## 👁️ View 3: `v_trade_cost_comparison`
+
+**What it is:** Every calculation row with its trade, unit, and room context. **Filter by trade** to see that trade's costs across the entire project.
+
+| Column | What You See |
+|---|---|
+| `trade_key` | Which trade (painting, plumbing, etc.) |
+| `unit_number`, `floor`, `room_name` | Location |
+| `metric_key`, `metric_label` | What's being measured |
+| `value_numeric`, `unit_of_measure` | The value |
+| `category` | cost, supply, invoice, labor |
+| `cost_per_sf` | Value ÷ room area — **only shown for $ metrics, NULL for per-item costs** |
+
+### 💡 How to Use
+- **"Show me all painting costs"** → Filter `trade_key = 'painting'`
+- **"Compare plumbing cost per SF across units"** → Filter trade, sort by `cost_per_sf`
+- **"Which rooms have the highest cost per SF for flooring?"** → Filter + sort
+- **Note:** `cost_per_sf` will be NULL for per-item costs like toilets — this is correct behavior
+
+---
+
+## 👁️ View 4: `v_all_calculations`
+
+**What it is:** A flat, unprocessed list of **every single calculation record**. The raw EAV data with unit/room names joined in.
+
+| Column | What You See |
+|---|---|
+| `unit_number`, `floor`, `room_name` | Location |
+| `metric_key`, `metric_label` | What metric |
+| `category`, `trade_key` | Classification |
+| `value_numeric`, `value_text` | The values |
+| `unit_of_measure` | Units |
+| `is_calculated`, `is_editable` | Flags |
+| `source` | Where it came from |
+| `formula` | How it was computed |
+
+### 💡 How to Use
+- **"Show me everything that was manually entered"** → Filter `source = 'user_input'`
+- **"What formulas are being used?"** → Filter `is_calculated = true`, read `formula` column
+- **"Find all invoice allocations"** → Filter `category = 'invoice'`
+- **"What text notes exist?"** → Filter `value_text IS NOT NULL`
+- **This is your audit trail** — every number, where it came from, and how it was calculated(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

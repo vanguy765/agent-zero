@@ -1,0 +1,134 @@
+table_name
+------------------------
+ agent_memories
+ document_images
+ image_links
+ metric_definitions
+ notification
+ organizations
+ project_documents
+ rooms
+ template_libraries
+ unit_documents
+ unit_room_calculations
+ unit_room_measurements
+ unit_rooms
+ units
+ wo_projects
+ work_order_notes
+ work_order_tasks
+ work_order_templates
+ work_orders
+ workspace
+ workspace_user
+(21 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# > > > >        table_name        | table_type
+-------------------------+------------
+ agent_memories          | BASE TABLE
+ document_images         | BASE TABLE
+ image_links             | BASE TABLE
+ metric_definitions      | BASE TABLE
+ notification            | BASE TABLE
+ organizations           | BASE TABLE
+ project_documents       | BASE TABLE
+ rooms                   | BASE TABLE
+ template_libraries      | BASE TABLE
+ unit_documents          | BASE TABLE
+ unit_room_calculations  | BASE TABLE
+ unit_room_measurements  | BASE TABLE
+ unit_rooms              | BASE TABLE
+ units                   | BASE TABLE
+ wo_projects             | BASE TABLE
+ work_order_notes        | BASE TABLE
+ work_order_tasks        | BASE TABLE
+ work_order_templates    | BASE TABLE
+ work_orders             | BASE TABLE
+ workspace               | BASE TABLE
+ workspace_user          | BASE TABLE
+ v_all_calculations      | VIEW
+ v_budget_tracker        | VIEW
+ v_project_cost_summary  | VIEW
+ v_trade_cost_comparison | VIEW
+ v_unit_cost_sheet       | VIEW
+(26 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n=== Login component ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# import { createSignal, Component } from 'solid-js';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+import { logger } from '@repo/logger';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+export const Login: Component<{ onLogin: (token: string) => void }> = (props) => {
+    const [email, setEmail] = createSignal('');
+    const [password, setPassword] = createSignal('');
+    const [loading, setLoading] = createSignal(false);
+    const [error, setError] = createSignal('');
+
+    const handleLogin = async (e: Event) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            logger.info('Attempting login...');
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: email(),
+                password: password(),
+            });
+
+            if (error) throw error;
+
+            if (data.session) {
+                logger.info('Login successful');
+                props.onLogin(data.session.access_token);
+            }
+        } catch (err: any) {
+            logger.error({ err }, 'Login failed');
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ "max-width": "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", "border-radius": "8px" }}>
+            <h2>Login</h2>
+            <form onSubmit={handleLogin}>
+                <div style={{ "margin-bottom": "10px" }}>
+                    <label style={{ display: "block", "margin-bottom": "5px" }}>Email:</label>
+                    <input
+                        type="email"
+                        value={email()}
+                        onInput={(e) => setEmail(e.currentTarget.value)}
+                        required
+                        style={{ width: "100%", padding: "8px" }}
+                    />
+                </div>
+                <div style={{ "margin-bottom": "20px" }}>
+                    <label style={{ display: "block", "margin-bottom": "5px" }}>Password:</label>
+                    <input
+                        type="password"
+                        value={password()}
+                        onInput={(e) => setPassword(e.currentTarget.value)}
+                        required
+                        style={{ width: "100%", padding: "8px" }}
+                    />
+                </div>
+                {error() && <p style={{ color: "red", "margin-bottom": "10px" }}>{error()}</p>}
+                <button type="submit" disabled={loading()} style={{ width: "100%", padding: "10px", "background-color": "#007bff", color: "white", border: "none", "border-radius": "4px", cursor: "pointer" }}>
+                    {loading() ? 'Logging in...' : 'Login'}
+                </button>
+            </form>
+        </div>
+    );
+};
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n=== packages/ui ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# import { Component } from 'solid-js';
+
+export const Button: Component<{ onClick: () => void; children: any }> = (props) => {
+    return <button onClick={props.onClick}>{props.children}</button>;
+};
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: nocodb
+    ports:
+      - "8082:8080"
+    environment:
+      # Set your initial admin credentials here
+      - NC_ADMIN_EMAIL=admin@example.com
+      - NC_ADMIN_PASSWORD=Password123!
+      # Recommended: Connect to your existing Supabase/Postgres
+      - NC_DB=pg://host.docker.internal:54322?u=postgres&p=postgres&d=postgres
+    volumes:
+      - nocodb_data:/usr/app/data
+    networks:
+      - agent-zero-network
+
+volumes:
+  nocodb_data:
+
+
+networks:
+  agent-zero-network:
+    external: true
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

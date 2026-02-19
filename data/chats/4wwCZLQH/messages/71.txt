@@ -1,0 +1,614 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+// TODO: Re-enable auth after testing
+// workOrdersRoute.use('*', authMiddleware);
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// UNITS ENDPOINTS
+// ============================================================================
+
+// LIST ALL UNITS
+workOrdersRoute.get('/units', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .order('floor', { ascending: true })
+        .order('unit_number', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET UNIT BY ID
+workOrdersRoute.get('/units/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+    return c.json(data);
+});
+
+// UPDATE UNIT STATUS
+workOrdersRoute.patch('/units/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('units')
+        .update({ status: body.status, metadata: body.metadata })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// WORK ORDER PROJECTS ENDPOINTS
+// ============================================================================
+
+// LIST ALL WO PROJECTS
+workOrdersRoute.get('/projects', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .select('*')
+        .order('name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET WO PROJECT BY ID
+workOrdersRoute.get('/projects/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+    return c.json(data);
+});
+
+// CREATE WO PROJECT
+workOrdersRoute.post('/projects', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .insert(body)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+
+// UPDATE WO PROJECT
+workOrdersRoute.patch('/projects/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .update(body)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// DELETE WO PROJECT
+workOrdersRoute.delete('/projects/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { error } = await supabase
+        .from('wo_projects')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json({ success: true });
+});
+
+// ============================================================================
+// TEMPLATE LIBRARIES ENDPOINTS
+// ============================================================================
+
+// LIST ALL TEMPLATE LIBRARIES
+workOrdersRoute.get('/template-libraries', async (c) => {
+    const supabase = getScopedClient(c);
+    const projectType = c.req.query('project_type');
+    const scope = c.req.query('scope');
+
+    let query = supabase
+        .from('template_libraries')
+        .select('*')
+        .eq('is_active', true)
+        .order('project_type', { ascending: true })
+        .order('name', { ascending: true });
+
+    if (projectType) query = query.eq('project_type', projectType);
+    if (scope) query = query.eq('scope', scope);
+
+    const { data, error } = await query;
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET TEMPLATE LIBRARY BY ID
+workOrdersRoute.get('/template-libraries/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('template_libraries')
+        .select(`
+            *,
+            templates:work_order_templates(
+                id,
+                trade_name,
+                version,
+                scope,
+                is_active
+            )
+        `)
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+    return c.json(data);
+});
+
+// GET DEFAULT LIBRARY FOR PROJECT TYPE
+workOrdersRoute.get('/template-libraries/default/:projectType', async (c) => {
+    const supabase = getScopedClient(c);
+    const projectType = c.req.param('projectType');
+
+    const { data, error } = await supabase
+        .from('template_libraries')
+        .select('*')
+        .eq('project_type', projectType)
+        .eq('scope', 'app')
+        .eq('is_default', true)
+        .eq('is_active', true)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// TEMPLATES ENDPOINTS
+// ============================================================================
+
+// LIST ALL TEMPLATES
+workOrdersRoute.get('/templates', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('trade_name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET TEMPLATE BY ID
+workOrdersRoute.get('/templates/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+    return c.json(data);
+});
+
+// CREATE TEMPLATE (Admin only - TODO: Add admin check)
+workOrdersRoute.post('/templates', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+
+    const result = WorkOrderTemplateSchema.omit({
+        id: true,
+        created_at: true,
+        updated_at: true
+    }).safeParse(body);
+
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .insert(result.data)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// WORK ORDERS ENDPOINTS
+// ============================================================================
+
+// LIST ALL WORK ORDERS (with optional filters)
+workOrdersRoute.get('/work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const unitId = c.req.query('unit_id');
+    const status = c.req.query('status');
+    const trade = c.req.query('trade');
+
+    let query = supabase
+        .from('work_orders')
+        .select(`
+            *,
+            unit:units(unit_number, unit_type, floor),
+            template:work_order_templates(trade_name, definition)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (unitId) query = query.eq('unit_id', unitId);
+    if (status) query = query.eq('status', status);
+    if (trade) query = query.eq('trade_name', trade);
+
+    const { data, error } = await query;
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET WORK ORDER BY ID (with tasks)
+workOrdersRoute.get('/work-orders/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('work_orders')
+        .select(`
+            *,
+            unit:units(*),
+            template:work_order_templates(*),
+            tasks:work_order_tasks(
+                *,
+                room:rooms(name, display_order)
+            ),
+            notes:work_order_notes(
+                *,
+                author:author_id(email)
+            )
+        `)
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+    return c.json(data);
+});
+
+// CREATE WORK ORDER (from template)
+workOrdersRoute.post('/work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+
+    const result = CreateWorkOrderRequestSchema.safeParse(body);
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
+    const { unit_id, template_id, assigned_contractor_id } = result.data;
+
+    // 1. Get the template
+    const { data: template, error: templateError } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('id', template_id)
+        .single();
+
+    if (templateError) {
+        return c.json({ error: 'Template not found' }, 404);
+    }
+
+    // 2. Get organization_id from unit
+    const { data: unit, error: unitError } = await supabase
+        .from('units')
+        .select('organization_id')
+        .eq('id', unit_id)
+        .single();
+
+    if (unitError) {
+        return c.json({ error: 'Unit not found' }, 404);
+    }
+
+    // 3. Create work order
+    const { data: workOrder, error: woError } = await supabase
+        .from('work_orders')
+        .insert({
+            organization_id: unit.organization_id,
+            unit_id,
+            template_id,
+            trade_name: template.trade_name,
+            assigned_contractor_id,
+            status: 'pending'
+        })
+        .select()
+        .single();
+
+    if (woError) {
+        return c.json({ error: woError.message }, 500);
+    }
+
+    // 4. Get rooms for this unit (prefer unit_rooms mappings, fall back to all org rooms)
+    const { data: unitRooms, error: unitRoomsError } = await supabase
+        .from('unit_rooms')
+        .select('room_id, rooms(id, name, display_order)')
+        .eq('unit_id', unit_id);
+
+    if (unitRoomsError) {
+        return c.json({ error: unitRoomsError.message }, 500);
+    }
+
+    let rooms: any[];
+    if (unitRooms && unitRooms.length > 0) {
+        // Use only rooms mapped to this unit, sorted by display_order
+        rooms = unitRooms
+            .map((ur: any) => ur.rooms)
+            .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    } else {
+        // Fallback: all rooms for the organization
+        const { data: orgRooms, error: orgRoomsError } = await supabase
+            .from('rooms')
+            .select('*')
+            .eq('organization_id', unit.organization_id)
+            .order('display_order', { ascending: true });
+
+        if (orgRoomsError) {
+            return c.json({ error: orgRoomsError.message }, 500);
+        }
+        rooms = orgRooms || [];
+    }
+
+    // 5. Create tasks for each room (snapshot template definition)
+    const tasks = rooms.map((room, index) => ({
+        work_order_id: workOrder.id,
+        room_id: room.id,
+        row_order: index,
+        task_data: {
+            steps: Object.values(template.definition.sections).flatMap((section: any) =>
+                section.columns.map((col: any) => ({
+                    key: col.key,
+                    label: col.label,
+                    status: 'pending',
+                    not_applicable: col.default_na || false
+                }))
+            )
+        }
+    }));
+
+    const { error: tasksError } = await supabase
+        .from('work_order_tasks')
+        .insert(tasks);
+
+    if (tasksError) {
+        return c.json({ error: tasksError.message }, 500);
+    }
+
+    return c.json(workOrder, 201);
+});
+
+// UPDATE WORK ORDER STATUS
+workOrdersRoute.patch('/work-orders/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('work_orders')
+        .update(body)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// TASKS ENDPOINTS
+// ============================================================================
+
+// UPDATE TASK STEP
+workOrdersRoute.patch('/work-orders/:workOrderId/tasks/:taskId', async (c) => {
+    const supabase = getScopedClient(c);
+    const user = (c.get('user') as any) || { id: 'test-user' }; // Fallback for testing
+    const taskId = c.req.param('taskId');
+    const body = await c.req.json();
+
+    const result = UpdateTaskStepRequestSchema.safeParse(body);
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
+    const { step_key, status, not_applicable } = result.data;
+
+    // Get current task
+    const { data: task, error: fetchError } = await supabase
+        .from('work_order_tasks')
+        .select('task_data')
+        .eq('id', taskId)
+        .single();
+
+    if (fetchError) {
+        return c.json({ error: fetchError.message }, 404);
+    }
+
+    // Update the specific step
+    const updatedSteps = task.task_data.steps.map((step: any) => {
+        if (step.key === step_key) {
+            return {
+                ...step,
+                status,
+                not_applicable: not_applicable ?? step.not_applicable,
+                completed_by: status === 'complete' ? user.id : step.completed_by,
+                completed_at: status === 'complete' ? Date.now() : step.completed_at
+            };
+        }
+        return step;
+    });
+
+    // Save updated task
+    const { data, error } = await supabase
+        .from('work_order_tasks')
+        .update({ task_data: { steps: updatedSteps } })
+        .eq('id', taskId)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// NOTES ENDPOINTS
+// ============================================================================
+
+// ADD NOTE
+workOrdersRoute.post('/work-orders/:id/notes', async (c) => {
+    const supabase = getScopedClient(c);
+    const user = (c.get('user') as any) || { id: 'test-user' }; // Fallback for testing
+    const workOrderId = c.req.param('id');
+    const body = await c.req.json();
+
+    const result = CreateNoteRequestSchema.safeParse(body);
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
+    const { data, error } = await supabase
+        .from('work_order_notes')
+        .insert({
+            work_order_id: workOrderId,
+            author_id: user.id,
+            content: result.data.content
+        })
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+
+// GET NOTES
+workOrdersRoute.get('/work-orders/:id/notes', async (c) => {
+    const supabase = getScopedClient(c);
+    const workOrderId = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('work_order_notes')
+        .select(`
+            *,
+            author:author_id(email)
+        `)
+        .eq('work_order_id', workOrderId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,218 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === supabase/migrations/ ===
+total 72
+drwxrwxrwx 1 root root  4096 Feb 17 02:18 .
+drwxrwxrwx 1 root root  4096 Feb 17 02:18 ..
+-rwxrwxrwx 1 root root  9681 Feb 17 02:18 20260201200500_create_work_orders.sql
+-rwxrwxrwx 1 root root  7985 Feb 17 02:18 20260201200501_seed_work_orders.sql
+-rwxrwxrwx 1 root root 16632 Feb 17 02:18 20260202210000_seed_remaining_templates.sql
+-rwxrwxrwx 1 root root  7057 Feb 17 02:18 20260203000000_template_hierarchy.sql
+-rwxrwxrwx 1 root root  9003 Feb 17 02:18 20260203170000_template_libraries.sql
+-rwxrwxrwx 1 root root 11732 Feb 17 02:18 20260204000000_document_storage.sql
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== 20260201200500_create_work_orders.sql (first 80 lines) ===
+-- ============================================================================
+-- Work Orders Foundation Schema
+-- Multi-tenant construction project management system
+-- ============================================================================
+
+-- Organizations (Multi-tenancy)
+CREATE TABLE IF NOT EXISTS public.organizations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    settings JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Units (Physical spaces being renovated)
+CREATE TABLE IF NOT EXISTS public.units (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    unit_number TEXT NOT NULL,
+    unit_type TEXT, -- e.g., "A", "B", "C" (from architectural drawings)
+    floor INTEGER,
+    area_sf NUMERIC,
+    status TEXT DEFAULT 'not_started', -- not_started, in_progress, complete
+    metadata JSONB DEFAULT '{}'::jsonb, -- For unit-specific notes, special instructions
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(organization_id, unit_number)
+);
+
+-- Rooms (Spaces within units)
+CREATE TABLE IF NOT EXISTS public.rooms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL, -- e.g., "Kitchen", "Bedroom", "Bathroom"
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Work Order Templates (Definitions of work for each trade)
+CREATE TABLE IF NOT EXISTS public.work_order_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    trade_name TEXT NOT NULL, -- e.g., "Painting", "Carpentry", "Plumbing"
+    version INTEGER DEFAULT 1,
+    is_active BOOLEAN DEFAULT true,
+    definition JSONB NOT NULL, -- The template structure (columns, logic rules, etc.)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(organization_id, trade_name, version)
+);
+
+-- Work Orders (Instance of a template for a specific unit)
+CREATE TABLE IF NOT EXISTS public.work_orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    unit_id UUID NOT NULL REFERENCES public.units(id) ON DELETE CASCADE,
+    template_id UUID NOT NULL REFERENCES public.work_order_templates(id) ON DELETE RESTRICT,
+    trade_name TEXT NOT NULL, -- Denormalized for easy filtering
+    status TEXT DEFAULT 'pending', -- pending, in_progress, complete, on_hold
+    assigned_contractor_id UUID, -- References auth.users (contractor)
+    inspector_id UUID, -- References auth.users (inspector)
+    start_date TIMESTAMP WITH TIME ZONE,
+    completion_date TIMESTAMP WITH TIME ZONE,
+    inspector_signoff_date TIMESTAMP WITH TIME ZONE,
+    metadata JSONB DEFAULT '{}'::jsonb, -- Contractor info, special notes
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(organization_id, unit_id, trade_name)
+);
+
+-- Work Order Tasks (The granular checklist items - "Snapshot" of template)
+CREATE TABLE IF NOT EXISTS public.work_order_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_order_id UUID NOT NULL REFERENCES public.work_orders(id) ON DELETE CASCADE,
+    room_id UUID NOT NULL REFERENCES public.rooms(id) ON DELETE RESTRICT,
+    row_order INTEGER DEFAULT 0,
+    task_data JSONB NOT NULL, -- Snapshot of template columns + execution state
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== 20260203000000_template_hierarchy.sql (first 60 lines) ===
+-- ============================================================================
+-- TEMPLATE HIERARCHY SYSTEM
+-- ============================================================================
+-- This migration implements a three-tier template hierarchy:
+-- 1. App-level (system defaults)
+-- 2. Company-level (tenant defaults)
+-- 3. Project-level (project-specific)
+
+BEGIN;
+
+-- ============================================================================
+-- 1. CREATE PROJECTS TABLE (Work Orders)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS wo_projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived')),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    
+    CONSTRAINT unique_wo_project_name_per_org UNIQUE (organization_id, name)
+);
+
+CREATE INDEX idx_wo_projects_org ON wo_projects(organization_id);
+CREATE INDEX idx_wo_projects_status ON wo_projects(status);
+
+COMMENT ON TABLE wo_projects IS 'Work Order Projects/properties within an organization';
+
+-- ============================================================================
+-- 2. UPDATE WORK_ORDER_TEMPLATES TABLE
+-- ============================================================================
+
+-- Add new columns
+ALTER TABLE work_order_templates
+    ADD COLUMN IF NOT EXISTS scope TEXT NOT NULL DEFAULT 'company'
+        CHECK (scope IN ('app', 'company', 'project')),
+    ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES wo_projects(id) ON DELETE CASCADE,
+    ADD COLUMN IF NOT EXISTS parent_template_id UUID REFERENCES work_order_templates(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS copied_from_template_id UUID REFERENCES work_order_templates(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES auth.users(id),
+    ADD COLUMN IF NOT EXISTS updated_by UUID REFERENCES auth.users(id);
+
+-- Make organization_id nullable (for app-level templates)
+ALTER TABLE work_order_templates
+    ALTER COLUMN organization_id DROP NOT NULL;
+
+-- Add constraints
+ALTER TABLE work_order_templates
+    ADD CONSTRAINT valid_app_scope CHECK (
+        (scope = 'app' AND organization_id IS NULL AND project_id IS NULL)
+        OR scope != 'app'
+    ),
+    ADD CONSTRAINT valid_company_scope CHECK (
+        (scope = 'company' AND organization_id IS NOT NULL AND project_id IS NULL)
+        OR scope != 'company'
+    ),
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== 20260204000000_document_storage.sql (first 60 lines) ===
+-- Phase 3A: Document Storage & Image Extraction
+-- Migration to support PDF uploads, image extraction, and document management
+
+-- Project documents table
+CREATE TABLE project_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES wo_projects(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    file_url TEXT NOT NULL, -- Supabase Storage URL
+    file_type TEXT NOT NULL, -- 'pdf', 'image', 'dwg', etc.
+    file_size_bytes BIGINT,
+    uploaded_by UUID REFERENCES auth.users(id),
+    uploaded_at TIMESTAMPTZ DEFAULT NOW(),
+    metadata JSONB, -- {page_count, dimensions, etc.}
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Extracted images from documents
+CREATE TABLE document_images (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_id UUID REFERENCES project_documents(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL, -- Supabase Storage URL
+    page_number INTEGER,
+    image_type TEXT, -- 'floor_plan', 'elevation', 'detail', etc.
+    caption TEXT,
+    metadata JSONB, -- {width, height, extracted_text, etc.}
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Link documents to units
+CREATE TABLE unit_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+    document_id UUID REFERENCES project_documents(id) ON DELETE CASCADE,
+    relationship_type TEXT, -- 'floor_plan', 'upgrade_list', 'specification', etc.
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(unit_id, document_id)
+);
+
+-- Link images to specific entities (units, work orders, rooms)
+CREATE TABLE image_links (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    image_id UUID REFERENCES document_images(id) ON DELETE CASCADE,
+    entity_type TEXT NOT NULL, -- 'unit', 'work_order', 'room', etc.
+    entity_id UUID NOT NULL,
+    link_type TEXT, -- 'floor_plan', 'before_photo', 'after_photo', etc.
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add floor plan image and dimensions to units table
+ALTER TABLE units ADD COLUMN IF NOT EXISTS floor_plan_image TEXT;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS dimensions JSONB; -- {length_mm: 7310, width_mm: 4675, ...}
+
+-- Room dimensions table
+CREATE TABLE unit_rooms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    unit_id UUID REFERENCES units(id) ON DELETE CASCADE,
+    room_id UUID REFERENCES rooms(id),
+    area_sf DECIMAL(10,2),
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/general/ contents ===
+total 0
+drwxr-xr-x 1 root root 4096 Feb 18 05:06 .
+drwxrwxrwx 1 root root 4096 Feb 18 05:06 ..
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

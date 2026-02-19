@@ -1,0 +1,13 @@
+apps		       nocodb_logs.txt		supabase_debug.log
+backups		       package.json		table_columns.txt
+clean-documents.ps1    packages			temp_analysis.pdf
+convert_bom.sql        pnpm-lock.yaml		test_api.ps1
+create_work_order.ps1  pnpm-workspace.yaml	tracked_files.txt
+debug_write_test.txt   project_ids.txt		turbo.json
+doc-parser	       README.md		unit_ids.txt
+docs		       restore-for-testing.ps1	verify_data.sql
+nocodb		       seed_error.txt
+nocodb_full.txt        supabase
+---
+Total items: 28
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

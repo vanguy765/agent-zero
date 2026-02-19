@@ -1,0 +1,53 @@
+table_name      |       column_name       |        data_type         |        column_default
+----------------------+-------------------------+--------------------------+------------------------------
+ rooms                | id                      | uuid                     | gen_random_uuid()
+ rooms                | organization_id         | uuid                     |
+ rooms                | name                    | text                     |
+ rooms                | display_order           | integer                  | 0
+ rooms                | created_at              | timestamp with time zone | timezone('utc'::text, now())
+ units                | id                      | uuid                     | gen_random_uuid()
+ units                | organization_id         | uuid                     |
+ units                | unit_number             | text                     |
+ units                | unit_type               | text                     |
+ units                | floor                   | integer                  |
+ units                | area_sf                 | numeric                  |
+ units                | status                  | text                     | 'not_started'::text
+ units                | metadata                | jsonb                    | '{}'::jsonb
+ units                | created_at              | timestamp with time zone | timezone('utc'::text, now())
+ units                | updated_at              | timestamp with time zone | timezone('utc'::text, now())
+ units                | project_id              | uuid                     |
+ units                | floor_plan_image        | text                     |
+ units                | dimensions              | jsonb                    |
+ units                | bedrooms                | integer                  |
+ work_order_templates | id                      | uuid                     | gen_random_uuid()
+ work_order_templates | organization_id         | uuid                     |
+ work_order_templates | trade_name              | text                     |
+ work_order_templates | version                 | integer                  | 1
+ work_order_templates | is_active               | boolean                  | true
+ work_order_templates | definition              | jsonb                    |
+ work_order_templates | created_at              | timestamp with time zone | timezone('utc'::text, now())
+ work_order_templates | updated_at              | timestamp with time zone | timezone('utc'::text, now())
+ work_order_templates | scope                   | text                     | 'company'::text
+ work_order_templates | project_id              | uuid                     |
+ work_order_templates | parent_template_id      | uuid                     |
+ work_order_templates | copied_from_template_id | uuid                     |
+ work_order_templates | created_by              | uuid                     |
+ work_order_templates | updated_by              | uuid                     |
+ work_order_templates | library_id              | uuid                     |
+ work_orders          | id                      | uuid                     | gen_random_uuid()
+ work_orders          | organization_id         | uuid                     |
+ work_orders          | unit_id                 | uuid                     |
+ work_orders          | template_id             | uuid                     |
+ work_orders          | trade_name              | text                     |
+ work_orders          | status                  | text                     | 'pending'::text
+ work_orders          | assigned_contractor_id  | uuid                     |
+ work_orders          | inspector_id            | uuid                     |
+ work_orders          | start_date              | timestamp with time zone |
+ work_orders          | completion_date         | timestamp with time zone |
+ work_orders          | inspector_signoff_date  | timestamp with time zone |
+ work_orders          | metadata                | jsonb                    | '{}'::jsonb
+ work_orders          | created_at              | timestamp with time zone | timezone('utc'::text, now())
+ work_orders          | updated_at              | timestamp with time zone | timezone('utc'::text, now())
+(48 rows)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,37 @@
+routine_name
+--------------------------
+ update_updated_at_column
+ update_updated_at_column
+(2 rows)
+
+                                Table "public.organizations"
+   Column   |           Type           | Collation | Nullable |           Default
+------------+--------------------------+-----------+----------+------------------------------
+ id         | uuid                     |           | not null | gen_random_uuid()
+ name       | text                     |           | not null |
+ slug       | text                     |           | not null |
+ settings   | jsonb                    |           |          | '{}'::jsonb
+ created_at | timestamp with time zone |           | not null | timezone('utc'::text, now())
+ updated_at | timestamp with time zone |           | not null | timezone('utc'::text, now())
+Indexes:
+    "organizations_pkey" PRIMARY KEY, btree (id)
+    "organizations_slug_key" UNIQUE CONSTRAINT, btree (slug)
+Referenced by:
+    TABLE "rooms" CONSTRAINT "rooms_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    TABLE "template_libraries" CONSTRAINT "template_libraries_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    TABLE "units" CONSTRAINT "units_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    TABLE "wo_projects" CONSTRAINT "wo_projects_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    TABLE "work_order_templates" CONSTRAINT "work_order_templates_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+    TABLE "work_orders" CONSTRAINT "work_orders_organization_id_fkey" FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+Policies:
+    POLICY "Users can view their organization" FOR SELECT
+      USING ((id = current_user_organization_id()))
+Triggers:
+    update_organizations_updated_at BEFORE UPDATE ON organizations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+
+         routine_name
+------------------------------
+ current_user_organization_id
+(1 row)
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

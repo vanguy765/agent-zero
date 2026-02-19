@@ -1,0 +1,15 @@
+✓ 20260217000001_extensions.sql (501 chars)
+  ✓ 20260217000002_functions.sql (3,404 chars)
+  ✓ 20260217000003_core_tables.sql (2,897 chars)
+  ✓ 20260217000004_work_order_tables.sql (4,520 chars)
+  ✓ 20260217000005_unit_tables.sql (4,502 chars)
+  ✓ 20260217000006_document_tables.sql (1,857 chars)
+  ✓ 20260217000007_agent_memories.sql (985 chars)
+  ✓ 20260217000008_foreign_keys.sql (5,186 chars)
+  ✓ 20260217000009_indexes.sql (4,159 chars)
+  ✓ 20260217000010_views.sql (15,938 chars)
+  ✓ 20260217000011_triggers.sql (1,884 chars)
+  ✓ 20260217000012_rls_policies.sql (11,118 chars)
+
+Total: 12 migration files written to /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,118 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# === FOREIGN KEYS (first 40 lines) ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Foreign Key Constraints
+-- Description: All inter-table foreign key relationships
+-- =============================================================
+
+ALTER TABLE ONLY public.document_images
+    ADD CONSTRAINT document_images_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.project_documents(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.image_links
+    ADD CONSTRAINT image_links_image_id_fkey FOREIGN KEY (image_id) REFERENCES public.document_images(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.project_documents
+    ADD CONSTRAINT project_documents_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.wo_projects(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.project_documents
+    ADD CONSTRAINT project_documents_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES auth.users(id);
+
+ALTER TABLE ONLY public.rooms
+    ADD CONSTRAINT rooms_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.template_libraries
+    ADD CONSTRAINT template_libraries_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.unit_documents
+    ADD CONSTRAINT unit_documents_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.project_documents(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.unit_documents
+    ADD CONSTRAINT unit_documents_unit_id_fkey FOREIGN KEY (unit_id) REFERENCES public.units(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.unit_room_calculations
+    ADD CONSTRAINT unit_room_calculations_unit_room_id_fkey FOREIGN KEY (unit_room_id) REFERENCES public.unit_rooms(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.unit_room_measurements
+    ADD CONSTRAINT unit_room_measurements_unit_room_id_fkey FOREIGN KEY (unit_room_id) REFERENCES public.unit_rooms(id) ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.unit_rooms
+    ADD CONSTRAINT unit_rooms_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(id);
+
+ALTER TABLE ONLY public.unit_rooms
+    ADD CONSTRAINT unit_rooms_unit_id_fkey FOREIGN KEY (unit_id) REFERENCES public.units(id) ON DELETE CASCADE;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n\n=== WORK ORDER TABLES (first 50 lines) ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Work Order Tables
+-- Description: Projects, work orders, tasks, notes, and templates
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: wo_projects
+-- -----------------------------------------------
+
+CREATE TABLE public.wo_projects (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    name text NOT NULL,
+    description text,
+    status text DEFAULT 'active'::text NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    project_type text,
+    library_id uuid,
+    CONSTRAINT wo_projects_status_check CHECK ((status = ANY (ARRAY['active'::text, 'completed'::text, 'archived'::text])))
+);
+
+ALTER TABLE ONLY public.wo_projects
+    ADD CONSTRAINT wo_projects_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: work_orders
+-- -----------------------------------------------
+
+CREATE TABLE public.work_orders (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    unit_id uuid NOT NULL,
+    template_id uuid NOT NULL,
+    trade_name text NOT NULL,
+    status text DEFAULT 'pending'::text,
+    assigned_contractor_id uuid,
+    inspector_id uuid,
+    start_date timestamp with time zone,
+    completion_date timestamp with time zone,
+    inspector_signoff_date timestamp with time zone,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE ONLY public.work_orders
+    ADD CONSTRAINT work_orders_pkey PRIMARY KEY (id);
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n\n=== AGENT MEMORIES ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Agent Memories
+-- Description: AI agent memory storage with vector embeddings
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: agent_memories
+-- -----------------------------------------------
+
+CREATE TABLE public.agent_memories (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    content text NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    area text DEFAULT 'main'::text NOT NULL,
+    source text DEFAULT 'agent_zero'::text,
+    source_memory_id text,
+    embedding public.vector(384),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT agent_memories_area_check CHECK ((area = ANY (ARRAY['main'::text, 'fragments'::text, 'solutions'::text])))
+);
+
+ALTER TABLE ONLY public.agent_memories
+    ADD CONSTRAINT agent_memories_pkey PRIMARY KEY (id);
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

@@ -1,0 +1,150 @@
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# === ALL TABLES ===
+(venv) root@2c00128c0233:/tmp# CREATE TABLE public.agent_memories (
+CREATE TABLE public.document_images (
+CREATE TABLE public.image_links (
+CREATE TABLE public.metric_definitions (
+CREATE TABLE public.nc_api_tokens (
+CREATE TABLE public.nc_audit_v2 (
+CREATE TABLE public.nc_automation_executions (
+CREATE TABLE public.nc_automations (
+CREATE TABLE public.nc_bases_v2 (
+CREATE TABLE public.nc_base_users_v2 (
+CREATE TABLE public.nc_calendar_view_columns_v2 (
+CREATE TABLE public.nc_calendar_view_range_v2 (
+CREATE TABLE public.nc_calendar_view_v2 (
+CREATE TABLE public.nc_col_barcode_v2 (
+CREATE TABLE public.nc_col_button_v2 (
+CREATE TABLE public.nc_col_formula_v2 (
+CREATE TABLE public.nc_col_long_text_v2 (
+CREATE TABLE public.nc_col_lookup_v2 (
+CREATE TABLE public.nc_col_qrcode_v2 (
+CREATE TABLE public.nc_col_relations_v2 (
+CREATE TABLE public.nc_col_rollup_v2 (
+CREATE TABLE public.nc_col_select_options_v2 (
+CREATE TABLE public.nc_columns_v2 (
+CREATE TABLE public.nc_comment_reactions (
+CREATE TABLE public.nc_comments (
+CREATE TABLE public.nc_custom_urls_v2 (
+CREATE TABLE public.nc_dashboards_v2 (
+CREATE TABLE public.nc_data_reflection (
+CREATE TABLE public.nc_db_servers (
+CREATE TABLE public.nc_dependency_tracker (
+CREATE TABLE public.nc_disabled_models_for_role_v2 (
+CREATE TABLE public.nc_extensions (
+CREATE TABLE public.nc_file_references (
+CREATE TABLE public.nc_filter_exp_v2 (
+CREATE TABLE public.nc_follower (
+CREATE TABLE public.nc_form_view_columns_v2 (
+CREATE TABLE public.nc_form_view_v2 (
+CREATE TABLE public.nc_gallery_view_columns_v2 (
+CREATE TABLE public.nc_gallery_view_v2 (
+CREATE TABLE public.nc_grid_view_columns_v2 (
+CREATE TABLE public.nc_grid_view_v2 (
+CREATE TABLE public.nc_hook_logs_v2 (
+CREATE TABLE public.nc_hooks_v2 (
+CREATE TABLE public.nc_hook_trigger_fields (
+CREATE TABLE public.nc_installations (
+CREATE TABLE public.nc_integrations_store_v2 (
+CREATE TABLE public.nc_integrations_v2 (
+CREATE TABLE public.nc_jobs (
+CREATE TABLE public.nc_kanban_view_columns_v2 (
+CREATE TABLE public.nc_kanban_view_v2 (
+CREATE TABLE public.nc_map_view_columns_v2 (
+CREATE TABLE public.nc_map_view_v2 (
+CREATE TABLE public.nc_mcp_tokens (
+CREATE TABLE public.nc_model_stats_v2 (
+CREATE TABLE public.nc_models_v2 (
+CREATE TABLE public.nc_oauth_authorization_codes (
+CREATE TABLE public.nc_oauth_clients (
+CREATE TABLE public.nc_oauth_tokens (
+CREATE TABLE public.nc_org (
+CREATE TABLE public.nc_org_domain (
+CREATE TABLE public.nc_org_users (
+CREATE TABLE public.nc_permissions (
+CREATE TABLE public.nc_permission_subjects (
+CREATE TABLE public.nc_plans (
+CREATE TABLE public.nc_plugins_v2 (
+CREATE TABLE public.nc_principal_assignments (
+CREATE TABLE public.nc_row_color_conditions (
+CREATE TABLE public.nc_scripts (
+CREATE TABLE public.nc_snapshots (
+CREATE TABLE public.nc_sort_v2 (
+CREATE TABLE public.nc_sources_v2 (
+CREATE TABLE public.nc_sql_executor_v2 (
+CREATE TABLE public.nc_sso_client (
+CREATE TABLE public.nc_sso_client_domain (
+CREATE TABLE public.nc_store (
+CREATE TABLE public.nc_subscriptions (
+CREATE TABLE public.nc_sync_configs (
+CREATE TABLE public.nc_sync_logs_v2 (
+CREATE TABLE public.nc_sync_mappings (
+CREATE TABLE public.nc_sync_source_v2 (
+CREATE TABLE public.nc_teams (
+CREATE TABLE public.nc_usage_stats (
+CREATE TABLE public.nc_user_comment_notifications_preference (
+CREATE TABLE public.nc_user_refresh_tokens (
+CREATE TABLE public.nc_users_v2 (
+CREATE TABLE public.nc_views_v2 (
+CREATE TABLE public.nc_widgets_v2 (
+CREATE TABLE public.nc_workflows (
+CREATE TABLE public.notification (
+CREATE TABLE public.organizations (
+CREATE TABLE public.project_documents (
+CREATE TABLE public.rooms (
+CREATE TABLE public.template_libraries (
+CREATE TABLE public.unit_documents (
+CREATE TABLE public.unit_room_calculations (
+CREATE TABLE public.unit_room_measurements (
+CREATE TABLE public.unit_rooms (
+CREATE TABLE public.units (
+CREATE TABLE public.wo_projects (
+CREATE TABLE public.work_order_notes (
+CREATE TABLE public.work_orders (
+CREATE TABLE public.work_order_tasks (
+CREATE TABLE public.work_order_templates (
+CREATE TABLE public.workspace (
+CREATE TABLE public.workspace_user (
+CREATE TABLE public.xc_knex_migrationsv0 (
+CREATE TABLE public.xc_knex_migrationsv0_lock (
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== FUNCTIONS ===
+(venv) root@2c00128c0233:/tmp# CREATE FUNCTION public.current_user_organization_id() RETURNS uuid
+CREATE FUNCTION public.get_default_library_for_type(p_project_type text) RETURNS uuid
+CREATE FUNCTION public.get_project_organization_id(p_project_id uuid) RETURNS uuid
+CREATE FUNCTION public.search_agent_memories(query_embedding public.vector, match_threshold double precision DEFAULT 0.7, match_count integer DEFAULT 5, filter_area text DEFAULT NULL::text, filter_source text DEFAULT NULL::text, filter_metadata jsonb DEFAULT NULL::jsonb) RETURNS TABLE(id uuid, content text, metadata jsonb, area text, source text, similarity double precision, created_at timestamp with time zone)
+CREATE FUNCTION public.update_agent_memories_timestamp() RETURNS trigger
+CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
+CREATE FUNCTION public.upsert_agent_memory(p_content text, p_embedding public.vector, p_metadata jsonb DEFAULT '{}'::jsonb, p_area text DEFAULT 'main'::text, p_source text DEFAULT 'agent_zero'::text, p_source_memory_id text DEFAULT NULL::text) RETURNS uuid
+CREATE TRIGGER trg_agent_memories_updated BEFORE UPDATE ON public.agent_memories FOR EACH ROW EXECUTE FUNCTION public.update_agent_memories_timestamp();
+CREATE TRIGGER trg_urc_updated_at BEFORE UPDATE ON public.unit_room_calculations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER trg_urm_updated_at BEFORE UPDATE ON public.unit_room_measurements FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON public.organizations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_template_libraries_updated_at BEFORE UPDATE ON public.template_libraries FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_units_updated_at BEFORE UPDATE ON public.units FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_wo_projects_updated_at BEFORE UPDATE ON public.wo_projects FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_order_notes_updated_at BEFORE UPDATE ON public.work_order_notes FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_order_tasks_updated_at BEFORE UPDATE ON public.work_order_tasks FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_order_templates_updated_at BEFORE UPDATE ON public.work_order_templates FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_orders_updated_at BEFORE UPDATE ON public.work_orders FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== VIEWS ===
+(venv) root@2c00128c0233:/tmp# CREATE VIEW public.v_all_calculations AS
+CREATE VIEW public.v_budget_tracker AS
+CREATE VIEW public.v_project_cost_summary AS
+CREATE VIEW public.v_trade_cost_comparison AS
+CREATE VIEW public.v_unit_cost_sheet AS
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== TRIGGERS ===
+(venv) root@2c00128c0233:/tmp# CREATE TRIGGER trg_agent_memories_updated BEFORE UPDATE ON public.agent_memories FOR EACH ROW EXECUTE FUNCTION public.update_agent_memories_timestamp();
+CREATE TRIGGER trg_urc_updated_at BEFORE UPDATE ON public.unit_room_calculations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER trg_urm_updated_at BEFORE UPDATE ON public.unit_room_measurements FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON public.organizations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_template_libraries_updated_at BEFORE UPDATE ON public.template_libraries FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_units_updated_at BEFORE UPDATE ON public.units FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_wo_projects_updated_at BEFORE UPDATE ON public.wo_projects FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_order_notes_updated_at BEFORE UPDATE ON public.work_order_notes FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_order_tasks_updated_at BEFORE UPDATE ON public.work_order_tasks FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_order_templates_updated_at BEFORE UPDATE ON public.work_order_templates FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_work_orders_updated_at BEFORE UPDATE ON public.work_orders FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== INDEXES ===
+(venv) root@2c00128c0233:/tmp# 303
+(venv) root@2c00128c0233:/tmp# index lines
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp# \n=== EXTENSIONS ===
+(venv) root@2c00128c0233:/tmp# (venv) root@2c00128c0233:/tmp#

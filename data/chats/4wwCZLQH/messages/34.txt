@@ -1,0 +1,27 @@
+Found section: metric_definitions (40 inserts)
+Found section: organizations (1 inserts)
+Found section: rooms (32 inserts)
+Found section: template_libraries (5 inserts)
+Found section: wo_projects (1 inserts)
+Found section: units (20 inserts)
+Found section: unit_rooms (144 inserts)
+Found section: unit_room_calculations (29 inserts)
+Found section: unit_room_measurements (8 inserts)
+Found section: work_order_templates (11 inserts)
+Found section: work_orders (220 inserts)
+Found section: work_order_tasks (1584 inserts)
+
+--- Rewritten seed.sql in dependency order ---
+-- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: template_libraries; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: metric_definitions; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: wo_projects; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: work_order_templates; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: units; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: unit_rooms; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: unit_room_measurements; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: unit_room_calculations; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: work_orders; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: work_order_tasks; Type: TABLE DATA; Schema: public; Owner: -
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

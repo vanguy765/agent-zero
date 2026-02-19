@@ -1,0 +1,51 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#     return c.json(data);
+});
+
+// CREATE WORK ORDER (from template) — with placeholder recovery
+workOrdersRoute.post('/work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+
+    const result = CreateWorkOrderRequestSchema.safeParse(body);
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
+    const { unit_id, template_id, assigned_contractor_id } = result.data;
+    const warnings: string[] = [];
+    const draftsCreated: Array<{ type: string; id: string; name: string }> = [];
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# ---
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#             review_url: needsReview
+                ? `/reviews?trigger_entity_id=${workOrder.id}`
+                : undefined,
+        },
+    }, 201);
+});
+
+// UPDATE WORK ORDER STATUS
+workOrdersRoute.patch('/work-orders/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('work_orders')
+        .update(body)
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# ---
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# -- ============================================================================
+-- Migration: Placeholder Recovery & Approval Workflow
+-- Description: Adds draft/placeholder status to templates & rooms,
+--              creates pending_reviews queue for approval workflow,
+--              and prepares for future form/text/AI-assisted creation.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# ...
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app# CREATE POLICY entity_creation_log_org_isolation ON entity_creation_log
+  FOR ALL USING (
+    organization_id = current_user_organization_id()
+  );
+
+-- 7. Updated timestamp trigger for pending_reviews
+CREATE OR REPLACE TRIGGER set_pending_reviews_updated_at
+  BEFORE UPDATE ON pending_reviews
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

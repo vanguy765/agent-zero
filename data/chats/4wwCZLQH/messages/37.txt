@@ -1,0 +1,456 @@
+=== 00007_agent_memories.sql ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Agent Memories
+-- Description: AI agent memory storage with vector embeddings
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: agent_memories
+-- -----------------------------------------------
+
+CREATE TABLE public.agent_memories (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    content text NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    area text DEFAULT 'main'::text NOT NULL,
+    source text DEFAULT 'agent_zero'::text,
+    source_memory_id text,
+    embedding public.vector(384),
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT agent_memories_area_check CHECK ((area = ANY (ARRAY['main'::text, 'fragments'::text, 'solutions'::text])))
+);
+
+ALTER TABLE ONLY public.agent_memories
+    ADD CONSTRAINT agent_memories_pkey PRIMARY KEY (id);
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# === 00008_views.sql (00010) ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Views
+-- Description: Reporting and cost analysis views
+-- =============================================================
+
+CREATE VIEW public.v_all_calculations AS
+ SELECT u.unit_number,
+    u.floor,
+    r.name AS room_name,
+    c.metric_key,
+    c.metric_label,
+    c.category,
+    c.trade_key,
+    c.rate,
+    c.rate_unit,
+    c.quantity,
+    c.quantity_source,
+    c.value_numeric,
+    c.value_text,
+    c.unit_of_measure,
+    c.product_estimated,
+    c.product_actual,
+    c.price_estimated,
+    c.price_actual,
+    (c.price_actual - c.price_estimated) AS price_variance,
+    c.hours_estimated,
+    c.hours_actual,
+    (c.hours_actual - c.hours_estimated) AS hours_variance,
+    c.percent_complete,
+    c.is_calculated,
+    c.is_editable,
+    c.source,
+    c.formula
+   FROM (((public.unit_room_calculations c
+     JOIN public.unit_rooms ur ON ((ur.id = c.unit_room_id)))
+     JOIN public.units u ON ((u.id = ur.unit_id)))
+     JOIN public.rooms r ON ((r.id = ur.room_id)))
+  ORDER BY u.floor, u.unit_number, r.name, c.category, c.metric_key;
+
+
+CREATE VIEW public.v_budget_tracker AS
+ WITH trade_budget AS (
+         SELECT c.trade_key,
+            u.unit_number,
+            u.floor,
+            r.name AS room_name,
+            sum(COALESCE(c.price_estimated, c.value_numeric)) FILTER (WHERE ((c.category = ANY (ARRAY['cost'::text, 'cost_actual'::text])) AND (c.unit_of_measure = '$'::text))) AS estimated,
+            sum(c.price_actual) FILTER (WHERE ((c.category = ANY (ARRAY['cost'::text, 'cost_actual'::text])) AND (c.unit_of_measure = '$'::text))) AS actual,
+            string_agg(DISTINCT c.product_estimated, ', '::text) FILTER (WHERE (c.product_estimated IS NOT NULL)) AS products_planned,
+            string_agg(DISTINCT c.product_actual, ', '::text) FILTER (WHERE (c.product_actual IS NOT NULL)) AS products_installed,
+            sum(c.hours_estimated) FILTER (WHERE (c.hours_estimated IS NOT NULL)) AS hours_planned,
+            sum(c.hours_actual) FILTER (WHERE (c.hours_actual IS NOT NULL)) AS hours_worked,
+            avg(c.percent_complete) FILTER (WHERE ((c.percent_complete IS NOT NULL) AND (c.percent_complete > (0)::numeric))) AS pct_complete
+           FROM (((public.unit_room_calculations c
+             JOIN public.unit_rooms ur ON ((ur.id = c.unit_room_id)))
+             JOIN public.units u ON ((u.id = ur.unit_id)))
+             JOIN public.rooms r ON ((r.id = ur.room_id)))
+          GROUP BY c.trade_key, u.unit_number, u.floor, r.name
+        )
+ SELECT trade_key,
+    unit_number,
+    floor,
+    room_name,
+    estimated,
+    actual,
+    (actual - estimated) AS variance,
+        CASE
+            WHEN (estimated > (0)::numeric) THEN round((((actual - estimated) / estimated) * (100)::numeric), 1)
+            ELSE NULL::numeric
+        END AS variance_pct,
+    products_planned,
+    products_installed,
+        CASE
+            WHEN ((products_planned IS DISTINCT FROM products_installed) AND (products_installed IS NOT NULL)) THEN true
+            ELSE false
+        END AS product_changed,
+    hours_planned,
+    hours_worked,
+    (hours_worked - hours_planned) AS hours_variance,
+    pct_complete
+   FROM trade_budget
+  WHERE ((estimated IS NOT NULL) OR (actual IS NOT NULL))
+  ORDER BY trade_key, floor, unit_number, room_name;
+
+
+CREATE VIEW public.v_project_cost_summary AS
+ WITH measurement_agg AS (
+         SELECT ur.unit_id,
+            count(DISTINCT ur.id) AS room_count,
+            sum(m.area_sf) AS total_room_area_sf,
+            sum(m.wall_area_sf) AS total_wall_area_sf,
+            sum(m.ceiling_area_sf) AS total_ceiling_area_sf,
+            sum(m.wall_length_total_lf) AS total_wall_lf
+           FROM (public.unit_rooms ur
+             LEFT JOIN public.unit_room_measurements m ON ((m.unit_room_id = ur.id)))
+          GROUP BY ur.unit_id
+        ), calculation_agg AS (
+         SELECT ur.unit_id,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'material_cost_total'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+                    ELSE (0)::numeric
+                END) AS total_material_est,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'labor_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+                    ELSE (0)::numeric
+                END) AS total_labor_est,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'total_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+                    ELSE (0)::numeric
+                END) AS total_cost_est,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'appliance_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+                    ELSE (0)::numeric
+                END) AS total_appliance_est,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'flooring_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+                    ELSE (0)::numeric
+                END) AS total_flooring_est,
+            sum(
+                CASE
+                    WHEN (c.metric_key = ANY (ARRAY['paint_wall_gal'::text, 'paint_ceiling_gal'::text])) THEN c.value_numeric
+                    ELSE (0)::numeric
+                END) AS total_paint_gal,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'sub_invoice_allocated'::text) THEN c.value_numeric
+                    ELSE (0)::numeric
+                END) AS total_invoice_allocated,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'material_cost_total'::text) THEN c.price_actual
+                    ELSE (0)::numeric
+                END) AS total_material_actual,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'labor_cost'::text) THEN c.price_actual
+                    ELSE (0)::numeric
+                END) AS total_labor_actual,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'total_cost'::text) THEN c.price_actual
+                    ELSE (0)::numeric
+                END) AS total_cost_actual,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'appliance_cost'::text) THEN c.price_actual
+                    ELSE (0)::numeric
+                END) AS total_appliance_actual,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'flooring_cost'::text) THEN c.price_actual
+                    ELSE (0)::numeric
+                END) AS total_flooring_actual,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'labor_cost'::text) THEN c.hours_estimated
+                    ELSE (0)::numeric
+                END) AS total_hours_est,
+            sum(
+                CASE
+                    WHEN (c.metric_key = 'labor_cost'::text) THEN c.hours_actual
+                    ELSE (0)::numeric
+                END) AS total_hours_actual,
+            avg(
+                CASE
+                    WHEN ((c.metric_key = 'labor_cost'::text) AND (c.percent_complete IS NOT NULL)) THEN c.percent_complete
+                    ELSE NULL::numeric
+                END) AS avg_pct_complete
+           FROM (public.unit_rooms ur
+             LEFT JOIN public.unit_room_calculations c ON ((c.unit_room_id = ur.id)))
+          GROUP BY ur.unit_id
+        )
+ SELECT u.unit_number,
+    u.floor,
+    u.unit_type,
+    u.bedrooms,
+    u.area_sf AS unit_area_sf,
+    ma.room_count,
+    ma.total_room_area_sf,
+    ma.total_wall_area_sf,
+    ma.total_ceiling_area_sf,
+    ma.total_wall_lf,
+    ca.total_material_est,
+    ca.total_labor_est,
+    ca.total_appliance_est,
+    ca.total_flooring_est,
+    ca.total_paint_gal,
+    ca.total_invoice_allocated,
+    ca.total_cost_est,
+        CASE
+            WHEN (u.area_sf > (0)::numeric) THEN round((ca.total_cost_est / u.area_sf), 2)
+            ELSE NULL::numeric
+        END AS cost_per_sf_est,
+    ca.total_material_actual,
+    ca.total_labor_actual,
+    ca.total_appliance_actual,
+    ca.total_flooring_actual,
+    ca.total_cost_actual,
+        CASE
+            WHEN (u.area_sf > (0)::numeric) THEN round((ca.total_cost_actual / u.area_sf), 2)
+            ELSE NULL::numeric
+        END AS cost_per_sf_actual,
+    (ca.total_cost_actual - ca.total_cost_est) AS cost_variance,
+    ca.total_hours_est,
+    ca.total_hours_actual,
+    ca.avg_pct_complete
+   FROM ((public.units u
+     LEFT JOIN measurement_agg ma ON ((ma.unit_id = u.id)))
+     LEFT JOIN calculation_agg ca ON ((ca.unit_id = u.id)))
+  ORDER BY u.floor, u.unit_number;
+
+
+CREATE VIEW public.v_trade_cost_comparison AS
+ SELECT c.trade_key,
+    u.unit_number,
+    u.floor,
+    r.name AS room_name,
+    c.metric_key,
+    c.metric_label,
+    c.category,
+    c.rate,
+    c.rate_unit,
+    c.quantity,
+    COALESCE(c.price_estimated, c.value_numeric) AS price_estimated,
+    c.price_actual,
+    (c.price_actual - COALESCE(c.price_estimated, c.value_numeric)) AS price_variance,
+    c.product_estimated,
+    c.product_actual,
+    c.hours_estimated,
+    c.hours_actual,
+    c.percent_complete,
+    c.value_numeric,
+    c.unit_of_measure,
+        CASE
+            WHEN ((c.unit_of_measure = '$'::text) AND (m.area_sf > (0)::numeric)) THEN round((COALESCE(c.price_actual, c.price_estimated, c.value_numeric) / m.area_sf), 2)
+            ELSE NULL::numeric
+        END AS cost_per_sf
+   FROM ((((public.unit_room_calculations c
+     JOIN public.unit_rooms ur ON ((ur.id = c.unit_room_id)))
+     JOIN public.units u ON ((u.id = ur.unit_id)))
+     JOIN public.rooms r ON ((r.id = ur.room_id)))
+     LEFT JOIN public.unit_room_measurements m ON ((m.unit_room_id = ur.id)))
+  ORDER BY c.trade_key, u.floor, u.unit_number, r.name;
+
+
+CREATE VIEW public.v_unit_cost_sheet AS
+ SELECT u.unit_number,
+    u.floor,
+    u.unit_type,
+    u.bedrooms,
+    r.name AS room_name,
+    ur.id AS unit_room_id,
+    m.area_sf,
+    m.area_m2,
+    m.wall_length_total_lf,
+    m.wall_length_cabinets_lf,
+    m.wall_length_paintable_lf,
+    m.baseboard_length_lf,
+    m.ceiling_height_ft,
+    m.wall_area_sf,
+    m.ceiling_area_sf,
+    m.window_count,
+    m.door_count,
+    m.width_ft,
+    m.depth_ft,
+    max(
+        CASE
+            WHEN (c.metric_key = 'paint_wall_gal'::text) THEN c.value_numeric
+            ELSE NULL::numeric
+        END) AS paint_wall_gal,
+    max(
+        CASE
+            WHEN (c.metric_key = 'paint_ceiling_gal'::text) THEN c.value_numeric
+            ELSE NULL::numeric
+        END) AS paint_ceiling_gal,
+    max(
+        CASE
+            WHEN (c.metric_key = 'flooring_sf'::text) THEN c.value_numeric
+            ELSE NULL::numeric
+        END) AS flooring_sf,
+    max(
+        CASE
+            WHEN (c.metric_key = 'baseboard_lf'::text) THEN c.value_numeric
+            ELSE NULL::numeric
+        END) AS baseboard_lf,
+    max(
+        CASE
+            WHEN (c.metric_key = 'paint_wall_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS paint_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'flooring_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS flooring_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'baseboard_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS baseboard_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'appliance_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS appliance_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'door_cost_total'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS door_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'labor_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS labor_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'total_cost'::text) THEN COALESCE(c.price_estimated, c.value_numeric)
+            ELSE NULL::numeric
+        END) AS total_cost_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'paint_wall_cost'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS paint_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'flooring_cost'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS flooring_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'baseboard_cost'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS baseboard_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'appliance_cost'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS appliance_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'door_cost_total'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS door_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'labor_cost'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS labor_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'total_cost'::text) THEN c.price_actual
+            ELSE NULL::numeric
+        END) AS total_cost_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'appliance_cost'::text) THEN c.product_estimated
+            ELSE NULL::text
+        END) AS appliance_spec_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'appliance_cost'::text) THEN c.product_actual
+            ELSE NULL::text
+        END) AS appliance_spec_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'door_cost_total'::text) THEN c.product_estimated
+            ELSE NULL::text
+        END) AS door_spec_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'door_cost_total'::text) THEN c.product_actual
+            ELSE NULL::text
+        END) AS door_spec_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'labor_cost'::text) THEN c.hours_estimated
+            ELSE NULL::numeric
+        END) AS labor_hours_est,
+    max(
+        CASE
+            WHEN (c.metric_key = 'labor_cost'::text) THEN c.hours_actual
+            ELSE NULL::numeric
+        END) AS labor_hours_actual,
+    max(
+        CASE
+            WHEN (c.metric_key = 'labor_cost'::text) THEN c.percent_complete
+            ELSE NULL::numeric
+        END) AS labor_pct_complete,
+    max(
+        CASE
+            WHEN (c.metric_key = 'flooring_cost'::text) THEN c.rate
+            ELSE NULL::numeric
+        END) AS flooring_rate,
+    max(
+        CASE
+            WHEN (c.metric_key = 'paint_wall_cost'::text) THEN c.rate
+            ELSE NULL::numeric
+        END) AS paint_rate,
+    max(
+        CASE
+            WHEN (c.metric_key = 'baseboard_cost'::text) THEN c.rate
+            ELSE NULL::numeric
+        END) AS baseboard_rate,
+    max(
+        CASE
+            WHEN (c.metric_key = 'labor_cost'::text) THEN c.rate
+            ELSE NULL::numeric
+        END) AS labor_rate,
+    max(
+        CASE
+            WHEN (c.metric_key = 'sub_invoice_allocated'::text) THEN c.value_numeric
+            ELSE NULL::numeric
+        END) AS sub_invoice_allocated
+   FROM ((((public.unit_rooms ur
+     JOIN public.units u ON ((u.id = ur.unit_id)))
+     JOIN public.rooms r ON ((r.id = ur.room_id)))
+     LEFT JOIN public.unit_room_measurements m ON ((m.unit_room_id = ur.id)))
+     LEFT JOIN public.unit_room_calculations c ON ((c.unit_room_id = ur.id)))
+  GROUP BY u.unit_number, u.floor, u.unit_type, u.bedrooms, r.name, ur.id, m.area_sf, m.area_m2, m.wall_length_total_lf, m.wall_length_cabinets_lf, m.wall_length_paintable_lf, m.baseboard_length_lf, m.ceiling_height_ft, m.wall_area_sf, m.ceiling_area_sf, m.window_count, m.door_count, m.width_ft, m.depth_ft
+  ORDER BY u.floor, u.unit_number, r.name;
+
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

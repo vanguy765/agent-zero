@@ -1,0 +1,9 @@
+agent_memories||id:uuid:uuid:NOT NULL, content:text:text:NOT NULL, metadata:jsonb:jsonb, area:text:text:NOT NULL, source:text:text, source_memory_id:text:text, embedding:USER-DEFINED:vector, created_at:timestamp with time zone:timestamptz, updated_at:timestamp with time zone:timestamptz
+document_images||id:uuid:uuid:NOT NULL, document_id:uuid:uuid, image_url:text:text:NOT NULL, page_number:integer:int4, image_type:text:text, caption:text:text, metadata:jsonb:jsonb, created_at:timestamp with time zone:timestamptz
+image_links||id:uuid:uuid:NOT NULL, image_id:uuid:uuid, entity_type:text:text:NOT NULL, entity_id:uuid:uuid:NOT NULL, link_type:text:text, created_at:timestamp with time zone:timestamptz
+metric_definitions|Reference table defining known metric types. Used for UI dropdowns and validation.|metric_key:text:text:NOT NULL, metric_label:text:text:NOT NULL, category:text:text:NOT NULL, trade_key:text:text, unit_of_measure:text:text, default_formula:text:text, description:text:text, sort_order:integer:int4
+notification||id:character varying:varchar:NOT NULL, type:character varying:varchar, body:text:text, is_read:boolean:bool, is_deleted:boolean:bool, fk_user_id:character varying:varchar, created_at:timestamp with time zone:timestamptz:NOT NULL, updated_at:timestamp with time zone:timestamptz:NOT NULL
+organizations||id:uuid:uuid:NOT NULL, name:text:text:NOT NULL, slug:text:text:NOT NULL, settings:jsonb:jsonb, created_at:timestamp with time zone:timestamptz:NOT NULL, updated_at:timestamp with time zone:timestamptz:NOT NULL
+portal_table_config||id:uuid:uuid:NOT NULL, organization_id:uuid:uuid:NOT NULL, table_name:text:text:NOT NULL, display_name:text:text, access_level:text:text:NO--More--
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

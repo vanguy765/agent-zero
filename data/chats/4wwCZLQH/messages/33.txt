@@ -1,0 +1,26 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# 27:-- Data for Name: metric_definitions; Type: TABLE DATA; Schema: public; Owner: -
+73:-- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: -
+80:-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: -
+118:-- Data for Name: template_libraries; Type: TABLE DATA; Schema: public; Owner: -
+129:-- Data for Name: wo_projects; Type: TABLE DATA; Schema: public; Owner: -
+136:-- Data for Name: units; Type: TABLE DATA; Schema: public; Owner: -
+162:-- Data for Name: unit_rooms; Type: TABLE DATA; Schema: public; Owner: -
+312:-- Data for Name: unit_room_calculations; Type: TABLE DATA; Schema: public; Owner: -
+347:-- Data for Name: unit_room_measurements; Type: TABLE DATA; Schema: public; Owner: -
+361:-- Data for Name: work_order_templates; Type: TABLE DATA; Schema: public; Owner: -
+378:-- Data for Name: work_orders; Type: TABLE DATA; Schema: public; Owner: -
+604:-- Data for Name: work_order_tasks; Type: TABLE DATA; Schema: public; Owner: -
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# ---
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#    1584 work_order_tasks
+    220 work_orders
+    144 unit_rooms
+     40 metric_definitions
+     32 rooms
+     29 unit_room_calculations
+     20 units
+     11 work_order_templates
+      8 unit_room_measurements
+      5 template_libraries
+      1 wo_projects
+      1 organizations
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

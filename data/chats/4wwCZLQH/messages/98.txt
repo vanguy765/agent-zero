@@ -1,0 +1,135 @@
+- `unit_room_calculations` — Computed areas/volumes
+
+**Tenant Portal:**
+- `portal_table_config` — Per-organization table access configuration (access levels, column visibility, editable columns)
+
+**Materials (Planned/Partial):**
+- `metric_definitions` — Measurement metrics
+
+**NocoDB (~90 tables):**
+- `nc_*` — NocoDB's internal metadata for its spreadsheet interface
+
+---
+
+---LINE 236---
+### 5.1 API (`apps/api`) — The Brain
+
+**Framework**: Hono (OpenAPIHono) on Node.js
+**Port**: 3000
+**Key Dependencies**: `@anthropic-ai/sdk`, `@supabase/supabase-js`, `pdfjs-dist`, `@napi-rs/canvas`
+
+**Routes:**
+
+| Route | Purpose | Key Operations |
+|-------|---------|----------------|
+| `/work-orders` | Work order CRUD | Create from template, update task steps, manage lifecycle |
+| `/work-orders` (documents) | Document management | Upload PDFs, link to projects/units |
+| `/materials` | Supplier/product catalog | CRUD for suppliers, products, project supplies |
+| `/taxonomy` | Category management | Actions, room types, item categories |
+| `/projects` | Project definitions | JSONB scope trees, floorplan definitions |
+| `/units` | Unit management | CRUD with metadata, scope items |
+| `/voice` | Voice processing | Audio → Whisper transcription → LLM structured extraction |
+| `/delivery` | Delivery tracking | Delivery scheduling and status |
+| `/todos` | Simple todos | Basic CRUD (reference/demo) |
+| `/a2a` | Agent-to-Agent protocol | JSON-RPC endpoint for AI agent interop |
+| `/ui` | Swagger UI | Interactive API documentation |
+| `/doc` | OpenAPI JSON | Machine-readable API spec |
+
+**Services Layer** (`src/services/`): Business logic separated from route handlers.
+**Middleware** (`src/middleware/`): Auth, validation, error handling.
+**Scripts** (`scripts/`): 50+ utility scripts for seeding, migration, testing, and verification.
+
+### 5.2 Work Orders App (`apps/work-orders`)
+
+**Framework**: SolidJS + Tailwind CSS + Vite
+**Port**: 3004
+**Purpose**: Primary management interface for work order lifecycle
+
+**Pages:**
+- `Dashboard` — Overview of all work orders, status summaries
+---LINE 393---
+### 7.1 What's Built and Working
+
+| Component | Status | Maturity |
+|-----------|--------|----------|
+| Monorepo infrastructure | ✅ Complete | Production-ready |
+| Supabase schema + migrations | ✅ Complete | 6 migrations, well-structured |
+| Shared schemas (Zod) | ✅ Complete | Comprehensive type coverage |
+| API routes (Hono) | ✅ Complete | 10 route modules, OpenAPI docs |
+| Work Orders app | ✅ Complete | Full CRUD, template hierarchy, documents |
+| Material Admin app | ✅ Complete | Suppliers, products, taxonomy, JSON editor |
+| Site Companion app | ⚠️ Scaffold | Basic unit list, voice test page |
+| Web Dashboard | ⚠️ Legacy | Login + todos only |
+| Doc Parser | ✅ Complete | GPU pipeline, Supabase integration |
+| NocoDB integration | ✅ Complete | Connected to Supabase DB |
+| Tenant Portal | ✅ Complete | Auth, dynamic tables, inline editing, admin config |
+| A2A Protocol | ✅ Complete | Agent card + JSON-RPC endpoint |
+| Template hierarchy (3-tier) | ✅ Complete | App/Company/Project scoping |
+| Document storage | ✅ Complete | Upload, extraction, linking |
+| Voice processing | ⚠️ Partial | Transcription works, structured extraction in progress |
+| Timesheet system | 📋 Designed | Schema designed, not yet implemented |
+| Auth / RLS | ⚠️ Partial | Supabase Auth configured, RLS policies need hardening |
+| Realtime subscriptions | ⚠️ Partial | Infrastructure ready, limited app integration |
+
+---LINE 495---
+4. Material Admin's JsonTreeEditor modifies JSONB directly
+         ↓
+5. Changes visible in NocoDB immediately (same database)
+```
+
+### 8.5 Tenant Portal Access Flow
+
+```
+1. Admin configures portal_table_config for an organization
+   (sets tables as hidden/readonly/editable, column visibility)
+         ↓
+2. Tenant logs in via Supabase Auth (email/password or magic link)
+         ↓
+3. Dashboard fetches portal_table_config (RLS filters by org)
+         ↓
+4. Tenant clicks a table → TableViewPage queries supabase.from(tableName)
+   (RLS automatically filters to tenant's organization data)
+         ↓
+5. For editable tables: click cell → inline edit → supabase.update()
+   (RLS prevents cross-tenant writes)
+```
+
+---
+
+## 9. Strategic Direction & Recommendations
+
+### 9.1 Immediate Next Steps
+
+1. **Implement Timesheet Tables**: The schema is designed (`docs/timesheet/schema_design.md`). Create the migration for `timesheets`, `work_logs`, and `site_items` tables.
+
+2. **Voice-to-Timesheet Pipeline**: Connect the existing voice transcription to the timesheet data model. This is the platform's killer feature — workers speak their hours and the system creates structured time entries.
+
+3. **Site Companion Buildout**: The PWA scaffold exists but needs the full work order execution UI (room checklists, step completion, photo capture).
+
+4. **RLS Policy Hardening**: Current policies are permissive for development. Production requires proper `organization_id` scoping and role-based access.
+
+---LINE 548---
+## 10. File Structure Reference
+
+```
+voicelog-scaffold/
+├── apps/
+│   ├── api/                  # Hono backend (The Brain)
+│   │   ├── src/
+│   │   │   ├── routes/       # 10 route modules
+│   │   │   ├── services/     # Business logic
+│   │   │   ├── middleware/   # Auth, validation
+│   │   │   └── index.ts      # App entry + route mounting
+│   │   └── scripts/          # 50+ utility scripts
+│   ├── work-orders/          # Work order management UI
+│   ├── material-admin/       # Supplier/product/taxonomy UI
+│   ├── site-companion/       # Mobile PWA for field workers
+│   ├── web-dashboard/        # Legacy admin reference
+│   └── tenant-portal/        # Configurable tenant data portal
+│       ├── src/
+│       │   ├── pages/        # Login, Dashboard, TableView, AdminConfig
+│       │   ├── components/   # Layout, DataGrid, EditableCell, Pagination
+│       │   └── lib/          # Supabase clients, router, types
+│       └── [config files]    # Vite, Tailwind, TypeScript
+├── packages/
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

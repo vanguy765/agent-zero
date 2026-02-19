@@ -1,0 +1,36 @@
+import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
+import { CreateDeliverySchema } from '@repo/schemas';
+import { z } from 'zod';
+
+export const deliveryRoute = new OpenAPIHono();
+
+// Routes
+// --------------------------------------------------------------------------------
+// POST /delivery
+// --------------------------------------------------------------------------------
+deliveryRoute.post(
+  '/',
+  async (c) => {
+    // Manually validate body since we removed the auto-validator metadata to fix the Zod crash
+    const body = await c.req.json();
+    const result = CreateDeliverySchema.safeParse(body);
+
+    if (!result.success) {
+       return c.json({ error: result.error }, 400);
+    }
+
+    const { recipient_name, address } = result.data;
+    
+    // Logic (Mock)
+    console.log(`Creating delivery for ${recipient_name} at ${address}`);
+
+    return c.json({
+      id: '123',
+      status: 'pending',
+      recipient_name,
+      address
+    });
+  }
+);
+---SEPARATOR---
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

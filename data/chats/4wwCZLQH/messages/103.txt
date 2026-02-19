@@ -1,0 +1,51 @@
+# API — The Brain
+
+Central backend API powering the voicelog-scaffold construction renovation platform.
+
+> `Port: 3000` | `Framework: Hono (OpenAPIHono) on Node.js` | Part of [voicelog-scaffold](../../docs/general/platform_analysis.md)
+
+---
+
+## Overview
+
+The API is the central nervous system of the platform — every frontend app, AI agent, and external integration communicates through it. Built on **Hono** with full **OpenAPI** spec generation, it provides type-safe routes, Swagger UI documentation, and an A2A (Agent-to-Agent) JSON-RPC endpoint for AI interoperability.
+
+## Role in the Platform
+
+- **Single source of truth** for all business logic and data access
+- **Gateway** between frontends and Supabase (PostgreSQL)
+- **AI orchestration hub** — processes voice recordings, parses PDFs, and hosts the A2A protocol
+- **Placeholder recovery engine** — auto-generates smart defaults for missing entities and queues them for review
+
+## Features
+
+- 12 route modules covering work orders, materials, taxonomy, projects, units, voice, delivery, todos, A2A, documents, entity creation, and reviews
+- OpenAPI spec auto-generation with Swagger UI at `/ui`
+- A2A Protocol: JSON-RPC endpoint at `/a2a`, agent card at `/.well-known/agent.json`
+- PDF parsing via `pdfjs-dist` and Claude AI
+- Placeholder recovery system with review queue
+- 50+ utility scripts for seeding, migration, and testing
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Hono (OpenAPIHono) |
+| Runtime | Node.js with tsx (watch mode) |
+| Database | Supabase (PostgreSQL) via `@supabase/supabase-js` |
+| AI | `@anthropic-ai/sdk` (Claude) |
+| PDF | `pdfjs-dist`, `@napi-rs/canvas` |
+| Validation | Zod (via `@repo/schemas`) |
+
+## Project Structure
+
+```
+apps/api/
+├── src/
+│   ├── index.ts                    # App entry + route mounting
+│   ├── routes/
+│   │   ├── work-orders.ts          # Work order CRUD + lifecycle
+│   │   ├── materials.ts            # Supplier/product catalog
+│   │   ├── taxonomy.ts             # Category management
+│   │   ├── project-definitions.ts  # JSONB scope trees
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app#

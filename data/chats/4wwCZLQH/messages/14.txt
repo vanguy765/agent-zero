@@ -1,0 +1,228 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === apps/api/src/index.ts ===
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+
+// A2A Protocol (Agent-to-Agent)
+app.route('', a2aRoute);       // /.well-known/agent.json
+app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+
+// The OpenAPI Documentation JSON
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Construction Voice Platform API',
+    description: 'API for Web Dashboard, Site Companion, and Flutter Mobile App'
+  },
+});
+
+// The Swagger UI (Visual Documentation)
+app.get('/ui', swaggerUI({ url: '/doc' }));
+
+const port = 3000;
+console.log(`Server is running on port ${port}`);
+console.log(`Swagger UI available at http://localhost:${port}/ui`);
+
+serve({
+  fetch: app.fetch,
+  port
+});
+
+export type AppType = typeof app;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/api/src/routes/ ===
+a2a.ts	     documents.ts  project-definitions.ts  todos.ts  voice.ts
+delivery.ts  materials.ts  taxonomy.ts		   units.ts  work-orders.ts
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/api/package.json (deps) ===
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "@hono/node-server": "latest",
+    "@hono/swagger-ui": "^0.5.3",
+    "@hono/zod-openapi": "^1.2.0",
+    "@hono/zod-validator": "latest",
+    "@napi-rs/canvas": "^0.1.89",
+    "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@supabase/supabase-js": "^2.90.1",
+    "dotenv": "latest",
+    "hono": "latest",
+    "pdfjs-dist": "^5.4.624",
+    "unpdf": "^1.4.0"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/node": "latest",
+    "postgres": "^3.4.8",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/site-companion/src/App.tsx ===
+
+import { Component } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import { isSupabaseConfigured } from './lib/supabase';
+
+// Pages
+import UnitList from './pages/UnitList';
+import UnitDetail from './pages/UnitDetail';
+import VoiceTest from './pages/VoiceTest';
+
+const Layout: Component = (props: any) => {
+    return (
+        <div style={{ "min-height": "100vh", "background-color": "#f7fafc" }}>
+            <nav style={{ padding: "1rem", "background-color": "#ffffff", "border-bottom": "1px solid #e2e8f0", display: "flex", gap: "1rem" }}>
+                <a href="/units" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🏢 Units</a>
+                <a href="/voice" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🎤 Voice Test</a>
+            </nav>
+            <main style={{ padding: "1rem" }}>
+                {props.children}
+            </main>
+        </div>
+    );
+};
+
+const App: Component = () => {
+    return (
+        <>
+            {!isSupabaseConfigured && (
+                <div style={{ "background-color": "#e53e3e", color: "white", padding: "1rem", "text-align": "center", "font-weight": "bold" }}>
+                    CONFIG ERROR: Missing Supabase Environment Variables. Check .env file.
+                </div>
+            )}
+            <Router root={Layout}>
+                <Route path="/" component={UnitList} />
+                <Route path="/units" component={UnitList} />
+                <Route path="/units/:id" component={UnitDetail} />
+                <Route path="/voice" component={VoiceTest} />
+            </Router>
+        </>
+    );
+};
+
+export default App;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== apps/work-orders/src/App.tsx ===
+import type { Component } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Units from './pages/Units';
+import Templates from './pages/Templates';
+import TemplateDetail from './pages/TemplateDetail';
+import WorkOrderDetail from './pages/WorkOrderDetail';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
+import NewProject from './pages/NewProject';
+import ProjectDocuments from './pages/ProjectDocuments';
+import './index.css';
+
+const App: Component = () => {
+  return (
+    <Router root={Layout}>
+      <Route path="/" component={Dashboard} />
+      <Route path="/units" component={Units} />
+      <Route path="/templates" component={Templates} />
+      <Route path="/templates/:id" component={TemplateDetail} />
+      <Route path="/work-orders/:id" component={WorkOrderDetail} />
+      <Route path="/projects" component={Projects} />
+      <Route path="/projects/new" component={NewProject} />
+      <Route path="/projects/:id" component={ProjectDetail} />
+      <Route path="/projects/:id/documents" component={ProjectDocuments} />
+    </Router>
+  );
+};
+
+export default App;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== turbo.json ===
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== package.json (root) ===
+{
+  "name": "construction-voice-platform",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts"
+  },
+  "devDependencies": {
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@types/pdf-parse": "^1.1.5",
+    "pdf2json": "^4.0.2",
+    "zod": "3.23.8"
+  }
+}
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

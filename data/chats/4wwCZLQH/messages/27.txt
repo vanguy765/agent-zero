@@ -1,0 +1,156 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# === 1. EXTENSIONS ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Extensions
+-- Description: Enable required PostgreSQL extensions
+-- =============================================================
+
+-- Vector extension for agent_memories embeddings
+CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA public;
+
+-- UUID generation
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+
+-- Cryptographic functions
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n\n=== 2. FUNCTIONS (first 60 lines) ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Utility Functions
+-- Description: Helper functions used by tables, triggers, and RLS
+-- =============================================================
+
+
+CREATE FUNCTION public.current_user_organization_id() RETURNS uuid
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+    -- For now, return from auth.users metadata
+    -- In production, this would query a user_organizations table
+    RETURN (auth.jwt() -> 'user_metadata' ->> 'organization_id')::UUID;
+END;
+$$;
+
+
+
+CREATE FUNCTION public.get_default_library_for_type(p_project_type text) RETURNS uuid
+    LANGUAGE sql STABLE
+    AS $$
+    SELECT id FROM template_libraries
+    WHERE project_type = p_project_type
+    AND scope = 'app'
+    AND is_default = true
+    AND is_active = true
+    LIMIT 1;
+$$;
+
+
+
+CREATE FUNCTION public.get_project_organization_id(p_project_id uuid) RETURNS uuid
+    LANGUAGE sql STABLE SECURITY DEFINER
+    AS $$
+    SELECT organization_id FROM wo_projects WHERE id = p_project_id;
+$$;
+
+
+
+CREATE FUNCTION public.search_agent_memories(query_embedding public.vector, match_threshold double precision DEFAULT 0.7, match_count integer DEFAULT 5, filter_area text DEFAULT NULL::text, filter_source text DEFAULT NULL::text, filter_metadata jsonb DEFAULT NULL::jsonb) RETURNS TABLE(id uuid, content text, metadata jsonb, area text, source text, similarity double precision, created_at timestamp with time zone)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    am.id,
+    am.content,
+    am.metadata,
+    am.area,
+    am.source,
+    1 - (am.embedding <=> query_embedding) AS similarity,
+    am.created_at
+  FROM agent_memories am
+  WHERE
+    1 - (am.embedding <=> query_embedding) > match_threshold
+    AND (filter_area IS NULL OR am.area = filter_area)
+    AND (filter_source IS NULL OR am.source = filter_source)
+    AND (filter_metadata IS NULL OR am.metadata @> filter_metadata)
+  ORDER BY am.embedding <=> query_embedding
+  LIMIT match_count;
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# \n\n=== 3. CORE TABLES (first 80 lines) ===
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations# -- =============================================================
+-- Migration: Core Tables
+-- Description: Organizations, rooms, template libraries, and metric definitions
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: organizations
+-- -----------------------------------------------
+
+CREATE TABLE public.organizations (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    slug text NOT NULL,
+    settings jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE ONLY public.organizations
+    ADD CONSTRAINT organizations_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: metric_definitions
+-- -----------------------------------------------
+
+CREATE TABLE public.metric_definitions (
+    metric_key text NOT NULL,
+    metric_label text NOT NULL,
+    category text NOT NULL,
+    trade_key text,
+    unit_of_measure text,
+    default_formula text,
+    description text,
+    sort_order integer DEFAULT 0
+);
+
+ALTER TABLE ONLY public.metric_definitions
+    ADD CONSTRAINT metric_definitions_pkey PRIMARY KEY (metric_key);
+
+-- -----------------------------------------------
+-- Table: rooms
+-- -----------------------------------------------
+
+CREATE TABLE public.rooms (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    name text NOT NULL,
+    display_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE ONLY public.rooms
+    ADD CONSTRAINT rooms_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: template_libraries
+-- -----------------------------------------------
+
+CREATE TABLE public.template_libraries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    description text,
+    project_type text NOT NULL,
+    scope text DEFAULT 'app'::text NOT NULL,
+    organization_id uuid,
+    icon text,
+    color text,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    is_active boolean DEFAULT true NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT template_libraries_scope_check CHECK ((scope = ANY (ARRAY['app'::text, 'company'::text]))),
+    CONSTRAINT valid_app_library CHECK ((((scope = 'app'::text) AND (organization_id IS NULL)) OR (scope <> 'app'::text))),
+    CONSTRAINT valid_company_library CHECK ((((scope = 'company'::text) AND (organization_id IS NOT NULL)) OR (scope <> 'company'::text)))
+);
+
+ALTER TABLE ONLY public.template_libraries
+    ADD CONSTRAINT template_libraries_pkey PRIMARY KEY (id);
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations#

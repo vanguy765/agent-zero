@@ -1,0 +1,164 @@
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# === docs/timesheet/schema_design.md (first 100 lines) ===
+# Schema Design: Hybrid Relational + JSONB
+
+## Strategy
+We use **PostgreSQL** with a hybrid approach to balance performance and flexibility.
+*   **Relational Columns**: Used for Foreign Keys, Indexing, Sorting, and Permissions.
+*   **JSONB Columns**: Used for the deep hierarchical definition of the "Scope of Work", Attributes, and flexible metadata.
+
+## Tables
+
+### 1. `projects`
+High-level container for a job site.
+*   `id` (UUID, PK)
+*   `name` (Text)
+*   `code` (Text, Unique) - e.g., "PRJ-2026-001"
+*   `status` (Enum: bidding, active, archived)
+
+### 2. `project_definitions`
+The "Brain" of the project. Steps away from relational rows to store the Template hierarchy.
+*   `project_id` (FK)
+*   `taxonomy_version` (Text)
+*   **`floorplan_definitions` (JSONB)** - A dictionary of floorplans (`Plan A`, `Plan B`) and their default rooms/items.
+
+### 3. `units`
+The inventory of saleable/workable spaces.
+*   `id` (UUID, PK)
+*   `project_id` (FK)
+*   `unit_number` (Text) - "101"
+*   `floor_level` (Int)
+*   `floorplan_key` (Text) - Links to `project_definitions`.
+*   **`specific_overrides` (JSONB)** - Stores exceptions for *this unit only*.
+
+### 4. `site_items` (The BOM)
+Derived table. Exploded from JSON for tracking status.
+*   `id` (UUID, PK)
+*   `unit_id` (FK)
+*   `subject` (Text) - "toilet"
+*   `location` (Text) - "Master Bath"
+*   `status` (Enum: pending, installed, verified)
+*   `percent_complete` (Int)
+*   `labor_estimate_hours` (Decimal)
+
+### 5. `timesheets`
+The container for a day's work.
+*   `id` (UUID, PK)
+*   `user_id` (FK)
+*   `date` (Date)
+*   `approval_status` (Enum)
+
+### 6. `work_logs`
+The link between Time and Scope.
+*   `id` (UUID, PK)
+*   `timesheet_id` (FK)
+*   **`site_item_id` (FK)** - Links time to the specific BOM item.
+*   `hours` (Decimal)
+*   `milestone_id` (Text) - e.g., "Prime (30%)"
+
+### 7. `suppliers` & `products`
+The Catalog.
+*   `suppliers`: Vendors.
+*   `products`: Major items with `attributes` (JSONB) for spec matching and `image_url`.
+*   `project_supplies`: Consumables list (brushes, tape).
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== docs/timesheet/hybrid_architecture_spec.md (first 100 lines) ===
+# Hybrid Architecture Specification: Materials App + NocoDB
+
+> **Goal**: Combine the rapid bulk-editing capabilities of a Spreadsheet/No-Code tool (NocoDB) with the specialized complex data handling of a Custom Web App, using a single PostgreSQL database as the source of truth.
+
+## 1. Architecture Overview
+
+```mermaid
+graph TD
+    DB[("PostgreSQL / Supabase")] <-->|Relational Data| NocoDB["NocoDB Spreadsheet UI"]
+    DB <-->|JSONB Trees| App["Materials Admin App"]
+    
+    DB -.->|Flattened into| SQLView(view_project_bom)
+    NocoDB -->|Read-Only View| SQLView
+    
+    NocoDB -->|Deep Link URL| App
+    
+    subgraph "Realtime Sync"
+        DB -->|CDC / WebSocket| App
+    end
+```
+
+## 2. Component Roles
+
+| Component | Primary Role | Data Responsibility |
+| :--- | :--- | :--- |
+| **PostgreSQL** | **The Brain** | Single Source of Truth for all data. |
+| **NocoDB** | **The Spreadsheet** | Managing **Relational Data** (Taxonomy, Lists of Units, Users) and **Viewing** flattened Project Scopes. |
+| **Materials App** | **The Specialist** | Managing **Deeply Nested JSON** (Project Scopes, Floorplan Definitions) and complex workflows. |
+
+## 3. Data Integration Strategy
+
+### 3.1 Taxonomy Management (Relational)
+*   **Tables**: `taxonomies` (actions, lists, room_types).
+*   **Workflow**: Users add new Room Types or Actions directly in **NocoDB**.
+*   **Sync**: The App queries these tables via API. If NocoDB updates the DB, the App sees the new options immediately.
+
+### 3.2 Scope Management (JSONB Trees)
+The `project_definitions` table uses a `JSONB` column (`floorplan_definitions`) to store the nested tree of rooms and items. NocoDB cannot edit this easily.
+
+#### Solution: The "Flattened" SQL View
+We created a SQL View (`view_project_bom`) that "explodes" the JSON tree into rows:
+`Plan A -> Kitchen -> Sink`  becomes  `| Plan A | Kitchen | Sink |`
+
+*   **NocoDB Access**: Users open `view_project_bom` to see, sort, and search the entire project scope as a flat grid.
+*   **Limitations**: This view is **Read-Only** in NocoDB because it is calculated data.
+
+## 4. Deep Linking Workflow (The "Edit" Button)
+
+To allow users to "Edit" the complex JSON data starting from NocoDB, we use a Deep Link pattern.
+
+### The Workflow
+1.  **User in NocoDB**: Spots an error in a row (e.g., "Kitchen Sink count is wrong").
+2.  **Action**: Clicks the **"Edit in App"** link in that row.
+3.  **System**: Opens the Materials App in a new browser tab.
+4.  **App**: Reads the URL parameters (e.g., `?project_id=...&key=Kitchen`) and automatically navigates to and expands that specific item in the `JsonTreeEditor`.
+
+### Implementation Details
+
+#### A. Database / NocoDB
+Create a **Virtual Column** (Formula) in NocoDB for the `projects` or `view_project_bom` table:
+
+```sql
+-- Conceptual Formula
+CONCAT("http://localhost:3009/definitions?project_id=", {project_id})
+```
+
+#### B. Frontend App (`ProjectDefinitionsView.tsx`)
+Update the component to check for URL Search Parameters on mount:
+
+```typescript
+// Pseudo-code implementation
+onMount(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('project_id');
+    if (id) {
+        setProjectId(id);
+        fetchDefinitions(); // Auto-load
+    }
+});
+```
+
+## 5. Development Checklist
+
+- [x] **Database**: Deployment of `view_project_bom` SQL View.
+- [x] **NocoDB**: Connection to local Supabase instance.
+- [ ] **Frontend**: Update `ProjectDefinitionsView.tsx` to handle `?project_id=xyz`.
+- [ ] **NocoDB**: Configure the "Edit Link" formula column.
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/src/ files ===
+delivery.ts  materials.ts   taxonomy.ts        todo.ts	       zod.ts
+index.ts     renovation.ts  test_materials.ts  work-orders.ts
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/src/index.ts ===
+export * from './todo';
+export * from './delivery';
+export * from './zod';
+export * from './materials';
+export * from './taxonomy';
+export * from './renovation';
+export * from './work-orders';
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold# \n=== packages/schemas/src/workOrder.ts ===
+cat: packages/schemas/src/workOrder.ts: No such file or directory
+(venv) root@2c00128c0233:/a0/usr/projects/timesheet_app/voicelog-scaffold#

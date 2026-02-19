@@ -1,0 +1,28 @@
+services:
+  agent-zero:
+    build:
+      context: .
+      dockerfile: docker/run/Dockerfile
+      args:
+        BRANCH: "${BRANCH:-main}"
+        CACHE_DATE: "${CACHE_DATE:-now}"
+    env_file:
+      - .env
+    ports:
+      - "5080:80"
+      - "9000:9000"
+      - "22:22"
+    environment:
+      - WEB_UI_HOST=${WEB_UI_HOST}
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+    volumes:
+      - ./data:/a0/usr
+      - ${VOICELOG_PATH}:/a0/usr/projects/timesheet_app/voicelog-scaffold
+    working_dir: /opt/agent-zero
+    restart: unless-stopped
+    networks:
+      - agent-zero-network
+
+networks:
+  agent-zero-network:
+    external: true

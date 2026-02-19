@@ -1,36 +1,57 @@
-# Use the pre-built base image for A0
-# FROM agent-zero-base:local
-FROM agent0ai/agent-zero-base:latest
+Prompt for New Session
+Subject: Initialize and Test Construction Management System (Hybrid Relational/JSONB)
 
-# Set BRANCH to "local" if not provided
-ARG BRANCH=local
-ENV BRANCH=$BRANCH
+Context: I am building a Construction Management System that uses a Hybrid Database Strategy (PostgreSQL Relational Tables + JSONB for flexible scope definitions). We have completed the Architecture & Planning Phase. All design documents, manuals, and schemas are located in the docs/ folder.
 
-# Copy filesystem files to root
-COPY ./docker/run/fs/ /
-# Copy current development files to git, they will only be used in "local" branch
-COPY ./ /git/agent-zero
+Objective: Your goal is to bring this system to life by creating the database and running a "Happy Path" simulation to verify the design.
 
-# pre installation steps
-RUN bash /ins/pre_install.sh $BRANCH
+Key Artifacts to Review:
 
-# install A0
-RUN bash /ins/install_A0.sh $BRANCH
+docs/schema.sql
+: The PostgreSQL DDL to create the database.
+docs/schema_design.md
+: Explains the table structure and the JSONB strategy.
+docs/site_specific_example.json
+: An example of a Project Definition (to be loaded into the DB).
+docs/timesheet_agent_and_contracts.md
+: Defines the API and logic for how Timesheets update the BOM.
+docs/manual_user.md
+: Understanding the user's intent (Voice -> Action).
+Task List:
 
-# install additional software
-RUN bash /ins/install_additional.sh $BRANCH
+Initialize Database:
+Review 
+docs/schema.sql
+.
+Set up a local PostgreSQL instance (or mock environment) and execute the SQL to create the tables.
+Seed Data:
+Write a script (TypeScript/Node.js) to insert a sample Project and Unit.
+Crucial: You must parse 
+docs/site_specific_example.json
+ and insert it into the project_definitions table, and create the corresponding rows in the units table.
+Generate BOM (Explosion):
+Write a function generateSiteItems(unitId) that reads the Unit's Floorplan JSON, applies any overrides, and inserts rows into the site_items table.
+This simulates the "Publishing" of a spec to the field.
+Simulation / Testing:
+Scenario: A plumber completes the "Master Bath Toilet" in Unit 105.
+Action: Simulate the API call defined in 
+docs/timesheet_agent_and_contracts.md
+ (POST /timesheets/log).
+Verify: Check that:
+A work_logs row was created (2 hours).
+The site_items status for that toilet updated to 'installed'.
+The percent_complete is 100%.
+Please start by reading the 
+docs/schema.sql
+ and 
+docs/site_specific_example.json
+ to understand the data structure.
 
-# cleanup repo and install A0 without caching, this speeds up builds
-ARG CACHE_DATE=none
-RUN echo "cache buster $CACHE_DATE" && bash /ins/install_A02.sh $BRANCH
 
-# post installation steps
-RUN bash /ins/post_install.sh $BRANCH
+ Verify the Taxonomy Update flow (adding a new category in NocoDB)?
 
-# Expose ports
-EXPOSE 22 80 9000-9009
 
-RUN chmod +x /exe/initialize.sh /exe/run_A0.sh /exe/run_searxng.sh /exe/run_tunnel_api.sh
 
-# initialize runtime and switch to supervisord
-CMD ["/exe/initialize.sh", "$BRANCH"]
+https://www.youtube.com/watch?v=jA2Orke42Cg lions mane
+
+https://youtu.be/NSVAPzKdW8c?si=lNIfj7kSAHzhszDd
