@@ -22,7 +22,7 @@ from litellm.types.utils import ModelResponse
 from python.helpers import dotenv
 from python.helpers import settings, dirty_json
 from python.helpers.dotenv import load_dotenv
-from python.helpers.providers import get_provider_config
+from python.helpers.providers import ModelType as ProviderModelType, get_provider_config
 from python.helpers.rate_limiter import RateLimiter
 from python.helpers.tokens import approximate_tokens
 from python.helpers import dirty_json, browser_use_monkeypatch
@@ -115,8 +115,8 @@ class ChatGenerationResult:
             # if the model outputs thinking tags, we ned to parse them manually as reasoning
             processed_chunk = self._process_thinking_chunk(chunk)
 
-        self.reasoning += processed_chunk["reasoning_delta"]
-        self.response += processed_chunk["response_delta"]
+        self.reasoning += processed_chunk.get("reasoning_delta", "")
+        self.response += processed_chunk.get("response_delta", "")
 
         return processed_chunk
 
@@ -316,7 +316,7 @@ class LiteLLMChatWrapper(SimpleChatModel):
     def _llm_type(self) -> str:
         return "litellm-chat"
 
-    def _convert_messages(self, messages: List[BaseMessage]) -> List[dict]:
+    def _convert_messages(self, messages: List[BaseMessage], explicit_caching: bool = False) -> List[dict]:
         result = []
         # Map LangChain message types to LiteLLM roles
         role_mapping = {
@@ -362,6 +362,15 @@ class LiteLLMChatWrapper(SimpleChatModel):
                 message_dict["tool_call_id"] = tool_call_id
 
             result.append(message_dict)
+
+        if explicit_caching and result:
+            if result[0]["role"] == "system":
+                result[0]["cache_control"] = {"type": "ephemeral"}
+            for i in range(len(result) - 1, -1, -1):
+                if result[i]["role"] == "assistant":
+                    result[i]["cache_control"] = {"type": "ephemeral"}
+                    break
+
         return result
 
     def _call(
@@ -464,6 +473,7 @@ class LiteLLMChatWrapper(SimpleChatModel):
         rate_limiter_callback: (
             Callable[[str, str, int, int], Awaitable[bool]] | None
         ) = None,
+        explicit_caching: bool = False,
         **kwargs: Any,
     ) -> Tuple[str, str]:
 
@@ -478,7 +488,7 @@ class LiteLLMChatWrapper(SimpleChatModel):
             messages.append(HumanMessage(content=user_message))
 
         # convert to litellm format
-        msgs_conv = self._convert_messages(messages)
+        msgs_conv = self._convert_messages(messages, explicit_caching=explicit_caching)
 
         # Apply rate limiting if configured
         limiter = await apply_rate_limiter(
@@ -813,7 +823,7 @@ def _parse_chunk(chunk: Any) -> ChatChunk:
         message.get("content", "")
         if isinstance(message, dict)
         else getattr(message, "content", "")
-    )
+    ) or ""
     reasoning_delta = (
         delta.get("reasoning_content", "")
         if isinstance(delta, dict)
@@ -822,7 +832,7 @@ def _parse_chunk(chunk: Any) -> ChatChunk:
         message.get("reasoning_content", "")
         if isinstance(message, dict)
         else getattr(message, "reasoning_content", "")
-    )
+    ) or ""
 
     return ChatChunk(reasoning_delta=reasoning_delta, response_delta=response_delta)
 
@@ -844,7 +854,7 @@ def _adjust_call_args(provider_name: str, model_name: str, kwargs: dict):
 
 
 def _merge_provider_defaults(
-    provider_type: str, original_provider: str, kwargs: dict
+    provider_type: ProviderModelType, original_provider: str, kwargs: dict
 ) -> tuple[str, dict]:
     # Normalize .env-style numeric strings (e.g., "timeout=30") into ints/floats for LiteLLM
     def _normalize_values(values: dict) -> dict:
