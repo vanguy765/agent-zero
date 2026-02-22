@@ -61,9 +61,9 @@ A detailed setup guide for Windows, macOS, and Linux with a video can be found i
 # Pull and run with Docker
 
 docker pull agent0ai/agent-zero
-docker run -p 50001:80 agent0ai/agent-zero
+docker run -p 508080 agent0ai/agent-zero
 
-# Visit http://localhost:50001 to start
+# Visit http://localhost:5080 to start
 ```
 
 
