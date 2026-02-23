@@ -1,0 +1,209 @@
+=== TenantsPage ===
+import { createSignal, createResource, For, Show } from 'solid-js';
+import type { Component } from 'solid-js';
+import { supabaseAdmin } from '../lib/supabase';
+
+interface TenantRow {
+  id: string;
+  name: string;
+  slug: string;
+  company_email: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  city: string | null;
+  state: string | null;
+  is_active: boolean;
+  onboarding_status: string;
+  created_at: string;
+}
+
+interface TenantsPageProps {
+  onNavigate: (path: string) => void;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  pending:   'bg-yellow-100 text-yellow-800',
+  active:    'bg-green-100  text-green-800',
+  suspended: 'bg-red-100   text-red-800',
+};
+
+export const TenantsPage: Component<TenantsPageProps> = (props) => {
+  const [search, setSearch] = createSignal('');
+  const [statusFilter, setStatusFilter] = createSignal<string>('all');
+
+  const [tenants, { refetch }] = createResource(async () => {
+    const { data, error } = await supabaseAdmin
+      .from('organizations')
+      .select(
+        'id, name, slug, company_email, contact_name, phone, city, state, is_active, onboarding_status, created_at',
+      )
+      .order('name');
+    if (error) throw error;
+    return (data || []) as TenantRow[];
+  });
+
+  const filtered = () => {
+    const q = search().toLowerCase();
+    return (tenants() || []).filter((t) => {
+      const matchSearch =
+        !q ||
+        t.name.toLowerCase().includes(q) ||
+        (t.company_email || '').toLowerCase().includes(q) ||
+        (t.contact_name || '').toLowerCase().includes(q) ||
+        t.slug.toLowerCase().includes(q);
+      const matchStatus =
+        statusFilter() === 'all' || t.onboarding_status === statusFilter();
+      return matchSearch && matchStatus;
+    });
+  };
+
+  const copyOnboardLink = () => {
+    const url = `${window.location.origin}${window.location.pathname}#/onboard`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Onboarding link copied to clipboard!');
+    });
+  };
+
+  return (
+    <div>
+      {/* Header */}
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Tenants</h2>
+          <p class="mt-1 text-gray-500">
+            Manage all tenant organizations and their admin accounts.
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="btn btn-secondary text-sm"
+            onClick={copyOnboardLink}
+            title="Copy the self-serve onboarding form link"
+          >
+            Copy Onboarding Link
+          </button>
+          <button
+            class="btn btn-primary"
+            onClick={() => props.onNavigate('/onboard')}
+          >
+            + New Tenant
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div class="card mb-4 flex flex-wrap items-center gap-3">
+        <input
+          class="input max-w-xs"
+          placeholder="Search by name, email, contact…"
+          value={search()}
+          onInput={(e) => setSearch(e.currentTarget.value)}
+        />
+        <select
+          class="input w-40"
+          value={statusFilter()}
+          onChange={(e) => setStatusFilter(e.currentTarget.value)}
+        >
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </select>
+        <Show when={tenants()}>
+          <span class="text-sm text-gray-500 ml-auto">
+            {filtered().length} of {tenants()!.length} tenant(s)
+          </span>
+        </Show>
+      </div>
+
+      {/* Table */}
+      <Show
+        when={!tenants.loading}
+        fallback={
+          <div class="text-center py-12 text-gray-400">Loading tenants…</div>
+        }
+      >
+        <Show when={tenants.error}>
+          <div class="card bg-red-50 border-red-200 text-red-700 text-sm">
+            Error loading tenants: {String(tenants.error)}
+          </div>
+        </Show>
+
+        <div class="card p-0 overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th class="px-4 py-3">Company</th>
+                <th class="px-4 py-3">Contact</th>
+                <th class="px-4 py-3">Location</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3">Created</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <Show
+                when={filtered().length > 0}
+                fallback={
+                  <tr>
+                    <td colspan="6" class="px-4 py-10 text-center text-gray-400">
+                      No tenants match your filters.
+                    </td>
+                  </tr>
+                }
+              >
+                <For each={filtered()}>
+                  {(t) => (
+                    <tr class="hover:bg-gray-50 transition-colors">
+                      <td class="px-4 py-3">
+                        <div class="font-medium text-gray-900">{t.name}</div>
+                        <div class="text-xs text-gray-400">{t.slug}</div>
+                        <Show when={t.company_email}>
+                          <div class="text-xs text-gray-500">{t.company_email}</div>
+                        </Show>
+                      </td>
+                      <td class="px-4 py-3 text-gray-700">
+                        <div>{t.contact_name || '—'}</div>
+                        <Show when={t.phone}>
+                          <div class="text-xs text-gray-500">{t.phone}</div>
+                        </Show>
+                      </td>
+                      <td class="px-4 py-3 text-gray-500">
+                        {[t.city, t.state].filter(Boolean).join(', ') || '—'}
+                      </td>
+                      <td class="px-4 py-3">
+                        <span
+                          class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[t.onboarding_status] || 'bg-gray-100 text-gray-600'}`}
+                        >
+                          {t.onboarding_status}
+                        </span>
+                        <Show when={!t.is_active}>
+                          <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+                            hidden
+                          </span>
+                        </Show>
+                      </td>
+                      <td class="px-4 py-3 text-gray-400 text-xs">
+                        {new Date(t.created_at).toLocaleDateString()}
+                      </td>
+                      <td class="px-4 py-3 text-right">
+                        <button
+                          class="btn btn-sm btn-secondary"
+                          onClick={() => props.onNavigate(`/tenant/${t.id}`)}
+                        >
+                          Manage
+                        </button>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </Show>
+            </tbody>
+          </table>
+        </div>
+      </Show>
+    </div>
+  );
+};
+=== END TenantsPage ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

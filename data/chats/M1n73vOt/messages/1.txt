@@ -1,0 +1,18 @@
+C:\ on /a0/usr type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+/dev/sde on /etc/hostname type ext4 (rw,relatime)
+/dev/sde on /etc/hosts type ext4 (rw,relatime)
+C:\ on /a0/usr/projects/timesheet_app/voicelog-scaffold type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+---
+---
+mqueue /dev/mqueue mqueue rw,nosuid,nodev,noexec,relatime 0 0
+C:\134 /a0/usr 9p rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5 0 0
+/dev/sde /etc/resolv.conf ext4 rw,relatime 0 0
+/dev/sde /etc/hostname ext4 rw,relatime 0 0
+/dev/sde /etc/hosts ext4 rw,relatime 0 0
+C:\134 /a0/usr/projects/timesheet_app/voicelog-scaffold 9p rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5 0 0
+---
+Filesystem      Size  Used Avail Use% Mounted on
+shm              64M  4.0K   64M   1% /dev/shm
+C:\             476G  457G   20G  96% /a0/usr
+/dev/sde       1007G   98G  859G  11% /etc/hosts
+(venv) root@d2d162d983f0:/a0/usr/workdir#

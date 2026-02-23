@@ -1,0 +1,28 @@
+./apps/work-orders/.env
+---
+export const SUPABASE_URL = "http://127.0.0.1:54321";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+export const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
+
+export const API_PORT = 3000;
+export const API_URL = `http://localhost:${API_PORT}`;
+
+export const WEB_DASHBOARD_PORT = 3001;
+export const WEB_DASHBOARD_URL = `http://localhost:${WEB_DASHBOARD_PORT}`;
+
+export const MATERIAL_ADMIN_PORT = 3002;
+export const MATERIAL_ADMIN_URL = `http://localhost:${MATERIAL_ADMIN_PORT}`;
+
+export const MOBILE_APP_PORT = 3003;
+export const MOBILE_APP_URL = `http://localhost:${MOBILE_APP_PORT}`;
+
+export const TENANT_PORTAL_PORT = 3005;
+export const TENANT_PORTAL_URL = `http://localhost:${TENANT_PORTAL_PORT}`;
+
+export const CORS_ORIGINS = [
+  WEB_DASHBOARD_URL,
+  MATERIAL_ADMIN_URL,
+  MOBILE_APP_URL,
+  TENANT_PORTAL_URL
+];
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

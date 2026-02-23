@@ -1,0 +1,100 @@
+=== ROUTER ===
+import { createSignal, onCleanup } from 'solid-js';
+
+export interface Route {
+  path: string;
+  params: Record<string, string>;
+}
+
+function parseHash(): Route {
+  const hash = window.location.hash.slice(1) || '/dashboard';
+  const parts = hash.split('/');
+
+  // /table/:tableName
+  if (parts[1] === 'table' && parts[2]) {
+    return { path: '/table/:tableName', params: { tableName: decodeURIComponent(parts[2]) } };
+  }
+
+  // /tenant/:id
+  if (parts[1] === 'tenant' && parts[2]) {
+    return { path: '/tenant/:id', params: { id: decodeURIComponent(parts[2]) } };
+  }
+
+  return { path: hash, params: {} };
+}
+
+export function createRouter() {
+  const [route, setRoute] = createSignal<Route>(parseHash());
+
+  const handler = () => setRoute(parseHash());
+  window.addEventListener('hashchange', handler);
+  onCleanup(() => window.removeEventListener('hashchange', handler));
+
+  const navigate = (path: string) => {
+    window.location.hash = path;
+  };
+
+  return { route, navigate };
+}
+=== API INDEX ===
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+
+import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+
+app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+// A2A Protocol (Agent-to-Agent)
+app.route('', a2aRoute);       // /.well-known/agent.json
+app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+
+// The OpenAPI Documentation JSON
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Construction Voice Platform API',
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

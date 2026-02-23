@@ -1,0 +1,55 @@
+{
+    "id": "249ec4eb-6e44-4df3-af37-ba0d71d5e797",
+    "name": "Test Corp",
+    "slug": "test-corp",
+    "settings": {},
+    "created_at": "2026-02-23T05:46:45.164718+00:00",
+    "updated_at": "2026-02-23T05:46:45.164718+00:00",
+    "company_email": "test@testcorp.com",
+    "phone": null,
+    "address_line1": "123 Test St",
+    "address_line2": null,
+    "city": "Denver",
+    "state": "CO",
+    "zip": "80202",
+    "country": "US",
+    "contact_name": "John Test",
+    "contact_title": null,
+    "website": null,
+    "is_active": true,
+    "onboarding_status": "pending"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === GET /onboard/:id/admins ===
+[
+    {
+        "id": "06c5e639-e893-42a8-a709-4eefd670cd22",
+        "email": "admin@testcorp.com",
+        "role": "admin",
+        "full_name": "John Test",
+        "created_at": "2026-02-23T05:46:45.300118Z"
+    }
+]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {
+  "id": "249ec4eb-6e44-4df3-af37-ba0d71d5e797",
+  "name": "Test Corp",
+  "address_line1": "123 Test St",
+  "city": "Denver",
+  "state": "CO",
+  "onboarding_status": "pending"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# [
+  {
+    "id": "06c5e639-e893-42a8-a709-4eefd670cd22",
+    "email": "admin@testcorp.com",
+    "role": "admin"
+  }
+]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > {
+  "name": "Test Corp",
+  "contact_title": "CEO",
+  "website": "https://testcorp.com"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,385 @@
+=== SUPABASE LIB ===
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+
+// Tenant client - uses anon key, RLS enforced
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Admin client - uses service role key, bypasses RLS
+// storageKey must differ from the anon client so it never inherits the user's
+// JWT from localStorage (which would make PostgREST use role=authenticated
+// instead of service_role, re-enabling RLS).
+export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        storageKey: 'sb-admin',
+    },
+});
+=== OnboardingFormPage ===
+import { createSignal, Show } from 'solid-js';
+import type { Component } from 'solid-js';
+
+const API = 'http://localhost:3000';
+
+interface FormState {
+  company_name: string;
+  company_email: string;
+  phone: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  contact_name: string;
+  contact_title: string;
+  website: string;
+  admin_email: string;
+  admin_password: string;
+  admin_password_confirm: string;
+}
+
+const EMPTY: FormState = {
+  company_name: '',
+  company_email: '',
+  phone: '',
+  address_line1: '',
+  address_line2: '',
+  city: '',
+  state: '',
+  zip: '',
+  country: 'US',
+  contact_name: '',
+  contact_title: '',
+  website: '',
+  admin_email: '',
+  admin_password: '',
+  admin_password_confirm: '',
+};
+
+interface OnboardingFormPageProps {
+  /** If provided, the form shows a "Back to login" button */
+  onNavigate?: (path: string) => void;
+}
+
+export const OnboardingFormPage: Component<OnboardingFormPageProps> = (props) => {
+  const [form, setForm] = createSignal<FormState>({ ...EMPTY });
+  const [submitting, setSubmitting] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+  const [success, setSuccess] = createSignal<{ orgName: string; adminEmail: string } | null>(null);
+
+  const set = (field: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setError(null);
+  };
+
+  const f = (field: keyof FormState) => form()[field];
+
+  const validate = (): string | null => {
+    if (!f('company_name').trim()) return 'Company name is required.';
+    if (!f('company_email').trim()) return 'Company email is required.';
+    if (!f('contact_name').trim()) return 'Contact name is required.';
+    if (!f('admin_email').trim()) return 'Admin login email is required.';
+    if (!f('admin_password')) return 'Password is required.';
+    if (f('admin_password').length < 8) return 'Password must be at least 8 characters.';
+    if (f('admin_password') !== f('admin_password_confirm')) return 'Passwords do not match.';
+    return null;
+  };
+
+  const handleSubmit = async (e: Event) => {
+    e.preventDefault();
+    const err = validate();
+    if (err) { setError(err); return; }
+
+    setSubmitting(true);
+    setError(null);
+
+    const { admin_password_confirm, ...payload } = form();
+
+    try {
+      const res = await fetch(`${API}/onboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || 'Submission failed. Please try again.');
+      } else {
+        setSuccess({
+          orgName: json.organization.name,
+          adminEmail: json.admin.email,
+        });
+      }
+    } catch {
+      setError('Network error — please check your connection and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Success screen ────────────────────────────────────────────────────────
+  return (
+    <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div class="w-full max-w-2xl">
+        {/* Header */}
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold text-gray-900">Get Started</h1>
+          <p class="mt-2 text-gray-500">
+            Register your company and create your admin account.
+          </p>
+        </div>
+
+        <Show
+          when={!success()}
+          fallback={
+            <div class="card text-center">
+              <div class="text-5xl mb-4">✓</div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">You're all set!</h2>
+              <p class="text-gray-600 mb-1">
+                <strong>{success()!.orgName}</strong> has been registered.
+              </p>
+              <p class="text-gray-500 text-sm mb-6">
+                Sign in with <strong>{success()!.adminEmail}</strong> to access the platform.
+              </p>
+              <Show when={props.onNavigate}>
+                <button
+                  class="btn btn-primary"
+                  onClick={() => props.onNavigate!('/login')}
+                >
+                  Go to Login
+                </button>
+              </Show>
+            </div>
+          }
+        >
+          <form onSubmit={handleSubmit} class="space-y-6">
+            {/* Company Info */}
+            <div class="card">
+              <h2 class="text-lg font-semibold text-gray-900 mb-4">Company Information</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Company Name <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    class="input"
+                    type="text"
+                    placeholder="Acme Construction LLC"
+                    value={f('company_name')}
+                    onInput={(e) => set('company_name', e.currentTarget.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Company Email <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    class="input"
+                    type="email"
+                    placeholder="info@acme.com"
+                    value={f('company_email')}
+                    onInput={(e) => set('company_email', e.currentTarget.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input
+                    class="input"
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    value={f('phone')}
+                    onInput={(e) => set('phone', e.currentTarget.value)}
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                  <input
+                    class="input"
+                    type="url"
+                    placeholder="https://acme.com"
+                    value={f('website')}
+                    onInput={(e) => set('website', e.currentTarget.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div class="card">
+              <h2 class="text-lg font-semibold text-gray-900 mb-4">Business Address</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
+                  <input
+                    class="input"
+                    placeholder="123 Main St"
+                    value={f('address_line1')}
+                    onInput={(e) => set('address_line1', e.currentTarget.value)}
+                  />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                  <input
+                    class="input"
+                    placeholder="Suite 400"
+                    value={f('address_line2')}
+                    onInput={(e) => set('address_line2', e.currentTarget.value)}
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    class="input"
+                    placeholder="Denver"
+                    value={f('city')}
+                    onInput={(e) => set('city', e.currentTarget.value)}
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">State / Province</label>
+                  <input
+                    class="input"
+                    placeholder="CO"
+                    value={f('state')}
+                    onInput={(e) => set('state', e.currentTarget.value)}
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">ZIP / Postal Code</label>
+                  <input
+                    class="input"
+                    placeholder="80202"
+                    value={f('zip')}
+                    onInput={(e) => set('zip', e.currentTarget.value)}
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                  <input
+                    class="input"
+                    placeholder="US"
+                    value={f('country')}
+                    onInput={(e) => set('country', e.currentTarget.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Primary Contact */}
+            <div class="card">
+              <h2 class="text-lg font-semibold text-gray-900 mb-4">Primary Contact</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    class="input"
+                    placeholder="Jane Smith"
+                    value={f('contact_name')}
+                    onInput={(e) => set('contact_name', e.currentTarget.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                  <input
+                    class="input"
+                    placeholder="Project Manager"
+                    value={f('contact_title')}
+                    onInput={(e) => set('contact_title', e.currentTarget.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Admin Account */}
+            <div class="card">
+              <h2 class="text-lg font-semibold text-gray-900 mb-1">Admin Login Credentials</h2>
+              <p class="text-sm text-gray-500 mb-4">
+                Use these credentials to sign in to the platform and manage your projects.
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Admin Email <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    class="input"
+                    type="email"
+                    placeholder="you@acme.com"
+                    value={f('admin_email')}
+                    onInput={(e) => set('admin_email', e.currentTarget.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Password <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    class="input"
+                    type="password"
+                    placeholder="Min 8 characters"
+                    value={f('admin_password')}
+                    onInput={(e) => set('admin_password', e.currentTarget.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm Password <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    class="input"
+                    type="password"
+                    placeholder="Repeat password"
+                    value={f('admin_password_confirm')}
+                    onInput={(e) => set('admin_password_confirm', e.currentTarget.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Error */}
+            <Show when={error()}>
+              <div class="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                {error()}
+              </div>
+            </Show>
+
+            {/* Submit */}
+            <div class="flex items-center justify-between">
+              <Show when={props.onNavigate}>
+                <button
+                  type="button"
+                  class="text-sm text-gray-500 hover:underline"
+                  onClick={() => props.onNavigate!('/login')}
+                >
+                  Already have an account? Sign in
+                </button>
+              </Show>
+              <button
+                type="submit"
+                class="btn btn-primary ml-auto"
+                disabled={submitting()}
+              >
+                {submitting() ? 'Submitting…' : 'Create Account'}
+              </button>
+            </div>
+          </form>
+        </Show>
+      </div>
+    </div>
+  );
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

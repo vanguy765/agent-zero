@@ -1,0 +1,225 @@
+=== APP.tsx ===
+import { createSignal, Show, onMount } from 'solid-js';
+import type { Component } from 'solid-js';
+import { createRouter } from './lib/router';
+import { supabase } from './lib/supabase';
+import type { Session } from '@supabase/supabase-js';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { TableViewPage } from './pages/TableViewPage';
+import { AdminConfigPage } from './pages/AdminConfigPage';
+import { TenantsPage } from './pages/TenantsPage';
+import { TenantDetailPage } from './pages/TenantDetailPage';
+import { OnboardingFormPage } from './pages/OnboardingFormPage';
+import { Layout } from './components/Layout';
+
+const App: Component = () => {
+  const [session, setSession] = createSignal<Session | null>(null);
+  const [loading, setLoading] = createSignal(true);
+  const { route, navigate } = createRouter();
+
+  onMount(async () => {
+    const { data: { session: s } } = await supabase.auth.getSession();
+    setSession(s);
+    setLoading(false);
+
+    supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      if (!s && route().path !== '/onboard') navigate('/login');
+    });
+  });
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    navigate('/login');
+  };
+
+  // Public routes that bypass auth
+  const isPublicRoute = () => route().path === '/onboard';
+
+  return (
+    <Show when={!loading()} fallback={
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    }>
+      {/* Public onboarding form — no auth required */}
+      <Show when={isPublicRoute()}>
+        <OnboardingFormPage onNavigate={navigate} />
+      </Show>
+
+      {/* Authenticated area */}
+      <Show when={!isPublicRoute()}>
+        <Show when={session()} fallback={<LoginPage onLogin={() => navigate('/dashboard')} />}>
+          <Layout
+            userEmail={session()!.user.email || ''}
+            onLogout={handleLogout}
+            onNavigate={navigate}
+            currentPath={route().path}
+          >
+            {(() => {
+              const r = route();
+              switch (r.path) {
+                case '/admin':
+                  return <AdminConfigPage />;
+                case '/tenants':
+                  return <TenantsPage onNavigate={navigate} />;
+                case '/tenant/:id':
+                  return <TenantDetailPage orgId={r.params.id} onNavigate={navigate} />;
+                case '/table/:tableName':
+                  return <TableViewPage tableName={r.params.tableName} />;
+                default:
+                  return <DashboardPage onNavigate={navigate} />;
+              }
+            })()}
+          </Layout>
+        </Show>
+      </Show>
+    </Show>
+  );
+};
+
+export default App;
+=== LAYOUT ===
+import { createSignal, createResource, Show, For } from 'solid-js';
+import type { Component, JSX } from 'solid-js';
+import { supabase } from '../lib/supabase';
+import type { PortalTableConfig } from '../lib/types';
+
+interface LayoutProps {
+  userEmail: string;
+  onLogout: () => void;
+  onNavigate: (path: string) => void;
+  currentPath: string;
+  children: JSX.Element;
+}
+
+export const Layout: Component<LayoutProps> = (props) => {
+  const [sidebarOpen, setSidebarOpen] = createSignal(true);
+
+  const [tables] = createResource(async () => {
+    const { data, error } = await supabase
+      .from('portal_table_config')
+      .select('*')
+      .neq('access_level', 'hidden')
+      .order('display_order', { ascending: true });
+    if (error) throw error;
+    return (data || []) as PortalTableConfig[];
+  });
+
+  return (
+    <div class="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <Show when={sidebarOpen()}>
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+          {/* Logo */}
+          <div class="p-4 border-b border-gray-200">
+            <h1 class="text-lg font-bold text-primary-700">Tenant Portal</h1>
+          </div>
+
+          {/* Navigation */}
+          <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+            <button
+              class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${props.currentPath === '/dashboard'
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              onClick={() => props.onNavigate('/dashboard')}
+            >
+              <span class="mr-2">⌂</span> Dashboard
+            </button>
+
+            <div class="pt-3 pb-1 px-3">
+              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tables</span>
+            </div>
+
+            <Show when={tables()} fallback={
+              <div class="px-3 py-2 text-sm text-gray-400">Loading...</div>
+            }>
+              <For each={tables()}>
+                {(table) => (
+                  <button
+                    class={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${props.currentPath === '/table/:tableName'
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    onClick={() => props.onNavigate(`/table/${encodeURIComponent(table.table_name)}`)}
+                  >
+                    <div class="flex items-center justify-between">
+                      <span>{table.display_name || table.table_name}</span>
+                      <span class={`badge ${table.access_level === 'editable' ? 'badge-editable' : 'badge-readonly'
+                        }`}>
+                        {table.access_level === 'editable' ? '✎' : '◎'}
+                      </span>
+                    </div>
+                  </button>
+                )}
+              </For>
+            </Show>
+
+            <div class="pt-3 border-t border-gray-100 mt-2">
+              <div class="pb-1 px-3">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Admin</span>
+              </div>
+              <button
+                class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${props.currentPath === '/tenants'
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                onClick={() => props.onNavigate('/tenants')}
+              >
+                <span class="mr-2">🏢</span> Tenants
+              </button>
+              <button
+                class={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${props.currentPath === '/admin'
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+                onClick={() => props.onNavigate('/admin')}
+              >
+                <span class="mr-2">⚙</span> Admin Config
+              </button>
+            </div>
+          </nav>
+
+          {/* User */}
+          <div class="p-3 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+              <div class="truncate">
+                <p class="text-sm font-medium text-gray-700 truncate">{props.userEmail}</p>
+              </div>
+              <button
+                class="btn btn-sm btn-secondary"
+                onClick={props.onLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </aside>
+      </Show>
+
+      {/* Main content */}
+      <div class="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar */}
+        <header class="h-12 bg-white border-b border-gray-200 flex items-center px-4">
+          <button
+            class="text-gray-500 hover:text-gray-700 mr-4"
+            onClick={() => setSidebarOpen(!sidebarOpen())}
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </header>
+
+        {/* Page content */}
+        <main class="flex-1 overflow-auto p-6">
+          {props.children}
+        </main>
+      </div>
+    </div>
+  );
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
