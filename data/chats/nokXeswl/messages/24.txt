@@ -1,0 +1,25 @@
+20260201200500_create_work_orders.sql
+20260201200501_seed_work_orders.sql
+20260202210000_seed_remaining_templates.sql
+20260203000000_template_hierarchy.sql
+20260203170000_template_libraries.sql
+20260204000000_document_storage.sql
+========
+[db.migrations]
+# If disabled, migrations will be skipped during a db push or reset.
+enabled = true
+# Specifies an ordered list of schema files that describe your database.
+# Supports glob patterns relative to supabase directory: "./schemas/*.sql"
+schema_paths = []
+
+--
+# If enabled, seeds the database after migrations during a db reset.
+enabled = true
+# Specifies an ordered list of seed files to load during db reset.
+# Supports glob patterns relative to supabase directory: "./seeds/*.sql"
+sql_paths = ["./seed.sql"]
+
+========
+Checking if early-work is a supabase migrations subfolder or separate...
+no references to early-work in config
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

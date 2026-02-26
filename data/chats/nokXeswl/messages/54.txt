@@ -1,0 +1,14 @@
+34:const getScopedClient = (c: any) => {
+51:    const supabase = getScopedClient(c);
+67:    const supabase = getScopedClient(c);
+84:    const supabase = getScopedClient(c);
+107:    const supabase = getScopedClient(c);
+---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+(venv) root@d2d162d983f0:/a0/usr/workdir#

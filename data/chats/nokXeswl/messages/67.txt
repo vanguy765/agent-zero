@@ -1,0 +1,128 @@
+=== CURRENT MIGRATIONS ===
+20260217000001_extensions.sql
+20260217000002_core_tables.sql
+20260217000003_work_order_tables.sql
+20260217000004_unit_tables.sql
+20260217000005_document_tables.sql
+20260217000006_agent_memories.sql
+20260217000007_functions.sql
+20260217000008_foreign_keys.sql
+20260217000009_indexes.sql
+20260217000010_views.sql
+20260217000011_triggers.sql
+20260217000012_rls_policies.sql
+20260219000001_tenant_portal_config.sql
+20260219000002_placeholder_recovery.sql
+20260222000001_template_rls_manager_admin.sql
+20260222000002_project_lifecycle_template_inheritance.sql
+20260222000003_user_template_prefs.sql
+20260222000004_storage_buckets.sql
+20260222000005_tenant_onboarding.sql
+20260223000001_org_industry_description.sql
+20260223000002_sysadmin_rls_policies.sql
+early-work
+
+=== SEED DATA ===
+--
+-- PostgreSQL database dump
+--
+
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 18.1 (Debian 18.1-2)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+
+-- Disable FK constraints during seeding (handles circular refs)
+SET session_replication_role = 'replica';
+
+--
+-- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.organizations (id, name, slug, settings, created_at, updated_at) VALUES ('00000000-0000-0000-0000-000000000001', 'Team Projects', 'team-projects', '{"address": "501 E Hastings, Vancouver, BC", "total_units": 22, "project_type": "renovation"}', '2026-02-12 02:02:43.973884+00', '2026-02-12 02:02:43.973884+00');
+
+
+--
+-- Data for Name: template_libraries; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('c8991ce2-1638-4ed5-ac12-293e909185bc', 'Residential House - Standard', 'Standard template library for single-family residential homes', 'residential_house', 'app', NULL, 'home', '#4CAF50', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('35d9f6f9-be5d-436c-85bd-1257f4109ca3', 'Commercial Apartment - Standard', 'Standard template library for commercial apartment buildings', 'commercial_apartment', 'app', NULL, 'building', '#2196F3', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('5cb4e067-6062-46ab-969b-ecc8f244846c', 'Office/Commercial - Standard', 'Standard template library for office and commercial spaces', 'office_commercial', 'app', NULL, 'business', '#FF9800', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('a83d4d4e-5fe0-4647-9d90-870735345cd6', 'Retail - Standard', 'Standard template library for retail spaces', 'retail', 'app', NULL, 'store', '#9C27B0', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('c9d1bdc3-7f43-4cb8-b686-ab82d6697f3d', 'Mixed-Use - Standard', 'Standard template library for mixed-use developments', 'mixed_use', 'app', NULL, 'domain', '#607D8B', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+
+
+--
+-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Entry', 1, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Kitchen', 2, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', 'Bathroom', 3, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'Living', 4, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'Bedroom', 5, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', 'Storage', 6, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000001', 'Bathroom 2', 7, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-000000000001', 'Ensuite', 13, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000001b', '00000000-0000-0000-0000-000000000001', 'Bedroom 3', 27, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000000e', '00000000-0000-0000-0000-000000000001', 'Nursery', 14, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000001', 'Den', 8, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000001', 'Sunroom', 9, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'Dining Room', 18, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000001', 'Office', 19, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000000f', '00000000-0000-0000-0000-000000000001', 'Craft', 15, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000019', '00000000-0000-0000-0000-000000000001', 'Loft', 25, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-000000000001', 'Laundry', 12, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'Pantry', 16, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000017', '00000000-0000-0000-0000-000000000001', 'Utility Room', 23, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000001a', '00000000-0000-0000-0000-000000000001', 'Garage', 26, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'Hallway', 17, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000016', '00000000-0000-0000-0000-000000000001', 'Foyer', 22, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000001', 'Mudroom', 10, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000018', '00000000-0000-0000-0000-000000000001', 'Porch', 24, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000001', 'Balcony', 20, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000015', '00000000-0000-0000-0000-000000000001', 'Walk-in Closet', 21, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-000000000001', 'Amenities', 11, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000001c', '00000000-0000-0000-0000-000000000001', 'Stairwell Bsmt', 28, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000001d', '00000000-0000-0000-0000-000000000001', 'Stairwell 1', 29, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000001e', '00000000-0000-0000-0000-000000000001', 'Stairwell 2', 30, '2026-02-15 01:24:13.498682+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-00000000001f', '00000000-0000-0000-0000-000000000001', 'Bedroom 1', 0, '2026-02-15 21:20:49.536241+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000001', 'Bedroom 2', 0, '2026-02-15 21:20:49.536241+00');
+
+
+--
+-- Data for Name: metric_definitions; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('floor_area_sf', 'Floor Area', 'measurement', NULL, 'sf', NULL, 'Total floor area', 10);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('floor_area_m2', 'Floor Area (m²)', 'measurement', NULL, 'm²', 'floor_area_sf * 0.0929', 'Floor area in metric', 11);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('wall_perimeter_lf', 'Wall Perimeter', 'measurement', NULL, 'lf', NULL, 'Total wall perimeter length', 20);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('wall_area_sf', 'Wall Area', 'measurement', NULL, 'sf', 'wall_perimeter_lf * ceiling_height_ft', 'Total wall surface area', 21);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('ceiling_area_sf', 'Ceiling Area', 'measurement', NULL, 'sf', NULL, 'Ceiling surface area', 22);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('paint_wall_gal', 'Wall Paint', 'supply', 'painting', 'gal', 'wall_area_sf / 350', 'Gallons for walls (350sf/gal coverage)', 100);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('paint_ceiling_gal', 'Ceiling Paint', 'supply', 'painting', 'gal', 'ceiling_area_sf / 350', 'Gallons for ceiling', 101);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('paint_primer_gal', 'Primer', 'supply', 'painting', 'gal', '(wall_area_sf + ceiling_area_sf) / 300', 'Primer gallons (300sf/gal)', 102);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('paint_wall_cost', 'Wall Paint Cost', 'cost', 'painting', '$', 'paint_wall_gal * price_per_gal', 'Material cost for wall paint', 103);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('flooring_sf', 'Flooring Required', 'supply', 'flooring', 'sf', 'floor_area_sf * 1.10', 'Flooring with 10% waste factor', 200);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('flooring_cost', 'Flooring Material Cost', 'cost', 'flooring', '$', 'flooring_sf * cost_per_sf', 'Material cost for flooring', 201);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('flooring_cost_per_sf', 'Flooring $/SF', 'cost', 'flooring', '$/sf', NULL, 'User-entered cost per square foot', 202);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('baseboard_lf', 'Baseboard Required', 'supply', 'carpentry', 'lf', 'wall_perimeter_lf - door_count * 3', 'Baseboard minus door openings', 300);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('baseboard_cost', 'Baseboard Cost', 'cost', 'carpentry', '$', 'baseboard_lf * cost_per_lf', 'Material cost for baseboards', 301);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('door_count', 'Door Count', 'measurement', 'doors', 'ea', NULL, 'Number of doors in room', 400);
+INSERT INTO public.metric_definitions (metric_key, metric_label, category, trade_key, unit_of_measure, default_formula, description, sort_order) VALUES ('door_cost_per_unit', 'Door Cost (each)', 'cost', 'doors', '$', NULL, 'Cost per door unit', 401);
+
+=== DB TYPES (user/worker related) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders#

@@ -1,0 +1,28 @@
+// Reassign trade templates if industry changed
+  const newIndustry = payload.industry as string | undefined;
+  if (newIndustry !== undefined && newIndustry !== oldIndustry) {
+    try {
+      // Remove existing company-scope templates that were copied from app-scope
+      await adminClient
+        .from('work_order_templates')
+        .delete()
+        .eq('organization_id', id)
+        .eq('scope', 'company')
+        .not('copied_from_template_id', 'is', null);
+
+      // Copy new templates based on selected industry
+      if (newIndustry) {
+        if (newIndustry === 'General Contractor') {
+          await copyTemplatesToOrg(id);
+        } else {
+          await copyTemplatesToOrg(id, newIndustry);
+        }
+      }
+    } catch (templateErr) {
+      console.error('Failed to reassign templates on industry change:', templateErr);
+    }
+  }
+
+  return c.json(data);
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

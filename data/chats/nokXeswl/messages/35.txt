@@ -1,0 +1,41 @@
+{
+    "id": "68b24800-7d38-4cfa-84cb-22f491aa28ec",
+    "aud": "authenticated",
+    "role": "authenticated",
+    "email": "sysadmin@example.com",
+    "email_confirmed_at": "2026-02-23T23:03:03.443947146Z",
+    "phone": "",
+    "app_metadata": {
+        "provider": "email",
+        "providers": [
+            "email"
+        ]
+    },
+    "user_metadata": {
+        "email_verified": true,
+        "full_name": "System Administrator",
+        "role": "sysadmin"
+    },
+    "identities": [
+        {
+            "identity_id": "4019c609-c27c-4af3-8d6d-49e78a0b29f4",
+            "id": "68b24800-7d38-4cfa-84cb-22f491aa28ec",
+            "user_id": "68b24800-7d38-4cfa-84cb-22f491aa28ec",
+            "identity_data": {
+                "email": "sysadmin@example.com",
+                "email_verified": false,
+                "phone_verified": false,
+                "sub": "68b24800-7d38-4cfa-84cb-22f491aa28ec"
+            },
+            "provider": "email",
+            "last_sign_in_at": "2026-02-23T23:03:03.439502679Z",
+            "created_at": "2026-02-23T23:03:03.439529Z",
+            "updated_at": "2026-02-23T23:03:03.439529Z",
+            "email": "sysadmin@example.com"
+        }
+    ],
+    "created_at": "2026-02-23T23:03:03.433799Z",
+    "updated_at": "2026-02-23T23:03:03.444781Z",
+    "is_anonymous": false
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

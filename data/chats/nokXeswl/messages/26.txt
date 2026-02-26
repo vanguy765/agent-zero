@@ -1,0 +1,21 @@
+supabase/migrations/20260217000002_core_tables.sql:33:    description text,
+supabase/migrations/20260217000002_core_tables.sql:62:    description text,
+supabase/migrations/20260217000003_work_order_tables.sql:14:    description text,
+supabase/migrations/20260217000005_document_tables.sql:14:    description text,
+supabase/migrations/20260219000001_tenant_portal_config.sql:20:    description TEXT,                     -- help text shown to tenant
+supabase/migrations/20260219000001_tenant_portal_config.sql:54:INSERT INTO portal_table_config (organization_id, table_name, display_name, access_level, display_order, description)
+supabase/migrations/20260219000001_tenant_portal_config.sql:61:    t.description
+supabase/migrations/20260219000001_tenant_portal_config.sql:70:) AS t(table_name, display_name, access_level, display_order, description)
+supabase/migrations/20260223000001_org_industry_description.sql:3:-- Description: Add industry and description columns to
+supabase/migrations/20260223000001_org_industry_description.sql:8:  ADD COLUMN IF NOT EXISTS industry    text,
+supabase/migrations/20260223000001_org_industry_description.sql:9:  ADD COLUMN IF NOT EXISTS description text;
+supabase/migrations/early-work/20260203000000_template_hierarchy.sql:19:    description TEXT,
+supabase/migrations/early-work/20260203000000_template_hierarchy.sql:86:INSERT INTO wo_projects (organization_id, name, description, status)
+supabase/migrations/early-work/20260203170000_template_libraries.sql:16:    description TEXT,
+supabase/migrations/early-work/20260203170000_template_libraries.sql:94:    description,
+supabase/migrations/early-work/20260203170000_template_libraries.sql:115:    description,
+supabase/migrations/early-work/20260203170000_template_libraries.sql:136:    description,
+supabase/migrations/early-work/20260203170000_template_libraries.sql:157:    description,
+supabase/migrations/early-work/20260203170000_template_libraries.sql:178:    description,
+supabase/migrations/early-work/20260204000000_document_storage.sql:9:    description TEXT,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

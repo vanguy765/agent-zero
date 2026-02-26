@@ -1,0 +1,6 @@
+[1] 5657
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# pnpm PID: 5657
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# > > > > > > > Scope: all 14 workspace projects
+? The modules directories will be removed and reinstalled from scratch. Proceed? (Y/n) ‣ truepnpm finished
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# Exit code: 0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders#

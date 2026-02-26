@@ -1,0 +1,31 @@
+194:workOrdersRoute.get('/template-libraries', async (c) => {
+200:        .from('template_libraries')
+218:workOrdersRoute.get('/template-libraries/:id', async (c) => {
+223:        .from('template_libraries')
+226:            templates:work_order_templates(
+244:workOrdersRoute.get('/template-libraries/default/:projectType', async (c) => {
+249:        .from('template_libraries')
+268:workOrdersRoute.get('/templates', async (c) => {
+272:        .from('work_order_templates')
+285:// NOTE: These static-path routes MUST be registered before GET /templates/:id
+289:workOrdersRoute.get('/templates/app', async (c) => {
+293:        .from('work_order_templates')
+306:workOrdersRoute.get('/templates/company', async (c) => {
+310:        .from('work_order_templates')
+323:workOrdersRoute.get('/templates/:id', async (c) => {
+328:        .from('work_order_templates')
+340:workOrdersRoute.post('/templates', async (c) => {
+355:        .from('work_order_templates')
+367:workOrdersRoute.patch('/templates/:id', async (c) => {
+386:        .from('work_order_templates')
+399:workOrdersRoute.delete('/templates/:id', async (c) => {
+404:        .from('work_order_templates')
+413:    return c.json({ success: true, template: data });
+417:workOrdersRoute.get('/templates/project/:projectId', async (c) => {
+422:        .from('work_order_templates')
+433:    // For unfrozen templates with null definition, resolve from parent
+435:        (data || []).map(async (template: any) => {
+436:            if (template.definition === null && template.parent_template_id) {
+438:                    .from('work_order_templates')
+440:                    .eq('id', template.parent_template_id)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

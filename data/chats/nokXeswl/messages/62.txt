@@ -1,0 +1,23 @@
+{
+  "name": "construction-voice-platform",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
+    "db:migrate": "supabase migration up --local && pnpm db:types",
+    "db:reset": "supabase db reset && pnpm db:types"
+  },
+  "devDependencies": {
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+---
+package-lock.json  pnpm-lock.yaml
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

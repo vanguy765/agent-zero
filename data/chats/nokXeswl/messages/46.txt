@@ -1,0 +1,19 @@
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+
+// Tenant client - uses anon key, RLS enforced
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Admin client - uses service role key, bypasses RLS
+// storageKey must differ from the anon client so it never inherits the user's
+// JWT from localStorage (which would make PostgREST use role=authenticated
+// instead of service_role, re-enabling RLS).
+export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        storageKey: 'sb-admin',
+    },
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

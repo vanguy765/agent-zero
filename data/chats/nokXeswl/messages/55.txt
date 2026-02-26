@@ -1,0 +1,51 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+import {
+    buildDraftRooms,
+    buildDraftTemplate,
+    findSimilarTemplate,
+    logEntityCreation,
+} from '../services/placeholderGenerator';
+import {
+    createReviewsBatch,
+    type CreateReviewInput,
+} from '../services/reviewService';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+// TODO: Re-enable auth after testing
+// workOrdersRoute.use('*', authMiddleware);
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// UNITS ENDPOINTS
+// ============================================================================
+
+// LIST ALL UNITS
+workOrdersRoute.get('/units', async (c) => {
+(venv) root@d2d162d983f0:/a0/usr/workdir#

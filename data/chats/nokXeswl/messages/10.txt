@@ -1,0 +1,8 @@
+supabase/migrations/20260217000002_core_tables.sql:ALTER TABLE ONLY public.organizations
+supabase/migrations/20260217000012_rls_policies.sql:ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260222000005_tenant_onboarding.sql:ALTER TABLE public.organizations
+supabase/migrations/20260222000005_tenant_onboarding.sql:ALTER TABLE public.organizations
+supabase/migrations/20260222000005_tenant_onboarding.sql:ALTER TABLE public.organizations
+supabase/migrations/early-work/20260201200500_create_work_orders.sql:ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+====
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,31 @@
+-- ============================================================================
+-- Work Orders - Remaining Templates Seed Data
+-- Bill Hennessy Place (Sch'eyk Housing Society)
+-- Reference: docs/workorders/planning_conversation.md lines 333-484
+-- ============================================================================
+
+-- ========================================
+-- PLUMBING TEMPLATE
+-- Reference: planning_conversation.md lines 333-372
+-- ========================================
+INSERT INTO public.work_order_templates (id, organization_id, trade_name, version, is_active, definition)
+VALUES (
+    '20000000-0000-0000-0000-000000000003'::UUID,
+    '00000000-0000-0000-0000-000000000001'::UUID,
+    'Plumbing',
+    1,
+    true,
+    '{
+        "sections": {
+            "kitchen_plumbing": {
+                "label": "Kitchen Plumbing",
+                "order": 1,
+                "columns": [
+                    {"key": "shut_off_water", "label": "Shut Off Water", "type": "checkbox", "order": 1},
+                    {"key": "disconnect_old", "label": "Disconnect Old", "type": "checkbox", "order": 2},
+                    {"key": "remove_old", "label": "Remove Old", "type": "checkbox", "order": 3},
+                    {"key": "check_rough_in", "label": "Check Rough-in", "type": "checkbox", "order": 4},
+                    {"key": "install_new", "label": "Install New", "type": "checkbox", "order": 5},
+                    {"key": "connect_supply", "label": "Connect Supply Lines", "type": "checkbox", "order": 6},
+                    {"key": "connect_drain", "label": "Connect Drain", "type": "checkbox", "order": 7},
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,18 @@
+supabase/migrations/20260217000004_unit_tables.sql
+supabase/migrations/20260217000010_views.sql
+supabase/migrations/early-work/20260201200500_create_work_orders.sql
+supabase/migrations/early-work/20260201200501_seed_work_orders.sql
+supabase/seed.sql
+apps/api/scripts/create_renovation_schema.sql
+apps/api/scripts/create_taxonomies.sql
+apps/api/scripts/parse_pdf.ts
+apps/api/scripts/parse_pdf_v2.ts
+apps/api/scripts/reset_materials.ts
+apps/api/scripts/seed_materials.ts
+apps/api/scripts/seed_renovation_demo.ts
+apps/api/scripts/seed_renovation_sql.ts
+apps/api/src/routes/entity-creation.ts
+apps/api/src/services/claudePdfParser.ts
+apps/api/src/services/placeholderGenerator.ts
+apps/work-orders/src/pages/TemplateEditor.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

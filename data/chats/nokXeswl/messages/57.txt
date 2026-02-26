@@ -1,0 +1,17 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+===TENANT PORTAL===
+AdminConfigPage.tsx  OnboardingFormPage.tsx  TenantsPage.tsx
+DashboardPage.tsx    TableViewPage.tsx
+LoginPage.tsx	     TenantDetailPage.tsx
+---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+(venv) root@d2d162d983f0:/a0/usr/workdir#

@@ -1,0 +1,387 @@
+import { createSignal, createResource, Show, For } from 'solid-js';
+import type { Component } from 'solid-js';
+import { supabaseAdmin } from '../lib/supabase';
+
+interface TenantDetailPageProps {
+  orgId: string;
+  onNavigate: (path: string) => void;
+}
+
+interface OrgProfile {
+  id: string;
+  name: string;
+  slug: string;
+  company_email: string | null;
+  phone: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  country: string | null;
+  contact_name: string | null;
+  contact_title: string | null;
+  website: string | null;
+  is_active: boolean;
+  onboarding_status: string;
+  settings: Record<string, unknown>;
+}
+
+interface AdminUser {
+  id: string;
+  email: string | undefined;
+  role: string;
+  full_name: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+}
+
+const API = 'http://localhost:3000';
+
+const FIELD_LABEL: Record<string, string> = {
+  name: 'Company Name',
+  company_email: 'Company Email',
+  phone: 'Phone',
+  address_line1: 'Address Line 1',
+  address_line2: 'Address Line 2',
+  city: 'City',
+  state: 'State / Province',
+  zip: 'ZIP / Postal Code',
+  country: 'Country',
+  contact_name: 'Contact Name',
+  contact_title: 'Contact Title',
+  website: 'Website',
+};
+
+type EditableField = keyof typeof FIELD_LABEL;
+
+export const TenantDetailPage: Component<TenantDetailPageProps> = (props) => {
+  // ── Org profile ──────────────────────────────────────────────────────────
+  const [org, { refetch: refetchOrg }] = createResource(
+    () => props.orgId,
+    async (id) => {
+      const { data, error } = await supabaseAdmin
+        .from('organizations')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return data as OrgProfile;
+    },
+  );
+
+  // Local editable draft
+  const [draft, setDraft] = createSignal<Partial<OrgProfile>>({});
+  const [saving, setSaving] = createSignal(false);
+  const [saveMsg, setSaveMsg] = createSignal<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [dirty, setDirty] = createSignal(false);
+
+  // Sync draft when org loads
+  const orgData = () => {
+    const o = org();
+    if (!o) return {} as Partial<OrgProfile>;
+    // Seed draft with current values on first load
+    if (!dirty()) return o;
+    return { ...o, ...draft() };
+  };
+
+  const update = (field: string, value: unknown) => {
+    setDraft((prev) => ({ ...prev, [field]: value }));
+    setDirty(true);
+    setSaveMsg(null);
+  };
+
+  const val = (field: EditableField): string =>
+    ((dirty() ? { ...org(), ...draft() } : org()) as Record<string, unknown>)[field] as string ?? '';
+
+  const saveProfile = async () => {
+    setSaving(true);
+    setSaveMsg(null);
+    const payload = dirty() ? draft() : {};
+    if (Object.keys(payload).length === 0) {
+      setSaving(false);
+      return;
+    }
+    const { error } = await supabaseAdmin
+      .from('organizations')
+      .update(payload)
+      .eq('id', props.orgId);
+    if (error) {
+      setSaveMsg({ type: 'error', text: error.message });
+    } else {
+      setSaveMsg({ type: 'success', text: 'Profile saved.' });
+      setDraft({});
+      setDirty(false);
+      refetchOrg();
+    }
+    setSaving(false);
+  };
+
+  // ── Status helpers ────────────────────────────────────────────────────────
+  const currentStatus = () => (dirty() ? { ...org(), ...draft() } : org())?.onboarding_status ?? 'pending';
+  const currentActive = () => (dirty() ? { ...org(), ...draft() } : org())?.is_active ?? true;
+
+  const toggleActive = async () => {
+    const newVal = !currentActive();
+    const { error } = await supabaseAdmin
+      .from('organizations')
+      .update({ is_active: newVal })
+      .eq('id', props.orgId);
+    if (!error) refetchOrg();
+  };
+
+  const setStatus = async (status: string) => {
+    const { error } = await supabaseAdmin
+      .from('organizations')
+      .update({ onboarding_status: status })
+      .eq('id', props.orgId);
+    if (!error) refetchOrg();
+  };
+
+  // ── Admins ────────────────────────────────────────────────────────────────
+  const [admins, { refetch: refetchAdmins }] = createResource(
+    () => props.orgId,
+    async (id) => {
+      const res = await fetch(`${API}/onboard/${id}/admins`);
+      if (!res.ok) throw new Error(await res.text());
+      return (await res.json()) as AdminUser[];
+    },
+  );
+
+  const [newAdminEmail, setNewAdminEmail] = createSignal('');
+  const [newAdminPass, setNewAdminPass]   = createSignal('');
+  const [newAdminName, setNewAdminName]   = createSignal('');
+  const [addingAdmin, setAddingAdmin]     = createSignal(false);
+  const [adminMsg, setAdminMsg]           = createSignal<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const createAdmin = async () => {
+    if (!newAdminEmail() || !newAdminPass()) {
+      setAdminMsg({ type: 'error', text: 'Email and password are required.' });
+      return;
+    }
+    setAddingAdmin(true);
+    setAdminMsg(null);
+    const res = await fetch(`${API}/onboard/${props.orgId}/admins`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: newAdminEmail(),
+        password: newAdminPass(),
+        full_name: newAdminName() || undefined,
+        role: 'admin',
+      }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setAdminMsg({ type: 'error', text: json.error || 'Failed to create admin.' });
+    } else {
+      setAdminMsg({ type: 'success', text: `Admin "${json.email}" created.` });
+      setNewAdminEmail('');
+      setNewAdminPass('');
+      setNewAdminName('');
+      refetchAdmins();
+    }
+    setAddingAdmin(false);
+  };
+
+  // ── Render ─────────────────────��──────────────────────────────────────────
+  return (
+    <div>
+      {/* Back */}
+      <button
+        class="text-sm text-primary-600 hover:underline mb-4 flex items-center gap-1"
+        onClick={() => props.onNavigate('/tenants')}
+      >
+        ← Back to Tenants
+      </button>
+
+      <Show when={org.loading}>
+        <div class="text-center py-12 text-gray-400">Loading…</div>
+      </Show>
+
+      <Show when={org.error}>
+        <div class="card bg-red-50 border-red-200 text-red-700 text-sm">
+          Could not load organization: {String(org.error)}
+        </div>
+      </Show>
+
+      <Show when={org()}>
+        <div class="mb-6 flex items-start justify-between">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900">{org()!.name}</h2>
+            <p class="text-sm text-gray-400">/{org()!.slug}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            {/* Active toggle */}
+            <button
+              class={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+                currentActive()
+                  ? 'bg-green-50 border-green-200 text-green-700 hover:bg-red-50 hover:border-red-200 hover:text-red-700'
+                  : 'bg-gray-100 border-gray-200 text-gray-500 hover:bg-green-50 hover:border-green-200 hover:text-green-700'
+              }`}
+              onClick={toggleActive}
+              title={currentActive() ? 'Click to hide this tenant' : 'Click to show this tenant'}
+            >
+              {currentActive() ? 'Visible' : 'Hidden'}
+            </button>
+
+            {/* Onboarding status */}
+            <select
+              class="input text-sm w-36"
+              value={currentStatus()}
+              onChange={(e) => setStatus(e.currentTarget.value)}
+            >
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+
+            {/* Jump to table config */}
+            <button
+              class="btn btn-secondary text-sm"
+              onClick={() => props.onNavigate('/admin')}
+            >
+              Table Config →
+            </button>
+          </div>
+        </div>
+
+        {/* ── Profile form ── */}
+        <div class="card mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Organization Profile</h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <For each={Object.entries(FIELD_LABEL) as [EditableField, string][]}>
+              {([field, label]) => (
+                <div class={field === 'address_line1' || field === 'name' ? 'sm:col-span-2' : ''}>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+                  <input
+                    class="input"
+                    type={field === 'company_email' ? 'email' : field === 'website' ? 'url' : 'text'}
+                    value={val(field)}
+                    onInput={(e) => update(field, e.currentTarget.value)}
+                    placeholder={label}
+                  />
+                </div>
+              )}
+            </For>
+          </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <button
+              class="btn btn-primary"
+              disabled={saving() || !dirty()}
+              onClick={saveProfile}
+            >
+              {saving() ? 'Saving…' : 'Save Profile'}
+            </button>
+            <Show when={saveMsg()}>
+              <span
+                class={`text-sm ${saveMsg()!.type === 'success' ? 'text-green-600' : 'text-red-600'}`}
+              >
+                {saveMsg()!.text}
+              </span>
+            </Show>
+          </div>
+        </div>
+
+        {/* ── Admin users ── */}
+        <div class="card">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin Users</h3>
+
+          <Show when={admins.loading}>
+            <p class="text-sm text-gray-400">Loading users…</p>
+          </Show>
+
+          <Show when={!admins.loading}>
+            <Show
+              when={(admins() || []).length > 0}
+              fallback={
+                <p class="text-sm text-gray-400 mb-4">No admin users yet for this organization.</p>
+              }
+            >
+              <div class="mb-4 space-y-2">
+                <For each={admins() || []}>
+                  {(admin) => (
+                    <div class="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
+                      <div>
+                        <div class="text-sm font-medium text-gray-900">
+                          {admin.full_name || admin.email}
+                        </div>
+                        <div class="text-xs text-gray-500">{admin.email}</div>
+                        <div class="text-xs text-gray-400 mt-0.5">
+                          Role: <strong>{admin.role}</strong>
+                          {admin.last_sign_in_at
+                            ? ` · Last login: ${new Date(admin.last_sign_in_at).toLocaleDateString()}`
+                            : ' · Never signed in'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </Show>
+
+            {/* Add admin form */}
+            <div class="border-t border-gray-200 pt-4">
+              <h4 class="text-sm font-semibold text-gray-700 mb-3">Add Admin User</h4>
+
+              <Show when={adminMsg()}>
+                <div
+                  class={`mb-3 px-3 py-2 rounded text-sm ${
+                    adminMsg()!.type === 'success'
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}
+                >
+                  {adminMsg()!.text}
+                </div>
+              </Show>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Full Name (optional)</label>
+                  <input
+                    class="input"
+                    placeholder="Jane Smith"
+                    value={newAdminName()}
+                    onInput={(e) => setNewAdminName(e.currentTarget.value)}
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Email *</label>
+                  <input
+                    class="input"
+                    type="email"
+                    placeholder="admin@company.com"
+                    value={newAdminEmail()}
+                    onInput={(e) => setNewAdminEmail(e.currentTarget.value)}
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Password * (min 8 chars)</label>
+                  <input
+                    class="input"
+                    type="password"
+                    placeholder="••••••••"
+                    value={newAdminPass()}
+                    onInput={(e) => setNewAdminPass(e.currentTarget.value)}
+                  />
+                </div>
+              </div>
+
+              <button
+                class="btn btn-primary text-sm"
+                disabled={addingAdmin()}
+                onClick={createAdmin}
+              >
+                {addingAdmin() ? 'Creating…' : 'Create Admin'}
+              </button>
+            </div>
+          </Show>
+        </div>
+      </Show>
+    </div>
+  );
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

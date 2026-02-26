@@ -1,0 +1,23 @@
+# ============================================================
+# reset-and-start.ps1
+# Stops servers, resets DB, seeds users, starts dev servers
+# ============================================================
+
+Write-Host "`n=== Step 1: Killing dev servers ===" -ForegroundColor Cyan
+& "$PSScriptRoot\kill-dev-servers.ps1"
+
+Write-Host "`n=== Step 2: Resetting database ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\.."
+npx supabase db reset
+Pop-Location
+
+Write-Host "`n=== Step 3: Seeding users (alice + eric) ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\..\apps\api"
+npx tsx scripts/create_user.ts
+Pop-Location
+
+Write-Host "`n=== Step 4: Starting dev servers ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\.."
+pnpm dev
+Pop-Location
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

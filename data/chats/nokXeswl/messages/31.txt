@@ -1,0 +1,20 @@
+
+2 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+Attention:
+Turborepo now collects completely anonymous telemetry regarding usage.
+This information is used to shape the Turborepo roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://turborepo.dev/docs/telemetry
+
+• turbo 2.8.10
+• Packages in scope: tenant-portal
+• Running build in 1 packages
+• Remote caching disabled
+  x Unable to find package manager binary: cannot find binary path
+  `-> cannot find binary path
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,44 @@
+apps/tenant-portal/src/App.tsx
+apps/tenant-portal/src/components/DataGrid.tsx
+apps/tenant-portal/src/components/EditableCell.tsx
+apps/tenant-portal/src/components/Layout.tsx
+apps/tenant-portal/src/components/LoadingSpinner.tsx
+apps/tenant-portal/src/components/Pagination.tsx
+apps/tenant-portal/src/index.tsx
+apps/tenant-portal/src/lib/router.ts
+apps/tenant-portal/src/lib/supabase.ts
+apps/tenant-portal/src/lib/types.ts
+apps/tenant-portal/src/pages/AdminConfigPage.tsx
+apps/tenant-portal/src/pages/DashboardPage.tsx
+apps/tenant-portal/src/pages/LoginPage.tsx
+apps/tenant-portal/src/pages/OnboardingFormPage.tsx
+apps/tenant-portal/src/pages/TableViewPage.tsx
+apps/tenant-portal/src/pages/TenantDetailPage.tsx
+apps/tenant-portal/src/pages/TenantsPage.tsx
+---
+apps/tenant-portal/src/App.tsx:16:  const [session, setSession] = createSignal<Session | null>(null);
+apps/tenant-portal/src/App.tsx:21:    const { data: { session: s } } = await supabase.auth.getSession();
+apps/tenant-portal/src/App.tsx:25:    supabase.auth.onAuthStateChange((_event, s) => {
+apps/tenant-portal/src/App.tsx:27:      if (!s && route().path !== '/onboard') navigate('/login');
+apps/tenant-portal/src/App.tsx:32:    await supabase.auth.signOut();
+apps/tenant-portal/src/App.tsx:34:    navigate('/login');
+apps/tenant-portal/src/App.tsx:37:  // Public routes that bypass auth
+apps/tenant-portal/src/App.tsx:46:      {/* Public onboarding form — no auth required */}
+apps/tenant-portal/src/App.tsx:53:        <Show when={session()} fallback={<LoginPage onLogin={() => navigate('/dashboard')} />}>
+apps/tenant-portal/src/App.tsx:55:            userEmail={session()!.user.email || ''}
+apps/tenant-portal/src/lib/supabase.ts:7:// Admin client - uses service role key, bypasses RLS
+apps/tenant-portal/src/lib/supabase.ts:9:// JWT from localStorage (which would make PostgREST use role=authenticated
+apps/tenant-portal/src/lib/supabase.ts:10:// instead of service_role, re-enabling RLS).
+apps/tenant-portal/src/lib/supabase.ts:12:    auth: {
+apps/tenant-portal/src/lib/types.ts:26:  role: string | null;
+apps/tenant-portal/src/pages/AdminConfigPage.tsx:61:  // Organizations list (service-role bypasses RLS)
+apps/tenant-portal/src/pages/LoginPage.tsx:22:    const { error: err } = await supabase.auth.signInWithPassword({
+apps/tenant-portal/src/pages/LoginPage.tsx:40:    const { error: err } = await supabase.auth.signInWithOtp({
+apps/tenant-portal/src/pages/OnboardingFormPage.tsx:47:  /** If provided, the form shows a "Back to login" button */
+apps/tenant-portal/src/pages/OnboardingFormPage.tsx:78:    if (!f('admin_email').trim()) return 'Admin login email is required.';
+apps/tenant-portal/src/pages/OnboardingFormPage.tsx:394:                  onClick={() => props.onNavigate!('/login')}
+apps/tenant-portal/src/pages/TenantDetailPage.tsx:35:  role: string;
+apps/tenant-portal/src/pages/TenantDetailPage.tsx:189:        role: 'admin',
+apps/tenant-portal/src/pages/TenantDetailPage.tsx:361:                          Role: <strong>{admin.role}</strong>
+apps/tenant-portal/src/pages/TenantDetailPage.tsx:363:                            ? ` · Last login: ${new Date(admin.last_sign_in_at).toLocaleDateString()}`
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

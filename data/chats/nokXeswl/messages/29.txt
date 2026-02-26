@@ -1,0 +1,47 @@
+<input
+                    class="input"
+                    type={field === 'company_email' ? 'email' : field === 'website' ? 'url' : 'text'}
+                    value={val(field)}
+                    onInput={(e) => update(field, e.currentTarget.value)}
+                    placeholder={label}
+                  />
+                </div>
+              )}
+            </For>
+
+            {/* Industry dropdown */}
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Industry</label>
+              <select
+                class="input"
+                value={(dirty() ? { ...org(), ...draft() } : org())?.industry ?? ''}
+                onChange={(e) => update('industry', e.currentTarget.value)}
+              >
+                <option value="">Select an industry...</option>
+                <option value="General Contractor">General Contractor (all trades)</option>
+                <Show when={!trades.loading && trades()}>
+                  <For each={trades()!}>
+                    {(trade) => <option value={trade}>{trade}</option>}
+                  </For>
+                </Show>
+              </select>
+            </div>
+
+            {/* Description */}
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
+              <textarea
+                class="input"
+                rows={3}
+                placeholder="Briefly describe the company and services provided..."
+                value={(dirty() ? { ...org(), ...draft() } : org())?.description ?? ''}
+                onInput={(e) => update('description', e.currentTarget.value)}
+              />
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <button
+              class="btn btn-primary"
+              disabled={saving() || !dirty()}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

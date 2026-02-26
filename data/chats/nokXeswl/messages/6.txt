@@ -1,0 +1,13 @@
+supabase/migrations/20260217000002_core_tables.sql
+supabase/migrations/20260217000003_work_order_tables.sql
+supabase/migrations/20260217000004_unit_tables.sql
+supabase/migrations/20260217000009_indexes.sql
+supabase/migrations/20260217000010_views.sql
+supabase/migrations/20260222000002_project_lifecycle_template_inheritance.sql
+supabase/migrations/early-work/20260201200500_create_work_orders.sql
+supabase/migrations/early-work/20260201200501_seed_work_orders.sql
+supabase/migrations/early-work/20260202210000_seed_remaining_templates.sql
+supabase/migrations/early-work/20260203000000_template_hierarchy.sql
+supabase/migrations/early-work/20260203170000_template_libraries.sql
+====
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,256 @@
+-- =============================================================
+-- Migration: Row Level Security
+-- Description: Enable RLS and create tenant isolation policies
+-- =============================================================
+
+-- Enable RLS on application tables
+ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.unit_rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.unit_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.work_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.work_order_tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.work_order_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.work_order_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.template_libraries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.project_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.document_images ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.image_links ENABLE ROW LEVEL SECURITY;
+
+
+-- -----------------------------------------------
+-- Organizations
+-- -----------------------------------------------
+CREATE POLICY "Users can view their organization"
+  ON public.organizations FOR SELECT
+  USING (id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Rooms
+-- -----------------------------------------------
+CREATE POLICY "Tenant isolation for rooms"
+  ON public.rooms FOR ALL
+  USING (organization_id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Units
+-- -----------------------------------------------
+CREATE POLICY "Tenant isolation for units"
+  ON public.units FOR ALL
+  USING (organization_id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Unit Rooms
+-- -----------------------------------------------
+CREATE POLICY "Users can view unit rooms from their organization"
+  ON public.unit_rooms FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_rooms.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can insert unit rooms for their organization"
+  ON public.unit_rooms FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_rooms.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can update unit rooms from their organization"
+  ON public.unit_rooms FOR UPDATE
+  USING (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_rooms.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can delete unit rooms from their organization"
+  ON public.unit_rooms FOR DELETE
+  USING (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_rooms.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+-- -----------------------------------------------
+-- Unit Documents
+-- -----------------------------------------------
+CREATE POLICY "Users can view unit documents from their organization"
+  ON public.unit_documents FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_documents.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can link documents to their organization units"
+  ON public.unit_documents FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_documents.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can delete unit document links from their organization"
+  ON public.unit_documents FOR DELETE
+  USING (EXISTS (
+    SELECT 1 FROM units WHERE units.id = unit_documents.unit_id
+    AND units.organization_id = current_user_organization_id()
+  ));
+
+-- -----------------------------------------------
+-- Work Orders
+-- -----------------------------------------------
+CREATE POLICY "Tenant isolation for work orders"
+  ON public.work_orders FOR ALL
+  USING (organization_id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Work Order Tasks
+-- -----------------------------------------------
+CREATE POLICY "Tenant isolation for tasks"
+  ON public.work_order_tasks FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM work_orders
+    WHERE work_orders.id = work_order_tasks.work_order_id
+    AND work_orders.organization_id = current_user_organization_id()
+  ));
+
+-- -----------------------------------------------
+-- Work Order Notes
+-- -----------------------------------------------
+CREATE POLICY "Tenant isolation for notes"
+  ON public.work_order_notes FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM work_orders
+    WHERE work_orders.id = work_order_notes.work_order_id
+    AND work_orders.organization_id = current_user_organization_id()
+  ));
+
+-- -----------------------------------------------
+-- Work Order Templates (3-tier: app, company, project)
+-- -----------------------------------------------
+CREATE POLICY "Tenant isolation for templates"
+  ON public.work_order_templates FOR ALL
+  USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "app_templates_select"
+  ON public.work_order_templates FOR SELECT
+  USING (scope = 'app');
+
+CREATE POLICY "company_templates_select"
+  ON public.work_order_templates FOR SELECT
+  USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "company_templates_modify"
+  ON public.work_order_templates FOR ALL
+  USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_templates_select"
+  ON public.work_order_templates FOR SELECT
+  USING (scope = 'project' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_templates_modify"
+  ON public.work_order_templates FOR ALL
+  USING (scope = 'project' AND organization_id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- WO Projects
+-- -----------------------------------------------
+CREATE POLICY "wo_projects_tenant_isolation"
+  ON public.wo_projects FOR ALL
+  USING (organization_id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Template Libraries (3-tier: app, company)
+-- -----------------------------------------------
+CREATE POLICY "app_libraries_select"
+  ON public.template_libraries FOR SELECT
+  USING (scope = 'app');
+
+CREATE POLICY "company_libraries_select"
+  ON public.template_libraries FOR SELECT
+  USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "company_libraries_modify"
+  ON public.template_libraries FOR ALL
+  USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Project Documents
+-- -----------------------------------------------
+CREATE POLICY "Users can view documents from their organization"
+  ON public.project_documents FOR SELECT
+  USING (get_project_organization_id(project_id) = current_user_organization_id());
+
+CREATE POLICY "Users can insert documents to their organization projects"
+  ON public.project_documents FOR INSERT
+  WITH CHECK (get_project_organization_id(project_id) = current_user_organization_id());
+
+CREATE POLICY "Users can update documents from their organization"
+  ON public.project_documents FOR UPDATE
+  USING (get_project_organization_id(project_id) = current_user_organization_id());
+
+CREATE POLICY "Users can delete documents from their organization"
+  ON public.project_documents FOR DELETE
+  USING (get_project_organization_id(project_id) = current_user_organization_id());
+
+-- -----------------------------------------------
+-- Document Images
+-- -----------------------------------------------
+CREATE POLICY "Users can view images from their organization documents"
+  ON public.document_images FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM project_documents
+    WHERE project_documents.id = document_images.document_id
+    AND get_project_organization_id(project_documents.project_id) = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can insert images to their organization documents"
+  ON public.document_images FOR INSERT
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM project_documents
+    WHERE project_documents.id = document_images.document_id
+    AND get_project_organization_id(project_documents.project_id) = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can update images from their organization documents"
+  ON public.document_images FOR UPDATE
+  USING (EXISTS (
+    SELECT 1 FROM project_documents
+    WHERE project_documents.id = document_images.document_id
+    AND get_project_organization_id(project_documents.project_id) = current_user_organization_id()
+  ));
+
+CREATE POLICY "Users can delete images from their organization documents"
+  ON public.document_images FOR DELETE
+  USING (EXISTS (
+    SELECT 1 FROM project_documents
+    WHERE project_documents.id = document_images.document_id
+    AND get_project_organization_id(project_documents.project_id) = current_user_organization_id()
+  ));
+
+-- -----------------------------------------------
+-- Image Links
+-- -----------------------------------------------
+CREATE POLICY "Users can view image links from their organization"
+  ON public.image_links FOR SELECT
+  USING (
+    (entity_type = 'unit' AND EXISTS (SELECT 1 FROM units WHERE units.id = image_links.entity_id AND units.organization_id = current_user_organization_id()))
+    OR (entity_type = 'work_order' AND EXISTS (SELECT 1 FROM work_orders WHERE work_orders.id = image_links.entity_id AND work_orders.organization_id = current_user_organization_id()))
+    OR (entity_type = 'room' AND EXISTS (SELECT 1 FROM rooms WHERE rooms.id = image_links.entity_id AND rooms.organization_id = current_user_organization_id()))
+  );
+
+CREATE POLICY "Users can create image links for their organization entities"
+  ON public.image_links FOR INSERT
+  WITH CHECK (
+    (entity_type = 'unit' AND EXISTS (SELECT 1 FROM units WHERE units.id = image_links.entity_id AND units.organization_id = current_user_organization_id()))
+    OR (entity_type = 'work_order' AND EXISTS (SELECT 1 FROM work_orders WHERE work_orders.id = image_links.entity_id AND work_orders.organization_id = current_user_organization_id()))
+    OR (entity_type = 'room' AND EXISTS (SELECT 1 FROM rooms WHERE rooms.id = image_links.entity_id AND rooms.organization_id = current_user_organization_id()))
+  );
+
+CREATE POLICY "Users can delete image links from their organization"
+  ON public.image_links FOR DELETE
+  USING (
+    (entity_type = 'unit' AND EXISTS (SELECT 1 FROM units WHERE units.id = image_links.entity_id AND units.organization_id = current_user_organization_id()))
+    OR (entity_type = 'work_order' AND EXISTS (SELECT 1 FROM work_orders WHERE work_orders.id = image_links.entity_id AND work_orders.organization_id = current_user_organization_id()))
+    OR (entity_type = 'room' AND EXISTS (SELECT 1 FROM rooms WHERE rooms.id = image_links.entity_id AND rooms.organization_id = current_user_organization_id()))
+  );
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

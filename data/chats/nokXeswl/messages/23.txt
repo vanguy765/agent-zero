@@ -1,0 +1,58 @@
+--
+-- Master catalog: promote each company template to an app-scoped catalog entry.
+-- IDs are derived by replacing the '20000000' prefix with '30000000' so they
+-- are stable and predictable after every reset.
+--
+INSERT INTO public.work_order_templates (id, organization_id, trade_name, version, is_active, definition, created_at, updated_at, scope, project_id, parent_template_id, copied_from_template_id, created_by, updated_by, library_id)
+SELECT
+    replace(id::text, '20000000', '30000000')::uuid,
+    NULL,
+    trade_name,
+    version,
+    is_active,
+    definition,
+    created_at,
+    updated_at,
+    'app',
+    NULL, NULL, NULL, NULL, NULL, NULL
+FROM public.work_order_templates
+WHERE scope = 'company' AND organization_id = '00000000-0000-0000-0000-000000000001';
+
+-- Link the company templates back to their catalog source
+UPDATE public.work_order_templates
+SET copied_from_template_id = replace(id::text, '20000000', '30000000')::uuid
+WHERE scope = 'company' AND organization_id = '00000000-0000-0000-0000-000000000001';
+
+
+========
+INSERT INTO public.work_order_templates (
+  id, organization_id, trade_name, version, is_active,
+  definition, scope, project_id, is_frozen
+)
+SELECT
+  -- Deterministic UUIDs: A0000000-... prefix for app templates
+  ('a0000000-0000-0000-0000-' || lpad(row_number() OVER (ORDER BY trade_name)::text, 12, '0'))::uuid,
+  NULL,                    -- no org for app-scope
+  trade_name,
+  1,
+  true,
+  definition,              -- copy full definition
+  'app',                   -- app scope
+  NULL,                    -- no project
+  false                    -- not frozen (app templates are the source of truth)
+FROM public.work_order_templates
+WHERE scope = 'company'
+  AND organization_id = '00000000-0000-0000-0000-000000000001'
+  AND is_active = true
+ON CONFLICT DO NOTHING;
+
+-- Update the existing company templates to point back to their app source
+UPDATE public.work_order_templates ct
+SET copied_from_template_id = at.id
+FROM public.work_order_templates at
+WHERE at.scope = 'app'
+  AND ct.scope = 'company'
+  AND ct.organization_id = '00000000-0000-0000-0000-000000000001'
+  AND ct.trade_name = at.trade_name
+  AND ct.copied_from_template_id IS NULL;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

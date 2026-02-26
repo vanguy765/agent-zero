@@ -1,0 +1,21 @@
+Progress: resolved 258, reused 0, downloaded 254, added 257
+Progress: resolved 258, reused 0, downloaded 255, added 257
+Progress: resolved 258, reused 0, downloaded 255, added 258
+Progress: resolved 258, reused 0, downloaded 255, added 258, done
+.../esbuild@0.21.5/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.27.2/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.21.5/node_modules/esbuild postinstall: Done
+.../esbuild@0.27.2/node_modules/esbuild postinstall: Done
+
+dependencies:
++ @types/pdf-parse 1.1.5
++ pdf2json 4.0.2
++ zod 3.23.8
+
+devDependencies:
++ prettier 3.7.4
++ turbo 2.7.3
++ typescript 5.9.3
+
+Done in 2m 1.4s using pnpm v9.15.9
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

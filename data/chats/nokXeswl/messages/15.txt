@@ -1,0 +1,91 @@
+export interface PortalTableConfig {
+  id: string;
+  organization_id: string;
+  table_name: string;
+  display_name: string | null;
+  access_level: 'hidden' | 'readonly' | 'editable';
+  visible_columns: string[];
+  editable_columns: string[];
+  hidden_columns: string[];
+  column_order: string[];
+  sort_column: string | null;
+  sort_direction: 'asc' | 'desc';
+  filter_conditions: Record<string, unknown>;
+  page_size: number;
+  display_order: number;
+  icon: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  organization_id: string | null;
+  role: string | null;
+}
+
+export interface ColumnDef {
+  name: string;
+  type: string;
+  is_nullable: boolean;
+  is_primary: boolean;
+}
+
+export type SortDirection = 'asc' | 'desc';
+
+export interface TableState {
+  data: Record<string, unknown>[];
+  columns: ColumnDef[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  sortColumn: string | null;
+  sortDirection: SortDirection;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface EditState {
+  rowId: string | null;
+  field: string | null;
+  originalValue: unknown;
+  currentValue: unknown;
+}
+
+// All available application tables
+export const ALL_TABLES = [
+  'work_orders',
+  'work_order_tasks',
+  'work_order_notes',
+  'work_order_templates',
+  'wo_projects',
+  'units',
+  'unit_rooms',
+  'unit_room_measurements',
+  'unit_room_calculations',
+  'unit_documents',
+  'organizations',
+  'rooms',
+  'template_libraries',
+  'project_documents',
+  'document_images',
+  'image_links',
+  'metric_definitions',
+  'notification',
+  'v_budget_tracker',
+  'v_unit_cost_sheet',
+  'v_all_calculations',
+  'v_project_cost_summary',
+  'v_trade_cost_comparison',
+] as const;
+
+export const VIEW_TABLES = [
+  'v_budget_tracker',
+  'v_unit_cost_sheet',
+  'v_all_calculations',
+  'v_project_cost_summary',
+  'v_trade_cost_comparison',
+] as const;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

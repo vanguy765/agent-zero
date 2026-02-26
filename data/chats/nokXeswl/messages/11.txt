@@ -1,0 +1,31 @@
+-- =============================================================
+-- Migration: Tenant Onboarding
+-- Description: Extend organizations with full contact/address
+--              profile and status tracking.
+-- =============================================================
+
+ALTER TABLE public.organizations
+  ADD COLUMN IF NOT EXISTS company_email    text,
+  ADD COLUMN IF NOT EXISTS phone            text,
+  ADD COLUMN IF NOT EXISTS address_line1   text,
+  ADD COLUMN IF NOT EXISTS address_line2   text,
+  ADD COLUMN IF NOT EXISTS city             text,
+  ADD COLUMN IF NOT EXISTS state            text,
+  ADD COLUMN IF NOT EXISTS zip              text,
+  ADD COLUMN IF NOT EXISTS country          text DEFAULT 'US',
+  ADD COLUMN IF NOT EXISTS contact_name    text,
+  ADD COLUMN IF NOT EXISTS contact_title   text,
+  ADD COLUMN IF NOT EXISTS website          text,
+  ADD COLUMN IF NOT EXISTS is_active        boolean NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS onboarding_status text NOT NULL DEFAULT 'pending';
+
+ALTER TABLE public.organizations
+  DROP CONSTRAINT IF EXISTS organizations_onboarding_status_check;
+
+ALTER TABLE public.organizations
+  ADD CONSTRAINT organizations_onboarding_status_check
+  CHECK (onboarding_status IN ('pending', 'active', 'suspended'));
+
+-- Reload PostgREST schema cache so new columns are visible immediately
+NOTIFY pgrst, 'reload schema';
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

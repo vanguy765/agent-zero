@@ -1,0 +1,115 @@
+-- =============================================================
+-- Migration: Utility Functions
+-- Description: Helper functions used by tables, triggers, and RLS
+-- =============================================================
+
+
+CREATE FUNCTION public.current_user_organization_id() RETURNS uuid
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+    -- For now, return from auth.users metadata
+    -- In production, this would query a user_organizations table
+    RETURN (auth.jwt() -> 'user_metadata' ->> 'organization_id')::UUID;
+END;
+$$;
+
+
+
+CREATE FUNCTION public.get_default_library_for_type(p_project_type text) RETURNS uuid
+    LANGUAGE sql STABLE
+    AS $$
+    SELECT id FROM template_libraries
+    WHERE project_type = p_project_type
+    AND scope = 'app'
+    AND is_default = true
+    AND is_active = true
+    LIMIT 1;
+$$;
+
+
+
+CREATE FUNCTION public.get_project_organization_id(p_project_id uuid) RETURNS uuid
+    LANGUAGE sql STABLE SECURITY DEFINER
+    AS $$
+    SELECT organization_id FROM wo_projects WHERE id = p_project_id;
+$$;
+
+
+
+CREATE FUNCTION public.search_agent_memories(query_embedding public.vector, match_threshold double precision DEFAULT 0.7, match_count integer DEFAULT 5, filter_area text DEFAULT NULL::text, filter_source text DEFAULT NULL::text, filter_metadata jsonb DEFAULT NULL::jsonb) RETURNS TABLE(id uuid, content text, metadata jsonb, area text, source text, similarity double precision, created_at timestamp with time zone)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    am.id,
+    am.content,
+    am.metadata,
+    am.area,
+    am.source,
+    1 - (am.embedding <=> query_embedding) AS similarity,
+    am.created_at
+  FROM agent_memories am
+  WHERE
+    1 - (am.embedding <=> query_embedding) > match_threshold
+    AND (filter_area IS NULL OR am.area = filter_area)
+    AND (filter_source IS NULL OR am.source = filter_source)
+    AND (filter_metadata IS NULL OR am.metadata @> filter_metadata)
+  ORDER BY am.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
+
+
+CREATE FUNCTION public.update_agent_memories_timestamp() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+
+
+CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$;
+
+
+
+CREATE FUNCTION public.upsert_agent_memory(p_content text, p_embedding public.vector, p_metadata jsonb DEFAULT '{}'::jsonb, p_area text DEFAULT 'main'::text, p_source text DEFAULT 'agent_zero'::text, p_source_memory_id text DEFAULT NULL::text) RETURNS uuid
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  result_id UUID;
+BEGIN
+  -- If source_memory_id provided, upsert by it
+  IF p_source_memory_id IS NOT NULL THEN
+    INSERT INTO agent_memories (content, embedding, metadata, area, source, source_memory_id)
+    VALUES (p_content, p_embedding, p_metadata, p_area, p_source, p_source_memory_id)
+    ON CONFLICT (source, source_memory_id)
+      WHERE source_memory_id IS NOT NULL
+    DO UPDATE SET
+      content = EXCLUDED.content,
+      embedding = EXCLUDED.embedding,
+      metadata = EXCLUDED.metadata,
+      area = EXCLUDED.area
+    RETURNING id INTO result_id;
+  ELSE
+    INSERT INTO agent_memories (content, embedding, metadata, area, source)
+    VALUES (p_content, p_embedding, p_metadata, p_area, p_source)
+    RETURNING id INTO result_id;
+  END IF;
+
+  RETURN result_id;
+END;
+$$;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

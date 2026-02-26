@@ -1,0 +1,214 @@
+import type { Component, JSX } from 'solid-js';
+import { A } from '@solidjs/router';
+
+interface LayoutProps {
+    children?: JSX.Element;
+}
+
+const Layout: Component<LayoutProps> = (props) => {
+    return (
+        <div class="min-h-screen flex flex-col">
+            {/* Header */}
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center h-16">
+                        <div class="flex items-center space-x-8">
+                            <A href="/" class="text-xl font-bold text-primary-600">
+                                Work Orders
+                            </A>
+                            <nav class="hidden md:flex space-x-4">
+                                <A
+                                    href="/"
+                                    class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                    activeClass="bg-gray-100 text-gray-900"
+                                    end
+                                >
+                                    Dashboard
+                                </A>
+                                <A
+                                    href="/projects"
+                                    class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                    activeClass="bg-gray-100 text-gray-900"
+                                >
+                                    Projects
+                                </A>
+                                <A
+                                    href="/units"
+                                    class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                    activeClass="bg-gray-100 text-gray-900"
+                                >
+                                    Units
+                                </A>
+                                <A
+                                    href="/templates"
+                                    class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                    activeClass="bg-gray-100 text-gray-900"
+                                >
+                                    Templates
+                                </A>
+                            </nav>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600">Bill Hennessy Place</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <main class="flex-1 bg-gray-50">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {props.children}
+                </div>
+            </main>
+
+            {/* Footer */}
+            <footer class="bg-white border-t border-gray-200 mt-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <p class="text-center text-sm text-gray-500">
+                        Work Orders Management System - Bill Hennessy Place Renovation
+                    </p>
+                </div>
+            </footer>
+        </div>
+    );
+};
+
+export default Layout;
+========== TENANT PORTAL APP.TSX ==========
+import { createSignal, Show, onMount } from 'solid-js';
+import type { Component } from 'solid-js';
+import { createRouter } from './lib/router';
+import { supabase } from './lib/supabase';
+import type { Session } from '@supabase/supabase-js';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { TableViewPage } from './pages/TableViewPage';
+import { AdminConfigPage } from './pages/AdminConfigPage';
+import { TenantsPage } from './pages/TenantsPage';
+import { TenantDetailPage } from './pages/TenantDetailPage';
+import { OnboardingFormPage } from './pages/OnboardingFormPage';
+import { Layout } from './components/Layout';
+
+/** Returns true when the session user carries role = 'sysadmin'. */
+function isSysadmin(s: Session | null): boolean {
+  return s?.user?.user_metadata?.role === 'sysadmin';
+}
+
+const App: Component = () => {
+  const [session, setSession] = createSignal<Session | null>(null);
+  const [loading, setLoading] = createSignal(true);
+  const [accessDenied, setAccessDenied] = createSignal(false);
+  const { route, navigate } = createRouter();
+
+  onMount(async () => {
+    const { data: { session: s } } = await supabase.auth.getSession();
+    setSession(s);
+    setLoading(false);
+
+    // If a non-sysadmin somehow has a session, sign them out
+    if (s && !isSysadmin(s)) {
+      setAccessDenied(true);
+      await supabase.auth.signOut();
+      setSession(null);
+    }
+
+    supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      if (!s && route().path !== '/onboard') navigate('/login');
+    });
+  });
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setAccessDenied(false);
+    navigate('/login');
+  };
+
+  /**
+   * Called after LoginPage authenticates. We verify the user is a sysadmin
+   * before granting access; non-sysadmins are signed out immediately.
+   */
+  const handleLogin = async () => {
+    const { data: { session: s } } = await supabase.auth.getSession();
+    if (s && !isSysadmin(s)) {
+      setAccessDenied(true);
+      await supabase.auth.signOut();
+      setSession(null);
+      return;
+    }
+    setAccessDenied(false);
+    setSession(s);
+    navigate('/dashboard');
+  };
+
+  // Public routes that bypass auth
+  const isPublicRoute = () => route().path === '/onboard';
+
+  return (
+    <Show when={!loading()} fallback={
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    }>
+      {/* Public onboarding form — no auth required */}
+      <Show when={isPublicRoute()}>
+        <OnboardingFormPage onNavigate={navigate} />
+      </Show>
+
+      {/* Authenticated area — sysadmin only */}
+      <Show when={!isPublicRoute()}>
+        {/* Access denied banner for non-sysadmin users */}
+        <Show when={accessDenied()}>
+          <div class="flex items-center justify-center min-h-screen bg-gray-50">
+            <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+              <div class="text-red-500 text-5xl mb-4">&#128683;</div>
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+              <p class="text-gray-600 mb-6">
+                This portal is restricted to system administrators only.
+                Please contact your administrator if you believe this is an error.
+              </p>
+              <button
+                class="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors"
+                onClick={() => { setAccessDenied(false); navigate('/login'); }}
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        </Show>
+
+        <Show when={!accessDenied()}>
+          <Show when={session()} fallback={<LoginPage onLogin={handleLogin} />}>
+            <Layout
+              userEmail={session()!.user.email || ''}
+              onLogout={handleLogout}
+              onNavigate={navigate}
+              currentPath={route().path}
+            >
+              {(() => {
+                const r = route();
+                switch (r.path) {
+                  case '/admin':
+                    return <AdminConfigPage />;
+                  case '/tenants':
+                    return <TenantsPage onNavigate={navigate} />;
+                  case '/tenant/:id':
+                    return <TenantDetailPage orgId={r.params.id} onNavigate={navigate} />;
+                  case '/table/:tableName':
+                    return <TableViewPage tableName={r.params.tableName} />;
+                  default:
+                    return <DashboardPage onNavigate={navigate} />;
+                }
+              })()}
+            </Layout>
+          </Show>
+        </Show>
+      </Show>
+    </Show>
+  );
+};
+
+export default App;
+(venv) root@d2d162d983f0:/a0/usr/workdir#

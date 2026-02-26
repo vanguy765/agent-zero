@@ -1,0 +1,12 @@
+-- Description: Projects, work orders, tasks, notes, and templates
+    template_id uuid NOT NULL,
+    trade_name text NOT NULL,
+-- Table: work_order_templates
+CREATE TABLE public.work_order_templates (
+    trade_name text NOT NULL,
+    parent_template_id uuid,
+    copied_from_template_id uuid,
+    CONSTRAINT work_order_templates_scope_check CHECK ((scope = ANY (ARRAY['app'::text, 'company'::text, 'project'::text])))
+ALTER TABLE ONLY public.work_order_templates
+    ADD CONSTRAINT work_order_templates_pkey PRIMARY KEY (id);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

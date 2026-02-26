@@ -1,0 +1,71 @@
+// PATCH /onboard/:id      — Update org profile fields.
+//
+// GET  /onboard           — List all organizations (portal admin use).
+// ============================================================================
+
+export const onboardRoute = new OpenAPIHono();
+
+// Service-role client — bypasses RLS for admin operations
+const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+// PATCH /onboard/:id  — update org profile
+// ---------------------------------------------------------------------------
+onboardRoute.patch('/:id', async (c) => {
+  const id = c.req.param('id');
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400);
+  }
+
+  // Whitelist editable fields
+  const allowed = [
+    'name', 'company_email', 'phone',
+    'address_line1', 'address_line2', 'city', 'state', 'zip', 'country',
+    'contact_name', 'contact_title', 'website',
+    'is_active', 'onboarding_status', 'settings',
+    'industry', 'description',
+  ] as const;
+
+  const payload: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (key in body) payload[key] = body[key];
+  }
+
+  // Regenerate slug if name changed
+  if (payload.name && typeof payload.name === 'string') {
+    payload.slug = await uniqueSlug(slugify(payload.name), id);
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return c.json({ error: 'No updatable fields provided' }, 400);
+  }
+
+  // Fetch current org to detect industry change
+  let oldIndustry: string | null = null;
+  if ('industry' in payload) {
+    const { data: existing } = await adminClient
+      .from('organizations')
+      .select('industry')
+      .eq('id', id)
+      .single();
+    oldIndustry = existing?.industry ?? null;
+  }
+
+  const { data, error } = await adminClient
+    .from('organizations')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return c.json({ error: error.message }, 500);
+
+  // Reassign trade templates if industry changed
+  const newIndustry = payload.industry as string | undefined;
+  if (newIndustry !== undefined && newIndustry !== oldIndustry) {
+    try {
+      // Remove existing company-scope templates that were copied from app-scope
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

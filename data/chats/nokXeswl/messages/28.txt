@@ -1,0 +1,16 @@
+27:  industry: string | null;
+28:  description: string | null;
+43:/** Fetch available trades from the API */
+44:const fetchTrades = async (): Promise<string[]> => {
+45:  const res = await fetch(`${API}/onboard/trades`);
+82:  // Fetch trade names for the industry dropdown
+83:  const [trades] = createResource(fetchTrades);
+286:                value={(dirty() ? { ...org(), ...draft() } : org())?.industry ?? ''}
+287:                onChange={(e) => update('industry', e.currentTarget.value)}
+289:                <option value="">Select an industry...</option>
+290:                <option value="General Contractor">General Contractor (all trades)</option>
+291:                <Show when={!trades.loading && trades()}>
+292:                  <For each={trades()!}>
+306:                value={(dirty() ? { ...org(), ...draft() } : org())?.description ?? ''}
+307:                onInput={(e) => update('description', e.currentTarget.value)}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

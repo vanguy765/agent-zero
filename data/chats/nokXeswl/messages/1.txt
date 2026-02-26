@@ -1,0 +1,12 @@
+apps		       nocodb_logs.txt		supabase
+backups		       node_modules		supabase_debug.log
+clean-documents.ps1    package.json		table_columns.txt
+convert_bom.sql        packages			temp_analysis.pdf
+create_work_order.ps1  pnpm-lock.yaml		test_api.ps1
+db_reset_debug.log     pnpm-workspace.yaml	tracked_files.txt
+debug_write_test.txt   project_ids.txt		turbo.json
+doc-parser	       README.md		unit_ids.txt
+docs		       restore-for-testing.ps1	verify_data.sql
+nocodb		       scripts
+nocodb_full.txt        seed_error.txt
+(venv) root@d2d162d983f0:/a0/usr/workdir#

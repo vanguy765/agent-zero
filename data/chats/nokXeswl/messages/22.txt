@@ -1,0 +1,78 @@
+version,
+    is_active,
+    definition,
+    created_at,
+    updated_at,
+    'app',
+    NULL, NULL, NULL, NULL, NULL, NULL
+FROM public.work_order_templates
+WHERE scope = 'company' AND organization_id = '00000000-0000-0000-0000-000000000001';
+
+-- Link the company templates back to their catalog source
+UPDATE public.work_order_templates
+SET copied_from_template_id = replace(id::text, '20000000', '30000000')::uuid
+WHERE scope = 'company' AND organization_id = '00000000-0000-0000-0000-000000000001';
+
+
+========
+-- =============================================================
+-- Migration: Project Lifecycle & Template Inheritance
+-- Description:
+--   1. Expand wo_projects.status to include 'staged' and 'paused'
+--   2. Add is_frozen column to work_order_templates
+--   3. Allow NULL definition for lazy-copy project templates
+--   4. Create freeze_project_templates() trigger function
+--   5. Seed app-scope templates from existing company templates
+-- =============================================================
+
+-- -----------------------------------------------
+-- 1. Expand project status CHECK constraint
+-- -----------------------------------------------
+ALTER TABLE public.wo_projects DROP CONSTRAINT IF EXISTS wo_projects_status_check;
+ALTER TABLE public.wo_projects ADD CONSTRAINT wo_projects_status_check
+  CHECK (status IN ('staged', 'active', 'paused', 'completed', 'archived'));
+
+-- -----------------------------------------------
+-- 2. Add is_frozen to templates
+-- -----------------------------------------------
+ALTER TABLE public.work_order_templates
+  ADD COLUMN IF NOT EXISTS is_frozen BOOLEAN DEFAULT false;
+
+-- -----------------------------------------------
+-- 3. Allow NULL definition for lazy-copy templates
+--    (project templates reference parent until frozen)
+-- -----------------------------------------------
+ALTER TABLE public.work_order_templates
+  ALTER COLUMN definition DROP NOT NULL;
+
+-- -----------------------------------------------
+-- 4. Trigger: freeze project templates on activation
+--    When a project transitions to 'active', copy the
+--    definition from the parent company template into
+--    each unfrozen project template.
+-- -----------------------------------------------
+CREATE OR REPLACE FUNCTION public.freeze_project_templates()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only fire when status changes TO 'active'
+  IF NEW.status = 'active' AND (OLD.status IS DISTINCT FROM 'active') THEN
+    UPDATE public.work_order_templates pt
+    SET
+      definition = ct.definition,
+      is_frozen = true,
+      updated_at = now()
+    FROM public.work_order_templates ct
+    WHERE pt.project_id = NEW.id
+      AND pt.scope = 'project'
+      AND pt.parent_template_id = ct.id
+      AND pt.is_frozen = false
+      AND pt.definition IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_freeze_project_templates ON public.wo_projects;
+CREATE TRIGGER trg_freeze_project_templates
+  AFTER UPDATE OF status ON public.wo_projects
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

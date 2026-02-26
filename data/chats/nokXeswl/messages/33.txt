@@ -1,0 +1,86 @@
+import { createSignal, createResource, Show, For } from 'solid-js';
+import type { Component } from 'solid-js';
+import { supabaseAdmin } from '../lib/supabase';
+
+interface TenantDetailPageProps {
+  orgId: string;
+  onNavigate: (path: string) => void;
+}
+
+interface OrgProfile {
+  id: string;
+  name: string;
+  slug: string;
+  company_email: string | null;
+  phone: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  country: string | null;
+  contact_name: string | null;
+  contact_title: string | null;
+  website: string | null;
+  is_active: boolean;
+  onboarding_status: string;
+  industry: string | null;
+  description: string | null;
+  settings: Record<string, unknown>;
+}
+
+interface AdminUser {
+  id: string;
+  email: string | undefined;
+  role: string;
+  full_name: string | null;
+  created_at: string;
+  last_sign_in_at: string | null;
+}
+
+const API = 'http://localhost:3000';
+
+/** Fetch available trades from the API */
+const fetchTrades = async (): Promise<string[]> => {
+  const res = await fetch(`${API}/onboard/trades`);
+  if (!res.ok) return [];
+  return res.json();
+};
+
+const FIELD_LABEL: Record<string, string> = {
+  name: 'Company Name',
+  company_email: 'Company Email',
+  phone: 'Phone',
+  address_line1: 'Address Line 1',
+  address_line2: 'Address Line 2',
+  city: 'City',
+  state: 'State / Province',
+  zip: 'ZIP / Postal Code',
+  country: 'Country',
+  contact_name: 'Contact Name',
+  contact_title: 'Contact Title',
+  website: 'Website',
+};
+
+type EditableField = keyof typeof FIELD_LABEL;
+
+export const TenantDetailPage: Component<TenantDetailPageProps> = (props) => {
+  // ── Org profile ──────────────────────────────────────────────────────────
+  const [org, { refetch: refetchOrg }] = createResource(
+    () => props.orgId,
+    async (id) => {
+      const { data, error } = await supabaseAdmin
+        .from('organizations')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return data as OrgProfile;
+    },
+  );
+
+  // Fetch trade names for the industry dropdown
+  const [trades] = createResource(fetchTrades);
+
+  // Local editable draft
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

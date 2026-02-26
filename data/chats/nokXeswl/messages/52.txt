@@ -1,0 +1,54 @@
+workOrdersRoute.get('/templates', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('is_active', true)
+        .order('trade_name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// TEMPLATE INHERITANCE / ASSIGNMENT ENDPOINTS
+// NOTE: These static-path routes MUST be registered before GET /templates/:id
+// ============================================================================
+
+// GET APP TEMPLATES (for company assignment picker)
+workOrdersRoute.get('/templates/app', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('scope', 'app')
+        .eq('is_active', true)
+        .order('trade_name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET COMPANY TEMPLATES (for project assignment picker)
+workOrdersRoute.get('/templates/company', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('scope', 'company')
+        .eq('is_active', true)
+        .order('trade_name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

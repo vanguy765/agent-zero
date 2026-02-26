@@ -1,0 +1,106 @@
+=== Migration ===
+-- =============================================================
+-- Migration: Organization Industry & Description
+-- Description: Add industry and description columns to
+--              organizations for onboarding trade selection.
+-- =============================================================
+
+ALTER TABLE public.organizations
+  ADD COLUMN IF NOT EXISTS industry    text,
+  ADD COLUMN IF NOT EXISTS description text;
+
+-- Reload PostgREST schema cache so new columns are visible immediately
+NOTIFY pgrst, 'reload schema';
+
+=== API trades endpoint ===
+// GET /onboard/trades  — list distinct trade names from app-scope templates
+// ---------------------------------------------------------------------------
+onboardRoute.get('/trades', async (c) => {
+  const { data, error } = await adminClient
+    .from('work_order_templates')
+    .select('trade_name')
+    .eq('scope', 'app')
+    .eq('is_active', true)
+    .order('trade_name');
+
+  if (error) return c.json({ error: error.message }, 500);
+
+  // Deduplicate trade names
+  const trades = [...new Set((data || []).map((r: { trade_name: string }) => r.trade_name))].sort();
+  return c.json(trades);
+});
+
+=== Industry in POST ===
+//
+// GET  /onboard/trades    — List distinct trade names from app-scope templates
+//                           (used to populate the industry select box).
+//
+// GET  /onboard/:id       — Fetch a single org's profile (admin only via
+--
+    admin_email,
+    admin_password,
+    industry,
+    description,
+  } = body as Record<string, string>;
+--
+      contact_title: contact_title || null,
+      website: website || null,
+      industry: industry || null,
+      description: description || null,
+      is_active: true,
+--
+  }
+
+  // --- Assign trade templates based on industry ---
+  if (industry) {
+    try {
+      if (industry === 'General Contractor') {
+        // General Contractor gets ALL app-scope templates
+        await copyTemplatesToOrg(org.id);
+      } else {
+        // Specific trade — copy only that trade's template
+        await copyTemplatesToOrg(org.id, industry);
+      }
+
+=== Frontend industry select ===
+  admin_password: string;
+  admin_password_confirm: string;
+  industry: string;
+  description: string;
+}
+
+const EMPTY: FormState = {
+  company_name: '',
+--
+  admin_password: '',
+  admin_password_confirm: '',
+  industry: '',
+  description: '',
+};
+
+interface OnboardingFormPageProps {
+  /** If provided, the form shows a "Back to login" button */
+--
+  const [success, setSuccess] = createSignal<{ orgName: string; adminEmail: string } | null>(null);
+
+  // Fetch trade names for the industry dropdown
+  const [trades] = createResource(fetchTrades);
+
+  const set = (field: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setError(null);
+--
+    if (f('admin_password').length < 8) return 'Password must be at least 8 characters.';
+    if (f('admin_password') !== f('admin_password_confirm')) return 'Passwords do not match.';
+    if (!f('industry')) return 'Please select an industry.';
+
+=== Success screen ===
+              </p>
+              <a
+                href="http://localhost:3004/"
+                class="btn btn-primary inline-block"
+              >
+                Login to Work Orders
+              </a>
+            </div>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

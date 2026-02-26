@@ -1,0 +1,41 @@
+supabase/migrations/20260217000007_functions.sql:3:-- Description: Helper functions used by tables, triggers, and RLS
+supabase/migrations/20260217000012_rls_policies.sql:3:-- Description: Enable RLS and create tenant isolation policies
+supabase/migrations/20260217000012_rls_policies.sql:6:-- Enable RLS on application tables
+supabase/migrations/20260217000012_rls_policies.sql:7:ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:8:ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:9:ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:10:ALTER TABLE public.unit_rooms ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:11:ALTER TABLE public.unit_documents ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:12:ALTER TABLE public.work_orders ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:13:ALTER TABLE public.work_order_tasks ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:14:ALTER TABLE public.work_order_notes ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:15:ALTER TABLE public.work_order_templates ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:16:ALTER TABLE public.template_libraries ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:17:ALTER TABLE public.project_documents ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:18:ALTER TABLE public.document_images ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:19:ALTER TABLE public.image_links ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260217000012_rls_policies.sql:25:CREATE POLICY "Users can view their organization"
+supabase/migrations/20260217000012_rls_policies.sql:32:CREATE POLICY "Tenant isolation for rooms"
+supabase/migrations/20260217000012_rls_policies.sql:39:CREATE POLICY "Tenant isolation for units"
+supabase/migrations/20260217000012_rls_policies.sql:46:CREATE POLICY "Users can view unit rooms from their organization"
+supabase/migrations/20260217000012_rls_policies.sql:53:CREATE POLICY "Users can insert unit rooms for their organization"
+supabase/migrations/20260217000012_rls_policies.sql:60:CREATE POLICY "Users can update unit rooms from their organization"
+supabase/migrations/20260217000012_rls_policies.sql:67:CREATE POLICY "Users can delete unit rooms from their organization"
+supabase/migrations/20260217000012_rls_policies.sql:77:CREATE POLICY "Users can view unit documents from their organization"
+supabase/migrations/20260217000012_rls_policies.sql:84:CREATE POLICY "Users can link documents to their organization units"
+supabase/migrations/20260217000012_rls_policies.sql:91:CREATE POLICY "Users can delete unit document links from their organization"
+supabase/migrations/20260217000012_rls_policies.sql:101:CREATE POLICY "Tenant isolation for work orders"
+supabase/migrations/20260217000012_rls_policies.sql:108:CREATE POLICY "Tenant isolation for tasks"
+supabase/migrations/20260217000012_rls_policies.sql:119:CREATE POLICY "Tenant isolation for notes"
+supabase/migrations/20260217000012_rls_policies.sql:130:CREATE POLICY "Tenant isolation for templates"
+supabase/migrations/20260217000012_rls_policies.sql:134:CREATE POLICY "app_templates_select"
+supabase/migrations/20260217000012_rls_policies.sql:138:CREATE POLICY "company_templates_select"
+supabase/migrations/20260217000012_rls_policies.sql:142:CREATE POLICY "company_templates_modify"
+supabase/migrations/20260217000012_rls_policies.sql:146:CREATE POLICY "project_templates_select"
+supabase/migrations/20260217000012_rls_policies.sql:150:CREATE POLICY "project_templates_modify"
+supabase/migrations/20260217000012_rls_policies.sql:157:CREATE POLICY "wo_projects_tenant_isolation"
+supabase/migrations/20260217000012_rls_policies.sql:164:CREATE POLICY "app_libraries_select"
+supabase/migrations/20260217000012_rls_policies.sql:168:CREATE POLICY "company_libraries_select"
+supabase/migrations/20260217000012_rls_policies.sql:172:CREATE POLICY "company_libraries_modify"
+supabase/migrations/20260217000012_rls_policies.sql:179:CREATE POLICY "Users can view documents from their organization"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

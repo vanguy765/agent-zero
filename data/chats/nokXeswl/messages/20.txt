@@ -1,0 +1,379 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+
+// ============================================================================
+// Tenant Onboarding Route  (PUBLIC — no auth required)
+//
+// POST /onboard           — Create organization + admin user in one shot.
+//                           Called by the self-serve onboarding form.
+//
+// GET  /onboard/trades    — List distinct trade names from app-scope templates
+//                           (used to populate the industry select box).
+//
+// GET  /onboard/:id       — Fetch a single org's profile (admin only via
+//                           service-role in the portal; also used to pre-fill
+//                           the edit form).
+//
+// PATCH /onboard/:id      — Update org profile fields.
+//
+// GET  /onboard           — List all organizations (portal admin use).
+// ============================================================================
+
+export const onboardRoute = new OpenAPIHono();
+
+// Service-role client — bypasses RLS for admin operations
+const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+});
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+// Ensure slug is unique by appending a short numeric suffix if needed
+async function uniqueSlug(base: string, excludeId?: string): Promise<string> {
+  let candidate = base;
+  let attempt = 0;
+  while (true) {
+    let q = adminClient
+      .from('organizations')
+      .select('id')
+      .eq('slug', candidate);
+    if (excludeId) q = q.neq('id', excludeId);
+    const { data } = await q.maybeSingle();
+    if (!data) return candidate;
+    attempt++;
+    candidate = `${base}-${attempt}`;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Copy app-scope templates to a new organization as company-scope
+// ---------------------------------------------------------------------------
+async function copyTemplatesToOrg(
+  orgId: string,
+  tradeFilter?: string, // if undefined, copy ALL trades
+): Promise<void> {
+  // Fetch app-scope templates (optionally filtered by trade)
+  let query = adminClient
+    .from('work_order_templates')
+    .select('id, trade_name, definition, version')
+    .eq('scope', 'app')
+    .eq('is_active', true);
+
+  if (tradeFilter) {
+    query = query.eq('trade_name', tradeFilter);
+  }
+
+  const { data: appTemplates, error } = await query;
+  if (error || !appTemplates || appTemplates.length === 0) return;
+
+  // Build company-scope copies
+  const copies = appTemplates.map((t) => ({
+    organization_id: orgId,
+    trade_name: t.trade_name,
+    version: 1,
+    is_active: true,
+    definition: t.definition,
+    scope: 'company' as const,
+    project_id: null,
+    copied_from_template_id: t.id,
+    is_frozen: false,
+  }));
+
+  await adminClient.from('work_order_templates').insert(copies);
+}
+
+// ---------------------------------------------------------------------------
+// GET /onboard/trades  — list distinct trade names from app-scope templates
+// ---------------------------------------------------------------------------
+onboardRoute.get('/trades', async (c) => {
+  const { data, error } = await adminClient
+    .from('work_order_templates')
+    .select('trade_name')
+    .eq('scope', 'app')
+    .eq('is_active', true)
+    .order('trade_name');
+
+  if (error) return c.json({ error: error.message }, 500);
+
+  // Deduplicate trade names
+  const trades = [...new Set((data || []).map((r: { trade_name: string }) => r.trade_name))].sort();
+  return c.json(trades);
+});
+
+// ---------------------------------------------------------------------------
+// POST /onboard  — self-serve tenant registration
+// ---------------------------------------------------------------------------
+onboardRoute.post('/', async (c) => {
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400);
+  }
+
+  const {
+    company_name,
+    company_email,
+    phone,
+    address_line1,
+    address_line2,
+    city,
+    state,
+    zip,
+    country = 'US',
+    contact_name,
+    contact_title,
+    website,
+    admin_email,
+    admin_password,
+    industry,
+    description,
+  } = body as Record<string, string>;
+
+  // --- Validate required fields ---
+  const missing: string[] = [];
+  if (!company_name)   missing.push('company_name');
+  if (!company_email)  missing.push('company_email');
+  if (!contact_name)   missing.push('contact_name');
+  if (!admin_email)    missing.push('admin_email');
+  if (!admin_password) missing.push('admin_password');
+  if (missing.length > 0) {
+    return c.json({ error: `Missing required fields: ${missing.join(', ')}` }, 400);
+  }
+
+  if ((admin_password as string).length < 8) {
+    return c.json({ error: 'admin_password must be at least 8 characters' }, 400);
+  }
+
+  // --- Build slug ---
+  const slug = await uniqueSlug(slugify(company_name as string));
+
+  // --- Create organization ---
+  const { data: org, error: orgErr } = await adminClient
+    .from('organizations')
+    .insert({
+      name: company_name,
+      slug,
+      company_email,
+      phone: phone || null,
+      address_line1: address_line1 || null,
+      address_line2: address_line2 || null,
+      city: city || null,
+      state: state || null,
+      zip: zip || null,
+      country: country || 'US',
+      contact_name,
+      contact_title: contact_title || null,
+      website: website || null,
+      industry: industry || null,
+      description: description || null,
+      is_active: true,
+      onboarding_status: 'pending',
+    })
+    .select()
+    .single();
+
+  if (orgErr) {
+    return c.json({ error: `Failed to create organization: ${orgErr.message}` }, 500);
+  }
+
+  // --- Create admin auth user ---
+  const { data: authData, error: authErr } = await adminClient.auth.admin.createUser({
+    email: admin_email as string,
+    password: admin_password as string,
+    email_confirm: true,          // skip email confirmation step
+    user_metadata: {
+      organization_id: org.id,
+      role: 'admin',
+      full_name: contact_name,
+    },
+  });
+
+  if (authErr) {
+    // Roll back the organization if user creation fails
+    await adminClient.from('organizations').delete().eq('id', org.id);
+    return c.json({ error: `Failed to create admin user: ${authErr.message}` }, 500);
+  }
+
+  // --- Assign trade templates based on industry ---
+  if (industry) {
+    try {
+      if (industry === 'General Contractor') {
+        // General Contractor gets ALL app-scope templates
+        await copyTemplatesToOrg(org.id);
+      } else {
+        // Specific trade — copy only that trade's template
+        await copyTemplatesToOrg(org.id, industry);
+      }
+    } catch (templateErr) {
+      // Non-fatal: org and user are created, templates can be assigned later
+      console.error('Failed to copy templates during onboarding:', templateErr);
+    }
+  }
+
+  return c.json(
+    {
+      organization: org,
+      admin: {
+        id: authData.user.id,
+        email: authData.user.email,
+      },
+      message: 'Onboarding complete. Use the admin credentials to sign in.',
+    },
+    201,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// GET /onboard  — list all organizations (admin portal use)
+// ---------------------------------------------------------------------------
+onboardRoute.get('/', async (c) => {
+  const { data, error } = await adminClient
+    .from('organizations')
+    .select('id, name, slug, company_email, contact_name, phone, city, state, is_active, onboarding_status, industry, description, created_at')
+    .order('name');
+
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data);
+});
+
+// ---------------------------------------------------------------------------
+// GET /onboard/:id  — single org profile
+// ---------------------------------------------------------------------------
+onboardRoute.get('/:id', async (c) => {
+  const id = c.req.param('id');
+  const { data, error } = await adminClient
+    .from('organizations')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) return c.json({ error: error.message }, 404);
+  return c.json(data);
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /onboard/:id  — update org profile
+// ---------------------------------------------------------------------------
+onboardRoute.patch('/:id', async (c) => {
+  const id = c.req.param('id');
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400);
+  }
+
+  // Whitelist editable fields
+  const allowed = [
+    'name', 'company_email', 'phone',
+    'address_line1', 'address_line2', 'city', 'state', 'zip', 'country',
+    'contact_name', 'contact_title', 'website',
+    'is_active', 'onboarding_status', 'settings',
+    'industry', 'description',
+  ] as const;
+
+  const payload: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (key in body) payload[key] = body[key];
+  }
+
+  // Regenerate slug if name changed
+  if (payload.name && typeof payload.name === 'string') {
+    payload.slug = await uniqueSlug(slugify(payload.name), id);
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return c.json({ error: 'No updatable fields provided' }, 400);
+  }
+
+  const { data, error } = await adminClient
+    .from('organizations')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data);
+});
+
+// ---------------------------------------------------------------------------
+// GET /onboard/:id/admins  — list auth users for this org
+// ---------------------------------------------------------------------------
+onboardRoute.get('/:id/admins', async (c) => {
+  const orgId = c.req.param('id');
+
+  // List all auth users and filter by organization_id in metadata
+  const { data, error } = await adminClient.auth.admin.listUsers();
+  if (error) return c.json({ error: error.message }, 500);
+
+  const admins = (data.users || []).filter(
+    (u) => u.user_metadata?.organization_id === orgId,
+  ).map((u) => ({
+    id: u.id,
+    email: u.email,
+    role: u.user_metadata?.role || 'user',
+    full_name: u.user_metadata?.full_name || null,
+    created_at: u.created_at,
+    last_sign_in_at: u.last_sign_in_at,
+  }));
+
+  return c.json(admins);
+});
+
+// ---------------------------------------------------------------------------
+// POST /onboard/:id/admins  — create an additional admin for an existing org
+// ---------------------------------------------------------------------------
+onboardRoute.post('/:id/admins', async (c) => {
+  const orgId = c.req.param('id');
+  let body: Record<string, unknown>;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400);
+  }
+
+  const { email, password, full_name, role = 'admin' } = body as Record<string, string>;
+  if (!email || !password) {
+    return c.json({ error: 'email and password are required' }, 400);
+  }
+  if ((password as string).length < 8) {
+    return c.json({ error: 'password must be at least 8 characters' }, 400);
+  }
+
+  const { data: authData, error: authErr } = await adminClient.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      organization_id: orgId,
+      role,
+      full_name: full_name || null,
+    },
+  });
+
+  if (authErr) return c.json({ error: authErr.message }, 500);
+
+  return c.json(
+    {
+      id: authData.user.id,
+      email: authData.user.email,
+      role,
+      full_name: full_name || null,
+    },
+    201,
+  );
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

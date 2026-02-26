@@ -1,0 +1,27 @@
+=== API: GET /templates handler ===
+workOrdersRoute.get('/templates', async (c) => {
+    const supabase = getScopedClient(c);
+    const scope = c.req.query('scope'); // optional: 'app' | 'company' | 'project'
+
+    let query = supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('is_active', true);
+
+    if (scope) {
+        query = query.eq('scope', scope);
+    }
+
+    const { data, error } = await query.order('trade_name', { ascending: true });
+
+    if (error) {
+
+=== Dashboard: template fetch ===
+    const [templates] = createResource<WorkOrderTemplate[]>(() => api.getTemplates('company'));
+
+=== api.ts: getTemplates method ===
+  async getTemplates(scope?: 'app' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+    const query = scope ? `?scope=${scope}` : '';
+    return this.request<WorkOrderTemplate[]>(`/templates${query}`);
+  }
+(venv) root@d2d162d983f0:/a0/usr/workdir#
