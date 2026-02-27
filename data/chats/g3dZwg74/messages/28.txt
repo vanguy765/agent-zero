@@ -1,0 +1,36 @@
+=== SECTION HEADERS ===
+## Executive Summary
+## Project Classification
+## Success Criteria
+## Product Scope & Phased Development
+## User Journeys
+## Web App Specific Requirements
+## Functional Requirements
+## Non-Functional Requirements
+
+=== FR COUNT ===
+39
+
+=== NFR COUNT ===
+22
+
+=== FRONTMATTER ===
+---
+stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish]
+inputDocuments: [product-brief-taskflow-2026-02-26.md]
+workflowType: 'prd'
+briefCount: 1
+researchCount: 0
+brainstormingCount: 0
+projectDocsCount: 0
+classification:
+  projectType: web_app
+  domain: general
+  complexity: low
+  projectContext: greenfield
+---
+
+
+=== JOURNEY COUNT ===
+6
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

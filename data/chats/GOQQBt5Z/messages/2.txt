@@ -1,0 +1,54 @@
+=== /a0/usr top-level ===
+total 16
+drwxrwxrwx 1 root root 4096 Feb 18 03:05 .
+drwxr-xr-x 1 root root 4096 Feb 21 22:25 ..
+drwxr-xr-x 1 root root 4096 Feb 18 02:10 agents
+drwxr-xr-x 1 root root 4096 Feb 26 19:01 chats
+drwxrwxrwx 1 root root 4096 Feb 18 02:09 conf
+-rwxrwxrwx 1 root root  928 Feb 25 20:32 .env
+-rw-r--r-- 1 root root    0 Feb 18 02:10 .gitkeep
+drwxr-xr-x 1 root root 4096 Feb 18 04:27 knowledge
+drwxr-xr-x 1 root root 4096 Feb 18 02:19 memory
+drwxr-xr-x 1 root root 4096 Feb 26 19:01 projects
+drwxr-xr-x 1 root root 4096 Feb 18 02:10 scheduler
+-rw-r--r-- 1 root root    0 Feb 23 05:39 secrets.env
+-rw-r--r-- 1 root root 3276 Feb 23 05:39 settings.json
+drwxr-xr-x 1 root root 4096 Feb 18 02:10 skills
+drwxr-xr-x 1 root root 4096 Feb 18 02:10 workdir
+
+=== voicelog-scaffold mount ===
+total 9020
+drwxrwxrwx 1 root root    4096 Feb 26 04:14 .
+drwxr-xr-x 1 root root    4096 Feb 24 00:56 ..
+drwxrwxrwx 1 root root    4096 Feb 26 04:14 .agents
+drwxrwxrwx 1 root root    4096 Feb 19 04:53 apps
+drwxrwxrwx 1 root root    4096 Feb 18 05:25 backups
+-rwxrwxrwx 1 root root    1512 Feb 17 02:18 clean-documents.ps1
+-rwxrwxrwx 1 root root    1037 Feb 17 02:18 convert_bom.sql
+-rwxrwxrwx 1 root root    2112 Feb 17 02:18 create_work_order.ps1
+-rwxrwxrwx 1 root root  235104 Feb 22 04:56 db_reset_debug.log
+-rwxrwxrwx 1 root root      11 Feb 17 02:18 debug_write_test.txt
+drwxrwxrwx 1 root root    4096 Feb 26 04:18 doc-parser
+drwxrwxrwx 1 root root    4096 Feb 18 05:06 docs
+drwxrwxrwx 1 root root    4096 Feb 26 04:48 .git
+-rwxrwxrwx 1 root root     554 Feb 17 02:18 .gitattributes
+-rwxrwxrwx 1 root root     443 Feb 26 04:47 .gitignore
+drwxrwxrwx 1 root root    4096 Feb 21 02:00 nocodb
+-rwxrwxrwx 1 root root   15066 Feb 17 02:18 nocodb_full.txt
+-rwxrwxrwx 1 root root   14492 Feb 17 02:18 nocodb_logs.txt
+drwxrwxrwx 1 root root    4096 Feb 24 01:25 node_modules
+-rwxrwxrwx 1 root root     724 Feb 23 04:48 package.json
+-rw-r--r-- 1 root root    6064 Feb 23 22:52 package-lock.json
+drwxrwxrwx 1 root root    4096 Feb 17 02:18 packages
+-rwxrwxrwx 1 root root  112752 Feb 21 23:40 pnpm-lock.yaml
+drwxr-xr-x 1 root root    4096 Feb 24 00:50 .pnpm-store
+-rwxrwxrwx 1 root root      40 Feb 17 02:18 pnpm-workspace.yaml
+-rwxrwxrwx 1 root root     239 Feb 17 02:18 project_ids.txt
+-rwxrwxrwx 1 root root    6031 Feb 22 20:58 README.md
+-rwxrwxrwx 1 root root    2328 Feb 17 02:18 restore-for-testing.ps1
+drwxrwxrwx 1 root root    4096 Feb 23 23:03 scripts
+
+=== All 9p mounts ===
+C:\ on /a0/usr type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+C:\ on /a0/usr/projects/timesheet_app/voicelog-scaffold type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

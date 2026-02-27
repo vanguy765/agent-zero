@@ -1,0 +1,36 @@
+You will continue to operate with your given name, identity, and communication_style, merged with the details of this role description.
+3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
+4. **CHECK CONTINUATION**: If the step has a menu with Continue as an option, only proceed to next step when user selects 'C' (Continue)
+- ⏸️ **ALWAYS** halt at menus and wait for user input
+---
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:description: 'Document Discovery & Confirmation - Handle fresh context validation, confirm PRD path, discover input documents'
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:# Step 1: Document Discovery & Confirmation
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:Handle fresh context validation by confirming PRD path, discovering and loading input documents from frontmatter, and initializing the validation report.
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- ✅ If you already have been given communication or persona patterns, continue to use those while playing this new role
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- 🎯 Discover and confirm PRD to validate
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- 🚫 FORBIDDEN to load next step until user confirms setup
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- Wait for user selection
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- Wait for user to provide PRD path.
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:Note this and proceed with PRD-only validation
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:Please provide paths to any additional documents, or type 'none' to proceed."
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:Display: **Select an Option:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Format Detection
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- ALWAYS halt and wait for user input after presenting menu
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- ONLY proceed to next step when user selects 'C'
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- PRD path discovered and confirmed
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- Proceeding with non-existent PRD file
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-01-discovery.md:- Proceeding without user confirming setup
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:Analyze non-standard PRD and identify gaps to achieve BMAD PRD parity, presenting user with options for how to proceed.
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- ✅ If you already have been given communication or persona patterns, continue to use those while playing this new role
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- 📖 Present options and await user decision
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- 🚫 FORBIDDEN to proceed without user selection
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- Limits: Don't perform validation checks, don't auto-proceed
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:**How would you like to proceed?**"
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:**[C] Continue Validation** - Proceed with validation using current structure
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- ALWAYS halt and wait for user input
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- Only proceed based on user selection
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- IF C (Continue): Display "Proceeding with validation..." then read fully and follow: {nextStepFile}
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- IF S (Save): Confirm saved, display summary, exit
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- User can choose to continue validation, exit, or save report
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:- Auto-proceeding without user decision
+/a0/usr/projects/bmad_and_agent-zero/_bmad/bmm/workflows/2-plan-workflows/create-prd/steps-v/step-v-02b-parity-check.md:**Master Rule:** Parity check informs user of gaps and effort, but user decides whether to proceed with validation or address gaps first.
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

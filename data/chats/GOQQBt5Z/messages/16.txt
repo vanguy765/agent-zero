@@ -1,0 +1,24 @@
+=== Check for existing product brief ===
+(none found)
+
+=== Check for input documents ===
+-- Brainstorming reports --
+-- Research docs --
+-- Project context --
+-- Any docs at all --
+
+=== Check .a0proj knowledge ===
+.a0proj/knowledge/source_docs/chat_with_gemini.md
+
+=== Product Brief Template ===
+---
+stepsCompleted: []
+inputDocuments: []
+date: { system-date }
+author: { user }
+---
+
+# Product Brief: {{project_name}}
+
+<!-- Content will be appended sequentially through collaborative workflow steps -->
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

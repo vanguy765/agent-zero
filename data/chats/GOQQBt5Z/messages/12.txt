@@ -1,0 +1,19 @@
+=== Top-level ===
+total 0
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 .
+drwxr-xr-x 1 root root 4096 Feb 26 19:01 ..
+drwxr-xr-x 1 root root 4096 Feb 26 19:03 .a0proj
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 _bmad
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 _bmad-output
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 docs
+
+=== BMAD agents ===
+analyst.md  architect.md  dev.md  pm.md  qa.md	quick-flow-solo-dev.md	sm.md  tech-writer  ux-designer.md
+
+=== BMAD workflows ===
+1-analysis	  3-solutioning     bmad-quick-flow   generate-project-context
+2-plan-workflows  4-implementation  document-project  qa-generate-e2e-tests
+
+=== Output folders ===
+implementation-artifacts  planning-artifacts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

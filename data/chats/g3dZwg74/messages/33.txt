@@ -1,0 +1,117 @@
+=== VALIDATION STEPS ===
+step-v-01-discovery.md
+step-v-02b-parity-check.md
+step-v-02-format-detection.md
+step-v-03-density-validation.md
+step-v-04-brief-coverage-validation.md
+step-v-05-measurability-validation.md
+step-v-06-traceability-validation.md
+step-v-07-implementation-leakage-validation.md
+step-v-08-domain-compliance-validation.md
+step-v-09-project-type-validation.md
+step-v-10-smart-validation.md
+step-v-11-holistic-quality-validation.md
+step-v-12-completeness-validation.md
+step-v-13-report-complete.md
+
+--- step-v-01-discovery.md ---
+---
+name: 'step-v-01-discovery'
+description: 'Document Discovery & Confirmation - Handle fresh context validation, confirm PRD path, discover input documents'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-02b-parity-check.md ---
+---
+name: 'step-v-02b-parity-check'
+description: 'Document Parity Check - Analyze non-standard PRD and identify gaps to achieve BMAD PRD parity'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-02-format-detection.md ---
+---
+name: 'step-v-02-format-detection'
+description: 'Format Detection & Structure Analysis - Classify PRD format and route appropriately'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-03-density-validation.md ---
+---
+name: 'step-v-03-density-validation'
+description: 'Information Density Check - Scan for anti-patterns that violate information density principles'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-04-brief-coverage-validation.md ---
+---
+name: 'step-v-04-brief-coverage-validation'
+description: 'Product Brief Coverage Check - Validate PRD covers all content from Product Brief (if used as input)'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-05-measurability-validation.md ---
+---
+name: 'step-v-05-measurability-validation'
+description: 'Measurability Validation - Validate that all requirements (FRs and NFRs) are measurable and testable'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-06-traceability-validation.md ---
+---
+name: 'step-v-06-traceability-validation'
+description: 'Traceability Validation - Validate the traceability chain from vision → success → journeys → FRs is intact'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-07-implementation-leakage-validation.md ---
+---
+name: 'step-v-07-implementation-leakage-validation'
+description: 'Implementation Leakage Check - Ensure FRs and NFRs don\'t include implementation details'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-08-domain-compliance-validation.md ---
+---
+name: 'step-v-08-domain-compliance-validation'
+description: 'Domain Compliance Validation - Validate domain-specific requirements are present for high-complexity domains'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-09-project-type-validation.md ---
+---
+name: 'step-v-09-project-type-validation'
+description: 'Project-Type Compliance Validation - Validate project-type specific requirements are properly documented'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-10-smart-validation.md ---
+---
+name: 'step-v-10-smart-validation'
+description: 'SMART Requirements Validation - Validate Functional Requirements meet SMART quality criteria'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-11-holistic-quality-validation.md ---
+---
+name: 'step-v-11-holistic-quality-validation'
+description: 'Holistic Quality Assessment - Assess PRD as cohesive, compelling document - is it a good PRD?'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-12-completeness-validation.md ---
+---
+name: 'step-v-12-completeness-validation'
+description: 'Completeness Check - Final comprehensive completeness check before report generation'
+
+# File references (ONLY variables used in this step)
+
+--- step-v-13-report-complete.md ---
+---
+name: 'step-v-13-report-complete'
+description: 'Validation Report Complete - Finalize report, summarize findings, present to user, offer next steps'
+
+# File references (ONLY variables used in this step)
+
+
+=== A0 MODEL CONFIG ===
+{"title": "BMAD and agent-zero", "description": "Demo of BMAD with agent-zero.", "instructions": "", "color": "#fb5607", "git_url": "", "memory": "own", "file_structure": {"enabled": true, "max_depth": 5, "max_files": 20, "max_folders": 20, "max_lines": 250, "gitignore": "# Python environments & cache\nvenv/**\n**/__pycache__/**\n\n# Node.js dependencies\n**/node_modules/**\n**/.npm/**\n\n# Version control metadata\n**/.git/**\n"}}(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

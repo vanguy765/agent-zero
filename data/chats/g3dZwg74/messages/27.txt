@@ -1,0 +1,56 @@
+# PRD Polish Complete ✅
+
+The polished document has been written to:
+`/a0/usr/projects/bmad_and_agent-zero/_bmad-output/planning-artifacts/prd.md`
+
+## Summary of Changes
+
+### 1. Merged Duplicate Scope Sections
+- **Removed** standalone `## Product Scope` and `## Project Scoping & Phased Development`
+- **Created** single `## Product Scope & Phased Development` containing:
+  - MVP Strategy & Philosophy paragraph (from Project Scoping — sets context first)
+  - MVP feature table with "Why Essential" column (from Product Scope — more concise)
+  - "Explicitly Excluded from MVP" table with Reason + Workaround columns (from Project Scoping — high value)
+  - Core User Journeys Supported checklist (from Project Scoping)
+  - Growth Features table (from Product Scope — more concise)
+  - Vision table (from Product Scope — more concise)
+  - Risk Mitigation Strategy with Technical/Market/Resource tables (from Project Scoping)
+- **Eliminated** all duplicate feature listings (the Post-MVP Features table from Project Scoping that duplicated Growth Features)
+- **Eliminated** the redundant MVP "Must-Have Capabilities" table (duplicated the MVP feature table)
+
+### 2. Removed Performance Duplication
+- **Replaced** the 7-row Performance Targets table in Web App Specific Requirements with: *"See Non-Functional Requirements for specific performance targets."*
+- **Kept** all other Web App subsections: Browser & Device Matrix, Responsive Design Strategy, SEO Strategy, Accessibility Approach, Real-Time Architecture Considerations, Implementation Considerations
+
+### 3. Tightened Language
+- `"The product enables workers to"` → `"Workers self-assign tasks by"` (Executive Summary)
+- `"robots.txt will disallow"` → `"robots.txt disallows"` (SEO Strategy)
+- Scanned for and confirmed absence of: "The system will allow users to", "It is important to note that", "In order to"
+
+### 4. Section Reordering
+Final order matches specification:
+1. Frontmatter
+2. `# Product Requirements Document - TaskFlow`
+3. `## Executive Summary`
+4. `## Project Classification`
+5. `## Success Criteria`
+6. `## Product Scope & Phased Development` ← merged, moved up
+7. `## User Journeys` ← moved after scope (was before Web App)
+8. `## Web App Specific Requirements` ← trimmed
+9. `## Functional Requirements`
+10. `## Non-Functional Requirements`
+
+### 5. Preserved All Essential Content
+- ✅ **39 Functional Requirements** (FR1–FR35a) — verified exact count
+- ✅ **22 Non-Functional Requirements** (NFR1–NFR22) — verified exact count
+- ✅ **5 User Journeys** with full narratives + Journey Requirements Summary table
+- ✅ **All Success Criteria** (User, Business, Technical, Measurable Outcomes table)
+- ✅ **Executive Summary** with "What Makes This Special" subsection
+- ✅ **Project Classification** table
+
+### 6. Frontmatter Updated
+- Added `step-11-polish` to the end of `stepsCompleted` array
+
+### Net Effect
+- **Before:** 2 overlapping scope sections with ~40% content duplication, redundant performance table
+- **After:** Single consolidated scope section, zero duplication, tighter language, logical reading flow from strategy → journeys → technical specs → requirements

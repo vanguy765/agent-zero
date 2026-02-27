@@ -1,0 +1,12 @@
+│
+■  Installation failed: Invalid count value: -8
+│
+│  RangeError: Invalid count value: -8
+│      at String.repeat (<anonymous>)
+│      at Module.Me (file:///root/.npm/_npx/2d6bcd63982e6f85/node_modules/@clack/prompts/dist/index.mjs:19:265)
+│      at Object.box (/root/.npm/_npx/2d6bcd63982e6f85/node_modules/bmad-method/tools/cli/lib/prompts.js:578:9)
+│      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+│      at async Object.displayLogo (/root/.npm/_npx/2d6bcd63982e6f85/node_modules/bmad-method/tools/cli/lib/cli-utils.js:40:5)
+│      at async UI.promptInstall (/root/.npm/_npx/2d6bcd63982e6f85/node_modules/bmad-method/tools/cli/lib/ui.js:32:5)
+│      at async Command.action (/root/.npm/_npx/2d6bcd63982e6f85/node_modules/bmad-method/tools/cli/commands/install.js:36:22)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

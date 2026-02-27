@@ -1,0 +1,21 @@
+NAME                      | DESCRIPTION          | AUTHOR          | DATE       | VERSION  | KEYWORDS
+bmad-md                   | BMAD Medical Device… | =sayrel13       | 2026-02-05 | 1.3.1    | bmad medical-device samd iec-62304 iso-14971 fda ce-marking mdr regulatory compliance healthcare ai-agents
+@hyperdrive.bot/bmad-work | AI-driven…           | =marcelodevsqu… | 2026-02-21 | 1.0.19   | cli workflow orchestration ai bmad oclif
+flow                      |                      |                 |            |          |
+bmad-auto-copilot         | Automated BMAD…      | =sangdeptrai    | 2026-02-15 | 1.0.6    | bmad copilot copilot-cli automation agile scrum ai-agent
+bmad-cybersec             | Production-ready…    | =schenlong      | 2026-02-15 | 4.7.0    | bmad security framework typescript validation authentication rbac audit hooks enterprise production
+@sleighmaster/bmad        | BMad6GitHub CLI -…   | =sleighmaster   | 2026-02-26 | 1.5.3    | bmad github cli scrum agile ai-driven-development
+bmad-setup                | BMAD Framework…      | =ohseungwan     | 2026-02-25 | 1.7.2    | bmad claude-code ai-agent submodule
+bmad-viewer               | Visual dashboard…    | =camilo-valder… | 2026-02-19 | 0.2.0    | bmad bmad-method bmad-viewer agile dashboard cli viewer wiki sprint kanban markdown project-management claude-code ai-development
+@blackunicorn/bmad-cybers | Install…             | =schenlong      | 2026-02-15 | 4.7.2    | bmad cyber security ai agents claude
+ec                        |                      |                 |            |          |
+bmad-builder              | A BMad Core…         | =bmadcode       | 2026-02-09 | 0.1.6    | bmad
+bmad-method               | Breakthrough Method… | =muratkeremozc… | 2026-02-23 | 6.0.3    | agile ai orchestrator development methodology agents bmad
+bmad-game-dev-studio      | A BMad MEthod Core…  | =bmadcode…      | 2026-02-23 | 0.1.9    | bmad game-dev
+bmad-mcp-server           | Model Context…       | =mkellerman     | 2025-11-07 | 3.0.1    | mcp model-context-protocol bmad agile ai-agents
+bmad-opencode-converter   | Convert BMAD…        | =jack_st        | 2026-02-08 | 1.3.0    | bmad opencode converter ai-agents
+bmad-creative-intelligenc | A BMad MEthod Core…  | =bmadcode       | 2026-02-23 | 0.1.8    | bmad creative
+e-suite                   |                      |                 |            |          |
+@alexpogreb/bmad-edu-modu | BMAD Education and…  | =alexpogreb     | 2026-02-04 | 0.0.1-a… | bmad education learning career software-engineering study-plan interview-prep technical-interview ai-agent
+le                        |                      |                 |            |          |
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

@@ -1,0 +1,191 @@
+---
+stepsCompleted: [1, 2, 3, 4, 5]
+inputDocuments: []
+date: 2026-02-26
+author: Root
+---
+
+# Product Brief: TaskFlow
+
+## Executive Summary
+
+TaskFlow is a lightweight, mobile-first task coordination tool designed for small-to-mid construction remodeling crews. It replaces the current "shouting across the site" coordination method with a simple digital board where trades workers can see available tasks by unit, self-assign work, and track what others are doing — all through quick checkbox taps or voice commands.
+
+Designed for crews of 5–25 workers across multiple trades and units, TaskFlow eliminates the most common remodeling bottleneck: work stalling because one trade didn't know another trade needed their input first.
+
+---
+
+## Core Vision
+
+### Problem Statement
+
+On construction remodeling projects with multiple units, there is no simple way to track who is working where, what trade they represent, or what tasks are pending. Coordination relies entirely on the site superintendent's memory and verbal communication, creating a single point of failure that leads to blocked work, idle workers, and missed dependencies between trades.
+
+### Problem Impact
+
+- **Work stalls** when Trade A doesn't know Trade B needed to finish first
+- **Workers sit idle** because they don't know which units need their trade
+- **Site super is overwhelmed** mentally tracking 15 workers × 25 units × 5 trades
+- **No visibility** — nobody has a real-time picture of site status
+
+### Why Existing Solutions Fall Short
+
+Enterprise construction management platforms (Procore, Fieldwire, Buildertrend) are designed for general contractors managing million-dollar projects with complex compliance requirements. For a 15-person remodeling crew, they are overkill — too expensive, too complex, and too slow to adopt. Workers need something they can use in 30 seconds with dirty hands, not a project management suite.
+
+### Proposed Solution
+
+A mobile-first task board organized by **unit** and **trade**, where:
+- Workers see which units need their trade at a glance
+- Tasks can be claimed with a **checkbox tap** or **voice command**
+- Everyone sees who is working where in real-time
+- The site super gets an instant overview without being the bottleneck
+- Trade dependencies are visible (e.g., "Plumbing rough-in needed before drywall")
+
+### Key Differentiators
+
+- **Dead simple**: Designed for speed — checkbox or voice, nothing else needed
+- **Trade-aware**: Workers are tagged by trade, tasks are filtered by trade
+- **Unit-centric**: Organized around physical workspaces, not abstract project hierarchies
+- **Built for the crew, not the office**: No training required, works with dirty hands
+- **Real-time coordination**: Eliminates the site super as a communication bottleneck
+
+---
+
+## Target Users
+
+### Primary Users
+
+#### Carlos — The Trades Worker
+
+**Profile:** Electrician, 10 years in the trade. Shows up at 7am, checks in with the super, then figures out where to go. Has a smartphone in his pocket but has zero patience for complicated apps — if it takes more than 30 seconds, he's not using it.
+
+**Current Experience:** Arrives on site, finds Mike (the super), waits for direction. If Mike is busy with another trade, Carlos either waits or guesses. Sometimes he walks to a unit only to find another trade is already there, or the prerequisite work isn't done yet.
+
+**Pain Points:**
+- Wastes time waiting for direction or walking to the wrong unit
+- No visibility into what other trades are doing
+- Doesn't know when his work is blocked by another trade's incomplete task
+
+**Success Vision:** Opens his phone at 7am, sees that Unit 12 needs electrical rough-in and it's ready for him. Taps it, claims it, walks straight there. No waiting for Mike.
+
+---
+
+#### Mike — The Site Superintendent
+
+**Profile:** First one on site, last one to leave. Walks the site every morning to assess status, then spends half his day answering "where should I go?" from 15 workers across 5 trades. Keeps the entire project state in his head.
+
+**Current Experience:** Mentally tracks which units are ready for which trades, who's working where, and what's blocked. When two workers ask him questions at the same time, something gets dropped. By afternoon, he's exhausted from coordination, not from building.
+
+**Pain Points:**
+- He IS the coordination system — single point of failure
+- Can't be everywhere at once on a 25-unit project
+- No way to communicate status changes to everyone simultaneously
+- Spends more time directing traffic than managing quality
+
+**Success Vision:** Glances at TaskFlow and sees the whole site at once — who's where, what's done, what's blocked. Workers self-assign, and Mike focuses on quality and problem-solving instead of being a human dispatcher.
+
+---
+
+### Secondary Users
+
+#### Sarah — The Remote Project Manager
+
+**Profile:** Oversees multiple remodeling projects from the office. Currently relies on end-of-day calls with Mike to get status updates. Needs to report progress to property owners and stakeholders.
+
+**Current Experience:** Calls Mike at 4pm, interrupts his work, gets a verbal summary that she scribbles into a spreadsheet. Has no real-time visibility and can't answer stakeholder questions during the day.
+
+**Success Vision:** Opens TaskFlow from her laptop, sees real-time progress across all 25 units — which are complete, in-progress, or blocked. Can generate a status snapshot for the property owner without bothering Mike.
+
+---
+
+### User Journey
+
+| Phase | Carlos (Worker) | Mike (Super) |
+|-------|-----------------|---------------|
+| **Discovery** | Mike tells the crew "we're using this app now" | Hears about it from PM or finds it himself |
+| **Onboarding** | Opens link on phone, picks his trade, sees the board | Sets up units and initial tasks in 10 minutes |
+| **Core Usage** | Checks board at 7am, taps a unit, claims a task | Reviews board, updates blocked tasks, monitors progress |
+| **Aha! Moment** | Walks straight to Unit 12 without asking anyone | Realizes he hasn't been asked "where should I go?" all morning |
+| **Routine** | Part of the morning ritual — coffee, phone, TaskFlow, go | Starts the day reviewing the board instead of walking the site |
+
+---
+
+## Success Metrics
+
+### User Success Metrics
+
+| Metric | Target | How We Measure |
+|--------|--------|----------------|
+| **"Where should I go?" questions eliminated** | 90% reduction by end of week 1 | Mike tracks daily interruption count |
+| **Time from arrival to productive work** | Workers start 15 minutes earlier | Compare pre/post TaskFlow morning routines |
+| **Blocked work incidents** | Eliminate 1+ per week | Track tasks marked "blocked" that were caught before a worker showed up |
+| **Worker self-assignment rate** | 80%+ of tasks self-assigned (not directed by Mike) | TaskFlow logs: claimed vs. assigned-by-super |
+
+### Business Objectives
+
+| Objective | Target | Timeframe |
+|-----------|--------|-----------|
+| **Crew adoption** | 80% of workers actively using TaskFlow | By day 3 of rollout |
+| **Organic usage** | Mike stops reminding workers to check the app | By end of week 1 |
+| **Daily time savings** | 30 min/worker/day (7.5 hours total crew savings) | Measured at 2-week mark |
+| **Coordination overhead** | Mike spends <20% of day on "traffic directing" (down from ~50%) | By end of week 2 |
+
+### Key Performance Indicators
+
+| KPI | Definition | Leading/Lagging |
+|-----|------------|-----------------|
+| **Daily Active Users** | Workers who open TaskFlow and interact at least once | Leading |
+| **Task Claim Rate** | % of available tasks claimed within 30 min of posting | Leading |
+| **Blocked Task Detection** | Tasks flagged as blocked before a worker arrives at the unit | Leading |
+| **Site Throughput** | Units completed per week (pre vs. post TaskFlow) | Lagging |
+| **Super Satisfaction** | Mike's weekly rating: "How much time did TaskFlow save you?" | Lagging |
+
+---
+
+## MVP Scope
+
+### Core Features (MVP — Must Ship)
+
+| # | Feature | What It Does | Why It's Essential |
+|---|---------|-------------|--------------------|
+| 1 | **Unit Board** | Grid/list of all units with status: Available, In-Progress, Done, Blocked | This IS the product — the single source of truth replacing Mike's brain |
+| 2 | **Trade Tagging (Multi-Trade)** | Workers select one or more trades on first login (e.g., Laborer + Painter). Workers can belong to multiple trades simultaneously. | Reflects real-world reality — many workers carry multiple trades |
+| 3 | **Board Filtering** | Filter the board by trade. Default view shows all tasks for trades the worker belongs to. Filter preferences are remembered per worker. | Carlos sees electrical tasks by default; a Laborer/Painter sees both. No information overload. |
+| 4 | **Task Claiming** | Tap a checkbox to claim a unit task; your name and trade appear on the board | The core interaction — replaces "Hey Mike, where should I go?" |
+| 5 | **Live Board** | Real-time updates — everyone sees who's working where as it happens | Eliminates the information vacuum; no more walking to an occupied unit |
+| 6 | **Voice Commands** | "Claim Unit 12" / "Mark Unit 7 electrical done" — hands-free operation | Non-negotiable for dirty-hands, job-site reality |
+
+### Out of Scope for MVP
+
+| Feature | Why It's Deferred | When It Comes |
+|---------|-------------------|---------------|
+| **Remote PM Dashboard** (Sarah's view) | Core value is on-site coordination; remote access is a nice-to-have | V2 — after validating on-site adoption |
+| **Automatic Dependency Blocking** | Complex logic; manual "blocked" status is sufficient for MVP | V2 — once we understand real dependency patterns |
+| **Historical Reports & Analytics** | Not needed to solve the daily coordination problem | V2 — when PMs and owners want progress tracking |
+| **Multi-Site Support** | MVP targets one crew on one project | V3 — when scaling to multiple crews |
+| **Photo Documentation** | Useful but not core to "who's where doing what" | V2 — natural extension of task completion |
+| **User Accounts / Auth** | MVP can use simple name + trade selection (no passwords) | V2 — required for multi-site and data security |
+
+### MVP Success Criteria
+
+| Gate | Metric | Threshold |
+|------|--------|-----------|
+| **Adoption** | % of crew using TaskFlow daily | ≥ 80% by day 3 |
+| **Self-Service** | Tasks claimed without Mike directing | ≥ 80% of daily tasks |
+| **Time Savings** | Reduction in morning "where do I go?" wait time | ≥ 15 min/worker/day |
+| **Coordination** | Mike's time spent directing traffic | < 20% of his day |
+| **Go/No-Go** | If all gates met → proceed to V2 features | Measured at 2-week mark |
+
+### Future Vision
+
+**The Big Picture: Most remodeling crews in the city use TaskFlow.**
+
+| Phase | Milestone | Key Additions |
+|-------|-----------|---------------|
+| **V1 (MVP)** | One crew, one site, core coordination | Unit board, multi-trade tagging, filtering, claiming, voice, live updates |
+| **V2** | Power features for the same crew | PM dashboard, dependency tracking, photo docs, reporting |
+| **V3** | Multi-site, multi-crew | User accounts, site switching, GC oversight view |
+| **V4** | City-wide platform | Crew marketplace, trade scheduling across projects, reputation system |
+
+The MVP is the **wedge** — prove it works for one crew, then expand outward.
+(venv) root@d2d162d983f0:/a0/usr/workdir#

@@ -1,0 +1,39 @@
+Set up Gemini Code Assist for individuals | Google for Developers
+https://developers.google.com/gemini-code-assist/docs/set-up-gemini
+This document describes how to set up Gemini Code Assist for individuals in VS Code or IntelliJ. Users of other supported JetBrains IDEs should follow the IntelliJ instructions when setting up Gemini Code Assist.
+
+Gemini Code Assist - Visual Studio Marketplace
+https://marketplace.visualstudio.com/items?itemName=Google.geminicodeassist
+Gemini Code Assist - Your AI assistant powered by Gemini Bring the power of Gemini to help you build applications faster and easier than ever before. Key Features Coding assistance powered by Gemini. Contextualized responses to your prompts to help guide you on what you're trying to do with your code. Source citations regarding which documentation and code samples the assistant used to ...
+
+Code with Gemini Code Assist Standard and Enterprise | Gemini for Google Cloud | Google Cloud Documentation
+https://docs.cloud.google.com/gemini/docs/codeassist/write-code-gemini
+This document is intended for developers of all skill levels. It assumes you have working knowledge of VS Code or IntelliJ and other supported JetBrains IDEs, and are familiar with Google Cloud. If you prefer, you can also explore Gemini Code Assist in Cloud Shell Editor, Cloud Workstations, and Android Studio.
+
+How to Add Google Gemini Code Assistant to VS Code | FREE (2025)
+https://www.youtube.com/watch?v=sXzx7TiatAY
+Nov 9, 2025 ... ... Google Gemini Code Assist to VS Code for FREE in just a few minutes. You'll learn step-by-step how to install the Gemini extension, enable ...
+
+Get Started with Gemini Code Assist in VS Code — Easy Tutorial
+https://habr.com/en/articles/887734/
+Have you ever heard of Gemini Code Assist? It's an AI-powered coding assistant from Google that helps with writing, completing, and debugging code. The best part? It's now free for individuals, freelancers, and students! In this article, I'll show you how to set up and use Gemini Code Assist inside VS Code.
+
+Get coding help from Gemini Code Assist — now for free - Google Blog
+https://blog.google/innovation-and-ai/technology/developers-tools/gemini-code-assist-free/
+Feb 25, 2025 ... Get practically unlimited code completions (up to 180,000 per month) and AI-powered code reviews. Use Gemini Code Assist in Visual Studio Code, ...
+
+Gemini Code Assist overview | Google for Developers
+https://developers.google.com/gemini-code-assist/docs/overview
+You can use Gemini Code Assist in supported IDEs, such as VS Code, JetBrains IDEs, or Android Studio, for AI-powered coding assistance in many popular languages ...
+
+Google Gemini Code Assist : Free Alternate for Github CoPilot
+https://medium.com/data-science-in-your-pocket/google-gemini-code-assist-free-altenrate-for-github-copilot-a1923fffb625
+Google Gemini Code Assist is an AI-powered coding assistant developed by Google, designed to help developers write, review, and improve code more efficiently.
+
+Set up Gemini Code Assist Standard and Enterprise | Gemini for Google Cloud | Google Cloud Documentation
+https://docs.cloud.google.com/gemini/docs/codeassist/set-up-gemini
+Describes how to set up Gemini Code Assist.
+
+Google Gemini Code Assist Agent Mode: Complete 2025 Guide
+https://www.digitalapplied.com/blog/google-gemini-code-assist-agent-mode-guide
+Learn how to leverage 180K free completions monthly, the latest Gemini 2.5 Flash and Pro models, October 2025 MCP migration, and autonomous multi-step coding workflows across VS Code, IntelliJ, and more.

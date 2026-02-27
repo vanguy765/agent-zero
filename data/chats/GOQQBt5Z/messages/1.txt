@@ -1,0 +1,28 @@
+=== Project directory ===
+total 0
+drwxr-xr-x 1 root root 4096 Feb 26 19:01 .
+drwxr-xr-x 1 root root 4096 Feb 26 19:01 ..
+drwxr-xr-x 1 root root 4096 Feb 26 19:03 .a0proj
+
+=== Mount points ===
+overlay on / type overlay (rw,relatime,lowerdir=/var/lib/docker/overlay2/l/5HOB5H7XQ527LBYTBVFW7FKBW2:/var/lib/docker/overlay2/l/LZZOSLTBRC4GYGB4KUY2N42I5E:/var/lib/docker/overlay2/l/2NLLWNUW4N745N2VSLMFPUN774:/var/lib/docker/overlay2/l/TQ6JPHE6JD3R5DIIVU6SN6DKUV:/var/lib/docker/overlay2/l/WICL7S2LLVITN2CN6VA272U73D:/var/lib/docker/overlay2/l/OZIMZ7RPB65TNPE7WBPBWQGTKH:/var/lib/docker/overlay2/l/AIY5BUNECBOWZCUCHI2CSWHMDP:/var/lib/docker/overlay2/l/PMPGQEV7A6W3PAOQ4TLIYLGGTR:/var/lib/docker/overlay2/l/E5FZMZZRRZQ45VZZJ5VLGEGFBK:/var/lib/docker/overlay2/l/CNMDK7YA3K4BFUYZIH3A7PUOLR:/var/lib/docker/overlay2/l/225RPRLYJ3I4WIMOZZVF36BTCM:/var/lib/docker/overlay2/l/QGVMEIJH4SKRYKF2OY7RMOJ565:/var/lib/docker/overlay2/l/FXXGB2K7BMS3FO6MFYWMDHYGKM:/var/lib/docker/overlay2/l/YCH7BZOWUUKXCMJDXYRTFGJPUG:/var/lib/docker/overlay2/l/3BDSOAG4HCVFKWR3JAHZUYYDG6:/var/lib/docker/overlay2/l/Y2U7XDSSTHSW6FXZJGWM5425QL:/var/lib/docker/overlay2/l/ZCM7DCSGE6CMMHYUAK3T2WLCOI:/var/lib/docker/overlay2/l/47AAVTEK7ZBKK53JWUZLQJQAG7:/var/lib/docker/overlay2/l/R2DR3EICT6LY2S7LDYNUKLZJ25:/var/lib/docker/overlay2/l/E3XGX56HI6M26NKERAQ6VH6TDJ:/var/lib/docker/overlay2/l/Y6LPGNH6JK5VEG5SZBEFTCENZ3:/var/lib/docker/overlay2/l/IK7O3QKDAS2AS6OZ5FSQNHI4M2:/var/lib/docker/overlay2/l/646BQKZSVZTNQLWWOQVEOJNJZ6:/var/lib/docker/overlay2/l/GO3PR5A24CDY26VTCHUXSMT2UQ,upperdir=/var/lib/docker/overlay2/a8fd7aa67a919f8987bcf215467786f95c6fdec120939528e23eb03a193b41d9/diff,workdir=/var/lib/docker/overlay2/a8fd7aa67a919f8987bcf215467786f95c6fdec120939528e23eb03a193b41d9/work)
+C:\ on /a0/usr type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+/dev/sde on /etc/resolv.conf type ext4 (rw,relatime)
+/dev/sde on /etc/hostname type ext4 (rw,relatime)
+/dev/sde on /etc/hosts type ext4 (rw,relatime)
+C:\ on /a0/usr/projects/timesheet_app/voicelog-scaffold type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+
+=== /mnt ===
+total 8
+drwxr-xr-x 2 root root 4096 Feb  1 04:01 .
+drwxr-xr-x 1 root root 4096 Feb 21 22:25 ..
+
+=== /data ===
+No /data
+
+=== /volumes ===
+No /volumes
+
+=== Docker volumes at /var/lib/docker ===
+No docker volumes dir
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

@@ -1,0 +1,43 @@
+#### How to set up Gemini Code Assist free in VS Code step by step
+
+To set up Gemini Code Assist for individuals (the free version) in VS Code, follow these steps:
+
+1. **Install the extension:**
+   - Open the **Extensions** view in VS Code by clicking the **Extensions** icon or pressing `Ctrl`/`Cmd`+`Shift`+`X`.
+   - Search for `Gemini Code Assist`.
+   - Click **Install**.
+   - If prompted, restart VS Code.
+
+2. **Configure settings (optional):** After the extension has successfully installed, Gemini Code Assist appears in the activity bar and is ready for use. You can further configure your installation by navigating to **Code** > **Settings** > **Settings** > **Extensions** and searching for `Gemini Code Assist`.
+
+3. **Sign in to your Google Account:**
+   - Launch your IDE.
+   - In the activity bar, click the **Gemini Code Assist** icon.
+   - In the **Gemini Code Assist: Chat** window, click **Login to Google**.
+   - When prompted to allow Gemini Code Assist to open the external website, click **Open**.
+   - Follow the prompts to sign in to your Google Account.
+   - When asked if you downloaded Gemini Code Assist from Google, click **Sign In**.
+
+4. **Review the Privacy Notice:** After signing in, a privacy notice will appear in the chat panel. Review it to understand how Google handles your data. You can view or update your privacy settings at any time by clicking **More** in the Gemini Code Assist chat pane and selecting **Privacy settings**, or by navigating to **Settings** > **Extensions** > **Gemini Code Assist**.
+
+#### What features does the free tier include - chat, agent mode, file access
+
+Based on the document, the free tier (Gemini Code Assist for individuals) includes the following features:
+
+- **Code completion and generation** for popular programming languages in supported IDEs (VS Code, JetBrains IDEs, Android Studio).
+- **Conversational assistant (chat)** in your IDE, using your opened files' context.
+- **Agentic chat (agent mode):** You can prompt Gemini to complete complex, multi-step tasks that use system tools and Model Context Protocol (MCP) servers.
+- **Smart actions and commands:** Initiate smart actions by right-clicking selected code, or use slash `/` commands on the quick pick bar.
+- **Source citations** in your IDE.
+- **Gemini CLI quota** for using Gemini CLI.
+- **Local codebase awareness:** Use the power of Gemini's large context window for in-depth local codebase understanding.
+
+Individual developers can also get access to higher daily model request limits by purchasing a subscription to Google AI Pro or Ultra.
+
+#### Can Gemini Code Assist read and analyze project files in the workspace
+
+Yes, Gemini Code Assist can read and analyze project files in your workspace. The document states that Gemini Code Assist provides a **conversational assistant in your IDE using your opened files' context**. Additionally, it offers **local codebase awareness**, which uses "the power of Gemini's large context window for in-depth local codebase understanding." You can also select code in your editor and enter prompts such as "Help me debug my code" or "Make my code more readable," indicating it can analyze your project files. Local codebase awareness can also be configured via the **Configure local codebase awareness** settings.
+
+#### Does it support custom system prompts or instructions
+
+The document does not mention support for custom system prompts or custom instructions for Gemini Code Assist. The document covers features like code completion, chat, agent mode, smart actions, and various configuration options (keyboard shortcuts, file exclusions, local codebase awareness, release channels, logging, etc.), but there is no reference to configuring custom system prompts or user-defined instructions.

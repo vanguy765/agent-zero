@@ -1,0 +1,39 @@
+#### How does agent mode work - can it read files and follow multi-step instructions
+
+Yes, Agent Mode can read files and follow multi-step instructions. It employs **autonomous multi-step reasoning** to tackle complex coding tasks that span multiple files, frameworks, and contexts. Unlike standard autocomplete features that suggest single lines or functions, Agent Mode **thinks ahead**, breaking down complex tasks into logical steps, executing them sequentially, and validating results—similar to how an experienced developer would approach a challenging project.
+
+For example, when asked to rename a component across a codebase, Agent Mode will autonomously: analyze 47 files that reference the component, update the component definition, update 23 import statements, update 18 component usages, and update test files and storybook stories. It leverages up to a **1M token context window**, which allows it to understand entire codebases and trace issues across frontend, API, and database layers. It can also run tests and fix failures automatically as part of its workflow.
+
+#### What Gemini model does Code Assist use - is it Gemini 2.5 or 3
+
+Gemini Code Assist is powered by **Gemini 2.5** models—not Gemini 3. Specifically, it uses two variants:
+
+- **Gemini 2.5 Flash**: Optimized for speed and efficiency with a 1M token context window. This is the free tier default model, used for rapid code completions and suggestions.
+- **Gemini 2.5 Pro**: An enterprise-grade model also with a 1M token context window, designed for understanding entire codebases, complex refactoring, and architectural decisions.
+
+You can configure which model you use in your settings. For example, the free tier default is `"gemini.model": "gemini-2.5-flash"`, while enterprise users can switch to `"gemini.model": "gemini-2.5-pro"`.
+
+#### Can you give it custom instructions or rules files
+
+The document describes several ways to customize Agent Mode's behavior, though it focuses on configuration rather than freeform "rules files." You can:
+
+- **Fine-tune Agent Mode behavior** through JSON configuration settings such as `autoApprove`, `maxSteps`, `planningMode`, and `testGeneration`.
+- **Customize codebase indexing** by creating a `.geminiignore` file in your project root to exclude sensitive or irrelevant files (similar to `.gitignore`).
+- **Configure monorepo workspaces** via a `.gemini/config.json` file that specifies workspace paths, global context sharing, and index strategies.
+- **Use custom prompts** to provide specific instructions, constraints, and context (e.g., mentioning exact files, backward compatibility requirements, and design patterns).
+
+The document does not explicitly mention a dedicated "custom rules file" or system-prompt-style instruction file beyond these configuration mechanisms.
+
+#### How to use agent mode for complex multi-step tasks
+
+To use Agent Mode effectively for complex multi-step tasks, the document recommends the following approach:
+
+1. **Enable Agent Mode** in your settings (`"gemini.agentMode": true`) and set `"gemini.agent.planningMode": "detailed"` so you can see the AI's reasoning steps.
+
+2. **Write specific, detailed prompts.** Instead of vague instructions like "Fix the auth code," provide prompts like: *"Refactor the user authentication flow in src/auth/AuthProvider.tsx to use React Context instead of prop drilling. Update all 15 consuming components to use the new context hook. Maintain backward compatibility for tests."* Be sure to mention exact files, state your goal, include constraints, and provide context.
+
+3. **Set `autoApprove: false`** so you can review each change before it's applied, and configure `maxSteps` (recommended 8–12) to balance autonomy with control.
+
+4. **Use it for high-value tasks** where multi-step reasoning shines: multi-file refactoring, comprehensive test generation, cross-layer bug debugging (where Agent Mode traces through frontend, API, and database layers), API migrations (e.g., REST to GraphQL), security scanning, and documentation generation.
+
+5. **Use it strategically** to conserve your free tier quota—Agent Mode consumes more completions due to its multi-step nature, so reserve it for complex tasks and use standard completions for simpler work like single-line suggestions and imports.

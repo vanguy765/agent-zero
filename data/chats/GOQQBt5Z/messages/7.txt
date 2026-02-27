@@ -1,0 +1,16 @@
+y
+npm WARN deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Usage: bmad-cli [options] [command]
+
+BMAD Core CLI - Universal AI agent framework
+
+Options:
+  -V, --version        output the version number
+  -h, --help           display help for command
+
+Commands:
+  install [options]    Install BMAD Core agents and tools
+  status               Display BMAD installation status and module versions
+  uninstall [options]  Remove BMAD installation from the current project
+  help [command]       display help for command
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

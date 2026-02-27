@@ -1,0 +1,92 @@
+#### How to set up and install BMAD-METHOD in a project?
+
+To set up and install BMAD-METHOD, you need **Node.js v20+** as a prerequisite. Then run the following command:
+
+```
+npx bmad-method install
+```
+
+If you are getting a stale beta version, use: `npx bmad-method@6.0.1 install`
+
+Follow the installer prompts, then open your AI IDE (such as Claude Code, Cursor, etc.) in your project folder.
+
+For **non-interactive installation** (useful for CI/CD pipelines), you can use:
+
+```
+npx bmad-method install --directory /path/to/project --modules bmm --tools claude-code --yes
+```
+
+During installation, you can select which modules to include (such as BMad Method core, BMad Builder, Test Architect, Game Dev Studio, or Creative Intelligence Suite). After installation, if you're unsure what to do next, run `/bmad-help` — it tells you exactly what's next and what's optional. You can also ask contextual questions like `/bmad-help I just finished the architecture, what do I do next?`
+
+#### What is the directory structure and file organization?
+
+Based on the repository structure visible in the document, the BMAD-METHOD project is organized with the following top-level directories and files:
+
+**Directories:**
+- `.augment/` — Augment configuration
+- `.claude/skills/` — Claude skills definitions
+- `.github/` — GitHub-specific configurations (CI/CD, issue templates, etc.)
+- `.husky/` — Git hooks
+- `.vscode/` — VS Code editor settings
+- `docs/` — Documentation files
+- `src/` — Source code
+- `test/` — Test files
+- `tools/` — Tooling utilities
+- `website/` — Website files
+
+**Key files:**
+- `README.md`, `LICENSE`, `CONTRIBUTING.md`, `CONTRIBUTORS.md`, `CHANGELOG.md`, `SECURITY.md`, `TRADEMARK.md` — Standard project documentation
+- `package.json`, `package-lock.json` — Node.js package configuration
+- `.gitignore`, `.npmrc`, `.nvmrc` — Git and Node version configuration
+- `eslint.config.mjs`, `prettier.config.mjs`, `.prettierignore`, `.markdownlint-cli2.yaml` — Code formatting and linting configuration
+- `.coderabbit.yaml` — CodeRabbit AI review configuration
+- `CNAME` — Custom domain configuration
+- `banner-bmad-method.png`, `Wordmark.png` — Branding assets
+
+The primary language is **JavaScript (94.2%)**, with small amounts of HTML, CSS, Shell, and other languages.
+
+#### How do the agents work and what agents are available?
+
+BMad Method includes **12+ specialized agent personas** that act as expert collaborators rather than simply doing the thinking for you. These agents guide you through structured processes to bring out your best thinking in partnership with the AI. The available agent roles include:
+
+- **PM (Project Manager)**
+- **Architect**
+- **Developer**
+- **UX** (User Experience)
+- **Scrum Master**
+- And more (12+ total)
+
+Key features of the agent system include:
+
+- **Party Mode** — Allows you to bring multiple agent personas into one session to collaborate and discuss together, enabling cross-functional dialogue.
+- **Scale-Domain-Adaptive** — The agents automatically adjust planning depth based on project complexity, from simple bug fixes to enterprise systems.
+- **Structured Workflows** — Agents are grounded in agile best practices across analysis, planning, architecture, and implementation, with 34+ workflows in the core framework.
+- **AI Intelligent Help** — You can ask `/bmad-help` anytime for guidance on what to do next.
+
+Additionally, the **BMad Builder (BMB)** module allows you to create custom BMad agents and workflows tailored to your specific needs.
+
+#### How to integrate BMAD with an existing project?
+
+To integrate BMAD-METHOD with an existing project, you run the installer pointing to your project directory:
+
+```
+npx bmad-method install
+```
+
+Follow the installer prompts to select which modules and tools you want to include. For non-interactive integration (e.g., in CI/CD pipelines), you can specify options directly:
+
+```
+npx bmad-method install --directory /path/to/project --modules bmm --tools claude-code --yes
+```
+
+You can choose from available modules during installation or add them anytime after:
+
+| Module | Purpose |
+|--------|---------|
+| **BMad Method (BMM)** | Core framework with 34+ workflows |
+| **BMad Builder (BMB)** | Create custom BMad agents and workflows |
+| **Test Architect (TEA)** | Risk-based test strategy and automation |
+| **Game Dev Studio (BMGD)** | Game development workflows (Unity, Unreal, Godot) |
+| **Creative Intelligence Suite (CIS)** | Innovation, brainstorming, design thinking |
+
+After installation, open your AI IDE (Claude Code, Cursor, etc.) in your project folder. For guidance on upgrading from previous versions, the documentation provides an [upgrade guide](http://docs.bmad-method.org/how-to/upgrade-to-v6/). If you need help at any point, run `/bmad-help` for context-aware guidance on next steps. Full tutorials and guides are available at [docs.bmad-method.org](http://docs.bmad-method.org).

@@ -1,0 +1,17 @@
+=== NFR6 ===
+379:- NFR6: When network connection is lost, 100% of board read operations (viewing units, statuses, notes) remain available from local cache; write operations (claims, status changes) queue locally and sync within 5 seconds of reconnection
+=== NFR10 ===
+383:- NFR10: System resolves sync conflicts using server-timestamp last-write-wins; concurrent claim attempts on the same unit resolve to a single owner within 2 seconds; acceptance test: 10 simultaneous claim requests produce exactly 1 winner with 0 data corruption
+=== NFR11 ===
+384:- NFR11: After browser refresh, user identity (name + trade) and current board view (filters, scroll position) restore within 2 seconds; no locally queued actions are lost; acceptance test: refresh during active session preserves identity and pending actions 100% of the time
+=== NFR21 ===
+403:- NFR21: Architecture supports horizontal scaling to 100 concurrent project boards and 500 simultaneous connected users without fundamental redesign; V2 scaling validated by load test demonstrating <3s board sync at target concurrency
+=== NFR22 ===
+404:- NFR22: Data model supports addition of user authentication layer with zero-downtime migration; existing board data, crew identities, and historical actions remain accessible post-migration; acceptance test: auth layer added without DROP/recreate of core tables
+=== Resource Estimate ===
+92:**Resource Estimate:** 1 full-stack developer, 4–6 weeks. Target architecture: mobile-first offline-capable web client with low-latency real-time sync and lightweight persistence.
+=== Appendix ===
+406:## Appendix A: Implementation Notes
+=== Journey 5 ===
+227:### Journey 5: Sarah Checks Progress Remotely (V2 Scope — No MVP FRs Assigned)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
