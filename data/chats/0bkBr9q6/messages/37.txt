@@ -1,0 +1,17 @@
+=== ALL SOPs ===
+  ELC-SOP-001 | Electrical | Remove & Replace Electrical Outlet (Receptacle) — 120V/240V Residential & Light-Commercial | active
+  PLB-SOP-001 | Plumbing | Remove & Replace Sink (Kitchen / Bathroom / Utility) | active
+
+=== SEARCH: plumbing ===
+  PLB-SOP-001 | Remove & Replace Sink (Kitchen / Bathroom / Utility)
+
+=== SEARCH: electrical ===
+  ELC-SOP-001 | Remove & Replace Electrical Outlet (Receptacle) — 120V/240V Residential & Light-Commercial
+
+=== CHECK & REQUEST: HVAC ===
+  Found: False
+  Message: No SOP found for 'HVAC — Thermostat Installation'. Agent creation requested.
+  Requested SOP#: HVA-SOP-001
+
+=== SYSTEM STATUS: OK ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

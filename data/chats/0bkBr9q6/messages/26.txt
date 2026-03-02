@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS sop_recommended_videos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- section of the video reference
+    phase_name TEXT NOT NULL,                  -- e.g. 'Removal of Existing Sink'
+    step_reference TEXT NOT NULL,              -- e.g. 'Steps 1-3: Service Isolation'
+    video_title TEXT NOT NULL,
+    video_url TEXT NOT NULL,
+    duration TEXT,                             -- e.g. '10:14'
+    source TEXT,                               -- e.g. 'This Old House'
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE sop_recommended_videos IS 'Cached recommended video links parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 5. SOP Sync Log (tracks parse/sync operations)
+-- =============================================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

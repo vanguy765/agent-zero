@@ -1,0 +1,5 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# fdc4:f303:9324::254 host.docker.internal
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# bash: ip: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# bash: ip: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# Gateway:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

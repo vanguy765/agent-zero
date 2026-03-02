@@ -1,0 +1,42 @@
+📊 sop_sync_log: 2 records
+   PLB-SOP-001 | uploaded | {"file": "SOP_Plumbing_Sink_Replacement.md", "hash": "33849fb668bf9f8c352162ed2abe3419"} | 2026-03-01T02:02:18.756368+00:00
+   ELC-SOP-001 | uploaded | {"file": "SOP_Electrical_Outlet_Replacement.md", "hash": "9098419ae779cd7a4fa7bc9f346e53f7"} | 2026-03-01T02:02:18.990352+00:00
+
+=== FAST QUERY: PLB-SOP-001 Executive Checklists ===
+   [Removal of Existing ] Step 1: Isolate Services — Shut off water supply, relieve pressure, posi
+   [Installation of New ] Step 1: Dry-Fit & Pre-Mount Assembly — Verify sink fit, install faucet and drain fit
+   [Removal of Existing ] Step 2: Disconnect All Plumbing — Detach supply lines, drain assembly, disposal
+   [Installation of New ] Step 2: Mount & Seal Sink — Set sink into position, install clips, apply
+   [Removal of Existing ] Step 3: Remove Fixtures — Remove faucet and sink from countertop/wall
+   [Installation of New ] Step 3: Connect Drain System — Install tailpiece, P-trap, trap arm; verify s
+   [Installation of New ] Step 4: Connect Water Supply — Attach supply lines to shut-off valves, repla
+   [Removal of Existing ] Step 4: Inspect & Prepare Surface — Check for damage, rot, mold; clean all surfac
+   [Removal of Existing ] Step 5: Document & Report — Photograph conditions, report issues to super
+   [Installation of New ] Step 5: Reconnect Ancillaries & Prep for Test — Reattach dishwasher, disposal, dispensers; fi
+
+=== FAST QUERY: ELC-SOP-001 Videos ===
+   [Removal of Existing ] Steps 1–5: Complete Outle → How to Replace an Electrical Outlet (6:12) - DIY Creator
+   [Removal of Existing ] Steps 1–3: Disconnect & R → How to replace an electrical outlet (5:48) - Everyday Home Repairs
+   [Removal of Existing ] Steps 2–4: Receptacle Rem → How to Change Electrical Outlet As  (8:15) - DIY Tutorial
+   [Installation of New ] Steps 1–5: Full Receptacl → How To Change A Receptacle (10:22) - Everyday Home Repairs
+   [Installation of New ] Steps 1–5: Beginner-Frien → How To Replace An Electrical Outlet (9:45) - DIY Creator
+   [Installation of New ] Step 1: GFCI Wiring (LINE → How to Install a GFCI Outlet with 2 (12:34) - DIY Creators
+   [Installation of New ] Step 1: GFCI Install & Co → How to Wire a GFCI Outlet and Avoid (15:08) - Sparky Channel
+   [Installation of New ] Steps 1–4: 10 Common Mist → The Ultimate Outlet Replacement Gui (18:30) - Everyday Home Repairs
+
+============================================================
+MOCK REQUEST: "I need an SOP for HVAC duct installation"
+============================================================
+
+Step 1: Search by trade code HVAC...
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+Cell In[1], line 54
+     52 # Step 1: Search by trade
+     53 print('Step 1: Search by trade code HVAC...')
+---> 54 results = mgr.search(trade='HVAC')
+     55 print(f'   Results: {len(results)} SOPs found')
+     57 # Step 2: Search by keyword
+
+TypeError: SOPLibraryManager.search() got an unexpected keyword argument 'trade'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

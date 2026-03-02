@@ -1,0 +1,21 @@
+# Standard Operating Procedure
+## Electrical — Outlet Replacement
+
+| Field | Detail |
+|---|---|
+| **SOP Number** | ELC-SOP-001 |
+| **Trade** | Electrical |
+| **Task** | Remove & Replace Electrical Outlet (Receptacle) — 120V/240V Residential & Light-Commercial |
+| **Revision** | 1.0 |
+| **Effective Date** | 2026-02-28 |
+| **Approved By** | _________________________ |
+| **Estimated Duration** | 30 min – 2 hours (varies by scope and circuit complexity) |
+
+---
+
+---
+175:| Step | Step Name | Tasks | ✓ |
+272:| Step | Step Name | Tasks | ✓ |
+378:| Step | Video | Duration | Source |
+386:| Step | Video | Duration | Source |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,47 @@
+return self._sync_from_content(content, sop.data[0]["storage_path"], file_hash)
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def search(self, query: str) -> list:
+        """Search SOPs by keyword in sop_number, trade, task, description, tags."""
+        q = query.lower()
+        results = self.client.table("sops").select("*").or_(
+            f"sop_number.ilike.%{q}%,trade_name.ilike.%{q}%,task_name.ilike.%{q}%,description.ilike.%{q}%"
+        ).execute()
+        return results.data
+
+    def list_all(self) -> list:
+        """List all SOPs."""
+        results = self.client.table("sops").select(
+            "sop_number, trade_code, trade_name, task_name, revision, status, storage_path"
+        ).order("sop_number").execute()
+        return results.data
+
+    def show(self, sop_number: str) -> dict:
+        """Show full SOP details with cached data."""
+        sop = self.client.table("sops").select("*").eq("sop_number", sop_number).execute()
+        if not sop.data:
+            return {"error": f"SOP {sop_number} not found"}
+        sop_id = sop.data[0]["id"]
+        checklists = self.client.table("sop_executive_checklists").select("*").eq("sop_id", sop_id).order("section_number,step_number").execute()
+        steps = self.client.table("sop_detailed_steps").select("*").eq("sop_id", sop_id).order("section_number,step_number").execute()
+        videos = self.client.table("sop_recommended_videos").select("*").eq("sop_id", sop_id).order("sort_order").execute()
+        return {
+            "sop": sop.data[0],
+            "executive_checklists": checklists.data,
+            "detailed_steps": steps.data,
+            "recommended_videos": videos.data
+        }
+
+    def check_and_request(self, trade: str, task: str) -> dict:
+        """Check if a suitable SOP exists. If not, return a request payload for agent creation."""
+        results = self.search(f"{trade} {task}")
+        if results:
+            return {
+                "found": True,
+                "matches": results,
+                "message": f"Found {len(results)} matching SOP(s)"
+            }
+        # No match — generate agent request
+        trade_code = trade[:3].upper()
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

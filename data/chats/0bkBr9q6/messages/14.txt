@@ -1,0 +1,25 @@
+=== Header Metadata ===
+  Trade: Plumbing
+  Task: Remove & Replace Sink (Kitchen / Bathroom / Utility)
+  Revision: 1.0
+  Effective Date: 2026-02-26
+  Approved By: _________________________
+  Estimated Duration: 2 – 4 hours (varies by scope)
+
+=== Parse Results ===
+  Checklists: 0
+  Detailed Steps: 10
+  Videos: 8
+
+⚠️ No checklists parsed - need to debug further
+
+=== First Detailed Step ===
+{
+  "section_number": 8,
+  "phase_name": "Removal of Existing Sink",
+  "step_number": 1,
+  "step_name": "Isolate Services",
+  "content": "1. Close both hot and cold shut-off valves under the sink\n2. Open the faucet to relieve pressure and...",
+  "sort_order": 1
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

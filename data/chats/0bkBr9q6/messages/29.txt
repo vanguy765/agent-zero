@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS sop_sync_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID REFERENCES sops(id) ON DELETE SET NULL,
+    sop_number TEXT,
+    action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'parsed', 'uploaded', 'deleted', 'agent_requested')),
+    details JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE sop_sync_log IS 'Audit log for SOP library sync operations';
+
+-- =============================================================================
+-- 6. Indexes for fast retrieval
+-- =============================================================================
+CREATE INDEX IF NOT EXISTS idx_sops_trade_code ON sops(trade_code);
+CREATE INDEX IF NOT EXISTS idx_sops_status ON sops(status);
+CREATE INDEX IF NOT EXISTS idx_sops_sop_number ON sops(sop_number);
+CREATE INDEX IF NOT EXISTS idx_sops_tags ON sops USING GIN(tags);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

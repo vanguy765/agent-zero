@@ -1,0 +1,16 @@
+2:## Plumbing — Sink Replacement
+16:## 1. Purpose
+22:## 2. Scope
+38:## 3. References & Codes
+48:## 4. Personnel & Qualifications
+58:## 5. Safety Requirements
+86:## 6. Tools & Equipment
+126:## 7. Pre-Installation
+149:## 8. Procedure — Removal of Existing Sink
+237:## 9. Procedure — Installation of New Sink
+346:## 10. Testing & Commissioning
+391:## 11. Cleanup & Closeout
+420:## 12. Troubleshooting
+435:## 13. Quality Standards
+446:## 14. Revision History
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,95 @@
+=== PLUMBING SOP - Section 10 ===
+## 10. Recommended Videos
+
+The following videos demonstrate the techniques described in the Detailed Steps above. Review before beginning work or reference on-site as needed.
+
+### Removal of Existing Sink (Section 8)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Steps 1–3: Service Isolation & Disconnect | [How To Remove a Kitchen Sink](https://www.youtube.com/watch?v=uJSF0zz-2AE) | 10:14 | House Improvements |
+| Step 2: Disconnect Drain Assembly | [How to Disconnect a Kitchen Sink Drain](https://www.youtube.com/watch?v=RO_fnN7ABeA) | 5:42 | Roger Wakefield |
+| Steps 3–4: Remove Sink & Inspect | [Sink Removal and Installation: How to Disconnect and Remove a Kitchen Sink](https://www.youtube.com/watch?v=i_aDMqNiYUc) | 6:31 | HouseImprovements |
+| Step 4: Drain Assembly Removal | [How to Remove a Sink Drain Assembly](https://www.youtube.com/watch?v=Vtrvc05dmXU) | 2:07 | eHow |
+
+### Installation of New Sink (Section 9)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Steps 1–5: Full Sink Replacement | [Replace a Kitchen Sink Step by Step — Full Video](https://www.youtube.com/watch?v=4caWJll9liE) | 18:22 | DIY Creator |
+| Steps 1–5: Professional Sink & Faucet Install | [How to Replace a Kitchen Sink and Faucet \| Ask This Old House](https://www.youtube.com/watch?v=OvUuoY4veRA) | 8:47 | This Old House |
+| Steps 1–5: Complete Kitchen Sink Update | [Replacing a Kitchen Sink \| Ask This Old House](https://www.youtube.com/watch?v=DKff22CT3Ng) | 9:12 | This Old House |
+| Steps 2–4: Disposal & Dishwasher Reconnect | [Remove and Replace Old Kitchen Sink](https://www.youtube.com/watch?v=yKhd6DLJC20) | 22:45 | Fix It Home Improvement |
+| Step 1: Undermount Sink Technique | [How To Replace and Install an Undermount Sink](https://www.youtube.com/watch?v=Urvzf62ARnU) | 10:03 | The Fixer |
+
+> 📹 **Note:** Videos are curated from professional trade channels. Verify links at each SOP revision. Always defer to local code requirements over video content.
+
+---
+
+## 11. Testing & Commissioning
+
+=== ELECTRICAL SOP - Section 10 ===
+## 10. Recommended Videos
+
+The following videos demonstrate the techniques described in the Detailed Steps above. Review before beginning work or reference on-site as needed.
+
+### Removal of Existing Receptacle (Section 8)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Steps 1–5: Complete Outlet Replacement Overview | [How to Replace an Electrical Outlet — Step-by-Step Guide](https://www.youtube.com/watch?v=OC-b-00d-R0) | 6:12 | DIY Creator |
+| Steps 1–3: Disconnect & Remove Old Outlet | [How to replace an electrical outlet](https://www.youtube.com/watch?v=KhwClKlh_G8) | 5:48 | Everyday Home Repairs |
+| Steps 2–4: Receptacle Removal for Beginners | [How to Change Electrical Outlet As a Beginner](https://www.youtube.com/watch?v=lUAaVwSjk3M) | 8:15 | DIY Tutorial |
+
+### Installation of New Receptacle (Section 9)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Steps 1–5: Full Receptacle Replacement | [How To Change A Receptacle](https://www.youtube.com/watch?v=XJqpO4nzDD4) | 10:22 | Everyday Home Repairs |
+| Steps 1–5: Beginner-Friendly Outlet Install | [How To Replace An Electrical Outlet (DIY For Beginners)](https://www.youtube.com/watch?v=HnkcQCzxm-Y) | 9:45 | DIY Creator |
+| Step 1: GFCI Wiring (LINE/LOAD) | [How to Install a GFCI Outlet with 2 or 4 Wires](https://www.youtube.com/watch?v=RT8D7sE1itU) | 12:34 | DIY Creators |
+| Step 1: GFCI Install & Common Mistakes | [How to Wire a GFCI Outlet and Avoid Common Mistakes](https://www.youtube.com/watch?v=M3OoHkI0pUA) | 15:08 | Sparky Channel |
+| Steps 1–4: 10 Common Mistakes to Avoid | [The Ultimate Outlet Replacement Guide: 10 Mistakes Everyone Needs to Avoid](https://www.youtube.com/watch?v=cZPefXgaCbY) | 18:30 | Everyday Home Repairs |
+
+> 📹 **Note:** Videos are curated from professional trade channels. Verify links at each SOP revision. Always defer to NEC/local code requirements over video content. GFCI-specific videos included for Section 9, Step 1 (GFCI wiring variant).
+
+---
+
+## 11. Testing & Commissioning
+
+=== ALL SECTION HEADINGS ===
+--- Plumbing ---
+## Plumbing — Sink Replacement
+## 1. Purpose
+## 2. Scope
+## 3. References & Codes
+## 4. Personnel & Qualifications
+## 5. Safety Requirements
+## 6. Tools & Equipment
+## 7. Pre-Installation
+## 8. Procedure — Removal of Existing Sink
+## 9. Procedure — Installation of New Sink
+## 10. Recommended Videos
+## 11. Testing & Commissioning
+## 12. Cleanup & Closeout
+## 13. Troubleshooting
+## 14. Quality Standards
+## 15. Revision History
+--- Electrical ---
+## Electrical — Outlet Replacement
+## 1. Purpose
+## 2. Scope
+## 3. References & Codes
+## 4. Personnel & Qualifications
+## 5. Safety Requirements
+## 6. Tools & Equipment
+## 7. Pre-Work Assessment
+## 8. Procedure — Removal of Existing Receptacle
+## 9. Procedure — Installation of New Receptacle
+## 10. Recommended Videos
+## 11. Testing & Commissioning
+## 12. Cleanup & Closeout
+## 13. Troubleshooting
+## 14. Quality Standards
+## 15. Revision History
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

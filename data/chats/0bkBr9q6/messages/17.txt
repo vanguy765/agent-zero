@@ -1,0 +1,23 @@
+parse_header_table: lines 64-88
+Current method:
+  64:     def parse_header_table(self) -> dict:
+  65:         """Extract the header metadata table (Field | Detail format)."""
+  66:         meta = {}
+  67:         in_table = False
+  68:         for line in self.lines:
+  69:             # Detect table start: header row with Field/Detail or SOP Number
+  70:             if "|" in line and ("Field" in line or "SOP Number" in line) and "---" not in line:
+  71:                 in_table = True
+  72:                 continue
+  73:             # Skip separator row
+  74:             if in_table and "|" in line and re.match(r"^[\|\s\-:]+$", line):
+  75:                 continue
+  76:             if in_table and "|" in line:
+  77:                 cells = [c.strip() for c in line.split("|") if c.strip()]
+  78:                 if len(cells) >= 2:
+  79:                     # Strip bold markdown markers
+  80:                     key = re.sub(r"\*\*", "", cells[0]).strip()
+  81:                     val = re.sub(r"\*\*", "", cells[1]).strip()
+  82:                     if key:
+  83:                         meta[key] = val
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

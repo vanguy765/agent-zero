@@ -1,0 +1,26 @@
+=== Header Table Debug ===
+  "| Field | Detail |"
+    Field=True, SOP=False, sep=False
+  "|---|---|"
+    Field=False, SOP=False, sep=True
+  "| **SOP Number** | PLB-SOP-001 |"
+    Field=False, SOP=True, sep=False
+  "| **Trade** | Plumbing |"
+    Field=False, SOP=False, sep=False
+  "| **Task** | Remove & Replace Sink (Kitchen / Bathroom / Utility) |"
+    Field=False, SOP=False, sep=False
+
+=== Fix needed: Only detect header row, not data rows ===
+The header row is: | Field | Detail |
+Data rows have bold: | **SOP Number** | PLB-SOP-001 |
+Solution: Check for "Field" only, or check that it's the first table row
+
+=== Checklist Separator Debug ===
+  "|:---:|---|---|:---:|" -> is_sep=True
+
+=== Checklist Data Row ===
+  cells: ['1', 'Isolate Services', 'Shut off water, relieve pressure, verify zero flow', '[ ]']
+  step_num: 1
+  step_name: Isolate Services
+  tasks: Shut off water, relieve pressure, verify zero flow
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

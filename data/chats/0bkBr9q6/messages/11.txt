@@ -1,0 +1,41 @@
+# Standard Operating Procedure
+## Plumbing — Sink Replacement
+
+| Field | Detail |
+|---|---|
+| **SOP Number** | PLB-SOP-001 |
+| **Trade** | Plumbing |
+| **Task** | Remove & Replace Sink (Kitchen / Bathroom / Utility) |
+| **Revision** | 1.0 |
+| **Effective Date** | 2026-02-26 |
+| **Approved By** | _________________________ |
+| **Estimated Duration** | 2 – 4 hours (varies by scope) |
+
+---
+
+## 1. Purpose
+
+This procedure defines the safe, code-compliant steps for removing an existing sink and installing a replacement sink, including all associated supply lines, drain connections, and fixtures. It applies to kitchen, bathroom, and utility sinks in residential and light-commercial settings.
+
+---
+
+## 2. Scope
+
+This SOP covers:
+- Disconnection and removal of the existing sink, faucet, and drain assembly
+- Preparation of the countertop or mounting surface
+- Installation of the new sink, faucet, supply lines, and drain assembly
+- Leak testing and final inspection
+
+This SOP does **not** cover:
+- Countertop fabrication or modification beyond standard sink cutout adjustments
+- Relocation of supply or drain rough-in (see SOP PLB-SOP-010)
+- Garbage disposal installation (see SOP PLB-SOP-005)
+- Dishwasher connection (see SOP PLB-SOP-006)
+
+---
+
+## 3. References & Codes
+
+- International Plumbing Code (IPC) — current edition
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

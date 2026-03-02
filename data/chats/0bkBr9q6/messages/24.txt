@@ -1,0 +1,13 @@
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+Cell In[1], line 5
+      2 from supabase import create_client
+      3 import os
+----> 5 client = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_ROLE_KEY'])
+      7 print('=== DATABASE VERIFICATION ===')
+      8 print()
+
+File <frozen os>:717, in __getitem__(self, key)
+
+KeyError: 'SUPABASE_URL'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

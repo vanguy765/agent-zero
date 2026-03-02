@@ -1,0 +1,42 @@
+=== DATABASE VERIFICATION ===
+
+📋 sops: 2 records
+   PLB-SOP-001 | PLB | Remove & Replace Sink (Kitchen / Bathroom / Utilit | rev 1.0 | active
+   ELC-SOP-001 | ELC | Remove & Replace Electrical Outlet (Receptacle) —  | rev 1.0 | active
+
+✅ sop_executive_checklists: 20 records
+   Step 1: Isolate Services
+   Step 2: Disconnect All Plumbing
+   Step 3: Remove Fixtures
+   ... and 17 more
+
+📝 sop_detailed_steps: 20 records
+   Step 4: Connect Water Supply
+   Step 5: Reconnect Ancillaries & Prep for Test
+   Step 1: Isolate & Verify Zero Energy
+   ... and 17 more
+
+🎬 sop_recommended_videos: 16 records
+   Steps 1–3: Service Isolation & → How To Remove a Kitchen Sink (House Improvements)
+   Step 2: Disconnect Drain Assem → How to Disconnect a Kitchen Sink Drain (Roger Wakefield)
+   Steps 3–4: Remove Sink & Inspe → Sink Removal and Installation: How to Di (HouseImprovements)
+   ... and 13 more
+
+---------------------------------------------------------------------------
+APIError                                  Traceback (most recent call last)
+Cell In[1], line 50
+     47 print()
+     49 # Sync log
+---> 50 logs = client.table('sop_sync_log').select('sop_number, action, checklists_count, steps_count, videos_count, synced_at').execute()
+     51 print(f'📊 sop_sync_log: {len(logs.data)} records')
+     52 for l in logs.data:
+
+File /opt/venv/lib/python3.13/site-packages/postgrest/_sync/request_builder.py:53, in SyncQueryRequestBuilder.execute(self)
+     51     else:
+     52         json_obj = model_validate_json(APIErrorFromJSON, r.content)
+---> 53         raise APIError(dict(json_obj))
+     54 except ValidationError as e:
+     55     raise APIError(generate_default_error_message(r))
+
+APIError: {'message': 'column sop_sync_log.checklists_count does not exist', 'code': '42703', 'hint': None, 'details': None}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

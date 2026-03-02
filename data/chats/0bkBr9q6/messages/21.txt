@@ -1,0 +1,38 @@
+def parse_executive_checklist(self, section_content: str, section_number: int, phase_name: str) -> list:
+        """Parse executive checklist table from a procedure section."""
+        items = []
+        in_table = False
+        for line in section_content.split("\n"):
+            if "|" in line and "Step" in line and "Step Name" in line:
+                in_table = True
+                continue
+            if in_table and "|" in line and "---" not in line:
+                cells = [c.strip() for c in line.split("|") if c.strip()]
+                if len(cells) >= 3:
+                    try:
+                        step_num = int(cells[0])
+                    except (ValueError, IndexError):
+                        continue
+                    items.append({
+                        "section_number": section_number,
+                        "phase_name": phase_name,
+                        "step_number": step_num,
+                        "step_name": cells[1].strip(),
+                        "tasks": cells[2].strip() if len(cells) > 2 else "",
+                        "sort_order": step_num
+                    })
+            elif in_table and "|" not in line and line.strip():
+                break
+        return items
+
+    def parse_detailed_steps(self, section_content: str, section_number: int, phase_name: str) -> list:
+        """Parse detailed step subsections (#### Step N: Name)."""
+        steps = []
+        current_step = None
+        for line in section_content.split("\n"):
+            m = re.match(r"^####\s+Step\s+(\d+):\s+(.+)$", line)
+            if m:
+                if current_step:
+                    steps.append(current_step)
+                current_step = {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

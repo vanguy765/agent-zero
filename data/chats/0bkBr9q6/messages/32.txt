@@ -1,0 +1,52 @@
+def check_and_request(self, trade: str, task: str) -> dict:
+        """Check if a suitable SOP exists. If not, return a request payload for agent creation."""
+        results = self.search(f"{trade} {task}")
+        if results:
+            return {
+                "found": True,
+                "matches": results,
+                "message": f"Found {len(results)} matching SOP(s)"
+            }
+        # No match — generate agent request
+        trade_code = trade[:3].upper()
+        # Find next number
+        existing = self.client.table("sops").select("sop_number").ilike("sop_number", f"{trade_code}%").execute()
+        max_num = 0
+        for s in existing.data:
+            m = re.search(r"(\d+)$", s["sop_number"])
+            if m:
+                max_num = max(max_num, int(m.group(1)))
+        next_number = f"{trade_code}-SOP-{max_num + 1:03d}"
+
+        request_payload = {
+            "found": False,
+            "message": f"No SOP found for '{trade} — {task}'. Agent creation requested.",
+            "agent_request": {
+                "action": "create_sop",
+                "sop_number": next_number,
+                "trade_code": trade_code,
+                "trade_name": trade,
+                "task_name": task,
+                "prompt": (
+                    f"Create a complete Standard Operating Procedure for {trade} — {task}. "
+                    f"Assign SOP number {next_number}. Follow the SOP Authoring Guide (SOP-META-001) exactly. "
+                    f"Include all mandatory sections: Purpose, Scope, References & Codes, Personnel, Safety, "
+                    f"Tools & Equipment, Pre-Work Assessment, Procedure phases with Executive Checklists and "
+                    f"Detailed Steps, Recommended Videos, Testing & Commissioning, Cleanup, Troubleshooting, "
+                    f"Quality Standards, and Revision History. "
+                    f"Save the file as {next_number.replace('-', '_')}_{task.replace(' ', '_')}.md"
+                )
+            }
+        }
+
+        # Log the request
+        self._log_action(None, next_number, "agent_requested",
+                         {"trade": trade, "task": task})
+        return request_payload
+
+    def _log_action(self, sop_id, sop_number, action, details=None):
+        """Log a sync action."""
+        try:
+            self.client.table("sop_sync_log").insert({
+                "sop_id": sop_id,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,10 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 2
+      1 # Videos
+----> 2 vids = client.table('sop_recommended_videos').select('sop_id, phase_name, step_reference, video_title, source').execute()
+      3 print(f'🎬 sop_recommended_videos: {len(vids.data)} records')
+      4 for v in vids.data[:3]:
+
+NameError: name 'client' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

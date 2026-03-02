@@ -1,0 +1,21 @@
+27:import argparse
+493:    parser = argparse.ArgumentParser(description="SOP Library Manager")
+494:    sub = parser.add_subparsers(dest="command")
+497:    p_upload = sub.add_parser("upload", help="Upload SOP .md file to storage and sync DB")
+498:    p_upload.add_argument("file", help="Path to .md file")
+501:    p_sync = sub.add_parser("sync", help="Re-sync DB from storage")
+502:    p_sync.add_argument("--all", action="store_true", help="Sync all SOPs")
+503:    p_sync.add_argument("sop_number", nargs="?", help="Specific SOP number to sync")
+506:    p_search = sub.add_parser("search", help="Search SOPs")
+507:    p_search.add_argument("query", help="Search query")
+510:    sub.add_parser("list", help="List all SOPs")
+513:    p_show = sub.add_parser("show", help="Show SOP details")
+514:    p_show.add_argument("sop_number", help="SOP number")
+517:    p_req = sub.add_parser("request", help="Request agent to create SOP")
+518:    p_req.add_argument("trade", help="Trade name")
+519:    p_req.add_argument("task", help="Task name")
+522:    p_check = sub.add_parser("check", help="Check if SOP exists, request if not")
+523:    p_check.add_argument("trade", help="Trade name")
+524:    p_check.add_argument("task", help="Task name")
+576:if __name__ == "__main__":
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

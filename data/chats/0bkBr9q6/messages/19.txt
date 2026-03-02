@@ -1,0 +1,19 @@
+cells = [c.strip() for c in line.split("|") if c.strip()]
+                if len(cells) >= 2:
+                    # Strip bold markdown markers
+                    key = re.sub(r"\*\*", "", cells[0]).strip()
+                    val = re.sub(r"\*\*", "", cells[1]).strip()
+                    if key:
+                        meta[key] = val
+            elif in_table and "|" not in line and line.strip() and line.strip() != "---":
+                break
+        return meta
+
+    def parse_sections(self) -> list:
+        """Split document into sections by ## headings."""
+        sections = []
+        current = None
+        for line in self.lines:
+            m = re.match(r"^## (\d+)\.\s+(.+)$", line)
+            if m:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

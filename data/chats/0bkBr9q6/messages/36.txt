@@ -1,0 +1,6 @@
+200(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 200(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# SUPABASE_URL = os.environ.get("SUPABASE_URL", "http://host.docker.internal:54321")
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

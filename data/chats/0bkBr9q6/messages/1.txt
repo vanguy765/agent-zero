@@ -1,0 +1,217 @@
+## 8. Procedure — Removal of Existing Sink
+
+### 📋 Removal Phase Groups (Executive Checklist)
+
+Complete each group in order. Check off the group when **all tasks within it are finished**.
+
+| Priority | Group | Tasks Covered | ✓ |
+|:---:|---|---|:---:|
+| **1** | **Isolate Services** — Shut off water supply, relieve pressure, position bucket | Steps 1 (items 1–3) | ☐ |
+| **2** | **Disconnect All Plumbing** — Detach supply lines, drain assembly, disposal, and ancillary connections | Steps 2–4 (items 4–14) | ☐ |
+| **3** | **Remove Fixtures** — Remove faucet and sink from countertop/wall | Steps 5–6 (items 15–19) | ☐ |
+| **4** | **Inspect & Prepare Surface** — Check for damage, rot, mold; clean all surfaces; clear drain pipe | Step 7 (items 20–23) | ☐ |
+| **5** | **Document & Report** — Photograph conditions, report issues to supervisor/customer, get authorization | Step 7 cont. (items 24–25) | ☐ |
+
+> ✅ **All 5 groups complete?** → Proceed to Section 9 — Installation.
+
+---
+
+### 📋 Removal Checklist (Quick Reference)
+
+Use this checklist to track progress through the removal procedure. Each item corresponds to the detailed steps below.
+
+| # | Task | ✓ |
+|---|---|---|
+| 1 | Hot & cold shut-off valves closed | ☐ |
+| 2 | Faucet opened to relieve pressure / drain residual water | ☐ |
+| 3 | Bucket placed under connections | ☐ |
+| 4 | Hot supply line disconnected | ☐ |
+| 5 | Cold supply line disconnected | ☐ |
+| 6 | Supply lines disconnected from faucet (basin wrench) | ☐ |
+| 7 | Open valve outlets capped/plugged (if extended removal) | ☐ |
+| 8 | P-trap slip-joint nut loosened (tailpiece side) | ☐ |
+| 9 | P-trap slip-joint nut loosened (wall/floor side) | ☐ |
+| 10 | P-trap removed and drained into bucket | ☐ |
+| 11 | Rag stuffed into open drain pipe | ☐ |
+| 12 | Garbage disposal disconnected (if present) | ☐ |
+| 13 | Dishwasher drain hose disconnected (if present) | ☐ |
+| 14 | Filtered water / soap dispenser / hot water dispenser disconnected | ☐ |
+| 15 | Faucet mounting nuts removed (if not transferring) | ☐ |
+| 16 | Faucet lifted out and mounting surface cleaned | ☐ |
+| 17 | Sealant / caulk cut around sink perimeter | ☐ |
+| 18 | Mounting clips removed | ☐ |
+| 19 | Sink removed (two-person lift if heavy) | ☐ |
+| 20 | Countertop cutout inspected for damage / rot / mold | ☐ |
+| 21 | Cabinet interior inspected for water damage | ☐ |
+| 22 | Old putty, caulk, adhesive cleaned from surface | ☐ |
+| 23 | Drain pipe inspected and cleaned; rag removed | ☐ |
+| 24 | Damage documented and photographed | ☐ |
+| 25 | Issues reported to supervisor / customer (if any) | ☐ |
+
+---
+
+### Step 1: Shut Off Water Supply
+1. Close both hot and cold shut-off valves under the sink
+2. Open the faucet to relieve pressure and drain residual water
+3. If shut-off valves do not hold, shut off at the main and note valve replacement is required
+4. Place bucket under connections
+
+### Step 2: Disconnect Supply Lines
+1. Disconnect hot and cold supply lines from shut-off valves using adjustable wrench
+2. Disconnect supply lines from faucet using basin wrench
+3. Allow lines to drain into bucket
+4. Cap or plug open valve outlets if sink will be out for extended period
+
+### Step 3: Disconnect Drain Assembly
+1. Loosen slip-joint nut connecting tailpiece to P-trap (channel-lock pliers)
+2. Loosen slip-joint nut connecting P-trap to wall stub-out or floor drain
+3. Remove P-trap assembly — dump residual water into bucket
+4. Stuff rag into open drain pipe to prevent sewer gas entry
+5. If garbage disposal is present: disconnect electrical, disconnect dishwasher drain hose, remove disposal from sink flange
+
+### Step 4: Disconnect Ancillary Connections
+- Dishwasher drain hose (if connected to tailpiece or disposal)
+- Filtered water dispenser lines
+- Soap dispenser mounting
+- Instant hot water dispenser
+
+### Step 5: Remove Faucet (if not transferring to new sink)
+1. Remove faucet mounting nuts from underside using basin wrench
+2. Lift faucet assembly out from above
+3. Clean mounting surface
+
+### Step 6: Remove Sink
+
+**For undermount sinks:**
+1. Cut silicone sealant between sink rim and countertop using utility knife
+2. Remove mounting clips from underside
+3. Support sink from below while removing last clips
+4. Lower sink carefully — **two-person lift for large/heavy sinks**
+
+**For drop-in (top-mount) sinks:**
+1. Cut caulk/sealant around sink rim using utility knife
+2. Remove any mounting clips from underside
+3. Lift sink straight up and out
+
+**For wall-mount sinks:**
+1. Disconnect all plumbing connections
+2. Remove mounting bolts/screws from wall bracket
+3. Lift sink off bracket — **support sink weight throughout**
+
+**For pedestal sinks:**
+1. Disconnect all plumbing connections
+2. Remove sink from wall mounting
+3. Remove pedestal base
+
+### Step 7: Inspect & Prepare
+1. Inspect countertop cutout for damage, rot, or mold
+2. Inspect cabinet interior for water damage
+3. Clean all old putty, caulk, and adhesive from countertop surface
+4. Inspect and clean drain pipe — remove rag
+5. **Document and photograph** any discovered damage
+6. **Report issues to supervisor / customer** before proceeding
+
+---
+
+## 9. Procedure — Installation of New Sink
+
+### 📋 Installation Phase Groups (Executive Checklist)
+
+Complete each group in order. Check off the group when **all tasks within it are finished**.
+
+| Priority | Group | Tasks | ✓ |
+|:---:|---|---|:---:|
+| **1** | **Dry-Fit & Pre-Mount Assembly** | Verify sink fit, install faucet and drain fittings on bench before mounting | ☐ |
+| **2** | **Mount & Seal Sink** | Set sink into position, install clips, apply sealant, verify level | ☐ |
+| **3** | **Connect Drain System** | Install tailpiece, P-trap, trap arm; verify slope and code compliance | ☐ |
+| **4** | **Connect Water Supply** | Attach supply lines to shut-off valves, replace valves if needed, verify hot/cold orientation | ☐ |
+| **5** | **Reconnect Ancillaries & Prep for Test** | Reattach dishwasher, disposal, dispensers; final visual check | ☐ |
+
+> ✅ **All 5 groups complete?** → Proceed to Section 10 — Testing & Commissioning.
+
+---
+
+### Step 1: Dry-Fit the New Sink
+1. Place new sink into cutout (drop-in) or hold in position (undermount) to verify fit
+2. Check alignment with drain and supply rough-ins
+3. Verify faucet holes align with selected faucet
+4. Mark position if needed with painter's tape
+
+### Step 2: Install Faucet on New Sink (Before Mounting)
+> **Best practice:** Install faucet, strainer, and drain fittings on the sink before mounting — much easier access.
+
+1. Insert faucet through mounting holes from above
+2. Install rubber gasket and mounting hardware from below
+3. Hand-tighten, then snug with basin wrench — **do not overtighten**
+4. Connect supply line stubs to faucet inlets (hand-tight + 1/4 turn)
+
+### Step 3: Install Basket Strainer / Drain Fitting
+
+**Kitchen sink (basket strainer):**
+1. Roll plumber's putty into 1/2" rope
+2. Apply putty ring around strainer flange
+3. Insert strainer into drain hole from above
+4. From below: install rubber gasket → cardboard friction ring → locknut
+5. Tighten locknut while holding strainer from above to prevent rotation
+6. Trim excess putty from above with putty knife
+
+**Bathroom sink (pop-up drain):**
+1. Apply plumber's putty or silicone (per manufacturer) to drain flange
+2. Insert drain body from above
+3. Thread drain body into tailpiece from below
+4. Install pop-up linkage and adjust
+
+### Step 4: Mount the Sink
+
+**Drop-in (top-mount):**
+1. Apply continuous bead of silicone sealant around countertop cutout edge
+2. Carefully lower sink into cutout — align with marks
+3. Press down firmly and evenly to seat
+4. Install mounting clips from below — tighten evenly in star pattern
+5. Wipe excess sealant from above and below
+
+**Undermount:**
+1. Apply silicone sealant to sink rim or countertop underside per manufacturer
+2. Lift sink into position from below — **two-person operation**
+3. Install mounting clips/brackets — tighten evenly
+4. Support sink with temporary bracing until sealant cures (if required)
+5. Clean excess sealant
+
+**Wall-mount:**
+1. Install wall bracket at correct height (31" – 34" AFF standard, or ADA height 34" max)
+2. Verify bracket is level and secured to blocking/studs
+3. Hang sink on bracket
+4. Secure with mounting bolts
+
+### Step 5: Connect Drain Assembly
+1. Install tailpiece to strainer/drain body — hand-tight slip joint
+2. Assemble P-trap:
+   - Trap arm into wall stub-out (ensure proper slope — 1/4" per foot minimum)
+   - P-trap bend connecting tailpiece to trap arm
+3. Tighten all slip-joint nuts — **hand-tight plus 1/4 turn with pliers**
+4. Ensure trap weir is not below the crown weir of the trap arm
+5. Verify horizontal distance from trap weir to vent does not exceed code maximums
+
+> ⚠️ **Code Check:** P-trap must be accessible, must have water seal of 2" – 4", and must not be double-trapped.
+
+### Step 6: Connect Supply Lines
+1. Connect braided stainless supply lines to shut-off valves
+   - Hand-tight + 1/4 turn with wrench
+   - **Do not use Teflon tape on compression fittings**
+2. If replacing shut-off valves:
+   - Cut supply pipe cleanly with tubing cutter
+   - Deburr inside and outside
+   - Install new 1/4-turn ball valve (compression or push-fit)
+3. Verify hot is on left, cold is on right (facing the sink)
+
+### Step 7: Reconnect Ancillary Items
+- Dishwasher drain hose to disposal or tailpiece air gap
+- Filtered water line
+- Soap dispenser
+- Instant hot water dispenser
+- Garbage disposal (if included in scope)
+
+---
+
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

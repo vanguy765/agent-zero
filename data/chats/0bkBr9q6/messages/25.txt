@@ -1,0 +1,36 @@
+=== DATABASE VERIFICATION ===
+
+📋 sops: 2 records
+   PLB-SOP-001 | PLB | Remove & Replace Sink (Kitchen / Bathroom / Utilit | rev 1.0 | active
+   ELC-SOP-001 | ELC | Remove & Replace Electrical Outlet (Receptacle) —  | rev 1.0 | active
+
+✅ sop_executive_checklists: 20 records
+   Step 1: Isolate Services
+   Step 2: Disconnect All Plumbing
+   Step 3: Remove Fixtures
+   ... and 17 more
+
+📝 sop_detailed_steps: 20 records
+   Step 4: Connect Water Supply
+   Step 5: Reconnect Ancillaries & Prep for Test
+   Step 1: Isolate & Verify Zero Energy
+   ... and 17 more
+
+---------------------------------------------------------------------------
+APIError                                  Traceback (most recent call last)
+Cell In[1], line 40
+     37 print()
+     39 # Videos
+---> 40 vids = client.table('sop_recommended_videos').select('sop_id, phase_name, step_reference, video_title, source_channel').execute()
+     41 print(f'🎬 sop_recommended_videos: {len(vids.data)} records')
+     42 for v in vids.data[:3]:
+
+File /opt/venv/lib/python3.13/site-packages/postgrest/_sync/request_builder.py:53, in SyncQueryRequestBuilder.execute(self)
+     51     else:
+     52         json_obj = model_validate_json(APIErrorFromJSON, r.content)
+---> 53         raise APIError(dict(json_obj))
+     54 except ValidationError as e:
+     55     raise APIError(generate_default_error_message(r))
+
+APIError: {'message': 'column sop_recommended_videos.source_channel does not exist', 'code': '42703', 'hint': None, 'details': None}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

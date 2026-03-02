@@ -1,0 +1,17 @@
+| Step | Step Name | Tasks | ✓ |
+|:---:|---|---|:---:|
+| **1** | **Isolate Services** | Shut off water supply, relieve pressure, position bucket | ☐ |
+| **2** | **Disconnect All Plumbing** | Detach supply lines, drain assembly, disposal, and ancillary connections | ☐ |
+| **3** | **Remove Fixtures** | Remove faucet and sink from countertop/wall | ☐ |
+| **4** | **Inspect & Prepare Surface** | Check for damage, rot, mold; clean all surfaces; clear drain pipe | ☐ |
+| **5** | **Document & Report** | Photograph conditions, report issues to supervisor/customer, get authorization | ☐ |
+
+> ✅ **All 5 steps complete?** → Proceed to Section 9 — Installation.
+
+---
+
+### Detailed Steps
+
+#### Step 1: Isolate Services
+1. Close both hot and cold shut-off valves under the sink
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

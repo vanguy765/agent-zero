@@ -1,0 +1,8 @@
+<>:30: SyntaxWarning: invalid escape sequence '\|'
+<ipython-input-1-3c64d5f3782a>:30: SyntaxWarning: invalid escape sequence '\|'
+  | Steps 1–5: Professional Sink & Faucet Install | [How to Replace a Kitchen Sink and Faucet \| Ask This Old House](https://www.youtube.com/watch?v=OvUuoY4veRA) | 8:47 | This Old House |
+✅ Plumbing SOP updated (20,171 bytes)
+✅ Electrical SOP updated (26,552 bytes)
+
+--- All SOPs updated with Recommended Videos sections ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

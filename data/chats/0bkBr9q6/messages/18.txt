@@ -1,0 +1,19 @@
+✅ Cleaned up UNKNOWN entry (id: ecd0653f-ad04-4ddf-836d-b1c31b1da9c8)
+✅ Cleaned orphaned sync logs
+
+=== Plumbing SOP Parse Results ===
+  Meta: {
+    "SOP Number": "PLB-SOP-001",
+    "Trade": "Plumbing",
+    "Task": "Remove & Replace Sink (Kitchen / Bathroom / Utility)",
+    "Revision": "1.0",
+    "Effective Date": "2026-02-26",
+    "Approved By": "_________________________",
+    "Estimated Duration": "2 \u2013 4 hours (varies by scope)"
+}
+  Checklists: 0
+  Detailed Steps: 10
+  Videos: 8
+
+  ⚠️ Still no checklists!
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

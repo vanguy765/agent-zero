@@ -1,0 +1,18 @@
+=== Parse Test ===
+  SOP Number: PLB-SOP-001
+  Checklists: 10
+  Detailed Steps: 10
+  Videos: 8
+
+  Checklist items:
+    S8 Step 1: Isolate Services — Shut off water supply, relieve pressure, position
+    S8 Step 2: Disconnect All Plumbing — Detach supply lines, drain assembly, disposal, and
+    S8 Step 3: Remove Fixtures — Remove faucet and sink from countertop/wall
+    S8 Step 4: Inspect & Prepare Surface — Check for damage, rot, mold; clean all surfaces; c
+    S8 Step 5: Document & Report — Photograph conditions, report issues to supervisor
+    S9 Step 1: Dry-Fit & Pre-Mount Assembly — Verify sink fit, install faucet and drain fittings
+    S9 Step 2: Mount & Seal Sink — Set sink into position, install clips, apply seala
+    S9 Step 3: Connect Drain System — Install tailpiece, P-trap, trap arm; verify slope
+    S9 Step 4: Connect Water Supply — Attach supply lines to shut-off valves, replace va
+    S9 Step 5: Reconnect Ancillaries & Prep for Test — Reattach dishwasher, disposal, dispensers; final v
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

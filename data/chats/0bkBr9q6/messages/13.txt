@@ -1,0 +1,10 @@
+<>:37: SyntaxWarning: invalid escape sequence '\|'
+<>:91: SyntaxWarning: invalid escape sequence '\|'
+<ipython-input-1-9b6e5de1b320>:37: SyntaxWarning: invalid escape sequence '\|'
+  if in_table and "|" in line and re.match(r"^[\|\s\-:]+$", line):
+<ipython-input-1-9b6e5de1b320>:91: SyntaxWarning: invalid escape sequence '\|'
+  if in_table and "|" in line and re.match(r"^[\|\s\-:]+$", line):
+✅ Parser fixed (23,762 bytes)
+Verifying parse_header_table fix...
+✅ Both fixes verified in source
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
