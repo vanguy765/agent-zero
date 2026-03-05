@@ -1,0 +1,81 @@
+import type { WOProject, ProjectOutcome, BomActionRequest, WorkOrderTemplate } from '../lib/api';
+import { api } from '../lib/api';
+import { For } from 'solid-js';
+
+const ProjectDetail: Component = () => {
+    const params = useParams();
+    const navigate = useNavigate();
+    const [outcomes] = createResource<ProjectOutcome[]>(() => api.getProjectOutcomes());
+    const [project] = createResource<WOProject>(() => {
+        if (!params.id) {
+            navigate('/projects');
+            throw new Error('No project ID provided');
+        }
+        return api.getProject(params.id);
+    });
+
+    const [bomRequests, { refetch: refetchBom }] = createResource<BomActionRequest[], string>(
+        () => params.id as string,
+        (id) => api.getBomActionRequests(id)
+    );
+    const [systemTemplates] = createResource<WorkOrderTemplate[]>(() => api.getSystemTemplates());
+
+    const handleMatchTemplate = async (reqId: string, templateId: string | null, statusOverride?: string) => {
+        try {
+            if (statusOverride === 'rejected') {
+                await api.updateBomActionRequest(reqId, { status: 'rejected' });
+            } else if (templateId) {
+                await api.updateBomActionRequest(reqId, {
+                    status: 'matched',
+                    matched_template_id: templateId,
+                    match_method: 'manual',
+                    match_confidence: 1.0
+                });
+            }
+            refetchBom();
+        } catch (err) {
+            console.error('Failed to update BOM request', err);
+            alert('Failed to update request');
+        }
+    };
+
+    const currentOutcome = (proj: WOProject) => {
+        return outcomes()?.find(o => o.id === proj.outcome_id);
+    };
+
+    const getProjectTypeIcon = (proj: WOProject) => {
+        return currentOutcome(proj)?.icon || '🏗️';
+    };
+
+    const getProjectTypeLabel = (proj: WOProject) => {
+        return currentOutcome(proj)?.name || proj.project_type || 'Custom Scheme';
+    };
+
+    const getStatusBadgeClass = (status: string) => {
+        const classes: Record<string, string> = {
+            'active': 'badge-success',
+            'completed': 'badge-primary',
+            'archived': 'badge-secondary'
+        };
+        return `badge ${classes[status] || 'badge-secondary'}`;
+    };
+
+    const getStatusLabel = (status: string) => {
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    };
+
+    const handleDelete = async () => {
+        if (!params.id) return;
+
+        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await api.deleteProject(params.id);
+            navigate('/projects');
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+--
+                                <span class="badge badge-secondary">{bomRequests()?.length || 0} Pending</span>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

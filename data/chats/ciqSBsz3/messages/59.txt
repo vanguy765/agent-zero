@@ -1,0 +1,90 @@
+# POST /parse/hybrid - Hybrid Engine (Priority 7)
+# ============================================================
+
+@app.post("/parse/hybrid")
+async def parse_hybrid(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    provider: str = Form(DEFAULT_PROVIDER),
+    supabase_url: str = Form(None),
+    supabase_key: str = Form(None),
+    tenant_name: str = Form(None),
+    project_name: str = Form(None),
+):
+    """Parse PDF using hybrid engine: Docling decomposition + Claude extraction.
+
+    Returns job_id for async polling via /status and /results endpoints.
+    """
+    temp_path = await save_upload_to_temp(file)
+    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+
+    job = await job_manager.create_job(
+        file_name=file.filename or "unknown.pdf",
+        engine="hybrid",
+    )
+
+    background_tasks.add_task(
+        _process_hybrid_background,
+        job.job_id,
+        temp_path,
+        provider,
+        sb_client,
+        tenant_name or "",
+        project_name or "",
+    )
+
+    return {
+        "job_id": job.job_id,
+        "status": "queued",
+        "engine": "hybrid",
+        "file": file.filename,
+    }
+
+
+async def _process_hybrid_background(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+):
+    """Background processor for hybrid engine with timeout enforcement."""
+    try:
+        await asyncio.wait_for(
+            process_hybrid(
+                job_id=job_id,
+                temp_path=temp_path,
+                provider=provider,
+                job_manager=job_manager,
+                sb_client=sb_client,
+                tenant_name=tenant_name,
+                project_name=project_name,
+            ),
+            timeout=PROCESSING_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        await job_manager.timeout_job(job_id)
+    except Exception as e:
+        traceback.print_exc()
+        await job_manager.fail_job(job_id, str(e))
+
+
+# ============================================================
+# GET /status/{job_id} - Lightweight Status (Priority 4a)
+# ============================================================
+
+@app.get("/status/{job_id}")
+async def get_status(job_id: str):
+    """Get lightweight job status for polling.
+
+    NEVER includes result data. Safe to poll every 2-5 seconds.
+    Small payload optimized for frequent requests.
+    """
+    status = await job_manager.get_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    return status.model_dump()
+
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,24 @@
+62:JOB_STORE_BACKEND = os.getenv("JOB_STORE_BACKEND", "memory")  # "memory" or "supabase"
+83:        supabase_url=SUPABASE_URL,
+84:        supabase_key=SUPABASE_KEY,
+127:def get_request_supabase_client(
+128:    supabase_url: Optional[str] = None,
+129:    supabase_key: Optional[str] = None,
+132:    url = supabase_url or SUPABASE_URL
+133:    key = supabase_key or SUPABASE_KEY
+137:        from supabase import create_client
+140:        logger.warning("supabase package not installed")
+171:    supabase_url: str = Form(None),
+172:    supabase_key: str = Form(None),
+193:        supabase_url,
+194:        supabase_key,
+211:    supabase_url: str,
+212:    supabase_key: str,
+230:                supabase_url, supabase_key,
+252:    supabase_url: str,
+253:    supabase_key: str,
+259:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+540:    supabase_url: str = Form(None),
+541:    supabase_key: str = Form(None),
+550:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

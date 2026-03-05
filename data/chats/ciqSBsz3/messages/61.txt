@@ -1,0 +1,11 @@
+179:            lambda: self._client.table("doc_parser_jobs").insert(data).execute()
+186:            lambda: self._client.table("doc_parser_jobs")
+221:            lambda: self._client.table("doc_parser_jobs")
+259:            lambda: self._client.table("doc_parser_jobs")
+283:            lambda: self._client.table("doc_parser_jobs")
+293:        query = self._client.table("doc_parser_jobs").select("*")
+393:        tables_found: Optional[int] = None,
+414:        if tables_found is not None:
+415:            progress.tables_found = tables_found
+502:            tables_count=len(result.get("tables", [])),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

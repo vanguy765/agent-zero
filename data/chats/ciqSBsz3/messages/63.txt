@@ -1,0 +1,4 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/demo.pdf
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf
+/a0/usr/projects/timesheet_app/voicelog-scaffold/temp_analysis.pdf
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# OPENROUTER_API_KEY=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(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,24 @@
+1:"""Doc-parser FastAPI service.
+8:- P5: Cross-page synthesis (via hybrid.py)
+10:- P7: Hybrid engine mode (via hybrid.py)
+13:  POST /parse/docling       - Original Docling-only engine
+14:  POST /parse/hybrid        - Hybrid engine (Docling + Claude)
+50:from hybrid import process_hybrid, run_llm_extraction
+93:        f"Doc-parser started (store={JOB_STORE_BACKEND}, "
+101:    logger.info("Doc-parser shutting down")
+163:# POST /parse/docling - Original Docling Engine
+166:@app.post("/parse/docling")
+167:async def parse_docling(
+447:            from hybrid import run_text_llm
+532:# POST /parse/hybrid - Hybrid Engine (Priority 7)
+535:@app.post("/parse/hybrid")
+536:async def parse_hybrid(
+545:    """Parse PDF using hybrid engine: Docling decomposition + Claude extraction.
+554:        engine="hybrid",
+558:        _process_hybrid_background,
+570:        "engine": "hybrid",
+575:async def _process_hybrid_background(
+583:    """Background processor for hybrid engine with timeout enforcement."""
+586:            process_hybrid(
+715:        "engines": ["docling", "hybrid"],
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

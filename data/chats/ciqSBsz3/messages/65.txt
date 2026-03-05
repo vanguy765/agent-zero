@@ -1,0 +1,31 @@
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:2: * ProjectDocuments.tsx - Doc-Parser Integration
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:5: * ProjectDocuments.tsx for doc-parser engine selection and progress tracking.
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:60:interface ParsedResult {
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:92:  const [result, setResult] = createSignal<ParsedResult | null>(null);
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:144:      const resp = await fetch(`/api/doc-parser/results/${id}`);
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:177:      const resp = await fetch(`/api/documents/${documentId}/parse`, {
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:458:// Component: ParseResultSummary
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:462:interface ParseResultSummaryProps {
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:463:  result: ParsedResult;
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:466:function ParseResultSummary(props: ParseResultSummaryProps) {
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:567: * <Show when={docParser.result()}>
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:568: *   <ParseResultSummary result={docParser.result()!} />
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:583:  ParseResultSummary,
+apps/work-orders/src/components/doc-parser/DocParserPanel.tsx:588:  type ParsedResult,
+apps/work-orders/src/lib/api.ts:102:export interface BomActionRequest {
+apps/work-orders/src/lib/api.ts:108:  bom_reference?: string;
+apps/work-orders/src/lib/api.ts:162:  bom_action_request_id?: string;
+apps/work-orders/src/lib/api.ts:230:export interface ParsedDocumentResult {
+apps/work-orders/src/lib/api.ts:549:  // BOM Action Requests
+apps/work-orders/src/lib/api.ts:550:  async getBomActionRequests(projectId: string): Promise<BomActionRequest[]> {
+apps/work-orders/src/lib/api.ts:551:    return this.request<BomActionRequest[]>(`/bom-action-requests/project/${projectId}`);
+apps/work-orders/src/lib/api.ts:554:  async updateBomActionRequest(id: string, updates: Partial<BomActionRequest>): Promise<BomActionRequest> {
+apps/work-orders/src/lib/api.ts:555:    return this.request<BomActionRequest>(`/bom-action-requests/${id}`, {
+apps/work-orders/src/lib/api.ts:642:  async parseDocumentWithClaude(documentId: string, customPrompt?: string): Promise<ParsedDocumentResult> {
+apps/work-orders/src/lib/api.ts:643:    return this.request(`/documents/${documentId}/parse`, {
+apps/work-orders/src/lib/api.ts:659:  /** Submit a document for parsing via doc-parser service */
+apps/work-orders/src/lib/api.ts:694:  async getDocParserResults(jobId: string, summary?: boolean): Promise<any> {
+apps/work-orders/src/lib/api.ts:696:    return this.request(`/doc-parser/results/${jobId}${query}`);
+apps/work-orders/src/pages/ProjectDetail.tsx:4:import type { WOProject, ProjectOutcome, BomActionRequest, WorkOrderTemplate } from '../lib/api';
+apps/work-orders/src/pages/ProjectDetail.tsx:20:    const [bomRequests, { refetch: refetchBom }] = createResource<BomActionRequest[], string>(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

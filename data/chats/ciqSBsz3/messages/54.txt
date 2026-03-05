@@ -1,0 +1,93 @@
+import type { Component } from 'solid-js';
+import { createSignal, createResource, For, Show, createEffect } from 'solid-js';
+import type { TypeOrder, WorkOrderTemplate } from '../lib/api';
+import { api } from '../lib/api';
+
+const TypeOrders: Component = () => {
+    const [typeOrders] = createResource<TypeOrder[]>(() => api.getTypeOrders());
+    const [templates] = createResource<WorkOrderTemplate[]>(() => api.getSystemTemplates());
+
+    const [selectedTypeOrderId, setSelectedTypeOrderId] = createSignal<string>('');
+    const [defaultTemplates, setDefaultTemplates] = createSignal<any[]>([]);
+    const [isSaving, setIsSaving] = createSignal(false);
+
+    // Fetch defaults when a type order is selected
+    createEffect(async () => {
+        const toId = selectedTypeOrderId();
+        if (toId) {
+            try {
+                const defaults = await api.getTypeOrderDefaultWorkOrders(toId);
+                setDefaultTemplates(defaults);
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            setDefaultTemplates([]);
+        }
+    });
+
+    const currentTemplateIds = () => defaultTemplates().map(dt => dt.work_order_template_id);
+
+===TRADES===
+import type { Component } from 'solid-js';
+import { createResource, For, Show } from 'solid-js';
+import { api } from '../lib/api';
+
+const Trades: Component = () => {
+    const [trades] = createResource(() => api.getTrades());
+
+    return (
+        <div class="space-y-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Trades Master List</h1>
+                <p class="mt-2 text-gray-600">All available building trades in the system.</p>
+            </div>
+            <div class="card p-0 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <Show when={!trades.loading} fallback={<tr><td class="p-6 text-center text-gray-500">Loading...</td></tr>}>
+                            <For each={trades()}>
+                                {(t) => (
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{t.name}</td>
+                                    </tr>
+                                )}
+                            </For>
+                        </Show>
+===OUTCOMES===
+import type { Component } from 'solid-js';
+import { createResource, For, Show } from 'solid-js';
+import { api } from '../lib/api';
+
+const ProjectOutcomes: Component = () => {
+    const [outcomes] = createResource(() => api.getProjectOutcomes());
+
+    return (
+        <div class="space-y-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Project Outcomes</h1>
+                <p class="mt-2 text-gray-600">System-level project architectures and their codes.</p>
+            </div>
+            <div class="card p-0 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <Show when={!outcomes.loading} fallback={<tr><td colSpan={2} class="p-6 text-center text-gray-500">Loading...</td></tr>}>
+                            <For each={outcomes()}>
+                                {(o) => (
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center gap-3">
+                                            <span class="text-2xl">{o.icon || '🏗️'}</span>
+                                            {o.name}
+                                        </td>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

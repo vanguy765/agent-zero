@@ -1,0 +1,16 @@
+=== Layout.tsx ===
+1
+=== App.tsx ===
+/* Wrap settings sub-pages in the shared sidebar layout */
+          <Route path="/settings" component={() => <Navigate href="/settings/trades" />} />
+          <Route path="/settings/trades" component={SettingsTrades} />
+          <Route path="/settings/type-orders" component={SettingsTypeOrders} />
+          <Route path="/settings/outcomes" component={SettingsOutcomes} />
+=== SettingsLayout.tsx ===
+56 apps/work-orders/src/components/SettingsLayout.tsx
+=== Verify no old routes remain ===
+90:          <Route path="/settings" component={() => <Navigate href="/settings/trades" />} />
+91:          <Route path="/settings/trades" component={SettingsTrades} />
+92:          <Route path="/settings/type-orders" component={SettingsTypeOrders} />
+93:          <Route path="/settings/outcomes" component={SettingsOutcomes} />
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

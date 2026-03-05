@@ -1,0 +1,41 @@
+4:Uses Docling for what it does best (OCR, table extraction, image classification)
+9:       -> Claude (only floorplan images + table context) -> Unit-oriented output
+99:    """Send text-only prompt to LLM (for synthesis, table analysis)."""
+129:async def upload_image_to_storage(
+148:            lambda: sb_client.storage
+150:            .upload(path, image_bytes, {"content-type": "image/png"})
+154:        url_response = sb_client.storage.from_("document-images").get_public_url(path)
+158:        logger.warning(f"Image upload failed for {filename}: {e}")
+182:    2. Classification - Identify floorplans, tables, photos
+208:        pipeline_options.generate_table_images = True
+245:        table_data: List[Tuple[int, str]] = []  # (page, markdown)
+250:        # --- Collect tables from Docling's structured extraction ---
+251:        for table in result_doc.tables:
+252:            md_text = table.export_to_markdown()
+253:            page_no = table.prov[0].page_no if table.prov else 1
+255:            # Check if this is a footer/title block table
+266:            table_data.append((page_no, md_text))
+270:            tables_found=len(table_data),
+271:            current_step=f"found_{len(table_data)}_tables",
+301:            # tables and title_blocks already handled by Docling
+324:            f"{len(table_data)} tables, "
+338:        # Build table context string for enriching Claude prompts
+339:        table_context = ""
+340:        if table_data:
+341:            table_context = "\n\n".join([
+343:                for pg, md in table_data
+364:            # Enrich prompt with table context
+366:            if table_context:
+369:                    "other tables extracted from this document set. Use these "
+372:                    + table_context
+429:            successful_extractions and table_data
+454:                if table_data:
+458:                    for pg, md in table_data:
+493:            table_data=table_data,
+508:            tables=result.get("tables", []),
+546:    table_data: List[Tuple[int, str]],
+567:        "tables": [],
+579:            "tables": [],
+627:    # --- Add Docling tables to output ---
+628:    for page_no, md in table_data:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

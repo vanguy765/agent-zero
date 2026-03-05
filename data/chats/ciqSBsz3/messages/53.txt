@@ -1,0 +1,94 @@
+import { createSignal, Show, onMount } from 'solid-js';
+import type { Component } from 'solid-js';
+import type { Session } from '@supabase/supabase-js';
+import { Router, Route } from '@solidjs/router';
+import { supabase } from './lib/supabase';
+import Layout from './components/Layout';
+import LoginPage from './pages/LoginPage';
+import Dashboard from './pages/Dashboard';
+import Units from './pages/Units';
+import Templates from './pages/Templates';
+import TemplateDetail from './pages/TemplateDetail';
+import TemplateEditor from './pages/TemplateEditor';
+import CompanyTemplates from './pages/CompanyTemplates';
+import ProjectTemplates from './pages/ProjectTemplates';
+import WorkOrderDetail from './pages/WorkOrderDetail';
+import TypeOrders from './pages/TypeOrders';
+import Trades from './pages/Trades';
+import ProjectOutcomes from './pages/ProjectOutcomes';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
+import NewProject from './pages/NewProject';
+import ProjectDocuments from './pages/ProjectDocuments';
+import './index.css';
+
+const App: Component = () => {
+  const [session, setSession] = createSignal<Session | null>(null);
+  const [loading, setLoading] = createSignal(true);
+
+  onMount(async () => {
+    const { data: { session: s } } = await supabase.auth.getSession();
+    setSession(s);
+    setLoading(false);
+
+    supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+  });
+
+  const handleLogin = async () => {
+    const { data: { session: s } } = await supabase.auth.getSession();
+    setSession(s);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+  };
+
+  return (
+    <Show when={!loading()} fallback={
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+      </div>
+    }>
+      <Show when={session()} fallback={<LoginPage onLogin={handleLogin} />}>
+        <Router root={(props) => (
+          <Layout
+            userEmail={session()!.user.email || ''}
+            onLogout={handleLogout}
+          >
+            {props.children}
+          </Layout>
+        )}>
+          <Route path="/" component={Dashboard} />
+          <Route path="/units" component={Units} />
+          <Route path="/templates" component={Templates} />
+          <Route path="/templates/company" component={CompanyTemplates} />
+          <Route path="/templates/new" component={TemplateEditor} />
+          <Route path="/templates/:id/edit" component={TemplateEditor} />
+          <Route path="/templates/:id" component={TemplateDetail} />
+          <Route path="/work-orders/:id" component={WorkOrderDetail} />
+          <Route path="/projects" component={Projects} />
+          <Route path="/projects/new" component={NewProject} />
+          <Route path="/projects/:id" component={ProjectDetail} />
+          <Route path="/projects/:id/documents" component={ProjectDocuments} />
+          <Route path="/projects/:projectId/templates" component={ProjectTemplates} />
+          <Route path="/type-orders" component={TypeOrders} />
+          <Route path="/trades" component={Trades} />
+          <Route path="/outcomes" component={ProjectOutcomes} />
+        </Router>
+      </Show>
+    </Show>
+  );
+};
+
+export default App;
+---SEPARATOR---
+CompanyTemplates.tsx  ProjectDocuments.tsx.bak	Templates.tsx
+Dashboard.tsx	      ProjectOutcomes.tsx	Trades.tsx
+LoginPage.tsx	      Projects.tsx		TypeOrders.tsx
+NewProject.tsx	      ProjectTemplates.tsx	Units.tsx
+ProjectDetail.tsx     TemplateDetail.tsx	WorkOrderDetail.tsx
+ProjectDocuments.tsx  TemplateEditor.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

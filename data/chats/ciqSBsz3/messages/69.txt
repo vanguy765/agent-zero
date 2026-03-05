@@ -1,0 +1,41 @@
+-- 1H. bom_action_requests table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.bom_action_requests (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    project_id uuid NOT NULL REFERENCES public.wo_projects(id) ON DELETE CASCADE,
+    unit_id uuid REFERENCES public.units(id) ON DELETE SET NULL,
+    document_id uuid,
+    action_description text NOT NULL,
+    bom_reference text,
+    matched_template_id uuid REFERENCES public.work_order_templates(id) ON DELETE SET NULL,
+    matched_sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+    match_confidence numeric(3,2),
+    match_method text DEFAULT 'pending',
+    status text NOT NULL DEFAULT 'pending',
+    metadata jsonb DEFAULT '{}',
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT bom_status_check CHECK (status IN ('pending', 'matched', 'rejected', 'applied')),
+    CONSTRAINT bom_method_check CHECK (match_method IN ('pending', 'auto', 'manual', 'ai_suggested'))
+);
+
+-- RLS for bom_action_requests
+ALTER TABLE public.bom_action_requests ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "bom_requests_select" ON public.bom_action_requests FOR SELECT
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "bom_requests_insert" ON public.bom_action_requests FOR INSERT
+    WITH CHECK (organization_id = current_user_organization_id());
+
+CREATE POLICY "bom_requests_update" ON public.bom_action_requests FOR UPDATE
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "bom_requests_delete" ON public.bom_action_requests FOR DELETE
+    USING (organization_id = current_user_organization_id());
+
+-- Indexes for bom_action_requests
+CREATE INDEX IF NOT EXISTS idx_bom_requests_project_id ON public.bom_action_requests(project_id);
+CREATE INDEX IF NOT EXISTS idx_bom_requests_unit_id ON public.bom_action_requests(unit_id);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

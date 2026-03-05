@@ -1,0 +1,59 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+export const bomActionRequestsRoute = new OpenAPIHono();
+
+if (process.env.REQUIRE_AUTH === 'true') {
+    bomActionRequestsRoute.use('*', authMiddleware);
+}
+
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+bomActionRequestsRoute.get('/project/:projectId', async (c) => {
+    const supabase = getScopedClient(c);
+    const projectId = c.req.param('projectId');
+
+    const { data, error } = await supabase
+        .from('bom_action_requests')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+
+bomActionRequestsRoute.patch('/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const allowedFields = ['status', 'matched_template_id', 'match_method', 'match_confidence'];
+    const updateData: Record<string, any> = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) updateData[field] = body[field];
+    }
+
+    if (Object.keys(updateData).length === 0) return c.json({ error: 'No valid fields to update' }, 400);
+
+    const { data, error } = await supabase
+        .from('bom_action_requests')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
