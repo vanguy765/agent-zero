@@ -1,0 +1,15 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 213
+      1 conftest_content = '''"""Shared pytest fixtures for doc-parser unit tests."""
+      2 import sys
+      3 import os
+   (...)    209     return JobProgress()
+    210 '''
+    212 output_dir = "/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests"
+--> 213 os.makedirs(output_dir, exist_ok=True)
+    215 with open(os.path.join(output_dir, "conftest.py"), "w") as f:
+    216     f.write(conftest_content)
+
+NameError: name 'os' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

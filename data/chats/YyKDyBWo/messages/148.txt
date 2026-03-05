@@ -1,0 +1,52 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+
+const USERS = [
+    { email: 'alice@example.com', password: 'password123', metadata: { role: 'manager' } },
+    { email: 'eric@example.com', password: 'password123$', metadata: { role: 'admin' } },
+];
+
+async function main() {
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('Missing SUPABASE_SERVICE_ROLE_KEY');
+        process.exit(1);
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const { data: list, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) {
+        console.error('Failed to list users:', listError);
+        process.exit(1);
+    }
+
+    for (const user of USERS) {
+        const exists = list.users.find(u => u.email === user.email);
+        if (exists) {
+            console.log(`User ${user.email} already exists.`);
+            continue;
+        }
+
+        const { data, error } = await supabase.auth.admin.createUser({
+            email: user.email,
+            password: user.password,
+            email_confirm: true,
+            user_metadata: user.metadata,
+        });
+
+        if (error) {
+            console.error(`Failed to create ${user.email}:`, error);
+        } else {
+            console.log(`Created ${user.email} (${data.user.id})`);
+        }
+    }
+}
+
+main();
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === Frontend project creation ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx:78:                            <Show when={template()!.organization_id}>
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx:82:                                        {template()!.organization_id?.slice(0, 8)}...
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateEditor.tsx:268:                payload.organization_id = '00000000-0000-0000-0000-000000000001';
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

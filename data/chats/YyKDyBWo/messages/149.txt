@@ -1,0 +1,7 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# > > > > UPDATE 2
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === Verify ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# > >  alice@example.com | {"role": "manager", "email_verified": true, "organization_id": "00000000-0000-0000-0000-000000000001"}
+ eric@example.com  | {"role": "admin", "email_verified": true, "organization_id": "00000000-0000-0000-0000-000000000001"}
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

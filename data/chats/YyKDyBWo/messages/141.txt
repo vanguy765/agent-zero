@@ -1,0 +1,26 @@
+table_name        | row_count
+--------------------------+-----------
+ agent_memories           |         0
+ document_images          |         0
+ entity_creation_log      |         0
+ image_links              |         0
+ metric_definitions       |        40
+ organizations            |         1
+ pending_reviews          |         0
+ portal_table_config      |         0
+ project_documents        |         0
+ rooms                    |        32
+ sop_detailed_steps       |         0
+ sop_executive_checklists |         0
+ sop_recommended_videos   |         0
+ sop_sync_log             |         0
+ sops                     |         0
+ template_libraries       |         5
+ unit_documents           |         0
+ unit_room_calculations   |        29
+ unit_room_measurements   |         8
+ unit_rooms               |       144
+ units                    |        20
+--More--
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

@@ -1,0 +1,78 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > NOTICE:  table "type_order_default_work_orders" does not exist, skipping
+DROP TABLE
+NOTICE:  table "type_order_compositions" does not exist, skipping
+DROP TABLE
+NOTICE:  table "bom_action_requests" does not exist, skipping
+DROP TABLE
+NOTICE:  table "type_orders" does not exist, skipping
+DROP TABLE
+NOTICE:  table "trade_outcome_assignments" does not exist, skipping
+DROP TABLE
+NOTICE:  table "organization_trades" does not exist, skipping
+DROP TABLE
+NOTICE:  table "project_outcomes" does not exist, skipping
+DROP TABLE
+NOTICE:  table "trades" does not exist, skipping
+DROP TABLE
+NOTICE:  column "trade_id" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+NOTICE:  column "sop_id" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+NOTICE:  column "outcome_id" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+NOTICE:  column "inheritance_depth" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+NOTICE:  column "source_template_id" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+NOTICE:  column "trade_id" of relation "sops" does not exist, skipping
+ALTER TABLE
+NOTICE:  column "scope" of relation "sops" does not exist, skipping
+ALTER TABLE
+NOTICE:  column "outcome_id" of relation "sops" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+NOTICE:  column "outcome_id" of relation "wo_projects" does not exist, skipping
+ALTER TABLE
+NOTICE:  trigger "trg_sync_trade_name_templates" for relation "public.work_order_templates" does not exist, skipping
+DROP TRIGGER
+NOTICE:  trigger "trg_sync_trade_name_work_orders" for relation "public.work_orders" does not exist, skipping
+DROP TRIGGER
+NOTICE:  trigger "trg_sync_trade_name_code_sops" for relation "public.sops" does not exist, skipping
+DROP TRIGGER
+NOTICE:  function public.sync_trade_name() does not exist, skipping
+DROP FUNCTION
+NOTICE:  function public.sync_trade_name_and_code() does not exist, skipping
+DROP FUNCTION
+NOTICE:  constraint "work_order_templates_scope_check" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+NOTICE:  constraint "valid_app_scope" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+NOTICE:  constraint "template_libraries_scope_check" of relation "template_libraries" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+NOTICE:  constraint "valid_app_library" of relation "template_libraries" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+NOTICE:  policy "work_order_templates_select_system" for relation "public.work_order_templates" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+        status
+-----------------------
+ Full cleanup complete
+(1 row)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Verifying clean state ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

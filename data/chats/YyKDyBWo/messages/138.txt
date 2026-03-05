@@ -1,0 +1,58 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Document-related migrations ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000004_unit_tables.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000008_foreign_keys.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000009_indexes.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000012_rls_policies.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260219000002_placeholder_recovery.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260222000004_storage_buckets.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260228000001_sop_library.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/early-work/20260204000000_document_storage.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/seed.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Supabase config ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/config.toml
+# For detailed configuration reference documentation, visit:
+# https://supabase.com/docs/guides/local-development/cli/config
+# A string used to distinguish different Supabase projects on the same host. Defaults to the
+# working directory name when running `supabase init`.
+project_id = "voicelog"
+
+[api]
+enabled = true
+# Port to use for the API URL.
+port = 54321
+# Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
+# endpoints. `public` and `graphql_public` schemas are included by default.
+schemas = ["public", "graphql_public"]
+# Extra schemas to add to the search_path of every request.
+extra_search_path = ["public", "extensions"]
+# The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
+# for accidental or malicious requests.
+max_rows = 1000
+
+[api.tls]
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Migration files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# 20260217000001_extensions.sql
+20260217000002_core_tables.sql
+20260217000003_work_order_tables.sql
+20260217000004_unit_tables.sql
+20260217000005_document_tables.sql
+20260217000006_agent_memories.sql
+20260217000007_functions.sql
+20260217000008_foreign_keys.sql
+20260217000009_indexes.sql
+20260217000010_views.sql
+20260217000011_triggers.sql
+20260217000012_rls_policies.sql
+20260219000001_tenant_portal_config.sql
+20260219000002_placeholder_recovery.sql
+20260222000001_template_rls_manager_admin.sql
+20260222000002_project_lifecycle_template_inheritance.sql
+20260222000003_user_template_prefs.sql
+20260222000004_storage_buckets.sql
+20260222000005_tenant_onboarding.sql
+20260223000001_org_industry_description.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

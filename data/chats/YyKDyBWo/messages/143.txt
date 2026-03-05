@@ -1,0 +1,13 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# >  7d168f62-265f-4c12-860c-c98736548619 | eric@example.com | {"role": "admin", "email_verified": true}
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# >  18302f11-7c1c-4554-83e0-051bc1dc5397 | alice@example.com    | manager  |
+ 31bca7f1-76eb-483b-a81c-3d41f74f8330 | sysadmin@example.com | sysadmin |
+ 7d168f62-265f-4c12-860c-c98736548619 | eric@example.com     | admin    |
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# >  organizations
+ pg_auth_members
+ user_template_prefs
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

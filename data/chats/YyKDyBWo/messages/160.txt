@@ -1,0 +1,29 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#   // ============================================================
+
+  /** Submit a document for parsing via doc-parser service */
+  async submitDocParserJob(
+    documentId: string,
+    engine: 'claude-direct' | 'hybrid' = 'hybrid'
+  ): Promise<{ job_id: string; status: string; engine: string }> {
+    return this.request(`/doc-parser/parse`, {
+      method: 'POST',
+      body: JSON.stringify({ document_id: documentId, engine }),
+    });
+  }
+
+  /** Poll job status (lightweight endpoint) */
+  async getDocParserStatus(jobId: string): Promise<{
+    job_id: string;
+    status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+    engine: string;
+    file_name: string;
+    progress: {
+      current_phase: string;
+      phases: string[];
+      current_page: number;
+      total_pages: number;
+      current_step: string;
+      floorplans_found: number;
+      tables_found: number;
+      percent_complete: number;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

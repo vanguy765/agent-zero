@@ -1,0 +1,31 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:57:    .select('id, organization_id, unit_type, bedrooms, area_sf')
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:84:    organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:94:  if (!organization_id || !name) {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:95:    return c.json({ error: 'organization_id and name are required' }, 400);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:119:      organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:136:    organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:148:      organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:169:    organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:175:  if (!organization_id || !rooms || !Array.isArray(rooms) || rooms.length === 0) {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:176:    return c.json({ error: 'organization_id and rooms[] are required' }, 400);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:184:    organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:206:        organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:218:        organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:242:    organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:253:  if (!organization_id || !trade_name) {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:254:    return c.json({ error: 'organization_id and trade_name are required' }, 400);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:286:      organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:307:    organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:320:      organization_id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:371:      .select('id, organization_id, unit_type, bedrooms, area_sf')
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:82:    organization_id: orgId,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:197:      organization_id: org.id,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:329:        .eq('organization_id', id)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:355:  // List all auth users and filter by organization_id in metadata
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:360:    (u) => u.user_metadata?.organization_id === orgId,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:398:      organization_id: orgId,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts:35:  const organization_id = c.req.query('organization_id');
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts:43:    organization_id: organization_id || undefined,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts:53:// GET /reviews/summary?organization_id=xxx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts:57:  const organizationId = c.req.query('organization_id');
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

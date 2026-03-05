@@ -1,0 +1,33 @@
+# Agent Zero runtime data
+.a0proj/memory/
+.a0proj/knowledge/fragments/
+.a0proj/knowledge/solutions/
+.a0proj/secrets.env
+.a0proj/agents.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+*.egg
+
+# Node
+node_modules/
+.npm/
+
+# Testing/Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

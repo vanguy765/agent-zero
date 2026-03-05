@@ -1,0 +1,116 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === Existing server.py (first 20 lines) ===
+import os
+import shutil
+import tempfile
+import base64
+import fitz  # PyMuPDF
+import pdfplumber
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, BackgroundTasks
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from supabase import create_client, Client
+import litellm
+from litellm import completion
+from dotenv import load_dotenv
+import uuid
+import asyncio
+
+# Load .env file
+load_dotenv()
+
+
+=== Existing prompts.py (first 20 lines) ===
+# Prompt Templates for Architectural PDF Extraction
+
+# 1. Floor Plan Data Extraction
+FLOORPLAN_PROMPT = """
+You are a highly capable architectural estimation AI. You are viewing an isolated Architectural Floor Plan.
+Carefully analyze the drawing and extract the exact counts and dimensions for the following properties.
+
+Output Format (STRICT JSON):
+{
+  "room_names": ["Kitchen", "Primary Bath", "Living Room", ...],
+  "total_area": <float, total square footage of the unit shown>,
+  "total_wall_perimeter": <float, total linear feet of wall shown in the unit>,
+  "kitchen_area": <float, square footage of kitchen>,
+  "kitchen_perimeter": <float, linear feet of kitchen walls>,
+  "bathroom_area": <float, square footage of bathroom (sum if multiple)>,
+  "bathroom_perimeter": <float, linear feet of bathroom walls (sum if multiple)>,
+  "window_count": <integer, total number of exterior windows>,
+  "interior_door_count": <integer, standard interior swinging doors>,
+  "sliding_door_count": <integer, exterior sliding glass doors or large sliding closet doors>,
+  "bifold_door_count": <integer, folding closet doors>
+
+=== Existing requirements.txt ===
+# layoutparser[ocr]
+pdfplumber
+pdf2image
+pytesseract
+pandas
+openpyxl
+fastapi
+uvicorn
+python-multipart
+requests
+supabase
+pymupdf
+jinja2
+litellm
+python-dotenv
+
+=== Existing filter_floorplans.py (first 10 lines) ===
+import os
+import cv2
+import numpy as np
+import pytesseract
+
+def is_black_and_white(img_path):
+    """
+    Returns True if an image is purely black/white/grayscale.
+    If it's a real photograph, it will have R/G/B variance.
+    """
+
+=== work-orders src structure ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/Layout.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/CompanyTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Dashboard.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/LoginPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/NewProject.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Projects.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateEditor.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Templates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Units.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/WorkOrderDetail.tsx
+
+=== api src structure ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/index.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/delivery.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/agentCard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/progress.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

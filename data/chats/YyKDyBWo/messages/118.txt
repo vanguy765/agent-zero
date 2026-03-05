@@ -1,0 +1,68 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- JSX: Button area + Progress/Results (lines 245-310) ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#                                                 <button
+                                                    onClick={() => extractImages(doc)}
+                                                    disabled={extracting() === doc.id}
+                                                    class="btn btn-secondary text-sm"
+                                                    title="Extract images from PDF"
+                                                >
+                                                    {extracting() === doc.id ? 'Extracting...' : '🔍 Extract Images'}
+                                                </button>
+                                                <EngineSelector
+                                                    value={parseEngine()}
+                                                    onChange={setParseEngine}
+                                                    disabled={docParser.isPolling() || parsing() === doc.id}
+                                                />
+                                                <button
+                                                    onClick={() => parseEngine() === 'claude-direct' ? parseWithClaude(doc) : parseWithDocParser(doc)}
+                                                    disabled={parsing() === doc.id || docParser.isPolling()}
+                                                    class="btn btn-primary text-sm"
+                                                    title={parseEngine() === 'hybrid' ? 'Parse with Docling + Claude hybrid engine' : 'Parse with Claude AI directly'}
+                                                >
+                                                    {(parsing() === doc.id || docParser.isPolling()) ? 'Parsing...' : `🤖 Parse (${parseEngine() === 'hybrid' ? 'Hybrid' : 'Claude'})`}
+                                                </button>
+                                            </Show>
+                                            <button
+                                                onClick={() => toggleImages(doc.id)}
+                                                class="btn btn-outline text-sm"
+                                                title="View extracted images"
+                                            >
+                                                📷 Images
+                                            </button>
+                                            <button
+                                                onClick={() => downloadDocument(doc)}
+                                                class="btn btn-outline text-sm"
+                                                title="Download document"
+                                            >
+                                                ⬇️ Download
+                                            </button>
+                                            <button
+                                                onClick={() => deleteDocument(doc)}
+                                                class="btn btn-danger text-sm"
+                                                title="Delete document"
+                                            >
+                                                🗑️ Delete
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Doc-Parser Progress/Results */}
+                                    <Show when={docParser.isPolling() && docParser.status()}>
+                                        <ParseProgress status={docParser.status()!} />
+                                    </Show>
+                                    <Show when={docParser.error()}>
+                                        <ParseErrorDisplay
+                                            error={docParser.error()!}
+                                            onRetry={() => parseWithDocParser(doc)}
+                                        />
+                                    </Show>
+                                    <Show when={docParser.result()}>
+                                        <ParseResultSummary result={docParser.result()!} />
+                                    </Show>
+
+                                    {/* Images Section */}
+                                    <Show when={selectedDocId() === doc.id}>
+                                        <div class="mt-4 pt-4 border-t border-gray-200">
+                                            <h4 class="font-semibold mb-3">Extracted Images</h4>
+                                            <Show
+                                                when={!images.loading}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

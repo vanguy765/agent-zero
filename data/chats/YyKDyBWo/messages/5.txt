@@ -1,0 +1,630 @@
+===== doc-parser structure =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_vision.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/compare_methods.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/decode_docling_images.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/demo.pdf
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/Dockerfile
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker_logs.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/error.log
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/filter_floorplans.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/footer_sample/footer.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/footer_sample/footer.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/floorplan_1.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/floorplan_1_data.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_1.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_10.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_11.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_12.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_2.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_3.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_4.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_5.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_6.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_7.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_8.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_10/site_photo_9.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/floorplan_1.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/floorplan_1_data.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_1.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_10.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_11.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_12.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_2.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_3.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_4.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_5.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_6.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_7.jpg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/mock_supabase/storage/tenants/demo_tenant/project/demo_project/originals/pdf/parsed/page_11/site_photo_8.jpg
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== doc-parser main app =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import os
+import shutil
+import tempfile
+import base64
+import fitz  # PyMuPDF
+import pdfplumber
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, BackgroundTasks
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from supabase import create_client, Client
+import litellm
+from litellm import completion
+from dotenv import load_dotenv
+import uuid
+import asyncio
+
+# Load .env file
+load_dotenv()
+
+# Import our custom prompts
+
+from prompts import FLOORPLAN_PROMPT, TABLE_PROMPT, PHOTO_PROMPT
+import numpy as np
+import pytesseract
+import json
+import re
+    
+
+app = FastAPI(title="Document Parser Service")
+
+# Allow CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Setup Templates
+templates = Jinja2Templates(directory="templates")
+
+# Supabase Configuration
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# OpenRouter / LLM Configuration
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+if OPENROUTER_API_KEY:
+    os.environ["OPENROUTER_API_KEY"] = OPENROUTER_API_KEY
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Serve the Benchmark UI"""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "online",
+        "service": "doc-parser",
+        "supabase_connected": supabase is not None,
+        "llm_provider": "openrouter" if OPENROUTER_API_KEY else "none"
+    }
+
+def encode_image_base64_from_pix(pix):
+    """Convert PyMuPDF pixmap to base64 string"""
+    img_data = pix.tobytes("png")
+    return base64.b64encode(img_data).decode("utf-8")
+
+def encode_image_base64_from_file(filepath: str):
+    """Convert local image file to base64 string"""
+    with open(filepath, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+async def run_llm_extraction(provider: str, prompt_template: str, image_base64: str, text_context: str = None):
+    """Run extraction using LiteLLM (OpenRouter)"""
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=400, detail="OPENROUTER_API_KEY not set")
+
+    model = f"openrouter/{provider}"
+    
+    content = [{"type": "text", "text": prompt_template}]
+    
+    if text_context:
+        content.append({"type": "text", "text": f"\\nExtracted Raw Text/Data Context:\\n{text_context}"})
+        
+    content.append({
+        "type": "image_url",
+        "image_url": {"url": f"data:image/png;base64,{image_base64}"}
+    })
+    
+    messages = [
+        {
+            "role": "user",
+            "content": content
+        }
+    ]
+
+    try:
+        # Anthropic/Gemini might struggle with response_format in certain litellm versions
+        kwargs = {
+            "model": model,
+            "messages": messages
+        }
+        if "openai" in provider.lower():
+            kwargs["response_format"] = {"type": "json_object"}
+            
+        response = completion(**kwargs)
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"LLM Error: {e}")
+        return {{"error": str(e)}}
+
+
+def is_black_and_white_pil(img_pil):
+    img = np.array(img_pil)
+    if len(img.shape) < 3:
+        return True
+    r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
+    diff = np.mean(np.abs(r.astype(int) - g.astype(int))) + np.mean(np.abs(g.astype(int) - b.astype(int)))
+    return diff < 2.0
+
+def has_sufficient_text_pil(img_pil, min_words=3):
+    text = pytesseract.image_to_string(img_pil)
+    word_count = len(text.split())
+    return word_count >= min_words
+
+def calculate_areas(raw_json):
+    CEILING_HEIGHT = 8.0
+    WINDOW_AREA = 12.0
+    INT_DOOR_AREA = 21.0
+    SLIDING_DOOR_AREA = 42.0
+    BIFOLD_DOOR_AREA = 35.0
+
+    kitchen_area = float(raw_json.get("kitchen_area", 0) or 0)
+    bathroom_area = float(raw_json.get("bathroom_area", 0) or 0)
+    kitchen_perimeter = float(raw_json.get("kitchen_perimeter", 0) or 0)
+    bathroom_perimeter = float(raw_json.get("bathroom_perimeter", 0) or 0)
+    total_wall_perimeter = float(raw_json.get("total_wall_perimeter", 0) or 0)
+    
+    windows = float(raw_json.get("window_count", 0) or 0)
+    int_doors = float(raw_json.get("interior_door_count", 0) or 0)
+    slid_doors = float(raw_json.get("sliding_door_count", 0) or 0)
+    bif_doors = float(raw_json.get("bifold_door_count", 0) or 0)
+
+    calc = {
+        "kitchen_ceiling_area": kitchen_area,
+        "bathroom_ceiling_area": bathroom_area,
+        "kitchen_wall_area": kitchen_perimeter * CEILING_HEIGHT,
+        "bathroom_wall_area": bathroom_perimeter * CEILING_HEIGHT,
+        "gross_unit_wall_area": total_wall_perimeter * CEILING_HEIGHT,
+    }
+
+    total_deductions_area = (windows * WINDOW_AREA) + (int_doors * INT_DOOR_AREA) + (slid_doors * SLIDING_DOOR_AREA) + (bif_doors * BIFOLD_DOOR_AREA)
+    calc["total_deductions_area"] = total_deductions_area
+    calc["net_remaining_wall_area"] = calc["gross_unit_wall_area"] - calc["kitchen_wall_area"] - calc["bathroom_wall_area"] - total_deductions_area
+
+    return {**raw_json, "calculations": calc}
+
+JOBS = {}
+
+def get_job_supabase_client(supabase_url, supabase_key):
+    if not supabase_url or not supabase_key:
+        return None
+    try:
+        from supabase import create_client
+        return create_client(supabase_url, supabase_key)
+    except Exception as e:
+        print(f"Failed to create Supabase client: {e}")
+        return None
+
+def compress_and_upload_to_supabase(sb_client, pil_img, bucket_path):
+    """Compresses a PIL image to JPEG in memory and uploads directly to Supabase Storage."""
+    from io import BytesIO
+    import base64
+    
+    if not sb_client:
+        # Fallback to local base64 if no supabase credentials
+        buffered = BytesIO()
+        pil_img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+        
+    try:
+        # Compress immediately in-memory
+        if pil_img.mode in ("RGBA", "P"):
+            pil_img = pil_img.convert("RGB")
+        
+        img_byte_arr = BytesIO()
+        pil_img.save(img_byte_arr, format='JPEG', optimize=True, quality=80)
+        img_bytes = img_byte_arr.getvalue()
+        
+        # Upload directly to Supabase Storage
+        res = sb_client.storage.from_("storage").upload(
+            bucket_path,
+            img_bytes,
+            {"content-type": "image/jpeg", "upsert": "true"}
+        )
+        
+        # Return the public URL or just the path itself
+        return bucket_path
+    except Exception as e:
+        print(f"Failed to upload {bucket_path} to Supabase: {e}")
+        return None
+
+async def process_docling_background(job_id: str, temp_path: str, provider: str, supabase_url: str, supabase_key: str, tenant_name: str, project_name: str):
+    import base64
+    from io import BytesIO
+    import json
+    
+    sb_client = get_job_supabase_client(supabase_url, supabase_key)
+    base_storage_path = f"tenants/{tenant_name}/project/{project_name}/originals/pdf/parsed" if tenant_name and project_name else ""
+    try:
+        JOBS[job_id]["status"] = "processing"
+        
+        # Docling Extraction with Image Generation Enabled
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+        from pdf2image import convert_from_path
+        
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.generate_picture_images = True
+        pipeline_options.generate_table_images = True
+        
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            }
+        )
+        
+        # Run conversion in a thread to prevent blocking the async loop completely!
+        result_doc_wrapper = await asyncio.to_thread(converter.convert, temp_path)
+        result_doc = result_doc_wrapper.document
+        
+        # Helper to compress & stream (or fallback to base64)
+        def process_image(img, filename, page_no=None):
+            if not img: return None
+            if sb_client and base_storage_path:
+                bucket_path = f"{base_storage_path}/page_{page_no}/{filename}" if page_no else f"{base_storage_path}/{filename}"
+                return compress_and_upload_to_supabase(sb_client, img, bucket_path)
+            else:
+                # Fallback purely to base64 if no supabase connected
+                buffered = BytesIO()
+                img.save(buffered, format="PNG")
+                return base64.b64encode(buffered.getvalue()).decode("utf-8")
+                
+        # Helper to upload text/json
+        def upload_text(text_content, filename, page_no=None):
+            if sb_client and base_storage_path:
+                bucket_path = f"{base_storage_path}/page_{page_no}/{filename}" if page_no else f"{base_storage_path}/{filename}"
+                try:
+                    sb_client.storage.from_("storage").upload(
+                        bucket_path,
+                        text_content.encode('utf-8'),
+                        {"content-type": "text/plain", "upsert": "true"}
+                    )
+                    return bucket_path
+                except Exception as e:
+                    print(f"Failed to upload text {bucket_path}: {e}")
+            return text_content
+
+        # Generate full page images for all pages in PDF
+        full_page_images = {}
+        try:
+            pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+            for i, page_img in enumerate(pdf_pages):
+                full_page_images[i + 1] = process_image(page_img, "full_page.jpg", i + 1)
+        except Exception as e:
+            print(f"Warning: Failed to generate page images: {e}")
+
+        extracted_data = {
+            "pages": {},
+            "footer_sample": None
+        }
+        
+        # Initialize pages that have images even if they have no tables/pictures
+        for page_no, img_b64 in full_page_images.items():
+            extracted_data["pages"][page_no] = {
+                "full_page_image": img_b64,
+                "markdown_tables": [],
+                "table_images": [],
+                "floorplans": [],
+                "diagrams": [],
+                "site_photos": [],
+                "has_valid_floorplan": False
+            }
+        
+        def get_page_dict(page_no):
+            if page_no not in extracted_data["pages"]:
+                extracted_data["pages"][page_no] = {
+                    "full_page_image": full_page_images.get(page_no),
+                    "markdown_tables": [],
+                    "table_images": [],
+                    "floorplans": [],
+                    "diagrams": [],
+                    "site_photos": [],
+                    "has_valid_floorplan": False
+                }
+            return extracted_data["pages"][page_no]
+        
+        # Exclude tables containing these title block keywords, keeping exactly ONE sample
+        FOOTER_KEYWORDS = ["Project No", "Drawn By", "Scale", "Checked By", "Date", "Sheet No"]
+        footer_captured = False
+        
+        # Extract Tables & Table Images
+        for table in result_doc.tables:
+            md_text = table.export_to_markdown()
+            is_footer = any(keyword.lower() in md_text.lower() for keyword in FOOTER_KEYWORDS)
+            
+            if is_footer:
+                page_no_str = table.prov[0].page_no if table.prov else 'Unknown'
+                if not footer_captured:
+                    print(f"Capturing Title Block Table on Page {page_no_str} as sample.")
+                    
+                    footer_md_path = upload_text(md_text, "footer.md", "footer_sample")
+                    footer_img_path = process_image(table.image.pil_image, "footer.jpg", "footer_sample") if table.image else None
+                    
+                    extracted_data["footer_sample"] = {
+                        "markdown": footer_md_path,
+                        "image": footer_img_path,
+                        "page_no": page_no_str
+                    }
+                    footer_captured = True
+                else:
+                    print(f"Skipping Title Block Table on Page {page_no_str} (already have a sample).")
+                continue
+            
+            page_no = table.prov[0].page_no if table.prov else 1
+            page_data = get_page_dict(page_no)
+            
+            md_path = upload_text(md_text, f"table_{len(page_data['markdown_tables'])+1}.md", page_no)
+            page_data["markdown_tables"].append(md_path)
+            
+            if table.image:
+                img_path = process_image(table.image.pil_image, f"table_{len(page_data['table_images'])+1}.jpg", page_no)
+                page_data["table_images"].append(img_path)
+                
+        # Extract Pictures (Floorplans, Figures, Photos)
+        for pic in result_doc.pictures:
+            if pic.image:
+                pil_img = pic.image.pil_image
+                page_no = pic.prov[0].page_no if pic.prov else 1
+                page_data = get_page_dict(page_no)
+                
+                # Stop asking AI if we already have a valid floorplan for this page.
+                if not page_data.get("has_valid_floorplan", False) and is_black_and_white_pil(pil_img) and has_sufficient_text_pil(pil_img):
+                    print(f"Detected potential Floorplan candidate on page {page_no}. Sending to AI...")
+                    try:
+                        # Extract with AI using memory buffer (Base64) before streaming it remote
+                        from io import BytesIO
+                        buffered = BytesIO()
+                        pil_img.save(buffered, format="PNG")
+                        ai_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                        
+                        fp_result_str = await run_llm_extraction(provider, FLOORPLAN_PROMPT, ai_b64)
+                        fp_result_clean = re.sub(r'```(?:json)?|```', '', fp_result_str).strip()
+                        fp_json = json.loads(fp_result_clean)
+                        
+                        # Valid floorplans typically have > 0 total area or room names
+                        if len(fp_json.get("room_names", [])) > 0 or fp_json.get("total_area", 0) > 0:
+                            fp_calculated = calculate_areas(fp_json)
+                            # SUCCESS! Compress and write direct to SB now that we know what it is
+                            idx = len(page_data['floorplans']) + 1
+                            img_path = process_image(pil_img, f"floorplan_{idx}.jpg", page_no)
+                            json_path = upload_text(json.dumps(fp_calculated, indent=2), f"floorplan_{idx}_data.json", page_no)
+                            
+                            page_data["floorplans"].append({
+                                "image": img_path,
+                                "data": json_path
+                            })
+                            page_data["has_valid_floorplan"] = True
+                        else:
+                            print(f"AI determined image is NOT a floorplan on page {page_no}. Categorizing as diagram/elevation.")
+                            idx = len(page_data.get('diagrams', [])) + 1
+                            img_path = process_image(pil_img, f"image_{idx}.jpg", page_no)
+                            if 'diagrams' not in page_data:
+                                page_data['diagrams'] = []
+                            page_data["diagrams"].append({
+                                "image": img_path
+                            })
+                    except Exception as e:
+                        print(f"Floorplan Extraction Failed: {e}")
+                        idx = len(page_data.get('diagrams', [])) + 1
+                        img_path = process_image(pil_img, f"image_{idx}.jpg", page_no)
+                        err_path = upload_text(str(e), f"image_{idx}_error.txt", page_no)
+                        if 'diagrams' not in page_data:
+                            page_data['diagrams'] = []
+                        page_data["diagrams"].append({
+                            "image": img_path,
+                            "error": err_path
+                        })
+                else:
+                    print(f"Categorizing image as Site Photo on page {page_no} (Skipping AI).")
+                    idx = len(page_data['site_photos']) + 1
+                    img_path = process_image(pil_img, f"site_photo_{idx}.jpg", page_no)
+                    page_data["site_photos"].append({
+                        "image": img_path
+                    })
+
+        JOBS[job_id]["result"] = extracted_data
+        JOBS[job_id]["status"] = "completed"
+        
+    except ImportError:
+        JOBS[job_id]["status"] = "failed"
+        JOBS[job_id]["error"] = "Docling not installed or failed to import"
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        JOBS[job_id]["status"] = "failed"
+        JOBS[job_id]["error"] = str(e)
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+@app.post("/parse/docling")
+async def parse_docling(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(None),
+    page: int = Form(1),
+    provider: str = Form("anthropic/claude-3.5-sonnet"),
+    supabase_url: str = Form(None),
+    supabase_key: str = Form(None),
+    tenant_name: str = Form(None),
+    project_name: str = Form(None)
+):
+    """
+    Method C: Use IBM Docling (GPU PyTorch) to parse the document into Markdown.
+    Extracts only Table text, Table images, and Picture images.
+    """
+    import tempfile
+    import shutil
+    try:
+        if not file or not file.filename:
+            raise HTTPException(status_code=400, detail="No file uploaded")
+            
+        job_id = str(uuid.uuid4())
+        JOBS[job_id] = {
+            "status": "queued",
+            "file": file.filename
+        }
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+            shutil.copyfileobj(file.file, temp_file)
+            temp_path = temp_file.name
+            
+        background_tasks.add_task(
+            process_docling_background,
+            job_id,
+            temp_path,
+            provider,
+            supabase_url,
+            supabase_key,
+            tenant_name,
+            project_name
+        )
+        
+        return {"job_id": job_id, "status": "processing"}
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/status/{job_id}")
+async def get_job_status(job_id: str):
+    """Polling endpoint to check background task status."""
+    job = JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+# --- NEW ENDPOINTS FOR COMPARISON ---
+
+@app.post("/parse/direct")
+async def parse_direct(file_path: str = Form(...), output_path: str = Form("output/direct"), page: int = Form(1), provider: str = Form("openai/gpt-4o-2024-08-06")):
+    """
+    Method A: Send the full raw page explicitly to the Vision LLM.
+    We mock Supabase paths by using local 'file_path' and 'output_path'.
+    """
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found locally. (Supabase Download Mock Failed)")
+
+    os.makedirs(output_path, exist_ok=True)
+    
+    try:
+        # Extract the full page image directly
+        doc = fitz.open(file_path)
+        pdf_page = doc[page - 1]
+        pix = pdf_page.get_pixmap(matrix=fitz.Matrix(2, 2))
+        image_base64 = encode_image_base64_from_pix(pix)
+        
+        # Save trace artifact
+        pix.save(os.path.join(output_path, "full_page.png"))
+        
+        doc.close()
+
+        # Run extraction on the whole page image asking for all data (Floorplan, Tables, Text)
+        combined_prompt = FLOORPLAN_PROMPT + "\\n\\n" + TABLE_PROMPT
+        
+        result_str = await run_llm_extraction(provider, combined_prompt, image_base64)
+        
+        # Save output JSON
+        with open(os.path.join(output_path, "direct_result.json"), "w") as f:
+            f.write(result_str if isinstance(result_str, str) else json.dumps(result_str))
+
+        return {
+            "status": "success",
+            "method": "direct",
+            "output_dir": output_path,
+            "mocked_supabase_upload": True
+        }
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/parse/preparse")
+async def parse_preparse(file_path: str = Form(...), output_path: str = Form("output/preparse"), page: int = Form(1), provider: str = Form("openai/gpt-4o-2024-08-06")):
+    """
+    Method B: Run preparse programmatically, then send cleaned/focused elements to LLM.
+    """
+    from preparse import preparse_pdf_page
+    import json
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found locally. (Supabase Download Mock Failed)")
+
+    try:
+        # 1. Run OpenCV + pdfplumber Preparse local extraction first
+        # This will save crops and CSVs to output_path and return metadata
+        preparse_results = preparse_pdf_page(file_path, page, output_base_dir=".", run_id=output_path)
+        
+        final_results = {"tables": [], "floorplan": {}, "text": ""}
+        
+        # --- LLM Analysis on Isolated Parts ---
+        
+        # 2a. Analyze the Floorplan specifically, giving it ONLY the cropped floorplan image
+        if "floorplan" in preparse_results["images"]:
+            fp_path = preparse_results["images"]["floorplan"]
+            fp_b64 = encode_image_base64_from_file(fp_path)
+            # Send just the floorplan prompt
+            fp_result = await run_llm_extraction(provider, FLOORPLAN_PROMPT, fp_b64)
+            final_results["floorplan"] = json.loads(fp_result) if isinstance(fp_result, str) else fp_result
+
+        # 2b. Analyze any Tables, giving it the specific table crop AND the csv data parsed by pdfplumber as context
+        for idx, table_csv_path in enumerate(preparse_results["tables"]):
+            table_img_key = f"table_{idx}"
+            if table_img_key in preparse_results["images"]:
+                t_path = preparse_results["images"][table_img_key]
+                t_b64 = encode_image_base64_from_file(t_path)
+                
+                # Load CSV data to send as text context
+                with open(table_csv_path, "r", encoding="utf-8") as f:
+                    csv_context = f.read()
+                    
+                t_result = await run_llm_extraction(provider, TABLE_PROMPT, t_b64, text_context=csv_context)
+                final_results["tables"].append(json.loads(t_result) if isinstance(t_result, str) else t_result)
+        
+        # Save combined Final LLM output JSON
+        with open(os.path.join(output_path, "preparse_llm_result.json"), "w") as f:
+            json.dump(final_results, f, indent=2)
+
+        return {
+            "status": "success",
+            "method": "preparse",
+            "output_dir": output_path,
+            "mocked_supabase_upload": True,
+            "artifacts_generated": preparse_results
+        }
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== Hono API document routes =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

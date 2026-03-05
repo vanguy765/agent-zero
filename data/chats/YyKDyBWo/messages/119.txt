@@ -1,0 +1,25 @@
+# ✅ Doc-Parser Integration Wired Successfully
+
+All 3 files have been surgically modified with backups created (`.bak` files).
+
+## File 1: `apps/api/src/index.ts`
+- **Import added** (line 29): `import { docParserRoutes } from './routes/doc-parser-routes';`
+- **Route mounted** (lines 52-53): `app.route('/doc-parser', docParserRoutes);` with comment
+
+## File 2: `apps/work-orders/src/lib/api.ts`
+- **6 methods added** to `ApiClient` class (lines 517-581):
+  - `submitDocParserJob()` - POST to `/doc-parser/parse`
+  - `getDocParserStatus()` - GET status with full progress typing
+  - `getDocParserResults()` - GET results with optional summary flag
+  - `listDocParserJobs()` - GET jobs list with optional status filter
+  - `deleteDocParserJob()` - DELETE job by ID
+  - `getDocParserHealth()` - GET service health check
+
+## File 3: `apps/work-orders/src/pages/ProjectDocuments.tsx`
+- **3a** - Imports: `useDocParserJob`, `EngineSelector`, `ParseProgress`, `ParseErrorDisplay`, `ParseResultSummary`, `ParseEngine` type
+- **3b** - State: `parseEngine` signal + `docParser` hook instance
+- **3c** - Handler: `parseWithDocParser()` function calling `docParser.submitJob()`
+- **3d** - JSX: `EngineSelector` component + conditional parse button (hybrid vs claude-direct)
+- **3e** - JSX: `ParseProgress`, `ParseErrorDisplay`, `ParseResultSummary` display blocks between button area and Images Section
+
+All edits are surgical insertions/replacements — no files were rewritten.

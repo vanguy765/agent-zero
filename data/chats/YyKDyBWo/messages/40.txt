@@ -1,0 +1,13 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# total 128
+drwxr-xr-x 1 root root  4096 Mar  3 01:01 .
+drwxr-xr-x 1 root root  4096 Mar  3 01:06 ..
+-rw-r--r-- 1 root root  8735 Mar  3 00:57 confidence.py
+-rw-r--r-- 1 root root 14419 Mar  3 00:55 detection.py
+-rw-r--r-- 1 root root 23226 Mar  3 00:59 hybrid.py
+-rw-r--r-- 1 root root 19938 Mar  3 00:56 job_manager.py
+-rw-r--r-- 1 root root  9672 Mar  3 00:53 models.py
+-rw-r--r-- 1 root root  9654 Mar  3 00:54 prompts.py
+-rw-r--r-- 1 root root   565 Mar  3 01:01 requirements.txt
+-rw-r--r-- 1 root root 24879 Mar  3 01:00 server.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

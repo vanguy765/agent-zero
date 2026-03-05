@@ -1,0 +1,8 @@
+104:CREATE INDEX IF NOT EXISTS idx_project_outcomes_code ON public.project_outcomes(code);
+105:CREATE INDEX IF NOT EXISTS idx_project_outcomes_scope ON public.project_outcomes(scope);
+106:CREATE INDEX IF NOT EXISTS idx_project_outcomes_organization_id ON public.project_outcomes(organization_id);
+=== Also check for index section ===
+104:CREATE INDEX IF NOT EXISTS idx_project_outcomes_code ON public.project_outcomes(code);
+105:CREATE INDEX IF NOT EXISTS idx_project_outcomes_scope ON public.project_outcomes(scope);
+106:CREATE INDEX IF NOT EXISTS idx_project_outcomes_organization_id ON public.project_outcomes(organization_id);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

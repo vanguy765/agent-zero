@@ -1,0 +1,1025 @@
+========== HONO API: doc-parser-client.ts ==========
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /**
+ * Doc-Parser HTTP Client
+ *
+ * Shared service for communicating with the doc-parser backend.
+ * Used by both docling and hybrid engine proxy routes.
+ */
+
+const DOC_PARSER_URL = process.env.DOC_PARSER_URL || 'http://doc-parser:5000';
+
+export interface DocParserJobResponse {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+  engine: 'docling' | 'hybrid';
+  file: string;
+}
+
+export interface DocParserProgress {
+  current_phase: string;
+  phases: string[];
+  current_page: number;
+  total_pages: number;
+  current_step: string;
+  floorplans_found: number;
+  tables_found: number;
+  percent_complete: number;
+}
+
+export interface DocParserStatus {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+  engine: string;
+  file_name: string;
+  progress: DocParserProgress;
+  error?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocParserResultSummary {
+  pages_count: number;
+  floorplans_count: number;
+  tables_count: number;
+  units_count: number;
+  has_footer: boolean;
+  total_doors: number;
+  total_windows: number;
+  total_baseboard_ft: number;
+  trades: string[];
+}
+
+export interface DocParserConfidence {
+  overall: number;
+  room_dimensions: boolean;
+  door_specifications: boolean;
+  window_specifications: boolean;
+  fixture_completeness: boolean;
+  cross_page_synthesis: boolean;
+  baseboard_data: boolean;
+  unit_identification: boolean;
+  per_page: Record<string, any>;
+}
+
+export interface DocParserUnit {
+  unit_number: string;
+  unit_type: string;
+  floor: number;
+  bedrooms: number;
+  bathrooms: number;
+  half_baths: number;
+  area_sf: number;
+  rooms: any[];
+  doors: any[];
+  windows: any[];
+  fixtures: any[];
+  upgrades: any[];
+  general_notes: string[];
+  source_page: number;
+}
+
+export interface DocParserResult {
+  engine: string;
+  pages: Record<number, any>;
+  units: DocParserUnit[];
+  tables: any[];
+  footer_sample: any;
+  general_notes: string[];
+  synthesis: any;
+  confidence: DocParserConfidence;
+  summary: DocParserResultSummary;
+}
+
+/**
+ * Submit a PDF for parsing with the specified engine.
+ */
+export async function submitParseJob(
+  pdfBuffer: Buffer | ArrayBuffer,
+  fileName: string,
+  engine: 'docling' | 'hybrid',
+  options: {
+    provider?: string;
+    tenantName?: string;
+    projectName?: string;
+    supabaseUrl?: string;
+    supabaseKey?: string;
+  } = {},
+): Promise<DocParserJobResponse> {
+  const endpoint = engine === 'hybrid' ? '/parse/hybrid' : '/parse/docling';
+
+  const formData = new FormData();
+  const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+  formData.append('file', blob, fileName);
+
+  if (options.provider) {
+    formData.append('provider', options.provider);
+  }
+  if (options.tenantName) {
+    formData.append('tenant_name', options.tenantName);
+  }
+  if (options.projectName) {
+    formData.append('project_name', options.projectName);
+  }
+  if (options.supabaseUrl) {
+    formData.append('supabase_url', options.supabaseUrl);
+  }
+  if (options.supabaseKey) {
+    formData.append('supabase_key', options.supabaseKey);
+  }
+
+  const response = await fetch(`${DOC_PARSER_URL}${endpoint}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Doc-parser submission failed (${response.status}): ${errorText}`,
+    );
+  }
+
+  return response.json();
+}
+
+/**
+ * Get lightweight job status (poll-safe).
+ * NEVER includes result data.
+ */
+export async function getJobStatus(
+  jobId: string,
+): Promise<DocParserStatus> {
+  const response = await fetch(`${DOC_PARSER_URL}/status/${jobId}`);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+    throw new Error(`Status check failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get full extraction results (fetch-once after completed).
+ * Heavy payload - only call when status confirms "completed".
+ */
+export async function getJobResults(
+  jobId: string,
+  summaryOnly: boolean = false,
+): Promise<{ job_id: string; status: string; result?: DocParserResult; summary?: DocParserResultSummary }> {
+  const url = summaryOnly
+    ? `${DOC_PARSER_URL}/results/${jobId}?summary=true`
+    : `${DOC_PARSER_URL}/results/${jobId}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Results for job ${jobId} not found`);
+    }
+    throw new Error(`Results fetch failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Check if doc-parser service is healthy and available.
+ */
+export async function checkHealth(): Promise<{
+  status: string;
+  engines: string[];
+  dependencies: Record<string, boolean>;
+}> {
+  try {
+    const response = await fetch(`${DOC_PARSER_URL}/health`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      return {
+        status: 'unhealthy',
+        engines: [],
+        dependencies: {},
+      };
+    }
+    return response.json();
+  } catch {
+    return {
+      status: 'unreachable',
+      engines: [],
+      dependencies: {},
+    };
+  }
+}
+
+/**
+ * Map hybrid engine output to ParsedDocument-compatible format.
+ *
+ * When engine is "hybrid", the units array is already
+ * ParsedDocument-compatible. This mapper normalizes the
+ * response for the frontend.
+ */
+export function mapToParseDocument(
+  result: DocParserResult,
+  documentId: string,
+): {
+  document_id: string;
+  units: DocParserUnit[];
+  general_notes: string[];
+  total_baseboard_ft: number;
+  summary: DocParserResultSummary;
+  confidence: DocParserConfidence;
+} {
+  return {
+    document_id: documentId,
+    units: result.units || [],
+    general_notes: result.general_notes || [],
+    total_baseboard_ft: result.summary?.total_baseboard_ft || 0,
+    summary: result.summary,
+    confidence: result.confidence,
+  };
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ========== HONO API: doc-parser-routes.ts ==========
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /**
+ * Doc-Parser Proxy Routes for Hono API
+ *
+ * Integrates doc-parser service into the existing work-orders API.
+ * Provides engine selection, status polling, and result retrieval.
+ *
+ * Routes:
+ *   POST /api/documents/:id/parse    - Parse document (engine selection)
+ *   GET  /api/doc-parser/status/:jobId  - Lightweight status (poll-safe)
+ *   GET  /api/doc-parser/results/:jobId - Full results (fetch-once)
+ *   GET  /api/doc-parser/health         - Service health check
+ */
+
+import { Hono } from 'hono';
+import {
+  submitParseJob,
+  getJobStatus,
+  getJobResults,
+  checkHealth,
+  mapToParseDocument,
+  type DocParserStatus,
+  type DocParserResult,
+} from './doc-parser-client';
+
+const docParserRoutes = new Hono();
+
+// ============================================================
+// POST /api/documents/:id/parse
+// Engine selection: 'claude-direct' | 'docling' | 'hybrid'
+// ============================================================
+
+docParserRoutes.post('/documents/:id/parse', async (c) => {
+  const documentId = c.req.param('id');
+  const body = await c.req.json().catch(() => ({}));
+  const engine = (body?.engine || 'claude-direct') as string;
+
+  // ---- Claude Direct: existing flow (unchanged) ----
+  if (engine === 'claude-direct') {
+    // Delegate to existing ClaudePdfParser handler
+    // This preserves backward compatibility
+    return c.json({
+      error: 'claude-direct engine should be handled by existing route handler',
+      hint: 'This route only handles docling and hybrid engines',
+    }, 400);
+  }
+
+  // ---- Docling or Hybrid: proxy to doc-parser service ----
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json(
+      { error: `Unknown engine: ${engine}. Use 'claude-direct', 'docling', or 'hybrid'.` },
+      400,
+    );
+  }
+
+  try {
+    // TODO: Fetch the actual PDF buffer from your document storage
+    // This is a placeholder - replace with your actual document retrieval logic
+    // const document = await getDocument(documentId);
+    // const pdfBuffer = await downloadPdf(document.storage_path);
+
+    // For now, expect the PDF to be sent in the request body
+    const formData = await c.req.formData().catch(() => null);
+    const pdfFile = formData?.get('file') as File | null;
+
+    if (!pdfFile) {
+      return c.json(
+        { error: 'PDF file required. Send as multipart form data with key "file".' },
+        400,
+      );
+    }
+
+    const pdfBuffer = await pdfFile.arrayBuffer();
+
+    // Submit to doc-parser
+    const jobResponse = await submitParseJob(
+      pdfBuffer,
+      pdfFile.name || `document-${documentId}.pdf`,
+      engine as 'docling' | 'hybrid',
+      {
+        provider: body?.provider || process.env.DEFAULT_LLM_PROVIDER,
+        tenantName: body?.tenant_name || c.get('tenantId'),
+        projectName: body?.project_name || documentId,
+        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseKey: process.env.SUPABASE_SERVICE_KEY,
+      },
+    );
+
+    // Return job info with polling URLs
+    return c.json({
+      engine,
+      job_id: jobResponse.job_id,
+      status: jobResponse.status,
+      poll_url: `/api/doc-parser/status/${jobResponse.job_id}`,
+      results_url: `/api/doc-parser/results/${jobResponse.job_id}`,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[doc-parser] Parse submission failed: ${message}`);
+    return c.json({ error: `Doc-parser submission failed: ${message}` }, 502);
+  }
+});
+
+// ============================================================
+// GET /api/doc-parser/status/:jobId
+// Lightweight status for polling (Priority 4a)
+// Safe to call every 2-5 seconds. Small payload.
+// ============================================================
+
+docParserRoutes.get('/doc-parser/status/:jobId', async (c) => {
+  const jobId = c.req.param('jobId');
+
+  try {
+    const status: DocParserStatus = await getJobStatus(jobId);
+
+    // Ensure result data is NEVER included in status response
+    // (defense-in-depth - server should already exclude it)
+    const safeStatus = { ...status };
+    delete (safeStatus as any).result;
+
+    return c.json(safeStatus);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    if (message.includes('not found')) {
+      return c.json({ error: `Job ${jobId} not found` }, 404);
+    }
+    return c.json({ error: `Status check failed: ${message}` }, 502);
+  }
+});
+
+// ============================================================
+// GET /api/doc-parser/results/:jobId
+// Full results - fetch once after status confirms "completed"
+// Heavy payload. Includes ParsedDocument-compatible mapping.
+// ============================================================
+
+docParserRoutes.get('/doc-parser/results/:jobId', async (c) => {
+  const jobId = c.req.param('jobId');
+  const summaryOnly = c.req.query('summary') === 'true';
+
+  try {
+    const data = await getJobResults(jobId, summaryOnly);
+
+    // If summary requested, return as-is
+    if (summaryOnly) {
+      return c.json(data);
+    }
+
+    // If hybrid engine with units array, map to ParsedDocument format
+    const result = data.result as DocParserResult | undefined;
+    if (result?.engine === 'hybrid' && result?.units) {
+      return c.json({
+        ...data,
+        parsed: mapToParseDocument(result, jobId),
+      });
+    }
+
+    // Docling engine - also map units if available
+    if (result?.units) {
+      return c.json({
+        ...data,
+        parsed: mapToParseDocument(result, jobId),
+      });
+    }
+
+    // Fallback: return raw result
+    return c.json(data);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    if (message.includes('not found')) {
+      return c.json({ error: `Results for job ${jobId} not found` }, 404);
+    }
+    return c.json({ error: `Results fetch failed: ${message}` }, 502);
+  }
+});
+
+// ============================================================
+// GET /api/doc-parser/health
+// Service health check with dependency status
+// ============================================================
+
+docParserRoutes.get('/doc-parser/health', async (c) => {
+  const health = await checkHealth();
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  return c.json(health, statusCode);
+});
+
+export { docParserRoutes };
+export default docParserRoutes;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ========== SOLIDJS: ProjectDocuments.tsx ==========
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /**
+ * ProjectDocuments.tsx - Doc-Parser Integration
+ *
+ * This file contains the NEW components and hooks to add to the existing
+ * ProjectDocuments.tsx for doc-parser engine selection and progress tracking.
+ *
+ * Integration approach:
+ * - Add these imports, types, hooks, and components to the existing file
+ * - Modify the existing parse button area to include engine selection
+ * - Add progress display for async doc-parser jobs
+ *
+ * Priorities implemented:
+ * - P3: Granular progress tracking with phase/page/step display
+ * - P4: Separate status/results polling pattern
+ * - P6: Confidence score display
+ * - P7: Engine selection (claude-direct vs hybrid)
+ */
+
+import { createSignal, createEffect, onCleanup, Show, For, Switch, Match } from 'solid-js';
+
+// ============================================================
+// Types
+// ============================================================
+
+type ParseEngine = 'claude-direct' | 'hybrid';
+
+interface DocParserProgress {
+  current_phase: string;
+  phases: string[];
+  current_page: number;
+  total_pages: number;
+  current_step: string;
+  floorplans_found: number;
+  tables_found: number;
+  percent_complete: number;
+}
+
+interface DocParserStatus {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+  engine: string;
+  file_name: string;
+  progress: DocParserProgress;
+  error?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ConfidenceScore {
+  overall: number;
+  room_dimensions: boolean;
+  door_specifications: boolean;
+  window_specifications: boolean;
+  fixture_completeness: boolean;
+  cross_page_synthesis: boolean;
+  baseboard_data: boolean;
+  unit_identification: boolean;
+}
+
+interface ParsedResult {
+  document_id: string;
+  units: any[];
+  general_notes: string[];
+  total_baseboard_ft: number;
+  summary: any;
+  confidence: ConfidenceScore;
+}
+
+// ============================================================
+// Phase Display Names
+// ============================================================
+
+const PHASE_LABELS: Record<string, string> = {
+  queued: 'Queued',
+  docling_conversion: 'Converting PDF',
+  classification: 'Classifying Pages',
+  image_extraction: 'Extracting Images',
+  llm_analysis: 'Analyzing Floorplans',
+  synthesis: 'Cross-Page Synthesis',
+  uploading: 'Uploading Results',
+  complete: 'Complete',
+};
+
+// ============================================================
+// Hook: useDocParserJob
+// Manages the polling lifecycle for a doc-parser job
+// ============================================================
+
+function useDocParserJob() {
+  const [jobId, setJobId] = createSignal<string | null>(null);
+  const [status, setStatus] = createSignal<DocParserStatus | null>(null);
+  const [result, setResult] = createSignal<ParsedResult | null>(null);
+  const [error, setError] = createSignal<string | null>(null);
+  const [isPolling, setIsPolling] = createSignal(false);
+
+  let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Poll status endpoint (lightweight, every 3 seconds)
+  const startPolling = (id: string) => {
+    setJobId(id);
+    setIsPolling(true);
+    setError(null);
+    setResult(null);
+
+    pollInterval = setInterval(async () => {
+      try {
+        const resp = await fetch(`/api/doc-parser/status/${id}`);
+        if (!resp.ok) {
+          throw new Error(`Status check failed: ${resp.status}`);
+        }
+
+        const statusData: DocParserStatus = await resp.json();
+        setStatus(statusData);
+
+        // Job finished - stop polling and fetch results
+        if (statusData.status === 'completed') {
+          stopPolling();
+          await fetchResults(id);
+        }
+
+        // Job failed or timed out - stop polling
+        if (statusData.status === 'failed' || statusData.status === 'timeout') {
+          stopPolling();
+          setError(statusData.error || `Job ${statusData.status}`);
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+        // Don't stop polling on transient errors
+      }
+    }, 3000);
+  };
+
+  const stopPolling = () => {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+    setIsPolling(false);
+  };
+
+  // Fetch full results (heavy, once after completed)
+  const fetchResults = async (id: string) => {
+    try {
+      const resp = await fetch(`/api/doc-parser/results/${id}`);
+      if (!resp.ok) {
+        throw new Error(`Results fetch failed: ${resp.status}`);
+      }
+
+      const data = await resp.json();
+
+      // Use the parsed field if available (mapped by Hono proxy)
+      if (data.parsed) {
+        setResult(data.parsed);
+      } else if (data.result) {
+        setResult(data.result);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch results';
+      setError(message);
+    }
+  };
+
+  // Submit a parse job
+  const submitJob = async (
+    documentId: string,
+    file: File,
+    engine: ParseEngine,
+  ) => {
+    setError(null);
+    setResult(null);
+    setStatus(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const resp = await fetch(`/api/documents/${documentId}/parse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ engine }),
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || `Submission failed: ${resp.status}`);
+      }
+
+      const data = await resp.json();
+
+      if (data.job_id) {
+        startPolling(data.job_id);
+      }
+
+      return data;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Submission failed';
+      setError(message);
+      throw err;
+    }
+  };
+
+  const reset = () => {
+    stopPolling();
+    setJobId(null);
+    setStatus(null);
+    setResult(null);
+    setError(null);
+  };
+
+  // Cleanup on unmount
+  onCleanup(() => stopPolling());
+
+  return {
+    jobId,
+    status,
+    result,
+    error,
+    isPolling,
+    submitJob,
+    reset,
+  };
+}
+
+// ============================================================
+// Component: EngineSelector
+// Dropdown for choosing parse engine
+// ============================================================
+
+interface EngineSelectorProps {
+  value: ParseEngine;
+  onChange: (engine: ParseEngine) => void;
+  disabled?: boolean;
+}
+
+function EngineSelector(props: EngineSelectorProps) {
+  return (
+    <div class="flex items-center gap-2">
+      <label
+        for="parse-engine"
+        class="text-sm font-medium text-gray-700"
+      >
+        Engine:
+      </label>
+      <select
+        id="parse-engine"
+        value={props.value}
+        onChange={(e) => props.onChange(e.target.value as ParseEngine)}
+        disabled={props.disabled}
+        class="text-sm border border-gray-300 rounded-md px-2 py-1.5
+               bg-white shadow-sm focus:outline-none focus:ring-2
+               focus:ring-blue-500 focus:border-blue-500
+               disabled:bg-gray-100 disabled:cursor-not-allowed"
+      >
+        <option value="hybrid">Hybrid (Docling + Claude)</option>
+        <option value="claude-direct">Claude Direct</option>
+      </select>
+      <Show when={props.value === 'hybrid'}>
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                 font-medium bg-green-100 text-green-800"
+          title="Uses Docling for structural decomposition, Claude for semantic analysis. Better quality, lower token cost."
+        >
+          Recommended
+        </span>
+      </Show>
+    </div>
+  );
+}
+
+// ============================================================
+// Component: ParseProgress
+// Real-time progress display during doc-parser processing
+// ============================================================
+
+interface ParseProgressProps {
+  status: DocParserStatus;
+}
+
+function ParseProgress(props: ParseProgressProps) {
+  const progress = () => props.status.progress;
+  const phaseLabel = () => PHASE_LABELS[progress().current_phase] || progress().current_phase;
+  const percentComplete = () => {
+    const p = progress();
+    if (p.total_pages === 0) return p.percent_complete;
+    // Calculate based on phase position + page progress within phase
+    const phaseIndex = p.phases.indexOf(p.current_phase);
+    const phaseWeight = 100 / p.phases.length;
+    const pageProgress = p.total_pages > 0
+      ? (p.current_page / p.total_pages) * phaseWeight
+      : 0;
+    return Math.min(
+      Math.round(phaseIndex * phaseWeight + pageProgress),
+      99,
+    );
+  };
+
+  return (
+    <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      {/* Phase indicator */}
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-blue-800">
+          {phaseLabel()}
+        </span>
+        <span class="text-sm text-blue-600">
+          {percentComplete()}%
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div class="w-full bg-blue-200 rounded-full h-2 mb-2">
+        <div
+          class="bg-blue-600 h-2 rounded-full transition-all duration-500"
+          style={{ width: `${percentComplete()}%` }}
+        />
+      </div>
+
+      {/* Detail stats */}
+      <div class="flex gap-4 text-xs text-blue-700">
+        <Show when={progress().total_pages > 0}>
+          <span>
+            Page {progress().current_page}/{progress().total_pages}
+          </span>
+        </Show>
+        <Show when={progress().floorplans_found > 0}>
+          <span>
+            {progress().floorplans_found} floorplans found
+          </span>
+        </Show>
+        <Show when={progress().tables_found > 0}>
+          <span>
+            {progress().tables_found} tables found
+          </span>
+        </Show>
+      </div>
+
+      {/* Current step */}
+      <div class="mt-1 text-xs text-blue-500 truncate">
+        {progress().current_step.replace(/_/g, ' ')}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Component: ConfidenceBadge
+// Shows extraction confidence with tooltip breakdown
+// ============================================================
+
+interface ConfidenceBadgeProps {
+  confidence: ConfidenceScore;
+}
+
+function ConfidenceBadge(props: ConfidenceBadgeProps) {
+  const [showDetail, setShowDetail] = createSignal(false);
+
+  const colorClass = () => {
+    const score = props.confidence.overall;
+    if (score >= 0.8) return 'bg-green-100 text-green-800 border-green-300';
+    if (score >= 0.5) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    return 'bg-red-100 text-red-800 border-red-300';
+  };
+
+  const fields = () => [
+    { label: 'Room Dimensions', ok: props.confidence.room_dimensions },
+    { label: 'Door Specs', ok: props.confidence.door_specifications },
+    { label: 'Window Specs', ok: props.confidence.window_specifications },
+    { label: 'Fixtures', ok: props.confidence.fixture_completeness },
+    { label: 'Cross-Page Synthesis', ok: props.confidence.cross_page_synthesis },
+    { label: 'Baseboard Data', ok: props.confidence.baseboard_data },
+    { label: 'Unit Identification', ok: props.confidence.unit_identification },
+  ];
+
+  return (
+    <div class="relative inline-block">
+      <button
+        class={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full
+                text-sm font-medium border cursor-pointer ${colorClass()}`}
+        onClick={() => setShowDetail(!showDetail())}
+        title="Click for confidence breakdown"
+      >
+        <span>Confidence: {Math.round(props.confidence.overall * 100)}%</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d={showDetail() ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'}
+          />
+        </svg>
+      </button>
+
+      {/* Dropdown detail */}
+      <Show when={showDetail()}>
+        <div
+          class="absolute z-10 mt-1 right-0 w-64 bg-white border
+                 border-gray-200 rounded-lg shadow-lg p-3"
+        >
+          <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">
+            Extraction Completeness
+          </h4>
+          <For each={fields()}>
+            {(field) => (
+              <div class="flex items-center justify-between py-1">
+                <span class="text-sm text-gray-700">{field.label}</span>
+                <span class={field.ok ? 'text-green-600' : 'text-red-400'}>
+                  {field.ok ? 'Yes' : 'No'}
+                </span>
+              </div>
+            )}
+          </For>
+          <div class="mt-2 pt-2 border-t border-gray-100">
+            <p class="text-xs text-gray-500">
+              {props.confidence.overall < 0.7
+                ? 'Consider re-parsing with Claude Direct for better coverage.'
+                : 'Good extraction coverage across all categories.'}
+            </p>
+          </div>
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+// ============================================================
+// Component: ParseErrorDisplay
+// Shows parse errors with retry option
+// ============================================================
+
+interface ParseErrorProps {
+  error: string;
+  onRetry?: () => void;
+}
+
+function ParseErrorDisplay(props: ParseErrorProps) {
+  return (
+    <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-start gap-2">
+        <span class="text-red-500 text-lg">!</span>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-red-800">Parse Failed</p>
+          <p class="text-sm text-red-600 mt-1">{props.error}</p>
+        </div>
+        <Show when={props.onRetry}>
+          <button
+            onClick={props.onRetry}
+            class="text-sm text-red-700 hover:text-red-900
+                   underline cursor-pointer"
+          >
+            Retry
+          </button>
+        </Show>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Component: ParseResultSummary
+// Shows summary of extraction results
+// ============================================================
+
+interface ParseResultSummaryProps {
+  result: ParsedResult;
+}
+
+function ParseResultSummary(props: ParseResultSummaryProps) {
+  const summary = () => props.result.summary;
+
+  return (
+    <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-green-800">
+          Parsing Complete
+        </span>
+        <Show when={props.result.confidence}>
+          <ConfidenceBadge confidence={props.result.confidence} />
+        </Show>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+        <div class="bg-white rounded p-2 text-center">
+          <div class="text-lg font-bold text-gray-800">
+            {summary()?.units_count || 0}
+          </div>
+          <div class="text-xs text-gray-500">Units</div>
+        </div>
+        <div class="bg-white rounded p-2 text-center">
+          <div class="text-lg font-bold text-gray-800">
+            {summary()?.total_doors || 0}
+          </div>
+          <div class="text-xs text-gray-500">Doors</div>
+        </div>
+        <div class="bg-white rounded p-2 text-center">
+          <div class="text-lg font-bold text-gray-800">
+            {summary()?.total_windows || 0}
+          </div>
+          <div class="text-xs text-gray-500">Windows</div>
+        </div>
+        <div class="bg-white rounded p-2 text-center">
+          <div class="text-lg font-bold text-gray-800">
+            {summary()?.total_baseboard_ft || 0}
+          </div>
+          <div class="text-xs text-gray-500">Baseboard (ft)</div>
+        </div>
+      </div>
+
+      <Show when={summary()?.floorplans_count}>
+        <div class="mt-2 text-xs text-green-700">
+          Processed {summary()?.pages_count} pages | {summary()?.floorplans_count} floorplans | {summary()?.tables_count} tables
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+// ============================================================
+// Integration Example: How to wire into existing ProjectDocuments
+// ============================================================
+
+/**
+ * Add to your existing ProjectDocuments component:
+ *
+ * ```tsx
+ * // Inside your component function:
+ * const [engine, setEngine] = createSignal<ParseEngine>('hybrid');
+ * const docParser = useDocParserJob();
+ *
+ * const handleParse = async (documentId: string, file: File) => {
+ *   if (engine() === 'claude-direct') {
+ *     // Use existing ClaudePdfParser flow
+ *     await existingParseHandler(documentId, file);
+ *   } else {
+ *     // Use doc-parser (docling or hybrid)
+ *     await docParser.submitJob(documentId, file, engine());
+ *   }
+ * };
+ *
+ * // In your JSX, replace the parse button area:
+ * <div class="flex items-center gap-3">
+ *   <EngineSelector
+ *     value={engine()}
+ *     onChange={setEngine}
+ *     disabled={docParser.isPolling()}
+ *   />
+ *   <button
+ *     onClick={() => handleParse(document.id, pdfFile)}
+ *     disabled={docParser.isPolling()}
+ *     class="px-4 py-2 bg-blue-600 text-white rounded-md
+ *            hover:bg-blue-700 disabled:opacity-50"
+ *   >
+ *     {docParser.isPolling() ? 'Parsing...' : 'Parse Document'}
+ *   </button>
+ * </div>
+ *
+ * // Below the button, add progress/result display:
+ * <Show when={docParser.isPolling() && docParser.status()}>
+ *   <ParseProgress status={docParser.status()!} />
+ * </Show>
+ *
+ * <Show when={docParser.error()}>
+ *   <ParseErrorDisplay
+ *     error={docParser.error()!}
+ *     onRetry={() => handleParse(document.id, pdfFile)}
+ *   />
+ * </Show>
+ *
+ * <Show when={docParser.result()}>
+ *   <ParseResultSummary result={docParser.result()!} />
+ * </Show>
+ * ```
+ */
+
+// ============================================================
+// Exports
+// ============================================================
+
+export {
+  useDocParserJob,
+  EngineSelector,
+  ParseProgress,
+  ConfidenceBadge,
+  ParseErrorDisplay,
+  ParseResultSummary,
+  type ParseEngine,
+  type DocParserStatus,
+  type DocParserProgress,
+  type ConfidenceScore,
+  type ParsedResult,
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

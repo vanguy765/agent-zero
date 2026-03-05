@@ -1,0 +1,139 @@
+
+
+def extract_floorplan_candidates(
+    images_with_pages: List[Tuple[int, Image.Image]]
+) -> List[Tuple[int, Image.Image]]:
+    """Extract ALL floorplan candidates from page images.
+
+    NO one-per-page limit - processes all candidates per page.
+    This fixes the has_valid_floorplan guard that previously
+    stopped after finding one floorplan per page.
+
+    Args:
+        images_with_pages: List of (page_number, pil_image) tuples
+
+    Returns:
+        List of (page_number, pil_image) tuples for all floorplan candidates
+    """
+    candidates = []
+
+    for page_no, pil_image in images_with_pages:
+        try:
+            if is_architectural_drawing(pil_image) and has_architectural_text(pil_image):
+                candidates.append((page_no, pil_image))
+                logger.info(
+                    f"Page {page_no}: Floorplan candidate detected "
+                    f"({pil_image.size[0]}x{pil_image.size[1]})"
+                )
+            else:
+                classification = classify_image(pil_image)
+                logger.debug(f"Page {page_no}: Classified as {classification}")
+        except Exception as e:
+            logger.warning(f"Page {page_no}: Classification failed: {e}")
+            # On failure, include as candidate to prevent data loss
+            candidates.append((page_no, pil_image))
+
+    logger.info(f"Found {len(candidates)} floorplan candidates across {len(images_with_pages)} images")
+    return candidates
+
+
+# ============================================================
+# Helper Functions
+===
+]
+
+ARCH_LABEL_REGEX = re.compile(
+    r"\b(" + "|".join(ARCH_LABELS) + r")\b", re.IGNORECASE
+)
+
+# Scale notations
+SCALE_PATTERNS = [
+    r"scale\s*[:=]?\s*\d+",
+    r"1/\d+\"\s*=\s*1\'-0\"",
+    r"\d+\"\s*=\s*\d+\'-\d+\"",
+    r"1:\d+",
+    r"NTS",  # Not To Scale
+]
+
+SCALE_REGEX = re.compile("|".join(SCALE_PATTERNS), re.IGNORECASE)
+
+
+# ============================================================
+# Core Detection Functions
+# ============================================================
+
+def is_architectural_drawing(pil_image: Image.Image, edge_threshold: float = 0.04) -> bool:
+    """Detect if an image is an architectural drawing using Canny edge density.
+
+    Replaces the old is_black_and_white_pil() check (diff < 2.0) which
+    missed color-coded architectural drawings (blue=plumbing, red=electrical).
+
+    Args:
+        pil_image: PIL Image to analyze
+        edge_threshold: Minimum edge pixel ratio (default 0.04 = 4%)
+
+    Returns:
+        True if image has characteristics of an architectural drawing
+    """
+    if not HAS_NUMPY or not HAS_CV2:
+        # Fallback to legacy B&W check if OpenCV not available
+        return _legacy_bw_check(pil_image)
+
+    try:
+        # Convert to grayscale numpy array
+        img_gray = pil_image.convert("L")
+        img_array = np.array(img_gray)
+
+        # Skip very small images (likely icons or artifacts)
+        if img_array.shape[0] < 100 or img_array.shape[1] < 100:
+            return False
+
+        # Apply Gaussian blur to reduce noise
+        blurred = cv2.GaussianBlur(img_array, (5, 5), 0)
+
+        # Canny edge detection
+        edges = cv2.Canny(blurred, 50, 150)
+
+        # Calculate edge density ratio
+        total_pixels = edges.shape[0] * edges.shape[1]
+        edge_pixels = np.count_nonzero(edges)
+        edge_ratio = edge_pixels / total_pixels
+
+        # Architectural drawings have structured line work
+        # Typical range: 0.04 - 0.25 for floorplans
+        # Photos: < 0.03 (soft gradients, few hard edges)
+        # Text-heavy pages: 0.02 - 0.06 (but different line structure)
+        if edge_ratio < edge_threshold:
+            return False
+
+        # Additional check: line structure analysis
+        # Architectural drawings have many long straight lines
+        # Use Hough Line Transform to detect this
+        lines = cv2.HoughLinesP(
+            edges, 1, np.pi / 180,
+            threshold=50,
+            minLineLength=30,
+            maxLineGap=10
+        )
+
+        if lines is None:
+            return edge_ratio > edge_threshold * 1.5  # Higher bar without lines
+
+        # Count significant lines (architectural drawings have many)
+        line_count = len(lines)
+
+        # Architectural drawings typically have 20+ significant lines
+        # Combined with edge density, this filters out photos and text pages
+        return edge_ratio >= edge_threshold and line_count >= 15
+
+    except Exception as e:
+        logger.warning(f"Edge detection failed, using fallback: {e}")
+        return _legacy_bw_check(pil_image)
+
+
+def has_architectural_text(pil_image: Image.Image) -> bool:
+    """Enhanced text detection checking for architectural annotations.
+
+    Replaces has_sufficient_text_pil() with pattern-aware detection:
+    - Dimension patterns (12\'-6", 3.5m)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

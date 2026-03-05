@@ -1,0 +1,116 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === Artifact files ===
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/confidence.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/hybrid.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/job_manager.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/models.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/prompts.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/requirements.txt
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/server.py
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api/doc-parser-client.ts
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api/doc-parser-routes.ts
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/IMPLEMENTATION.md
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/work-orders/ProjectDocuments.tsx
+
+=== IMPLEMENTATION.md (first 100 lines) ===
+# Doc-Parser Integration: Implementation Guide
+
+**Priorities 1–7 Complete Implementation**
+
+---
+
+## Table of Contents
+
+1. [File Inventory](#file-inventory)
+2. [File Mapping to Monorepo](#file-mapping-to-monorepo)
+3. [Prerequisites](#prerequisites)
+4. [Step-by-Step Integration](#step-by-step-integration)
+5. [Docker & Networking](#docker--networking)
+6. [Environment Variables](#environment-variables)
+7. [Testing Strategy](#testing-strategy)
+8. [Migration Notes](#migration-notes)
+9. [Priority Cross-Reference](#priority-cross-reference)
+
+---
+
+## File Inventory
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| **doc-parser/models.py** | 271 | Pydantic models: job records, progress, units, confidence scores |
+| **doc-parser/prompts.py** | 249 | P1: Rich extraction prompts aligned with ClaudePdfParser; P5: Synthesis prompt |
+| **doc-parser/detection.py** | 434 | P2: Canny edge detection, architectural text regex, image classifier |
+| **doc-parser/job_manager.py** | 555 | P3+P4: Job lifecycle, progress tracking, in-memory + Supabase persistence, TTL cleanup |
+| **doc-parser/confidence.py** | 266 | P6: Confidence scoring across 8 extraction dimensions |
+| **doc-parser/hybrid.py** | 695 | P7: Hybrid pipeline (Docling decomposition → Claude extraction) |
+| **doc-parser/server.py** | 805 | Main FastAPI app integrating all priorities, split endpoints |
+| **doc-parser/requirements.txt** | 31 | Python dependencies |
+| **hono-api/doc-parser-client.ts** | 242 | HTTP client for doc-parser service with typed interfaces |
+| **hono-api/doc-parser-routes.ts** | 188 | Hono proxy routes: engine selection, status polling, results fetch |
+| **work-orders/ProjectDocuments.tsx** | 589 | SolidJS components: engine selector, progress bar, confidence badge |
+
+**Total: ~4,325 lines across 11 files**
+
+---
+
+## File Mapping to Monorepo
+
+Copy each file from `implementation-artifacts/` to the corresponding location in `voicelog-scaffold/`:
+
+```
+implementation-artifacts/          →  voicelog-scaffold/
+├── doc-parser/
+│   ├── models.py                  →  doc-parser/models.py           (NEW)
+│   ├── prompts.py                 →  doc-parser/prompts.py          (REPLACE)
+│   ├── detection.py               →  doc-parser/detection.py        (NEW)
+│   ├── job_manager.py             →  doc-parser/job_manager.py      (NEW)
+│   ├── confidence.py              →  doc-parser/confidence.py       (NEW)
+│   ├── hybrid.py                  →  doc-parser/hybrid.py           (NEW)
+│   ├── server.py                  →  doc-parser/server.py           (REPLACE)
+│   └── requirements.txt           →  doc-parser/requirements.txt    (MERGE)
+├── hono-api/
+│   ├── doc-parser-client.ts       →  apps/api/src/services/doc-parser-client.ts  (NEW)
+│   └── doc-parser-routes.ts       →  apps/api/src/routes/doc-parser-routes.ts    (NEW)
+└── work-orders/
+    └── ProjectDocuments.tsx        →  apps/work-orders/src/components/doc-parser/  (NEW)
+```
+
+### Key Decisions
+
+- **server.py REPLACES** the existing `server.py` — it's a full rewrite incorporating all enhancements while maintaining backward compatibility via the `/parse/docling` endpoint
+- **prompts.py REPLACES** the existing `prompts.py` — adds rich prompts while keeping the original `FLOORPLAN_PROMPT` for backward compatibility
+- **requirements.txt should be MERGED** — add new dependencies (`opencv-python-headless`, `numpy`) to existing file
+- **ProjectDocuments.tsx is NEW components** — import and wire into the existing component, don't replace it
+
+---
+
+## Prerequisites
+
+### System Dependencies (doc-parser container)
+
+```bash
+apt-get update && apt-get install -y \
+  tesseract-ocr \
+  poppler-utils \
+  libgl1-mesa-glx
+```
+
+### Python Dependencies
+
+```bash
+cd doc-parser
+pip install -r requirements.txt
+```
+
+### New packages beyond existing:
+
+- `opencv-python-headless` — Canny edge detection for P2
+- `numpy` — Image array processing for P2
+- `pydantic>=2.5.0` — Data models (may already be installed via FastAPI)
+
+---
+
+## Step-by-Step Integration
+
+### Step 1: Copy doc-parser Backend Files
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

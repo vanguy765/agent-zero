@@ -1,0 +1,89 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Root package.json scripts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#   "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
+    "db:migrate": "supabase migration up --local && pnpm db:types",
+    "db:reset": "supabase db reset && pnpm db:types"
+  },
+  "devDependencies": {
+    "prettier": "latest",
+    "turbo": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@types/pdf-parse": "^1.1.5",
+    "pdf2json": "^4.0.2",
+    "zod": "3.23.8"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === docker-compose files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === API package.json scripts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#   "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "@hono/node-server": "latest",
+    "@hono/swagger-ui": "^0.5.3",
+    "@hono/zod-openapi": "^1.2.0",
+    "@hono/zod-validator": "latest",
+    "@napi-rs/canvas": "^0.1.89",
+    "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@supabase/supabase-js": "^2.90.1",
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Work-orders package.json scripts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#   "scripts": {
+    "dev": "vite --port 3004",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@repo/schemas": "workspace:*",
+    "@repo/config": "workspace:*",
+    "@solidjs/router": "^0.15.4",
+    "@supabase/supabase-js": "^2.91.1",
+    "solid-js": "^1.9.10"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Doc-parser start files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_vision.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/compare_methods.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/confidence.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/decode_docling_images.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/Dockerfile
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/filter_floorplans.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/job_manager.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/models.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/patch_server_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/preparse.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/process_document.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/requirements.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_cv.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_surya.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_api.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_env.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_uploads.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

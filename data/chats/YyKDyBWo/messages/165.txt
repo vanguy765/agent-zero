@@ -1,0 +1,8 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# Comment updated
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === Verify route structure ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 34:docParserRoutes.post('/parse', async (c) => {
+123:docParserRoutes.get('/status/:jobId', async (c) => {
+150:docParserRoutes.get('/results/:jobId', async (c) => {
+195:docParserRoutes.get('/health', async (c) => {
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

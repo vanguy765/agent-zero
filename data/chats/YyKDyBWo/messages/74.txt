@@ -1,0 +1,22 @@
+current_step="preparing_images_for_analysis",$
+        )$
+$
+        # Build table context string for enriching Claude prompts$
+        table_context = ""$
+        if table_data:$
+            table_context = "$
+$
+".join([$
+                f"--- Table from Page {pg} ---$
+{md}"$
+                for pg, md in table_data$
+            ])$
+$
+        # ==================================================$
+        # PHASE 4: Claude Semantic Extraction$
+        # ==================================================$
+        await job_manager.update_progress($
+            job_id,$
+            phase=ProcessingPhase.LLM_ANALYSIS,$
+            current_step="starting_claude_analysis",$
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

@@ -1,0 +1,12 @@
+id              | uuid                     |           | not null | gen_random_uuid()
+ organization_id | uuid                     |           | not null |
+ name            | text                     |           | not null |
+ description     | text                     |           |          |
+ status          | text                     |           | not null | 'active'::text
+ metadata        | jsonb                    |           |          | '{}'::jsonb
+ created_at      | timestamp with time zone |           |          | now()
+ updated_at      | timestamp with time zone |           |          | now()
+ project_type    | text                     |           |          |
+ library_id      | uuid                     |           |          |
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

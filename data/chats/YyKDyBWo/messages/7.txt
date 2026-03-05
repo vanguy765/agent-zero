@@ -1,0 +1,1414 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/agentCard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/claudePdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/placeholderGenerator.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== documents.ts route =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { PDFParser } from '../services/pdfParser';
+import { ClaudePdfParser, generateWorkOrdersFromParsedData } from '../services/claudePdfParser';
+import * as canvas from '@napi-rs/canvas';
+
+// Maximum dimension for Claude multi-image API
+const MAX_IMAGE_DIMENSION = 2000;
+
+/**
+ * Resize an image to fit within MAX_IMAGE_DIMENSION while maintaining aspect ratio
+ */
+async function resizeImageIfNeeded(
+    base64Data: string,
+    mediaType: 'image/png' | 'image/jpeg'
+): Promise<{ data: string; mediaType: 'image/png' | 'image/jpeg'; resized: boolean }> {
+    // Decode base64 to buffer
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Load image
+    const image = await canvas.loadImage(buffer);
+    const width = image.width;
+    const height = image.height;
+
+    // Check if resizing is needed
+    if (width <= MAX_IMAGE_DIMENSION && height <= MAX_IMAGE_DIMENSION) {
+        return { data: base64Data, mediaType, resized: false };
+    }
+
+    // Calculate new dimensions maintaining aspect ratio
+    let newWidth: number;
+    let newHeight: number;
+
+    if (width > height) {
+        newWidth = MAX_IMAGE_DIMENSION;
+        newHeight = Math.round((height / width) * MAX_IMAGE_DIMENSION);
+    } else {
+        newHeight = MAX_IMAGE_DIMENSION;
+        newWidth = Math.round((width / height) * MAX_IMAGE_DIMENSION);
+    }
+
+    // Create canvas and draw resized image
+    const resizedCanvas = canvas.createCanvas(newWidth, newHeight);
+    const ctx = resizedCanvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, newWidth, newHeight);
+
+    // Encode back to base64
+    let outputBuffer: Buffer;
+    if (mediaType === 'image/png') {
+        outputBuffer = resizedCanvas.toBuffer('image/png');
+    } else {
+        outputBuffer = resizedCanvas.toBuffer('image/jpeg');
+    }
+
+    const newBase64 = outputBuffer.toString('base64');
+
+    console.log(`Resized image from ${width}x${height} to ${newWidth}x${newHeight}`);
+
+    return { data: newBase64, mediaType, resized: true };
+}
+
+export const documentsRoute = new OpenAPIHono();
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// PROJECT DOCUMENTS ENDPOINTS
+// ============================================================================
+
+// LIST DOCUMENTS FOR A PROJECT
+documentsRoute.get('/projects/:projectId/documents', async (c) => {
+    const supabase = getScopedClient(c);
+    const projectId = c.req.param('projectId');
+
+    const { data, error } = await supabase
+        .from('project_documents')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+    return c.json(data);
+});
+
+// UPLOAD DOCUMENT TO PROJECT
+documentsRoute.post('/projects/:projectId/documents', async (c) => {
+    const supabase = getScopedClient(c);
+    const projectId = c.req.param('projectId');
+
+    try {
+        // Get form data
+        const formData = await c.req.formData();
+        const file = formData.get('file') as File;
+        const title = formData.get('title') as string || file.name;
+        const description = formData.get('description') as string || '';
+
+        if (!file) {
+            return c.json({ error: 'No file provided' }, 400);
+        }
+
+        // Convert File to Buffer
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Generate unique filename
+        const timestamp = Date.now();
+        const filename = `${projectId}/${timestamp}_${file.name}`;
+
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('project-documents')
+            .upload(filename, buffer, {
+                contentType: file.type,
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return c.json({ error: uploadError.message }, 500);
+        }
+
+        // Get file metadata
+        const metadata: any = {
+            original_name: file.name,
+            mime_type: file.type
+        };
+
+        // For PDFs, try to get page count
+        if (file.type === 'application/pdf') {
+            try {
+                const parser = new PDFParser(supabase);
+                const textData = await parser.extractText(buffer);
+                metadata.page_count = textData.pages.length;
+            } catch (error) {
+                console.error('Failed to extract PDF metadata:', error);
+            }
+        }
+
+        // Create document record
+        const { data: document, error: dbError } = await supabase
+            .from('project_documents')
+            .insert({
+                project_id: projectId,
+                title,
+                description,
+                file_url: uploadData.path,
+                file_type: file.type,
+                file_size_bytes: file.size,
+                metadata
+            })
+            .select()
+            .single();
+
+        if (dbError) {
+            console.error('Database error:', dbError);
+            // Try to clean up uploaded file
+            await supabase.storage.from('project-documents').remove([uploadData.path]);
+            return c.json({ error: dbError.message }, 500);
+        }
+
+        return c.json(document, 201);
+    } catch (error) {
+        console.error('Error uploading document:', error);
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to upload document'
+        }, 500);
+    }
+});
+
+// GET SINGLE DOCUMENT
+documentsRoute.get('/documents/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('project_documents')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+
+    return c.json(data);
+});
+
+// UPDATE DOCUMENT
+documentsRoute.patch('/documents/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('project_documents')
+        .update({
+            title: body.title,
+            description: body.description,
+            metadata: body.metadata
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+    return c.json(data);
+});
+
+// DELETE DOCUMENT
+documentsRoute.delete('/documents/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    // Get document to find file path
+    const { data: document, error: fetchError } = await supabase
+        .from('project_documents')
+        .select('file_url')
+        .eq('id', id)
+        .single();
+
+    if (fetchError || !document) {
+        return c.json({ error: 'Document not found' }, 404);
+    }
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+        .from('project-documents')
+        .remove([document.file_url]);
+
+    if (storageError) {
+        console.error('Storage deletion error:', storageError);
+    }
+
+    // Delete from database (cascade will handle related records)
+    const { error: dbError } = await supabase
+        .from('project_documents')
+        .delete()
+        .eq('id', id);
+
+    if (dbError) {
+        return c.json({ error: dbError.message }, 500);
+    }
+
+    return c.json({ success: true });
+});
+
+// DOWNLOAD DOCUMENT
+documentsRoute.get('/documents/:id/download', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    // Get document
+    const { data: document, error: fetchError } = await supabase
+        .from('project_documents')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (fetchError || !document) {
+        return c.json({ error: 'Document not found' }, 404);
+    }
+
+    // Create signed URL for download
+    const { data: signedData, error: urlError } = await supabase.storage
+        .from('project-documents')
+        .createSignedUrl(document.file_url, 3600); // 1 hour expiry
+
+    if (urlError) {
+        return c.json({ error: urlError.message }, 500);
+    }
+
+    return c.json({
+        url: signedData.signedUrl,
+        filename: document.title,
+        expires_at: new Date(Date.now() + 3600000).toISOString()
+    });
+});
+
+// ============================================================================
+// IMAGE EXTRACTION ENDPOINTS
+// ============================================================================
+
+// EXTRACT IMAGES FROM PDF
+documentsRoute.post('/documents/:id/extract-images', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    try {
+        // Get document
+        const { data: document, error: fetchError } = await supabase
+            .from('project_documents')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !document) {
+            return c.json({ error: 'Document not found' }, 404);
+        }
+
+        // Check if it's a PDF
+        if (!document.file_type.includes('pdf')) {
+            return c.json({ error: 'Document is not a PDF' }, 400);
+        }
+
+        // Download PDF from storage
+        const { data: fileData, error: downloadError } = await supabase.storage
+            .from('project-documents')
+            .download(document.file_url);
+
+        if (downloadError || !fileData) {
+            return c.json({ error: 'Failed to download document' }, 500);
+        }
+
+        // Convert blob to buffer
+        const arrayBuffer = await fileData.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Extract images
+        const parser = new PDFParser(supabase);
+        const images = await parser.extractAndStoreImages(
+            buffer,
+            document.project_id,
+            id
+        );
+
+        return c.json({
+            success: true,
+            images_extracted: images.length,
+            images
+        });
+    } catch (error) {
+        console.error('Error extracting images:', error);
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to extract images'
+        }, 500);
+    }
+});
+
+// LIST IMAGES FOR A DOCUMENT
+documentsRoute.get('/documents/:id/images', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('document_images')
+        .select('*')
+        .eq('document_id', id)
+        .order('page_number', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+    // Add signed URLs for each image
+    const imagesWithUrls = await Promise.all(
+        data.map(async (image) => {
+            try {
+                const parser = new PDFParser(supabase);
+                const signedUrl = await parser.getImageSignedUrl(image.image_url);
+                return { ...image, signed_url: signedUrl };
+            } catch (error) {
+                console.error('Failed to get signed URL:', error);
+                return { ...image, signed_url: null };
+            }
+        })
+    );
+
+    return c.json(imagesWithUrls);
+});
+
+// GET SINGLE IMAGE
+documentsRoute.get('/images/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('document_images')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+
+    // Add signed URL
+    try {
+        const parser = new PDFParser(supabase);
+        const signedUrl = await parser.getImageSignedUrl(data.image_url);
+        return c.json({ ...data, signed_url: signedUrl });
+    } catch (error) {
+        console.error('Failed to get signed URL:', error);
+        return c.json(data);
+    }
+});
+
+// UPDATE IMAGE METADATA
+documentsRoute.patch('/images/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('document_images')
+        .update({
+            image_type: body.image_type,
+            caption: body.caption,
+            metadata: body.metadata
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+    return c.json(data);
+});
+
+// DELETE IMAGE
+documentsRoute.delete('/images/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    try {
+        const parser = new PDFParser(supabase);
+        await parser.deleteImage(id);
+        return c.json({ success: true });
+    } catch (error) {
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to delete image'
+        }, 500);
+    }
+});
+
+// ============================================================================
+// TEXT EXTRACTION ENDPOINTS
+// ============================================================================
+
+// EXTRACT TEXT FROM PDF
+documentsRoute.post('/documents/:id/extract-text', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    try {
+        // Get document
+        const { data: document, error: fetchError } = await supabase
+            .from('project_documents')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !document) {
+            return c.json({ error: 'Document not found' }, 404);
+        }
+
+        // Check if it's a PDF
+        if (!document.file_type.includes('pdf')) {
+            return c.json({ error: 'Document is not a PDF' }, 400);
+        }
+
+        // Download PDF from storage
+        const { data: fileData, error: downloadError } = await supabase.storage
+            .from('project-documents')
+            .download(document.file_url);
+
+        if (downloadError || !fileData) {
+            return c.json({ error: 'Failed to download document' }, 500);
+        }
+
+        // Convert blob to buffer
+        const arrayBuffer = await fileData.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Extract text
+        const parser = new PDFParser(supabase);
+        const textData = await parser.extractText(buffer);
+
+        return c.json({
+            success: true,
+            page_count: textData.pages.length,
+            text: textData.text,
+            pages: textData.pages
+        });
+    } catch (error) {
+        console.error('Error extracting text:', error);
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to extract text'
+        }, 500);
+    }
+});
+
+// ============================================================================
+// CLAUDE AI PARSING ENDPOINTS
+// ============================================================================
+
+// PARSE DOCUMENT WITH CLAUDE
+documentsRoute.post('/documents/:id/parse', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    try {
+        // Check for API key
+        const apiKey = process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+            return c.json({ error: 'ANTHROPIC_API_KEY not configured' }, 500);
+        }
+
+        // Get request body for optional custom prompt
+        let customPrompt: string | undefined;
+        try {
+            const body = await c.req.json();
+            customPrompt = body?.customPrompt;
+        } catch {
+            // No body provided, use default prompt
+        }
+
+        // Get document
+        const { data: document, error: fetchError } = await supabase
+            .from('project_documents')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !document) {
+            return c.json({ error: 'Document not found' }, 404);
+        }
+
+        // Get extracted images for this document
+        const { data: images, error: imagesError } = await supabase
+            .from('document_images')
+            .select('*')
+            .eq('document_id', id)
+            .order('page_number', { ascending: true });
+
+        if (imagesError) {
+            return c.json({ error: 'Failed to fetch document images' }, 500);
+        }
+
+        if (!images || images.length === 0) {
+            return c.json({
+                error: 'No images found. Please extract images first using /documents/:id/extract-images'
+            }, 400);
+        }
+
+        console.log(`Parsing document ${id} with ${images.length} images using Claude...`);
+
+        // Download images, resize if needed, and convert to base64
+        // (Claude API requires HTTPS URLs but local Supabase uses HTTP, so we send base64 data)
+        // Claude also limits images to 2000px max dimension for multi-image requests
+        const base64Images: { data: string; mediaType: 'image/png' | 'image/jpeg' }[] = [];
+
+        for (const image of images) {
+            try {
+                // Download image from storage
+                const { data: imageData, error: downloadError } = await supabase.storage
+                    .from('project-documents')
+                    .download(image.image_url);
+
+                if (downloadError || !imageData) {
+                    console.error(`Failed to download image ${image.id}:`, downloadError);
+                    continue;
+                }
+
+                // Convert to base64
+                const arrayBuffer = await imageData.arrayBuffer();
+                const base64 = Buffer.from(arrayBuffer).toString('base64');
+                const mediaType = image.image_url.endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+                // Resize if needed (Claude limits images to 2000px for multi-image requests)
+                const resizedImage = await resizeImageIfNeeded(base64, mediaType);
+
+                base64Images.push({ data: resizedImage.data, mediaType: resizedImage.mediaType });
+                const sizeKB = (Buffer.from(resizedImage.data, 'base64').length / 1024).toFixed(1);
+                console.log(`Loaded image ${image.page_number || 'unknown'} (${sizeKB} KB)${resizedImage.resized ? ' [resized]' : ''}`);
+            } catch (err) {
+                console.error(`Failed to process image ${image.id}:`, err);
+            }
+        }
+
+        if (base64Images.length === 0) {
+            return c.json({ error: 'Failed to load any images' }, 500);
+        }
+
+        console.log(`Sending ${base64Images.length} images to Claude for parsing...`);
+
+        // Parse with Claude using base64 images
+        // Use batch processing for large documents (> 10 pages) to avoid token limits
+        const claudeParser = new ClaudePdfParser(apiKey);
+        const BATCH_SIZE = 10; // Process 10 pages at a time
+        const parsedData = base64Images.length > BATCH_SIZE
+            ? await claudeParser.parseInBatches(base64Images, id, BATCH_SIZE, customPrompt)
+            : await claudeParser.parseBase64Images(base64Images, id, customPrompt);
+
+        // Store parsed data in document metadata
+        const { error: updateError } = await supabase
+            .from('project_documents')
+            .update({
+                metadata: {
+                    ...document.metadata,
+                    parsed_data: parsedData,
+                    parsed_at: new Date().toISOString()
+                }
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            console.error('Failed to save parsed data:', updateError);
+        }
+
+        return c.json({
+            success: true,
+            document_id: id,
+            parsed: parsedData,
+            summary: {
+                units_count: parsedData.units?.length ?? 0,
+                total_baseboard_ft: parsedData.total_baseboard_ft ?? 0,
+                trades: parsedData.summary?.trades ?? []
+            }
+        });
+    } catch (error) {
+        console.error('Error parsing document with Claude:', error);
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to parse document'
+        }, 500);
+    }
+});
+
+// GENERATE WORK ORDERS FROM PARSED DATA
+documentsRoute.post('/documents/:id/generate-work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    try {
+        // Get document with parsed data
+        const { data: document, error: fetchError } = await supabase
+            .from('project_documents')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !document) {
+            return c.json({ error: 'Document not found' }, 404);
+        }
+
+        // Check if document has been parsed
+        const parsedData = document.metadata?.parsed_data;
+        if (!parsedData) {
+            return c.json({
+                error: 'Document has not been parsed. Use /documents/:id/parse first.'
+            }, 400);
+        }
+
+        // Generate work orders
+        const workOrders = generateWorkOrdersFromParsedData(parsedData, document.project_id);
+
+        // For now, just return the work orders that would be created
+        // In a full implementation, we would insert these into the work_orders table
+        return c.json({
+            success: true,
+            document_id: id,
+            project_id: document.project_id,
+            work_orders_count: workOrders.length,
+            work_orders: workOrders
+        });
+    } catch (error) {
+        console.error('Error generating work orders:', error);
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to generate work orders'
+        }, 500);
+    }
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== claudePdfParser.ts =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import Anthropic from '@anthropic-ai/sdk';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+// Types for parsed PDF data
+export interface ParsedUnit {
+    unit_number: string;
+    unit_type: string;
+    floor: number;
+    bedrooms: number;
+    bathrooms: number;
+    area_sf: number;
+    rooms: ParsedRoom[];
+    doors: ParsedDoor[];
+    windows: ParsedWindow[];
+    fixtures: ParsedFixture[];
+    upgrades: ParsedUpgrade[];
+}
+
+export interface ParsedRoom {
+    name: string;
+    dimensions: {
+        length_ft: number;
+        width_ft: number;
+        area_sf: number;
+    };
+    baseboard_length_ft: number;
+    baseboard_exclusions: string[];
+}
+
+export interface ParsedDoor {
+    location: string;
+    type: string;
+    dimensions: string;
+    hardware: string;
+    action: string;
+    do_not_install?: boolean;
+}
+
+export interface ParsedWindow {
+    location: string;
+    type: string;
+    dimensions: string;
+    coverings: string;
+}
+
+export interface ParsedFixture {
+    category: string;
+    name: string;
+    location: string;
+    specifications: string;
+}
+
+export interface ParsedUpgrade {
+    trade: string;
+    description: string;
+    quantity?: number;
+    unit?: string;
+}
+
+export interface ParsedDocument {
+    document_id: string;
+    units: ParsedUnit[];
+    general_notes: string[];
+    total_baseboard_ft: number;
+    summary: {
+        units_count: number;
+        trades: string[];
+        total_doors: number;
+        total_windows: number;
+    };
+    raw_text?: string;
+}
+
+export class ClaudePdfParser {
+    private client: Anthropic;
+
+    constructor(apiKey: string) {
+        this.client = new Anthropic({ apiKey });
+    }
+
+    /**
+     * Parse architectural drawings using Claude's vision API
+     */
+    async parseDocument(
+        imageUrls: string[],
+        documentId: string,
+        customPrompt?: string
+    ): Promise<ParsedDocument> {
+        // Build the content array with all images
+        const imageContent: Anthropic.ImageBlockParam[] = imageUrls.map(url => ({
+            type: 'image' as const,
+            source: {
+                type: 'url' as const,
+                url
+            }
+        }));
+
+        const systemPrompt = `You are an expert architectural drawing analyst. Your task is to extract detailed, structured information from architectural PDF drawings for a construction/renovation project management system.
+
+Focus on extracting:
+1. Unit information (number, type, floor, bedrooms, bathrooms, area)
+2. Room dimensions and layouts
+3. Baseboard calculations (perimeter minus exclusions like cabinets, vanity, tub, heaters, doors)
+4. All doors (type, dimensions, hardware, installation notes)
+5. All windows (type, dimensions, coverings)
+6. Kitchen fixtures and appliances
+7. Bathroom fixtures (toilet, lavatory, vanity, tub, shower, grab bars)
+8. Closets and storage areas
+9. Heating/cooling equipment
+10. Electrical specifications
+11. Flooring specifications
+12. Upgrade lists organized by trade
+
+IMPORTANT for baseboard calculations:
+- Calculate perimeter of each room
+- Subtract: kitchen base cabinets, bathroom vanity, bathtub/shower, radiators/heaters, door openings
+- Note "do not install" bifold doors means open closet (needs side baseboards)
+
+Always return your response as valid JSON.`;
+
+        const userPrompt = customPrompt || `Analyze these architectural drawings and extract all information in the following JSON structure:
+
+{
+  "units": [
+    {
+      "unit_number": "string",
+      "unit_type": "string (e.g., Type A, Type B)",
+      "floor": "number",
+      "bedrooms": "number",
+      "bathrooms": "number",
+      "area_sf": "number",
+      "rooms": [
+        {
+          "name": "string",
+          "dimensions": {
+            "length_ft": "number",
+            "width_ft": "number",
+            "area_sf": "number"
+          },
+          "baseboard_length_ft": "number (perimeter minus exclusions)",
+          "baseboard_exclusions": ["string (what was subtracted: cabinets, vanity, etc.)"]
+        }
+      ],
+      "doors": [
+        {
+          "location": "string",
+          "type": "string (swing, bifold, sliding, pocket)",
+          "dimensions": "string",
+          "hardware": "string",
+          "action": "install/replace/do not install",
+          "do_not_install": "boolean"
+        }
+      ],
+      "windows": [
+        {
+          "location": "string",
+          "type": "string",
+          "dimensions": "string",
+          "coverings": "string"
+        }
+      ],
+      "fixtures": [
+        {
+          "category": "string (kitchen, bathroom, electrical, hvac)",
+          "name": "string",
+          "location": "string",
+          "specifications": "string"
+        }
+      ],
+      "upgrades": [
+        {
+          "trade": "string (painting, carpentry, plumbing, flooring, electrical, hvac, appliances)",
+          "description": "string",
+          "quantity": "number (optional)",
+          "unit": "string (sf, lf, ea - optional)"
+        }
+      ]
+    }
+  ],
+  "general_notes": ["string"],
+  "total_baseboard_ft": "number (sum of all baseboard lengths)",
+  "summary": {
+    "units_count": "number",
+    "trades": ["string (list of all trades needed)"],
+    "total_doors": "number",
+    "total_windows": "number"
+  }
+}
+
+Extract as much detail as possible. If exact measurements aren't visible, estimate based on typical residential dimensions. Be thorough - this data will be used to generate work orders.`;
+
+        const response = await this.client.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 8000,
+            system: systemPrompt,
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        ...imageContent,
+                        {
+                            type: 'text',
+                            text: userPrompt
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Extract the text content from the response
+        const textContent = response.content.find(c => c.type === 'text');
+        if (!textContent || textContent.type !== 'text') {
+            throw new Error('No text response from Claude');
+        }
+
+        // Parse the JSON response
+        let parsedData: any;
+        try {
+            // Try to extract JSON from the response (might be wrapped in markdown)
+            const jsonMatch = textContent.text.match(/```json\n?([\s\S]*?)\n?```/) ||
+                              textContent.text.match(/\{[\s\S]*\}/);
+
+            if (jsonMatch) {
+                parsedData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+            } else {
+                parsedData = JSON.parse(textContent.text);
+            }
+        } catch (e) {
+            console.error('Failed to parse JSON response:', textContent.text);
+            throw new Error('Failed to parse Claude response as JSON');
+        }
+
+        return {
+            document_id: documentId,
+            units: parsedData.units || [],
+            general_notes: parsedData.general_notes || [],
+            total_baseboard_ft: parsedData.total_baseboard_ft || 0,
+            summary: parsedData.summary || {
+                units_count: parsedData.units?.length || 0,
+                trades: [],
+                total_doors: 0,
+                total_windows: 0
+            },
+            raw_text: textContent.text
+        };
+    }
+
+    /**
+     * Parse a single page/image for quick analysis
+     */
+    async parseImage(
+        imageUrl: string,
+        prompt: string
+    ): Promise<string> {
+        const response = await this.client.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 4000,
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image',
+                            source: {
+                                type: 'url',
+                                url: imageUrl
+                            }
+                        },
+                        {
+                            type: 'text',
+                            text: prompt
+                        }
+                    ]
+                }
+            ]
+        });
+
+        const textContent = response.content.find(c => c.type === 'text');
+        return textContent?.type === 'text' ? textContent.text : '';
+    }
+
+    /**
+     * Parse using base64 image data (for images stored locally)
+     */
+    async parseBase64Images(
+        images: { data: string; mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' }[],
+        documentId: string,
+        customPrompt?: string
+    ): Promise<ParsedDocument> {
+        const imageContent: Anthropic.ImageBlockParam[] = images.map(img => ({
+            type: 'image' as const,
+            source: {
+                type: 'base64' as const,
+                media_type: img.mediaType,
+                data: img.data
+            }
+        }));
+
+        const systemPrompt = `You are an expert architectural drawing analyst. Extract detailed, structured information from these architectural PDF page images.
+
+CRITICAL: Return valid JSON with EXACTLY this structure. All array fields MUST be arrays (use empty [] if no data):
+{
+  "units": [
+    {
+      "unit_number": "string",
+      "unit_type": "string",
+      "bedrooms": number,
+      "bathrooms": number,
+      "area_sf": number,
+      "rooms": [],      // MUST be array
+      "doors": [],      // MUST be array
+      "windows": [],    // MUST be array
+      "fixtures": [],   // MUST be array
+      "upgrades": [],   // MUST be array
+      "total_baseboard_ft": number
+    }
+  ],
+  "general_notes": [],  // MUST be array
+  "total_baseboard_ft": number,
+  "summary": {
+    "units_count": number,
+    "trades": [],       // MUST be array
+    "total_doors": number,
+    "total_windows": number
+  }
+}
+
+IMPORTANT: Never return objects where arrays are expected. If there are no items, use an empty array [].`;
+
+        const userPrompt = customPrompt || `Analyze these architectural drawing pages and extract all unit information, room dimensions, baseboard calculations, doors, windows, fixtures, and upgrade lists. Return as JSON.`;
+
+        console.log(`Calling Claude API with ${images.length} images...`);
+
+        const response = await this.client.messages.create({
+            model: 'claude-sonnet-4-20250514',  // Using Sonnet 4 for vision capabilities
+            max_tokens: 16000, // Increased for large documents with many pages
+            system: systemPrompt,
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        ...imageContent,
+                        {
+                            type: 'text',
+                            text: userPrompt
+                        }
+                    ]
+                }
+            ]
+        });
+
+        console.log(`Claude response - stop_reason: ${response.stop_reason}, content blocks: ${response.content.length}`);
+        console.log(`Claude usage - input: ${response.usage.input_tokens}, output: ${response.usage.output_tokens}`);
+
+        const textContent = response.content.find(c => c.type === 'text');
+        if (!textContent || textContent.type !== 'text') {
+            console.error('No text content in response. Content types:', response.content.map(c => c.type));
+            throw new Error('No text response from Claude');
+        }
+
+        console.log(`Claude raw response (first 500 chars): ${textContent.text.substring(0, 500)}`)
+
+        // Check if response was truncated
+        const wasTruncated = response.stop_reason === 'max_tokens';
+        if (wasTruncated) {
+            console.warn('Claude response was truncated due to max_tokens limit');
+        }
+
+        let parsedData: any;
+        try {
+            const jsonMatch = textContent.text.match(/```json\n?([\s\S]*?)\n?```/) ||
+                              textContent.text.match(/\{[\s\S]*\}/);
+
+            let jsonString = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : textContent.text;
+
+            // If response was truncated, try to fix incomplete JSON
+            if (wasTruncated && jsonString) {
+                jsonString = this.repairTruncatedJson(jsonString);
+            }
+
+            parsedData = JSON.parse(jsonString);
+        } catch (e) {
+            console.error('Failed to parse JSON response:', textContent.text.substring(0, 500) + '...');
+            // Try to salvage partial data with aggressive repair
+            try {
+                const partialData = this.salvagePartialJson(textContent.text);
+                if (partialData && partialData.units && partialData.units.length > 0) {
+                    console.log(`Salvaged partial data with ${partialData.units.length} units`);
+                    parsedData = partialData;
+                } else {
+                    throw new Error('Failed to parse Claude response as JSON');
+                }
+            } catch (salvageError) {
+                throw new Error('Failed to parse Claude response as JSON');
+            }
+        }
+
+        return {
+            document_id: documentId,
+            units: parsedData.units || [],
+            general_notes: parsedData.general_notes || [],
+            total_baseboard_ft: parsedData.total_baseboard_ft || 0,
+            summary: parsedData.summary || {
+                units_count: parsedData.units?.length || 0,
+                trades: [],
+                total_doors: 0,
+                total_windows: 0
+            },
+            raw_text: textContent.text
+        };
+    }
+
+    /**
+     * Attempt to repair truncated JSON by closing open brackets/braces
+     */
+    private repairTruncatedJson(json: string): string {
+        let repaired = json.trim();
+
+        // Count open brackets and braces
+        let openBraces = 0;
+        let openBrackets = 0;
+        let inString = false;
+        let escapeNext = false;
+
+        for (const char of repaired) {
+            if (escapeNext) {
+                escapeNext = false;
+                continue;
+            }
+            if (char === '\\') {
+                escapeNext = true;
+                continue;
+            }
+            if (char === '"') {
+                inString = !inString;
+                continue;
+            }
+            if (inString) continue;
+
+            if (char === '{') openBraces++;
+            if (char === '}') openBraces--;
+            if (char === '[') openBrackets++;
+            if (char === ']') openBrackets--;
+        }
+
+        // If we ended inside a string, close it
+        if (inString) {
+            repaired += '"';
+        }
+
+        // Remove any trailing incomplete key-value pair
+        repaired = repaired.replace(/,\s*"[^"]*"?\s*:?\s*[^,}\]]*$/, '');
+
+        // Close open brackets and braces
+        for (let i = 0; i < openBrackets; i++) {
+            repaired += ']';
+        }
+        for (let i = 0; i < openBraces; i++) {
+            repaired += '}';
+        }
+
+        return repaired;
+    }
+
+    /**
+     * Try to extract partial units array from truncated JSON
+     */
+    private salvagePartialJson(text: string): any {
+        // Try to find the units array
+        const unitsMatch = text.match(/"units"\s*:\s*\[/);
+        if (!unitsMatch) {
+            return null;
+        }
+
+        // Find where units array starts
+        const startIdx = text.indexOf(unitsMatch[0]) + unitsMatch[0].length - 1;
+        let bracketCount = 1;
+        let endIdx = startIdx + 1;
+        let inString = false;
+        let escapeNext = false;
+
+        // Find complete unit objects
+        const units: any[] = [];
+        let currentUnitStart = startIdx + 1;
+
+        while (endIdx < text.length && bracketCount > 0) {
+            const char = text[endIdx];
+
+            if (escapeNext) {
+                escapeNext = false;
+                endIdx++;
+                continue;
+            }
+            if (char === '\\') {
+                escapeNext = true;
+                endIdx++;
+                continue;
+            }
+            if (char === '"') {
+                inString = !inString;
+                endIdx++;
+                continue;
+            }
+            if (inString) {
+                endIdx++;
+                continue;
+            }
+
+            if (char === '[') bracketCount++;
+            if (char === ']') bracketCount--;
+            if (char === '{' && bracketCount === 1) {
+                currentUnitStart = endIdx;
+            }
+            if (char === '}' && bracketCount === 1) {
+                // Found complete unit object
+                try {
+                    const unitJson = text.substring(currentUnitStart, endIdx + 1);
+                    const unit = JSON.parse(unitJson);
+                    units.push(unit);
+                } catch (e) {
+                    // Skip malformed unit
+                }
+            }
+
+            endIdx++;
+        }
+
+        if (units.length === 0) {
+            return null;
+        }
+
+        return {
+            units,
+            general_notes: [],
+            total_baseboard_ft: 0,
+            summary: {
+                units_count: units.length,
+                trades: [],
+                total_doors: 0,
+                total_windows: 0
+            }
+        };
+    }
+
+    /**
+     * Parse a large document by splitting into batches
+     * This avoids token limits by processing pages in smaller groups
+     */
+    async parseInBatches(
+        images: { data: string; mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' }[],
+        documentId: string,
+        batchSize: number = 10,
+        customPrompt?: string
+    ): Promise<ParsedDocument> {
+        // If small enough, just parse normally
+        if (images.length <= batchSize) {
+            return this.parseBase64Images(images, documentId, customPrompt);
+        }
+
+        console.log(`Parsing ${images.length} images in batches of ${batchSize}...`);
+
+        // Split into batches
+        const batches: typeof images[] = [];
+        for (let i = 0; i < images.length; i += batchSize) {
+            batches.push(images.slice(i, i + batchSize));
+        }
+
+        // Process each batch
+        const batchResults: ParsedDocument[] = [];
+        for (let i = 0; i < batches.length; i++) {
+            console.log(`Processing batch ${i + 1}/${batches.length} (${batches[i].length} pages)...`);
+            try {
+                const result = await this.parseBase64Images(
+                    batches[i],
+                    `${documentId}_batch_${i}`,
+                    customPrompt
+                );
+                batchResults.push(result);
+                console.log(`Batch ${i + 1} complete: ${result.units.length} units found`);
+            } catch (error) {
+                console.error(`Batch ${i + 1} failed:`, error);
+                // Continue with other batches
+            }
+        }
+
+        // Merge results
+        return this.mergeBatchResults(documentId, batchResults);
+    }
+
+    /**
+     * Merge results from multiple batch parses into a single document
+     */
+    private mergeBatchResults(documentId: string, results: ParsedDocument[]): ParsedDocument {
+        console.log(`Merging ${results.length} batch results...`);
+
+        const allUnits: any[] = [];
+        const allNotes: string[] = [];
+        const tradesSet = new Set<string>();
+        let totalBaseboard = 0;
+        let totalDoors = 0;
+        let totalWindows = 0;
+        const rawTexts: string[] = [];
+
+        for (const result of results) {
+            // Merge units (deduplicate by unit_number)
+            for (const unit of result.units || []) {
+                const existingIdx = allUnits.findIndex(u => u.unit_number === unit.unit_number);
+                if (existingIdx === -1) {
+                    allUnits.push(unit);
+                } else {
+                    // Merge data into existing unit (later batches may have more complete data)
+                    allUnits[existingIdx] = { ...allUnits[existingIdx], ...unit };
+                }
+            }
+
+            // Merge notes (deduplicate)
+            for (const note of result.general_notes || []) {
+                if (!allNotes.includes(note)) {
+                    allNotes.push(note);
+                }
+            }
+
+            // Collect trades
+            for (const trade of result.summary?.trades || []) {
+                tradesSet.add(trade);
+            }
+
+            // Sum totals
+            totalBaseboard += result.total_baseboard_ft || 0;
+            totalDoors += result.summary?.total_doors || 0;
+            totalWindows += result.summary?.total_windows || 0;
+
+            // Collect raw text
+            if (result.raw_text) {
+                rawTexts.push(result.raw_text);
+            }
+        }
+
+        // Recalculate baseboard from units if we have detailed room data
+        const calculatedBaseboard = allUnits.reduce((sum, unit) => {
+            const rooms = Array.isArray(unit.rooms) ? unit.rooms : [];
+            const unitBaseboard = rooms.reduce((roomSum: number, room: any) => {
+                return roomSum + (room.baseboard_length_ft || room.baseboard_ft || room.total_baseboard_ft || 0);
+            }, 0);
+            return sum + (unit.total_baseboard_ft || unitBaseboard);
+        }, 0);
+
+        return {
+            document_id: documentId,
+            units: allUnits,
+            general_notes: allNotes,
+            total_baseboard_ft: calculatedBaseboard || totalBaseboard,
+            summary: {
+                units_count: allUnits.length,
+                trades: Array.from(tradesSet),
+                total_doors: totalDoors,
+                total_windows: totalWindows
+            },
+            raw_text: rawTexts.join('\n\n--- BATCH SEPARATOR ---\n\n')
+        };
+    }
+}
+
+/**
+ * Helper to generate work orders from parsed document
+ */
+export function generateWorkOrdersFromParsedData(
+    parsedData: ParsedDocument,
+    projectId: string
+): any[] {
+    const workOrders: any[] = [];
+
+    for (const unit of parsedData.units) {
+        // Group upgrades by trade
+        const upgradesByTrade = new Map<string, ParsedUpgrade[]>();
+
+        for (const upgrade of unit.upgrades) {
+            const trade = upgrade.trade.toLowerCase();
+            if (!upgradesByTrade.has(trade)) {
+                upgradesByTrade.set(trade, []);
+            }
+            upgradesByTrade.get(trade)!.push(upgrade);
+        }
+
+        // Create work order for each trade
+        for (const [trade, upgrades] of upgradesByTrade) {
+            workOrders.push({
+                project_id: projectId,
+                unit_number: unit.unit_number,
+                trade,
+                title: `${trade.charAt(0).toUpperCase() + trade.slice(1)} - Unit ${unit.unit_number}`,
+                description: upgrades.map(u => u.description).join('\n'),
+                tasks: upgrades.map(u => ({
+                    description: u.description,
+                    quantity: u.quantity,
+                    unit: u.unit
+                })),
+                status: 'pending',
+                metadata: {
+                    unit_type: unit.unit_type,
+                    floor: unit.floor,
+                    area_sf: unit.area_sf,
+                    baseboard_ft: unit.rooms.reduce((sum, r) => sum + r.baseboard_length_ft, 0)
+                }
+            });
+        }
+    }
+
+    return workOrders;
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

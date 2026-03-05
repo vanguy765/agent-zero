@@ -1,0 +1,51 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === 1. index.ts - doc-parser import ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# 29:import { docParserRoutes } from './routes/doc-parser-routes';
+53:app.route('/doc-parser', docParserRoutes);
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === 2. api.ts - doc-parser methods ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# 520:  /** Submit a document for parsing via doc-parser service */
+521:  async submitDocParserJob(
+525:    return this.request(`/doc-parser/parse`, {
+532:  async getDocParserStatus(jobId: string): Promise<{
+551:    return this.request(`/doc-parser/status/${jobId}`);
+555:  async getDocParserResults(jobId: string, summary?: boolean): Promise<any> {
+557:    return this.request(`/doc-parser/results/${jobId}${query}`);
+560:  /** List all doc-parser jobs */
+561:  async listDocParserJobs(status?: string): Promise<any[]> {
+563:    return this.request(`/doc-parser/jobs${query}`);
+566:  /** Delete a doc-parser job */
+567:  async deleteDocParserJob(jobId: string): Promise<{ status: string }> {
+568:    return this.request(`/doc-parser/jobs/${jobId}`, {
+573:  /** Check doc-parser service health */
+574:  async getDocParserHealth(): Promise<{
+579:    return this.request('/doc-parser/health');
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === 3. ProjectDocuments.tsx - doc-parser imports and components ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# 7:  useDocParserJob,
+8:  EngineSelector,
+9:  ParseProgress,
+10:  ParseErrorDisplay,
+11:  ParseResultSummary,
+12:  type ParseEngine,
+13:} from '../components/doc-parser/DocParserPanel';
+24:    const [parseEngine, setParseEngine] = createSignal<ParseEngine>('hybrid');
+25:    const docParser = useDocParserJob();
+121:    const parseWithDocParser = async (doc: ProjectDocument) => {
+123:            await docParser.submitJob(doc.id, new File([], doc.title), parseEngine());
+253:                                                <EngineSelector
+254:                                                    value={parseEngine()}
+255:                                                    onChange={setParseEngine}
+256:                                                    disabled={docParser.isPolling() || parsing() === doc.id}
+259:                                                    onClick={() => parseEngine() === 'claude-direct' ? parseWithClaude(doc) : parseWithDocParser(doc)}
+260:                                                    disabled={parsing() === doc.id || docParser.isPolling()}
+262:                                                    title={parseEngine() === 'hybrid' ? 'Parse with Docling + Claude hybrid engine' : 'Parse with Claude AI directly'}
+264:                                                    {(parsing() === doc.id || docParser.isPolling()) ? 'Parsing...' : `🤖 Parse (${parseEngine() === 'hybrid' ? 'Hybrid' : 'Claude'})`}
+292:                                    <Show when={docParser.isPolling() && docParser.status()}>
+293:                                        <ParseProgress status={docParser.status()!} />
+295:                                    <Show when={docParser.error()}>
+296:                                        <ParseErrorDisplay
+297:                                            error={docParser.error()!}
+298:                                            onRetry={() => parseWithDocParser(doc)}
+301:                                    <Show when={docParser.result()}>
+302:                                        <ParseResultSummary result={docParser.result()!} />
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

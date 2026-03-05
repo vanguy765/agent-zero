@@ -1,0 +1,86 @@
+# Schema Evolution Phase 1 — All Files Created ✅
+
+All 4 files have been created and validated:
+
+---
+
+## File 1: Schema Migration
+**Path:** `supabase/migrations/20260304000001_schema_evolution_phase1.sql`
+**Size:** 514 lines (26 KB)
+
+### Sections implemented:
+| Section | Description | Details |
+|---------|-------------|--------|
+| **1A** | `trades` table | CREATE TABLE + RLS (4 policies) + indexes + updated_at trigger |
+| **1B** | `project_outcomes` table | CREATE TABLE + RLS + partial unique indexes (system/company) + trigger |
+| **1C** | `organization_trades` junction | CREATE TABLE + RLS + unique constraint |
+| **1D** | `trade_outcome_assignments` junction | CREATE TABLE + RLS + unique constraint |
+| **1E** | `type_orders` table | CREATE TABLE + RLS + partial unique indexes (system/company/project) + trigger |
+| **1F** | `type_order_compositions` junction | CREATE TABLE + RLS + unique constraint |
+| **1G** | `type_order_default_work_orders` junction | CREATE TABLE + RLS + unique constraint |
+| **1H** | `bom_action_requests` table | CREATE TABLE + RLS + indexes + trigger |
+| **1I** | ALTER `work_order_templates` | 5 new columns (trade_id, sop_id, outcome_id, inheritance_depth, source_template_id) |
+| **1J** | ALTER `work_orders` | 3 new columns (trade_id, bom_action_request_id, type_order_id) |
+| **1K** | ALTER `sops` | 3 new columns (trade_id, scope, outcome_id) |
+| **1L** | ALTER `units` | 1 new column (type_order_id) |
+| **1M** | ALTER `wo_projects` | 1 new column (outcome_id) |
+| **1N** | Scope rename `app` → `system` | UPDATE data + DROP/ADD constraints on templates & libraries |
+| **1O** | Trade name sync triggers | `sync_trade_name()` for templates/work_orders + `sync_trade_name_and_code()` for SOPs |
+| **1P** | Updated_at triggers | All new tables have `updated_at` auto-update triggers |
+
+**Totals:** 8 new tables, 34 RLS policies, 23 indexes, 7 triggers
+
+---
+
+## File 2: Seed Data Migration
+**Path:** `supabase/migrations/20260304000002_schema_evolution_seed.sql`
+**Size:** 236 lines (14.8 KB)
+
+### Data seeded:
+- **10 system trades** (PNT, CRP, PLB, FLR, ELC, HVC, APL, WNC, MLW, GEN)
+- **4 project outcomes** (res_reno [default], com_build, res_new, maint)
+- **30 trade-outcome assignments** (9+7+9+5 across outcomes)
+- **22 type orders** (9 interior + 4 exterior + 3 common + 2 pre_construction + 4 composite)
+- **15 type order compositions** (studio=3, 1br=4, 2br=4, 3br=4)
+- **Backfills:** trade_id on work_order_templates, work_orders, and sops (including Doors/Closets → Millwork mapping)
+- **Organization trades:** All 10 trades assigned to org `00..01`
+
+---
+
+## File 3: Test Script
+**Path:** `tests/test_schema_evolution.sql`
+**Size:** 690 lines (25.3 KB)
+
+### 41 tests across 9 categories:
+| Category | Tests | Coverage |
+|----------|-------|----------|
+| Trades | #1-4 | Count, uniqueness, NULL org_id, code values |
+| Project Outcomes | #5-7 | Count, default flag, NULL org_id |
+| Trade-Outcome Assignments | #8-10 | Counts per outcome, FK validity |
+| Type Orders | #11-17 | Counts by category, composite flags, NULL checks |
+| Type Order Compositions | #18-21 | Component counts, quantities (bedroom/bathroom) |
+| Scope Rename | #22-24 | No 'app' scope, 'system' exists, constraint check |
+| Trade Backfill | #25-27 | trade_id populated, name match, org_trades entries |
+| Trigger Tests | #28-29 | Auto-populate trade_name on INSERT/UPDATE |
+| Constraint Tests | #30-33 | System+org_id fails, company-no-org fails, etc. |
+| FK Integrity | #34-36 | All junction tables reference valid parents |
+| Column Existence | #37-41 | New columns on templates, orders, sops, units, projects |
+
+---
+
+## File 4: Test Runner
+**Path:** `tests/run_schema_tests.sh` (executable ✅)
+**Size:** 66 lines
+
+Runs: `supabase db reset` → seed → test SQL → PASS/FAIL summary
+
+Default DB URL: `postgresql://postgres:postgres@host.docker.internal:54322/postgres`
+
+---
+
+### Key Design Decision
+Used **partial unique indexes** instead of `COALESCE` with sentinel UUIDs for both `project_outcomes` and `type_orders` — this is the PostgreSQL-idiomatic way to handle unique constraints with nullable columns:
+```sql
+CREATE UNIQUE INDEX idx_..._unique_system ON table(code) WHERE scope = 'system';
+CREATE UNIQUE INDEX idx_..._unique_company ON table(code, organization_id) WHERE scope = 'company';
+```

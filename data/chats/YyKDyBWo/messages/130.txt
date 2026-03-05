@@ -1,0 +1,21 @@
+8: *   POST /api/documents/:id/parse    - Parse document (engine selection)
+9: *   GET  /api/doc-parser/status/:jobId  - Lightweight status (poll-safe)
+10: *   GET  /api/doc-parser/results/:jobId - Full results (fetch-once)
+11: *   GET  /api/doc-parser/health         - Service health check
+17:  getJobStatus,
+18:  getJobResults,
+28:// POST /api/documents/:id/parse
+32:docParserRoutes.post('/documents/:id/parse', async (c) => {
+58:    // const document = await getDocument(documentId);
+63:    const pdfFile = formData?.get('file') as File | null;
+81:        tenantName: body?.tenant_name || c.get('tenantId'),
+104:// GET /api/doc-parser/status/:jobId
+109:docParserRoutes.get('/doc-parser/status/:jobId', async (c) => {
+113:    const status: DocParserStatus = await getJobStatus(jobId);
+131:// GET /api/doc-parser/results/:jobId
+136:docParserRoutes.get('/doc-parser/results/:jobId', async (c) => {
+141:    const data = await getJobResults(jobId, summaryOnly);
+177:// GET /api/doc-parser/health
+178:// Service health check with dependency status
+181:docParserRoutes.get('/doc-parser/health', async (c) => {
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

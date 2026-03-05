@@ -1,0 +1,118 @@
+===== Dockerfile =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-devel
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    libgl1 \
+    poppler-utils \
+    tesseract-ocr \
+    ninja-build \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Upgrade pip and install build dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir cython numpy
+
+# Detectron2 removed for benchmark phase
+# RUN pip install --no-cache-dir 'git+https://github.com/facebookresearch/detectron2.git'
+
+# 1. Install Massive AI Libraries First (This layer caches forever!)
+RUN pip install --no-cache-dir docling torch torchvision
+
+# 2. Then copy requirements.txt (with massive libraries removed from it)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set default command
+CMD ["/bin/bash"]
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== filter_floorplans.py =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import os
+import cv2
+import numpy as np
+import pytesseract
+
+def is_black_and_white(img_path):
+    """
+    Returns True if an image is purely black/white/grayscale.
+    If it's a real photograph, it will have R/G/B variance.
+    """
+    img = cv2.imread(img_path)
+    if img is None:
+        return False
+        
+    # Some images might be loaded as 1-channel grayscale directly
+    if len(img.shape) < 3:
+        return True
+        
+    b, g, r = cv2.split(img)
+    
+    # Calculate difference between color channels.
+    # A true grayscale/B&W image has identical R, G, and B values.
+    # Therefore, the absolute difference between them should be near 0.
+    diff = np.mean(np.abs(b - g)) + np.mean(np.abs(g - r))
+    
+    # Allow a tiny bit of compression noise margin
+    return diff < 2.0
+
+def has_sufficient_text(img_path, min_words=3):
+    """
+    Uses Tesseract OCR to quickly scan an image for text.
+    Floorplans have room names/dimensions. Blank boxes do not.
+    """
+    img = cv2.imread(img_path)
+    if img is None:
+        return False
+        
+    # Convert to grayscale for OCR
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # Extract text block
+    text = pytesseract.image_to_string(gray)
+    word_count = len(text.split())
+    
+    return word_count >= min_words
+
+def filter_images(base_dir="structured_output"):
+    """
+    Walks through all page folders. Identifies 'floorplans' vs 'junk/photos'.
+    """
+    floorplans_found = 0
+    
+    print(f"Scanning {base_dir} for Floorplans...")
+    
+    for page_folder in os.listdir(base_dir):
+        page_path = os.path.join(base_dir, page_folder)
+        if not os.path.isdir(page_path) or not page_folder.startswith("page_"):
+            continue
+            
+        for file in os.listdir(page_path):
+            if file.startswith("picture_") and file.endswith(".png"):
+                img_path = os.path.join(page_path, file)
+                
+                # Check 1: Is it Black and White? (Filters out site photos)
+                if not is_black_and_white(img_path):
+                    # print(f"Skipping {page_folder}/{file} - Color photo detected.")
+                    continue
+                    
+                # Check 2: Does it have text? (Filters out empty boxes/logos)
+                if not has_sufficient_text(img_path):
+                    # print(f"Skipping {page_folder}/{file} - No text detected.")
+                    continue
+                    
+                print(f"✅ Found Floorplan: {page_folder}/{file}")
+                floorplans_found += 1
+                
+    print(f"\nTotal Floorplans Discovered: {floorplans_found}")
+
+if __name__ == "__main__":
+    filter_images()
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== .env (redacted) =====
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# OPENROUTER_API_KEY=<REDACTED>(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

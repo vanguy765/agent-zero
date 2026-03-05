@@ -1,0 +1,125 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /opt/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 75 items
+
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[12'-6"] PASSED [  1%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[10' x 12'] PASSED [  2%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[3.5m] PASSED [  4%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[3660mm] PASSED [  5%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[12 ft 6 in] PASSED [  6%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[10'-0"] PASSED [  8%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[25'-3"] PASSED [  9%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[450mm] PASSED [ 10%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[2.0m] PASSED [ 12%]
+tests/test_detection.py::TestDimensionRegex::test_matches_valid_dimensions[8 ft 0 in] PASSED [ 13%]
+tests/test_detection.py::TestDimensionRegex::test_does_not_match_invalid[123] PASSED [ 14%]
+tests/test_detection.py::TestDimensionRegex::test_does_not_match_invalid[hello] PASSED [ 16%]
+tests/test_detection.py::TestDimensionRegex::test_does_not_match_invalid[abc def] PASSED [ 17%]
+tests/test_detection.py::TestDimensionRegex::test_does_not_match_invalid[no dimensions here] PASSED [ 18%]
+tests/test_detection.py::TestDimensionRegex::test_does_not_match_invalid[] PASSED [ 20%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[bedroom] PASSED [ 21%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[KITCHEN] PASSED [ 22%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[Bathroom] PASSED [ 24%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[w.i.c] PASSED [ 25%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[Living room area] PASSED [ 26%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[MASTER suite] PASSED [ 28%]
+tests/test_detection.py::TestArchLabelRegex::test_matches_architectural_labels[garage door] PASSED [ 29%]
+tests/test_detection.py::TestArchLabelRegex::test_does_not_match_non_labels[computer] PASSED [ 30%]
+tests/test_detection.py::TestArchLabelRegex::test_does_not_match_non_labels[table] PASSED [ 32%]
+tests/test_detection.py::TestArchLabelRegex::test_does_not_match_non_labels[random words] PASSED [ 33%]
+tests/test_detection.py::TestArchLabelRegex::test_does_not_match_non_labels[xyz123] PASSED [ 34%]
+tests/test_detection.py::TestArchLabelRegex::test_does_not_match_non_labels[] PASSED [ 36%]
+tests/test_detection.py::TestScaleRegex::test_matches_scale_notations[scale: 1/4] PASSED [ 37%]
+tests/test_detection.py::TestScaleRegex::test_matches_scale_notations[Scale=100] PASSED [ 38%]
+tests/test_detection.py::TestScaleRegex::test_matches_scale_notations[1:100] PASSED [ 40%]
+tests/test_detection.py::TestScaleRegex::test_matches_scale_notations[NTS] PASSED [ 41%]
+tests/test_detection.py::TestScaleRegex::test_matches_scale_notations[scale 200] PASSED [ 42%]
+tests/test_detection.py::TestScaleRegex::test_does_not_match_non_scale[no scale here] PASSED [ 44%]
+tests/test_detection.py::TestScaleRegex::test_does_not_match_non_scale[random text] PASSED [ 45%]
+tests/test_detection.py::TestScaleRegex::test_does_not_match_non_scale[] PASSED [ 46%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_line_drawing_returns_true PASSED [ 48%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_photo_like_returns_false FAILED [ 49%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_blank_white_returns_false PASSED [ 50%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_small_image_returns_false PASSED [ 52%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_custom_edge_threshold_lower FAILED [ 53%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_custom_edge_threshold_higher PASSED [ 54%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_fallback_when_cv2_unavailable PASSED [ 56%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_fallback_when_numpy_unavailable PASSED [ 57%]
+tests/test_detection.py::TestHasArchitecturalText::test_text_with_dimensions_returns_true PASSED [ 58%]
+tests/test_detection.py::TestHasArchitecturalText::test_text_with_room_labels_returns_true PASSED [ 60%]
+tests/test_detection.py::TestHasArchitecturalText::test_random_text_returns_false PASSED [ 61%]
+tests/test_detection.py::TestHasArchitecturalText::test_empty_text_returns_false PASSED [ 62%]
+tests/test_detection.py::TestHasArchitecturalText::test_short_text_returns_false PASSED [ 64%]
+tests/test_detection.py::TestHasArchitecturalText::test_no_tesseract_returns_true PASSED [ 65%]
+tests/test_detection.py::TestHasArchitecturalText::test_tesseract_exception_returns_true PASSED [ 66%]
+tests/test_detection.py::TestHasArchitecturalText::test_labels_plus_scale_sufficient PASSED [ 68%]
+tests/test_detection.py::TestHasArchitecturalText::test_single_label_insufficient PASSED [ 69%]
+tests/test_detection.py::TestClassifyImage::test_floorplan_classification PASSED [ 70%]
+tests/test_detection.py::TestClassifyImage::test_photo_classification PASSED [ 72%]
+tests/test_detection.py::TestClassifyImage::test_diagram_classification PASSED [ 73%]
+tests/test_detection.py::TestClassifyImage::test_table_classification PASSED [ 74%]
+tests/test_detection.py::TestClassifyImage::test_unknown_classification PASSED [ 76%]
+tests/test_detection.py::TestClassifyImage::test_cv2_unavailable_photo PASSED [ 77%]
+tests/test_detection.py::TestClassifyImage::test_cv2_unavailable_unknown PASSED [ 78%]
+tests/test_detection.py::TestClassifyImage::test_exception_returns_unknown PASSED [ 80%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_floorplan_images_returned FAILED [ 81%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_mixed_images_filtered FAILED [ 82%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_empty_list_returns_empty PASSED [ 84%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_classification_failure_includes_candidate FAILED [ 85%]
+tests/test_detection.py::TestLegacyBwCheck::test_grayscale_returns_true PASSED [ 86%]
+tests/test_detection.py::TestLegacyBwCheck::test_colorful_returns_false PASSED [ 88%]
+tests/test_detection.py::TestLegacyBwCheck::test_numpy_unavailable_returns_true PASSED [ 89%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_photo_like_returns_true PASSED [ 90%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_line_drawing_returns_false PASSED [ 92%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_blank_image_returns_false PASSED [ 93%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_numpy_unavailable_uses_getcolors PASSED [ 94%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_numpy_unavailable_few_colors_returns_false PASSED [ 96%]
+tests/test_detection.py::TestImageToBase64::test_returns_valid_base64 PASSED [ 97%]
+tests/test_detection.py::TestImageToBase64::test_roundtrip_decode PASSED [ 98%]
+tests/test_detection.py::TestImageToBase64::test_jpeg_format PASSED      [100%]
+
+=================================== FAILURES ===================================
+___________ TestIsArchitecturalDrawing.test_photo_like_returns_false ___________
+tests/test_detection.py:218: in test_photo_like_returns_false
+    assert result == False
+E   assert True == False
+_________ TestIsArchitecturalDrawing.test_custom_edge_threshold_lower __________
+tests/test_detection.py:237: in test_custom_edge_threshold_lower
+    assert result == True
+E   assert False == True
+________ TestExtractFloorplanCandidates.test_floorplan_images_returned _________
+tests/test_detection.py:448: in test_floorplan_images_returned
+    result = extract_floorplan_candidates([img1, img2])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+detection.py:279: in extract_floorplan_candidates
+    for page_no, pil_image in images_with_pages:
+        ^^^^^^^^^^^^^^^^^^
+E   TypeError: cannot unpack non-iterable Image object
+__________ TestExtractFloorplanCandidates.test_mixed_images_filtered ___________
+tests/test_detection.py:457: in test_mixed_images_filtered
+    result = extract_floorplan_candidates([img1, img2, img3])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+detection.py:279: in extract_floorplan_candidates
+    for page_no, pil_image in images_with_pages:
+        ^^^^^^^^^^^^^^^^^^
+E   TypeError: cannot unpack non-iterable Image object
+_ TestExtractFloorplanCandidates.test_classification_failure_includes_candidate _
+tests/test_detection.py:469: in test_classification_failure_includes_candidate
+    result = extract_floorplan_candidates([img])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+detection.py:279: in extract_floorplan_candidates
+    for page_no, pil_image in images_with_pages:
+        ^^^^^^^^^^^^^^^^^^
+E   TypeError: cannot unpack non-iterable Image object
+=========================== short test summary info ============================
+FAILED tests/test_detection.py::TestIsArchitecturalDrawing::test_photo_like_returns_false - assert True == False
+FAILED tests/test_detection.py::TestIsArchitecturalDrawing::test_custom_edge_threshold_lower - assert False == True
+FAILED tests/test_detection.py::TestExtractFloorplanCandidates::test_floorplan_images_returned - TypeError: cannot unpack non-iterable Image object
+FAILED tests/test_detection.py::TestExtractFloorplanCandidates::test_mixed_images_filtered - TypeError: cannot unpack non-iterable Image object
+FAILED tests/test_detection.py::TestExtractFloorplanCandidates::test_classification_failure_includes_candidate - TypeError: cannot unpack non-iterable Image object
+========================= 5 failed, 70 passed in 0.89s =========================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

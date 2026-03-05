@@ -1,0 +1,320 @@
+"success": True,
+                })
+
+                logger.info(
+                    f"Job {job_id}: Page {page_no} extracted - "
+                    f"{len(unit_data.get("rooms", []))} rooms, "
+                    f"{len(unit_data.get("doors", []))} doors"
+                )
+
+            except json.JSONDecodeError as e:
+                logger.warning(
+                    f"Job {job_id}: JSON parse failed for page {page_no}: {e}"
+                )
+                unit_extractions.append({
+                    "page_no": page_no,
+                    "error": f"JSON parse error: {str(e)}",
+                    "raw": result_str[:500] if result_str else "",
+                    "success": False,
+                })
+
+            except Exception as e:
+                logger.error(
+                    f"Job {job_id}: LLM extraction failed for page {page_no}: {e}"
+                )
+                unit_extractions.append({
+                    "page_no": page_no,
+                    "error": str(e),
+                    "success": False,
+                })
+
+        # ==================================================
+        # PHASE 5: Cross-Page Synthesis (Priority 5)
+        # ==================================================
+        synthesis_result = None
+
+        successful_extractions = [
+            ue for ue in unit_extractions if ue.get("success")
+        ]
+
+        if len(successful_extractions) > 1 or (
+            successful_extractions and table_data
+        ):
+            await job_manager.update_progress(
+                job_id,
+                phase=ProcessingPhase.SYNTHESIS,
+                current_step="cross_page_synthesis",
+            )
+
+            try:
+                # Build synthesis context
+                synthesis_context_parts = []
+
+                synthesis_context_parts.append(
+                    f"Total pages in document: {total_pages}"
+                )
+                synthesis_context_parts.append(
+                    f"Floorplans analyzed: {len(successful_extractions)}"
+                )
+
+                for ue in successful_extractions:
+                    synthesis_context_parts.append(
+                        f"
+--- Floorplan from Page {ue["page_no"]} ---
+"
+                        + json.dumps(ue["data"], indent=2)
+                    )
+
+                if table_data:
+                    synthesis_context_parts.append(
+                        "
+--- TABLES/SCHEDULES ---"
+                    )
+                    for pg, md in table_data:
+                        synthesis_context_parts.append(
+                            f"
+--- Table from Page {pg} ---
+{md}"
+                        )
+
+                synthesis_context = "
+".join(synthesis_context_parts)
+
+                synthesis_str = await run_text_llm(
+                    provider, SYNTHESIS_PROMPT, synthesis_context
+                )
+
+                synthesis_clean = re.sub(
+                    r"```(?:json)?\s*|\s*```", "", synthesis_str
+                ).strip()
+
+                synthesis_result = json.loads(synthesis_clean)
+                logger.info(f"Job {job_id}: Cross-page synthesis complete")
+
+            except Exception as e:
+                logger.warning(
+                    f"Job {job_id}: Synthesis failed (non-fatal): {e}"
+                )
+                synthesis_result = {"error": str(e)}
+
+        # ==================================================
+        # PHASE 6: Assemble Output & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.UPLOADING,
+            current_step="assembling_output",
+        )
+
+        result = assemble_hybrid_output(
+            unit_extractions=unit_extractions,
+            table_data=table_data,
+            footer_sample=footer_sample,
+            floorplan_candidates=floorplan_candidates,
+            site_photos=site_photos,
+            diagrams=diagrams,
+            pdf_pages=pdf_pages,
+            synthesis=synthesis_result,
+            sb_client=sb_client,
+            tenant_name=tenant_name,
+            project_name=project_name,
+        )
+
+        # Calculate confidence (Priority 6)
+        result["confidence"] = calculate_confidence(
+            units=result.get("units", []),
+            tables=result.get("tables", []),
+            synthesis=synthesis_result,
+            total_pages=total_pages,
+            floorplans_found=len(floorplan_candidates),
+        ).model_dump()
+
+        # Complete the job
+        await job_manager.complete_job(job_id, result)
+
+        logger.info(
+            f"Job {job_id}: Hybrid pipeline complete - "
+            f"{len(result.get("units", []))} units extracted, "
+            f"confidence={result["confidence"]["overall"]}"
+        )
+
+    except asyncio.CancelledError:
+        await job_manager.timeout_job(job_id)
+        raise
+
+    except Exception as e:
+        traceback.print_exc()
+        await job_manager.fail_job(job_id, str(e))
+
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+
+# ============================================================
+# Output Assembly
+# ============================================================
+
+def assemble_hybrid_output(
+    unit_extractions: List[Dict[str, Any]],
+    table_data: List[Tuple[int, str]],
+    footer_sample: Optional[Dict[str, Any]],
+    floorplan_candidates: List[Tuple[int, Image.Image, str]],
+    site_photos: List[Tuple[int, Image.Image]],
+    diagrams: List[Tuple[int, Image.Image]],
+    pdf_pages: list,
+    synthesis: Optional[Dict[str, Any]] = None,
+    sb_client=None,
+    tenant_name: str = "",
+    project_name: str = "",
+) -> Dict[str, Any]:
+    """Assemble hybrid pipeline output in both page-oriented and unit-oriented formats.
+
+    Produces BOTH formats:
+    - pages: page-oriented (for doc-parser native consumers)
+    - units: unit-oriented (for direct ParsedDocument compatibility with work-orders)
+    """
+    output: Dict[str, Any] = {
+        "engine": "hybrid",
+        "pages": {},
+        "units": [],
+        "tables": [],
+        "footer_sample": footer_sample,
+        "general_notes": [],
+        "synthesis": synthesis,
+    }
+
+    # --- Initialize page structure ---
+    for i, page_img in enumerate(pdf_pages):
+        page_no = i + 1
+        output["pages"][page_no] = {
+            "page_number": page_no,
+            "floorplans": [],
+            "tables": [],
+            "site_photos": [],
+            "diagrams": [],
+            "classification": "unknown",
+        }
+
+    # --- Map floorplan extractions to pages AND build units array ---
+    for extraction in unit_extractions:
+        page_no = extraction["page_no"]
+        data = extraction.get("data", {})
+
+        if not extraction.get("success", False):
+            # Record failed extraction in page data
+            if page_no in output["pages"]:
+                output["pages"][page_no]["floorplans"].append({
+                    "error": extraction.get("error", "unknown"),
+                })
+            continue
+
+        # Add to page-oriented output
+        if page_no in output["pages"]:
+            output["pages"][page_no]["floorplans"].append(data)
+            output["pages"][page_no]["classification"] = "floorplan"
+
+        # Build unit-oriented output (ParsedDocument compatible)
+        unit = {
+            "unit_number": data.get("unit_number", f"page_{page_no}"),
+            "unit_type": data.get("unit_type", "unknown"),
+            "floor": data.get("floor", 0),
+            "bedrooms": data.get("bedrooms", 0),
+            "bathrooms": data.get("bathrooms", 0),
+            "half_baths": data.get("half_baths", 0),
+            "area_sf": data.get("total_area_sf", data.get("area_sf", 0)),
+            "rooms": data.get("rooms", []),
+            "doors": data.get("doors", []),
+            "windows": data.get("windows", []),
+            "fixtures": data.get("fixtures", []),
+            "upgrades": data.get("upgrades", []),
+            "general_notes": data.get("general_notes", []),
+            "source_page": page_no,
+        }
+        output["units"].append(unit)
+
+        # Collect general notes
+        for note in data.get("general_notes", []):
+            if note not in output["general_notes"]:
+                output["general_notes"].append(note)
+
+    # --- Add Docling tables to output ---
+    for page_no, md in table_data:
+        output["tables"].append({"page_no": page_no, "markdown": md})
+        if page_no in output["pages"]:
+            output["pages"][page_no]["tables"].append(md)
+            if output["pages"][page_no]["classification"] == "unknown":
+                output["pages"][page_no]["classification"] = "table"
+
+    # --- Mark site photo and diagram pages ---
+    for page_no, _ in site_photos:
+        if page_no in output["pages"]:
+            output["pages"][page_no]["classification"] = "site_photo"
+
+    for page_no, _ in diagrams:
+        if page_no in output["pages"]:
+            output["pages"][page_no]["classification"] = "diagram"
+
+    # --- Build summary ---
+    output["summary"] = {
+        "units_count": len(output["units"]),
+        "pages_count": len(pdf_pages),
+        "floorplans_count": len(floorplan_candidates),
+        "tables_count": len(table_data),
+        "site_photos_count": len(site_photos),
+        "diagrams_count": len(diagrams),
+        "total_doors": sum(
+            len(u.get("doors", [])) for u in output["units"]
+        ),
+        "total_windows": sum(
+            len(u.get("windows", [])) for u in output["units"]
+        ),
+        "total_baseboard_ft": sum(
+            sum(
+                r.get("baseboard_length_ft", 0)
+                for r in u.get("rooms", [])
+            )
+            for u in output["units"]
+        ),
+        "trades": list(set(
+            up.get("trade", "")
+            for u in output["units"]
+            for up in u.get("upgrades", [])
+            if up.get("trade")
+        )),
+        "has_footer": footer_sample is not None,
+        "has_synthesis": synthesis is not None and "error" not in (synthesis or {}),
+        "extraction_errors": sum(
+            1 for ue in unit_extractions if not ue.get("success")
+        ),
+    }
+
+    return output
+\n\n=== SERVER.PY (endpoints only) ===
+76:async def lifespan(app: FastAPI):
+127:def get_request_supabase_client(
+148:async def save_upload_to_temp(file: UploadFile) -> str:
+166:@app.post("/parse/docling")
+167:async def parse_docling(
+207:async def _process_docling_background(
+248:async def _docling_pipeline(
+535:@app.post("/parse/hybrid")
+536:async def parse_hybrid(
+575:async def _process_hybrid_background(
+608:@app.get("/status/{job_id}")
+609:async def get_status(job_id: str):
+625:@app.get("/results/{job_id}")
+626:async def get_results(
+680:@app.get("/health")
+681:async def health_check():
+738:@app.get("/jobs")
+739:async def list_jobs(
+765:@app.delete("/jobs/{job_id}")
+766:async def delete_job(job_id: str):
+788:@app.get("/result/{job_id}")
+789:async def get_result_legacy(job_id: str):
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

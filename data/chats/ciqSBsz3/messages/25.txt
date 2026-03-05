@@ -1,0 +1,31 @@
+192:-- 1E. type_orders table (NEW)
+194:CREATE TABLE IF NOT EXISTS public.type_orders (
+203:    parent_type_order_id uuid REFERENCES public.type_orders(id) ON DELETE SET NULL,
+210:    CONSTRAINT type_orders_category_check CHECK (category IN ('interior', 'exterior', 'pre_construction', 'common')),
+211:    CONSTRAINT type_orders_scope_check CHECK (scope IN ('system', 'company', 'project')),
+217:-- Partial unique indexes for type_orders (cleaner than COALESCE with sentinel UUIDs)
+218:CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_system
+219:    ON public.type_orders(code) WHERE scope = 'system';
+220:CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_company
+221:    ON public.type_orders(code, organization_id) WHERE scope = 'company';
+222:CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_project
+223:    ON public.type_orders(code, organization_id, project_id) WHERE scope = 'project';
+225:-- RLS for type_orders
+226:ALTER TABLE public.type_orders ENABLE ROW LEVEL SECURITY;
+228:CREATE POLICY "type_orders_select_system" ON public.type_orders FOR SELECT
+231:CREATE POLICY "type_orders_select_company" ON public.type_orders FOR SELECT
+234:CREATE POLICY "type_orders_select_project" ON public.type_orders FOR SELECT
+237:CREATE POLICY "type_orders_insert_company" ON public.type_orders FOR INSERT
+243:CREATE POLICY "type_orders_update_company" ON public.type_orders FOR UPDATE
+249:CREATE POLICY "type_orders_delete_company" ON public.type_orders FOR DELETE
+255:-- Indexes for type_orders
+256:CREATE INDEX IF NOT EXISTS idx_type_orders_code ON public.type_orders(code);
+257:CREATE INDEX IF NOT EXISTS idx_type_orders_scope ON public.type_orders(scope);
+258:CREATE INDEX IF NOT EXISTS idx_type_orders_category ON public.type_orders(category);
+259:CREATE INDEX IF NOT EXISTS idx_type_orders_organization_id ON public.type_orders(organization_id);
+261:-- Updated_at trigger for type_orders
+263:    CREATE TRIGGER update_type_orders_updated_at
+264:        BEFORE UPDATE ON public.type_orders
+270:-- 1F. type_order_compositions junction table (NEW)
+272:CREATE TABLE IF NOT EXISTS public.type_order_compositions (
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

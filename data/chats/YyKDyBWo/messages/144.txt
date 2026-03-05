@@ -1,0 +1,7 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# >  00000000-0000-0000-0000-000000000001 | Team Projects | team-projects
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# >  organizations
+ user_template_prefs
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

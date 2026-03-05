@@ -1,0 +1,14 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000002_core_tables.sql:44:CREATE TABLE public.rooms (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000004_unit_tables.sql:34:CREATE TABLE public.unit_rooms (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/early-work/20260201200500_create_work_orders.sql:32:CREATE TABLE IF NOT EXISTS public.rooms (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/early-work/20260204000000_document_storage.sql:56:CREATE TABLE unit_rooms (
+===SEPARATOR===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000002_core_tables.sql:59:CREATE TABLE public.template_libraries (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/early-work/20260203170000_template_libraries.sql:13:CREATE TABLE IF NOT EXISTS template_libraries (
+===SEPARATOR===
+No 000001 file
+===SEPARATOR===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000001_extensions.sql
+===SEPARATOR===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000002_core_tables.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

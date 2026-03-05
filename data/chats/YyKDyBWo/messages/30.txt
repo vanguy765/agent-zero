@@ -1,0 +1,55 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === doc-parser/ ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# -rwxrwxrwx 1 root root  1993 Feb 17 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_script.py
+-rwxrwxrwx 1 root root  3810 Feb 24 06:05 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_vision.py
+-rwxrwxrwx 1 root root  2475 Feb 24 04:38 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/compare_methods.py
+-rw-r--r-- 1 root root  8735 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/confidence.py
+-rwxrwxrwx 1 root root  1561 Feb 24 06:16 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/decode_docling_images.py
+-rw-r--r-- 1 root root 14419 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection.py
+-rwxrwxrwx 1 root root  2774 Feb 25 23:20 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/filter_floorplans.py
+-rw-r--r-- 1 root root 23226 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+-rw-r--r-- 1 root root 19938 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/job_manager.py
+-rw-r--r-- 1 root root  9672 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/models.py
+-rwxrwxrwx 1 root root  6562 Feb 25 23:54 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/patch_server_script.py
+-rwxrwxrwx 1 root root  6547 Feb 24 04:37 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/preparse.py
+-rwxrwxrwx 1 root root  4533 Feb 26 04:33 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/process_document.py
+-rwxrwxrwx 1 root root  9654 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+-rwxrwxrwx 1 root root   635 Mar  3 04:07 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/requirements.txt
+-rwxrwxrwx 1 root root 24879 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+-rwxrwxrwx 1 root root  2789 Feb 25 23:02 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_cv.py
+-rwxrwxrwx 1 root root  2774 Feb 25 22:38 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_surya.py
+-rwxrwxrwx 1 root root  2553 Feb 17 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_api.py
+-rwxrwxrwx 1 root root  1308 Feb 17 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_env.py
+-rwxrwxrwx 1 root root  1524 Feb 17 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_uploads.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === apps/api/src/services/ ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# total 68
+drwxrwxrwx 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Feb 23 04:19 ..
+drwxrwxrwx 1 root root  4096 Feb 17 02:18 a2a
+-rwxrwxrwx 1 root root 23454 Feb 17 02:18 claudePdfParser.ts
+-rw-r--r-- 1 root root  5919 Mar  3 04:06 doc-parser-client.ts
+-rwxrwxrwx 1 root root 10227 Feb 17 02:18 pdfParser.ts
+-rw-r--r-- 1 root root 11335 Feb 19 05:38 placeholderGenerator.ts
+-rw-r--r-- 1 root root 11844 Feb 19 05:38 reviewService.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === apps/api/src/routes/ ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# total 144
+drwxrwxrwx 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Feb 23 04:19 ..
+-rwxrwxrwx 1 root root  5327 Feb 17 02:18 a2a.ts
+-rwxrwxrwx 1 root root   974 Feb 17 02:18 delivery.ts
+-rw-r--r-- 1 root root  6375 Mar  3 04:06 doc-parser-routes.ts
+-rwxrwxrwx 1 root root 22496 Feb 17 02:18 documents.ts
+-rw-r--r-- 1 root root 14324 Feb 19 05:40 entity-creation.ts
+-rwxrwxrwx 1 root root  1891 Feb 17 02:18 materials.ts
+-rwxrwxrwx 1 root root 13262 Feb 23 23:02 onboard.ts
+-rwxrwxrwx 1 root root  3476 Feb 17 02:18 project-definitions.ts
+-rw-r--r-- 1 root root  6994 Feb 19 05:39 reviews.ts
+-rwxrwxrwx 1 root root  3209 Feb 17 02:18 taxonomy.ts
+-rwxrwxrwx 1 root root  2671 Feb 17 02:18 todos.ts
+-rwxrwxrwx 1 root root  2494 Feb 17 02:18 units.ts
+-rwxrwxrwx 1 root root  3021 Feb 17 02:18 voice.ts
+-rwxrwxrwx 1 root root 34073 Feb 23 23:20 work-orders.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === apps/work-orders/src/components/doc-parser/ ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

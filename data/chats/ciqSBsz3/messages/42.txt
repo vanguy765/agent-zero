@@ -1,0 +1,13 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Sample UUIDs after fix ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 'a0000000-0000-0000-0000-000000000001'
+'a0000000-0000-0000-0000-000000000002'
+'a0000000-0000-0000-0000-000000000003'
+'a0000000-0000-0000-0000-000000000004'
+'a0000000-0000-0000-0000-000000000005'
+'a0000000-0000-0000-0000-000000000006'
+'a0000000-0000-0000-0000-000000000007'
+'a0000000-0000-0000-0000-000000000008'
+'a0000000-0000-0000-0000-000000000009'
+'a0000000-0000-0000-0000-000000000010'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Any remaining t/o/s prefixed UUIDs? ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

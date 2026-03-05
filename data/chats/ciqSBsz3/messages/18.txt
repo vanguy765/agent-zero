@@ -1,0 +1,30 @@
+=== Section markers ===
+9:-- 1A. trades table (NEW)
+62:-- 1B. project_outcomes table (NEW)
+117:-- 1C. organization_trades junction table (NEW)
+148:-- 1D. trade_outcome_assignments junction table (NEW)
+187:-- 1E. type_orders table (NEW)
+265:-- 1F. type_order_compositions junction table (NEW)
+303:-- 1G. type_order_default_work_orders junction table (NEW)
+341:-- 1H. bom_action_requests table (NEW)
+394:-- 1I. ALTER work_order_templates — add new columns
+404:-- 1J. ALTER work_orders — add new columns
+412:-- 1K. ALTER sops — add new columns
+420:-- 1L. ALTER units — add type_order_id
+426:-- 1M. ALTER wo_projects — add outcome_id
+432:-- 1N. Scope rename: 'app' -> 'system'
+467:-- 1O. Trade name sync trigger
+506:-- 1P. Updated_at triggers for all new tables (already created above inline)
+=== RLS ENABLE ===
+8
+=== CREATE POLICY ===
+34
+=== CREATE INDEX ===
+23
+=== UNIQUE INDEX type_orders ===
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_system
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_company
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_project
+=== TRIGGER count ===
+7
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,14 @@
+256:         ("Baseboard Data", score.baseboard_data),
+257:         ("Unit Identification", score.unit_identification),
+258:         ("Cross-Page Synthesis", score.cross_page_synthesis),
+259:     ]
+260:
+261:     for label, present in checks:
+262:         icon = "✅" if present else "❌"
+263:         lines.append(f"  {icon} {label}")
+264:
+265:     return "\n".join(lines)
+
+
+Fix applied successfully
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

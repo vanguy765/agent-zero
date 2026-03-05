@@ -1,0 +1,59 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# REPLACED: server.py prompts.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === STEP 5: Copy NEW Hono API Files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# Hono API files copied
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === STEP 6: Copy NEW Frontend Component ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# Frontend component copied as DocParserPanel.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# Steps 1-3, 5-6 DONE. Step 4 (merge) next.
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === EXISTING requirements.txt ===
+# layoutparser[ocr]
+pdfplumber
+pdf2image
+pytesseract
+pandas
+openpyxl
+fastapi
+uvicorn
+python-multipart
+requests
+supabase
+pymupdf
+jinja2
+litellm
+python-dotenv
+
+=== ARTIFACT requirements.txt ===
+# Doc-parser service dependencies
+# Priority 1-7 implementation
+
+# Core framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Data models
+pydantic>=2.5.0
+
+# Document processing
+docling>=2.0.0
+pdf2image>=1.16.3
+Pillow>=10.0.0
+
+# OCR & image analysis
+pytesseract>=0.3.10
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+
+# LLM integration
+litellm>=1.0.0
+
+# Storage (optional - for Supabase persistence)
+supabase>=2.0.0
+
+# System dependencies (install via apt):
+# - tesseract-ocr
+# - poppler-utils (for pdf2image)
+# - libgl1-mesa-glx (for opencv)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

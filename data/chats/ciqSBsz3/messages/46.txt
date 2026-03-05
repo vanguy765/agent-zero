@@ -1,0 +1,26 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/assets/solid.svg
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/doc-parser/DocParserPanel.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/Layout.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.css
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts.bak
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/CompanyTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Dashboard.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/LoginPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/NewProject.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx.bak
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Projects.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateEditor.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Templates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Units.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/WorkOrderDetail.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

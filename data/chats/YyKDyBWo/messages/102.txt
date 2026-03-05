@@ -1,0 +1,54 @@
+./job_manager.py:114:        now = datetime.now(timezone.utc)
+./job_manager.py:218:        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+./job_manager.py:256:        now = datetime.now(timezone.utc).isoformat()
+./job_manager.py:370:            expires_at=datetime.now(timezone.utc) + timedelta(hours=ttl_hours),
+./models.py:93:    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+./models.py:94:    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+./models.py:96:        default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=2)
+./models.py:101:        self.updated_at = datetime.now(timezone.utc)
+./tests/test_job_manager.py:108:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:117:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:125:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:143:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:148:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:166:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:285:        before = datetime.now(timezone.utc)
+./tests/test_job_manager.py:287:        after = datetime.now(timezone.utc)
+./tests/test_job_manager.py:296:        before = datetime.now(timezone.utc)
+./tests/test_job_manager.py:298:        after = datetime.now(timezone.utc)
+./tests/test_models.py:438:        now = datetime.now(timezone.utc)
+./tests/test_models.py:454:        now = datetime.now(timezone.utc)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Checking imports ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# > > > --- models.py ---
+from datetime import datetime, timedelta, timezone
+--- job_manager.py ---
+from datetime import datetime, timedelta, timezone
+--- tests/test_job_manager.py ---
+from datetime import datetime, timedelta, timezone
+--- tests/test_models.py ---
+from datetime import datetime, timedelta, timezone
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === All datetime.now patterns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# ./job_manager.py:114:        now = datetime.now(timezone.utc)
+./job_manager.py:218:        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+./job_manager.py:256:        now = datetime.now(timezone.utc).isoformat()
+./job_manager.py:370:            expires_at=datetime.now(timezone.utc) + timedelta(hours=ttl_hours),
+./models.py:93:    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+./models.py:94:    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+./models.py:96:        default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=2)
+./models.py:101:        self.updated_at = datetime.now(timezone.utc)
+./tests/test_job_manager.py:108:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:117:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:125:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:143:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:148:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:166:            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+./tests/test_job_manager.py:285:        before = datetime.now(timezone.utc)
+./tests/test_job_manager.py:287:        after = datetime.now(timezone.utc)
+./tests/test_job_manager.py:296:        before = datetime.now(timezone.utc)
+./tests/test_job_manager.py:298:        after = datetime.now(timezone.utc)
+./tests/test_models.py:438:        now = datetime.now(timezone.utc)
+./tests/test_models.py:454:        now = datetime.now(timezone.utc)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Run just the erroring tests to see actual error ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

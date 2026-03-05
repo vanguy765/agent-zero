@@ -1,0 +1,201 @@
+class TestProcessHybrid:
+    """Tests for process_hybrid async function."""
+
+    def _get_patches(self, docling_wrapper=None, pdf_pages=None, llm_response=None,
+                     classify_result="floorplan", is_arch=False, has_arch_text=False):
+        """Build common patches for process_hybrid tests."""
+        if docling_wrapper is None:
+            docling_wrapper = _make_mock_docling_result(num_tables=0, num_pictures=1)
+        if pdf_pages is None:
+            pdf_pages = make_pdf_pages(2)
+        if llm_response is None:
+            llm_response = _make_llm_response({
+                "unit_number": "101",
+                "unit_type": "2BR",
+                "floor": 1,
+                "bedrooms": 2,
+                "bathrooms": 1,
+                "total_area_sf": 850.0,
+                "rooms": [{"name": "LR", "area_sf": 200, "baseboard_length_ft": 40}],
+                "doors": [{"location": "Entry", "type": "exterior"}],
+                "windows": [{"location": "LR", "type": "dh"}],
+                "fixtures": [],
+                "upgrades": [],
+                "general_notes": [],
+            })
+
+        mock_litellm = MagicMock()
+        mock_litellm.completion.return_value = llm_response
+
+        patches = {
+            "converter": patch("hybrid.DocumentConverter", _make_mock_converter(docling_wrapper)),
+            "pdf_format": patch("hybrid.PdfFormatOption", MagicMock()),
+            "input_format": patch("hybrid.InputFormat", MagicMock()),
+            "pipeline_opts": patch("hybrid.PdfPipelineOptions", MagicMock(return_value=MagicMock())),
+            "convert_from_path": patch("hybrid.convert_from_path", return_value=pdf_pages),
+            "litellm": patch.dict("sys.modules", {"litellm": mock_litellm}),
+            "classify": patch("hybrid.classify_image", return_value=classify_result),
+            "img_to_b64": patch("hybrid.image_to_base64", return_value="base64data"),
+            "is_arch": patch("hybrid.is_architectural_drawing", return_value=is_arch),
+            "has_arch_text": patch("hybrid.has_architectural_text", return_value=has_arch_text),
+            "calc_conf": patch("hybrid.calculate_confidence", return_value=MagicMock(
+                model_dump=MagicMock(return_value={"overall": 0.85})
+            )),
+        }
+        return patches, mock_litellm
+
+    @pytest.mark.asyncio
+    async def test_job_transitions_to_completed(self, hybrid_job_manager, temp_pdf_file):
+        """Verify job transitions: QUEUED -> PROCESSING -> COMPLETED."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+        patches, _ = self._get_patches()
+
+        with patches["converter"], patches["pdf_format"], patches["input_format"],              patches["pipeline_opts"], patches["convert_from_path"], patches["litellm"],              patches["classify"], patches["img_to_b64"], patches["is_arch"],              patches["has_arch_text"], patches["calc_conf"]:
+            await process_hybrid(
+                job_id=job.job_id,
+                temp_path=temp_pdf_file,
+                provider="test-provider",
+                job_manager=hybrid_job_manager,
+            )
+
+        status = await hybrid_job_manager.get_status(job.job_id)
+        assert status.status == JobStatus.COMPLETED
+
+    @pytest.mark.asyncio
+    async def test_progress_updates_phases(self, hybrid_job_manager, temp_pdf_file):
+        """Verify progress updates at each phase."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+        progress_phases = []
+        original_update = hybrid_job_manager.update_progress
+
+        async def tracking_update(job_id, **kwargs):
+            if "phase" in kwargs:
+                progress_phases.append(kwargs["phase"])
+            await original_update(job_id, **kwargs)
+
+        hybrid_job_manager.update_progress = tracking_update
+        patches, _ = self._get_patches()
+
+        with patches["converter"], patches["pdf_format"], patches["input_format"],              patches["pipeline_opts"], patches["convert_from_path"], patches["litellm"],              patches["classify"], patches["img_to_b64"], patches["is_arch"],              patches["has_arch_text"], patches["calc_conf"]:
+            await process_hybrid(
+                job_id=job.job_id,
+                temp_path=temp_pdf_file,
+                provider="test-provider",
+                job_manager=hybrid_job_manager,
+            )
+
+        assert ProcessingPhase.DOCLING_CONVERSION in progress_phases
+        assert ProcessingPhase.CLASSIFICATION in progress_phases
+        assert ProcessingPhase.IMAGE_EXTRACTION in progress_phases
+        assert ProcessingPhase.LLM_ANALYSIS in progress_phases
+        assert ProcessingPhase.UPLOADING in progress_phases
+
+    @pytest.mark.asyncio
+    async def test_temp_file_cleanup_on_success(self, hybrid_job_manager, temp_pdf_file):
+        """Verify temp file cleanup on success."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+        assert os.path.exists(temp_pdf_file)
+        patches, _ = self._get_patches()
+
+        with patches["converter"], patches["pdf_format"], patches["input_format"],              patches["pipeline_opts"], patches["convert_from_path"], patches["litellm"],              patches["classify"], patches["img_to_b64"], patches["is_arch"],              patches["has_arch_text"], patches["calc_conf"]:
+            await process_hybrid(
+                job_id=job.job_id,
+                temp_path=temp_pdf_file,
+                provider="test-provider",
+                job_manager=hybrid_job_manager,
+            )
+
+        assert not os.path.exists(temp_pdf_file)
+
+    @pytest.mark.asyncio
+    async def test_temp_file_cleanup_on_failure(self, hybrid_job_manager, temp_pdf_file):
+        """Verify temp file cleanup on failure."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+
+        with patch("hybrid.DocumentConverter", side_effect=Exception("docling crash")),              patch("hybrid.PdfFormatOption", MagicMock()),              patch("hybrid.InputFormat", MagicMock()),              patch("hybrid.PdfPipelineOptions", MagicMock(return_value=MagicMock())),              patch("hybrid.convert_from_path", return_value=make_pdf_pages(1)):
+            await process_hybrid(
+                job_id=job.job_id,
+                temp_path=temp_pdf_file,
+                provider="test-provider",
+                job_manager=hybrid_job_manager,
+            )
+
+        assert not os.path.exists(temp_pdf_file)
+
+    @pytest.mark.asyncio
+    async def test_failure_handling_sets_failed_status(self, hybrid_job_manager, temp_pdf_file):
+        """Verify failure handling: Exception -> fail_job."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+
+        with patch("hybrid.DocumentConverter", side_effect=Exception("boom")),              patch("hybrid.PdfFormatOption", MagicMock()),              patch("hybrid.InputFormat", MagicMock()),              patch("hybrid.PdfPipelineOptions", MagicMock(return_value=MagicMock())),              patch("hybrid.convert_from_path", return_value=make_pdf_pages(1)):
+            await process_hybrid(
+                job_id=job.job_id,
+                temp_path=temp_pdf_file,
+                provider="test-provider",
+                job_manager=hybrid_job_manager,
+            )
+
+        status = await hybrid_job_manager.get_status(job.job_id)
+        assert status.status == JobStatus.FAILED
+
+    @pytest.mark.asyncio
+    async def test_timeout_handling(self, hybrid_job_manager, temp_pdf_file):
+        """Verify timeout handling: CancelledError -> timeout_job."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+
+        with patch("hybrid.DocumentConverter", side_effect=asyncio.CancelledError()),              patch("hybrid.PdfFormatOption", MagicMock()),              patch("hybrid.InputFormat", MagicMock()),              patch("hybrid.PdfPipelineOptions", MagicMock(return_value=MagicMock())),              patch("hybrid.convert_from_path", return_value=make_pdf_pages(1)):
+            with pytest.raises(asyncio.CancelledError):
+                await process_hybrid(
+                    job_id=job.job_id,
+                    temp_path=temp_pdf_file,
+                    provider="test-provider",
+                    job_manager=hybrid_job_manager,
+                )
+
+        status = await hybrid_job_manager.get_status(job.job_id)
+        assert status.status == JobStatus.TIMEOUT
+
+    @pytest.mark.asyncio
+    async def test_confidence_scoring_included(self, hybrid_job_manager, temp_pdf_file):
+        """Verify confidence scoring is calculated and included in result."""
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+        patches, _ = self._get_patches()
+
+        with patches["converter"], patches["pdf_format"], patches["input_format"],              patches["pipeline_opts"], patches["convert_from_path"], patches["litellm"],              patches["classify"], patches["img_to_b64"], patches["is_arch"],              patches["has_arch_text"], patches["calc_conf"]:
+            await process_hybrid(
+                job_id=job.job_id,
+                temp_path=temp_pdf_file,
+                provider="test-provider",
+                job_manager=hybrid_job_manager,
+            )
+
+        result = await hybrid_job_manager.get_result(job.job_id)
+        assert "confidence" in result
+        assert result["confidence"]["overall"] == 0.85
+
+    @pytest.mark.asyncio
+    async def test_synthesis_triggered_multiple_floorplans(self, hybrid_job_manager, temp_pdf_file):
+        """Verify synthesis is triggered when multiple floorplans found."""
+        # Create docling result with 2 pictures
+        wrapper = _make_mock_docling_result(num_tables=0, num_pictures=2)
+        llm_data = {
+            "unit_number": "101", "unit_type": "1BR", "floor": 1,
+            "bedrooms": 1, "bathrooms": 1, "total_area_sf": 500.0,
+            "rooms": [], "doors": [], "windows": [],
+            "fixtures": [], "upgrades": [], "general_notes": [],
+        }
+        synthesis_data = {"common_notes": ["All units similar"]}
+
+        llm_response = _make_llm_response(llm_data)
+        synthesis_response = _make_llm_response(synthesis_data)
+
+        mock_litellm = MagicMock()
+        # First two calls are extraction, third is synthesis
+        mock_litellm.completion.side_effect = [llm_response, _make_llm_response(llm_data), synthesis_response]
+
+        job = await hybrid_job_manager.create_job(file_name="test.pdf", engine="hybrid")
+
+        with patch("hybrid.DocumentConverter", _make_mock_converter(wrapper)),              patch("hybrid.PdfFormatOption", MagicMock()),              patch("hybrid.InputFormat", MagicMock()),              patch("hybrid.PdfPipelineOptions", MagicMock(return_value=MagicMock())),              patch("hybrid.convert_from_path", return_value=make_pdf_pages(2)),              patch.dict("sys.modules", {"litellm": mock_litellm}),              patch("hybrid.classify_image", return_value="floorplan"),              patch("hybrid.image_to_base64", return_value="b64"),              patch("hybrid.is_architectural_drawing", return_value=False),              patch("hybrid.has_architectural_text", return_value=False),              patch("hybrid.calculate_confidence", return_value=MagicMock(
+                 model_dump=MagicMock(return_value={"overall": 0.8})
+             )):
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

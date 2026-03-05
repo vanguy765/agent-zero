@@ -1,0 +1,96 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /**
+ * Doc-Parser Proxy Routes for Hono API
+ *
+ * Integrates doc-parser service into the existing work-orders API.
+ * Provides engine selection, status polling, and result retrieval.
+ *
+ * Routes:
+ *   POST /api/documents/:id/parse    - Parse document (engine selection)
+ *   GET  /api/doc-parser/status/:jobId  - Lightweight status (poll-safe)
+ *   GET  /api/doc-parser/results/:jobId - Full results (fetch-once)
+ *   GET  /api/doc-parser/health         - Service health check
+ */
+
+import { Hono } from 'hono';
+import { getScopedClient } from '../middleware/supabase';
+import {
+  submitParseJob,
+  getJobStatus,
+  getJobResults,
+  checkHealth,
+  mapToParseDocument,
+  type DocParserStatus,
+  type DocParserResult,
+} from '../services/doc-parser-client';
+
+const docParserRoutes = new Hono();
+
+// ============================================================
+// POST /parse
+// Accepts JSON { document_id, engine }
+// Fetches PDF from Supabase storage, forwards to doc-parser
+// ============================================================
+
+docParserRoutes.post('/parse', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId = body?.document_id;
+  const engine = (body?.engine || 'hybrid') as string;
+
+  if (!documentId) {
+    return c.json({ error: 'document_id is required' }, 400);
+  }
+
+  // ---- Claude Direct: existing flow (unchanged) ----
+  if (engine === 'claude-direct') {
+    return c.json({
+      error: 'claude-direct engine should be handled by existing route handler',
+      hint: 'This route only handles docling and hybrid engines',
+    }, 400);
+  }
+
+  // ---- Docling or Hybrid: proxy to doc-parser service ----
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json(
+      { error: `Unknown engine: ${engine}. Use 'claude-direct', 'docling', or 'hybrid'.` },
+      400,
+    );
+  }
+
+  try {
+    // Fetch document metadata from database
+    const supabase = getScopedClient(c);
+    const { data: document, error: fetchError } = await supabase
+      .from('project_documents')
+      .select('*')
+      .eq('id', documentId)
+      .single();
+
+    if (fetchError || !document) {
+      return c.json({ error: 'Document not found' }, 404);
+    }
+
+    if (!document.file_type?.includes('pdf')) {
+      return c.json({ error: 'Document is not a PDF' }, 400);
+    }
+
+    // Download PDF from Supabase storage
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('project-documents')
+      .download(document.file_url);
+
+    if (downloadError || !fileData) {
+      console.error('[doc-parser] Storage download failed:', downloadError);
+      return c.json({ error: 'Failed to download document from storage' }, 500);
+    }
+
+    const pdfBuffer = await fileData.arrayBuffer();
+
+    // Submit to doc-parser service
+    const jobResponse = await submitParseJob(
+      pdfBuffer,
+      document.title || `document-${documentId}.pdf`,
+      engine as 'docling' | 'hybrid',
+      {
+        provider: body?.provider || process.env.DEFAULT_LLM_PROVIDER,
+        tenantName: body?.tenant_name,
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

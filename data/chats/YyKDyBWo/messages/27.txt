@@ -1,0 +1,38 @@
+=== REPO ===
+apps		       nocodb_logs.txt		seed_error.txt
+backups		       node_modules		skills
+clean-documents.ps1    package.json		supabase
+convert_bom.sql        package-lock.json	supabase_debug.log
+create_work_order.ps1  packages			table_columns.txt
+db_reset_debug.log     pnpm-lock.yaml		temp_analysis.pdf
+debug_write_test.txt   pnpm-workspace.yaml	test_api.ps1
+doc-parser	       project_ids.txt		tracked_files.txt
+docs		       README.md		turbo.json
+nocodb		       restore-for-testing.ps1	unit_ids.txt
+nocodb_full.txt        scripts			verify_data.sql
+
+=== REPO doc-parser ===
+benchmark_script.py	  filter_floorplans.py	  requirements.txt
+benchmark_vision.py	  mock_supabase		  server.py
+compare_methods.py	  patch_server_script.py  slice_cv.py
+decode_docling_images.py  preparse.py		  slice_surya.py
+demo.pdf		  preparse.txt		  templates
+docker-compose.yml	  process_document.py	  test_api.js
+Dockerfile		  prompts.py		  test_api.py
+docker_logs.txt		  __pycache__		  verify_env.py
+error.log		  README.md		  verify_uploads.py
+
+=== ARTIFACTS ===
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/:
+doc-parser  hono-api  IMPLEMENTATION.md  work-orders
+
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser:
+confidence.py  hybrid.py       models.py   requirements.txt
+detection.py   job_manager.py  prompts.py  server.py
+
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api:
+doc-parser-client.ts  doc-parser-routes.ts
+
+/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/work-orders:
+ProjectDocuments.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

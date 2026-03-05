@@ -1,0 +1,87 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql:tests/test_schema_evolution.sql:7: NOTICE:  === Schema Evolution Phase 1 Tests ===
+DO
+psql:tests/test_schema_evolution.sql:21: NOTICE:  PASS: 10 system trades exist
+DO
+psql:tests/test_schema_evolution.sql:31: NOTICE:  PASS: All trade codes are unique
+DO
+psql:tests/test_schema_evolution.sql:41: NOTICE:  PASS: All system trades have NULL organization_id
+DO
+psql:tests/test_schema_evolution.sql:56: NOTICE:  PASS: Trade codes match expected values (PNT,CRP,PLB,FLR,ELC,HVC,APL,WNC,MLW,GEN)
+DO
+psql:tests/test_schema_evolution.sql:70: NOTICE:  PASS: 4 project outcomes exist
+DO
+psql:tests/test_schema_evolution.sql:80: NOTICE:  PASS: res_reno is marked as default
+DO
+psql:tests/test_schema_evolution.sql:90: NOTICE:  PASS: All system outcomes have NULL organization_id
+DO
+psql:tests/test_schema_evolution.sql:110: NOTICE:  PASS: res_reno has 9 trade assignments
+DO
+psql:tests/test_schema_evolution.sql:126: NOTICE:  PASS: maint has 5 trade assignments
+DO
+psql:tests/test_schema_evolution.sql:149: NOTICE:  PASS: All trade-outcome assignments reference valid FKs
+DO
+psql:tests/test_schema_evolution.sql:163: NOTICE:  PASS: 9 atomic interior type orders exist
+DO
+psql:tests/test_schema_evolution.sql:173: NOTICE:  PASS: 4 atomic exterior type orders exist
+DO
+psql:tests/test_schema_evolution.sql:183: NOTICE:  PASS: 3 common type orders exist
+DO
+psql:tests/test_schema_evolution.sql:193: NOTICE:  PASS: 2 pre_construction type orders exist
+DO
+psql:tests/test_schema_evolution.sql:203: NOTICE:  PASS: 4 composite type orders exist
+DO
+psql:tests/test_schema_evolution.sql:213: NOTICE:  PASS: All system type orders have NULL org_id and project_id
+DO
+psql:tests/test_schema_evolution.sql:229: NOTICE:  PASS: All composite type orders have is_composite = true
+DO
+psql:tests/test_schema_evolution.sql:249: NOTICE:  PASS: Studio has 3 components
+DO
+psql:tests/test_schema_evolution.sql:265: NOTICE:  PASS: 1br has 4 components
+DO
+psql:tests/test_schema_evolution.sql:289: NOTICE:  PASS: 2br has 4 components with bedroom qty=2
+DO
+psql:tests/test_schema_evolution.sql:320: NOTICE:  PASS: 3br has 4 components with bedroom qty=3, bathroom qty=2
+DO
+psql:tests/test_schema_evolution.sql:334: NOTICE:  PASS: No work_order_templates with scope=app exist
+DO
+psql:tests/test_schema_evolution.sql:344: NOTICE:  PASS: System-scope templates exist (9 found)
+DO
+psql:tests/test_schema_evolution.sql:360: NOTICE:  PASS: work_order_templates_scope_check allows system/company/project
+DO
+psql:tests/test_schema_evolution.sql:379: NOTICE:  PASS: All templates with trade_name have trade_id set
+DO
+psql:tests/test_schema_evolution.sql:398: NOTICE:  PASS: trade_id references match trade_name for direct mappings
+DO
+psql:tests/test_schema_evolution.sql:413: NOTICE:  PASS: Org 00..01 has 10 organization_trades entries
+DO
+psql:tests/test_schema_evolution.sql:442: NOTICE:  PASS: Trigger auto-populated trade_name=Painting on INSERT
+DO
+psql:tests/test_schema_evolution.sql:470: NOTICE:  PASS: Trigger updated trade_name=Plumbing on UPDATE
+DO
+psql:tests/test_schema_evolution.sql:486: NOTICE:  PASS: System trade with organization_id correctly rejected
+DO
+psql:tests/test_schema_evolution.sql:497: NOTICE:  PASS: Company trade without organization_id correctly rejected
+DO
+psql:tests/test_schema_evolution.sql:508: NOTICE:  PASS: System type_order with organization_id correctly rejected
+DO
+psql:tests/test_schema_evolution.sql:519: NOTICE:  PASS: Project type_order without project_id correctly rejected
+DO
+psql:tests/test_schema_evolution.sql:539: NOTICE:  PASS: All organization_trades reference valid trades
+DO
+psql:tests/test_schema_evolution.sql:562: NOTICE:  PASS: All trade_outcome_assignments have valid FKs
+DO
+psql:tests/test_schema_evolution.sql:585: NOTICE:  PASS: All type_order_compositions reference valid type_orders
+DO
+psql:tests/test_schema_evolution.sql:613: NOTICE:  PASS: work_order_templates has all new columns (trade_id, sop_id, outcome_id, inheritance_depth, source_template_id)
+DO
+psql:tests/test_schema_evolution.sql:637: NOTICE:  PASS: work_orders has all new columns (trade_id, bom_action_request_id, type_order_id)
+DO
+psql:tests/test_schema_evolution.sql:661: NOTICE:  PASS: sops has all new columns (trade_id, scope, outcome_id)
+DO
+psql:tests/test_schema_evolution.sql:674: NOTICE:  PASS: units has type_order_id column
+DO
+psql:tests/test_schema_evolution.sql:687: NOTICE:  PASS: wo_projects has outcome_id column
+DO
+psql:tests/test_schema_evolution.sql:690: NOTICE:  === Tests Complete ===
+DO
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

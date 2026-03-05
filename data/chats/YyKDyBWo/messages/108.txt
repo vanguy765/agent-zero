@@ -1,0 +1,91 @@
+
+ RUN  v4.0.18 /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests
+
+
+ Test Files 0 passed (3)
+      Tests 0 passed (0)
+   Start at 17:19:11
+   Duration 902ms
+
+ ❯ doc-parser-client.test.ts [queued]
+
+ Test Files 0 passed (3)
+      Tests 0 passed (0)
+   Start at 17:19:11
+   Duration 1.60s
+
+ ❯ doc-parser-client.test.ts 0/24
+ ❯ doc-parser-routes.test.ts [queued]
+
+ Test Files 0 passed (3)
+      Tests 0 passed (24)
+   Start at 17:19:11
+   Duration 1.81s
+ ✓ doc-parser-client.test.ts (24 tests) 77ms
+
+ ❯ doc-parser-routes.test.ts [queued]
+
+ Test Files 1 passed (3)
+      Tests 24 passed (24)
+   Start at 17:19:11
+   Duration 1.91s
+
+ ❯ doc-parser-routes.test.ts [queued]
+ ❯ project-documents.test.ts 0/15
+
+ Test Files 1 passed (3)
+      Tests 24 passed (39)
+   Start at 17:19:11
+   Duration 2.21s
+ ✓ project-documents.test.ts (15 tests) 12ms
+
+ ❯ doc-parser-routes.test.ts 1/20
+
+ Test Files 2 passed (3)
+      Tests 40 passed (59)
+   Start at 17:19:11
+   Duration 2.41s
+ ✓ doc-parser-routes.test.ts (20 tests) 86ms
+
+ Test Files  3 passed (3)
+      Tests  59 passed (59)
+   Start at  17:19:11
+   Duration  2.45s (transform 202ms, setup 0ms, import 1.13s, tests 175ms, environment 1ms)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Monorepo root ===
+apps		       nocodb_logs.txt		seed_error.txt
+backups		       node_modules		skills
+clean-documents.ps1    package.json		supabase
+convert_bom.sql        package-lock.json	supabase_debug.log
+create_work_order.ps1  packages			table_columns.txt
+db_reset_debug.log     pnpm-lock.yaml		temp_analysis.pdf
+debug_write_test.txt   pnpm-workspace.yaml	test_api.ps1
+doc-parser	       project_ids.txt		tracked_files.txt
+docs		       README.md		turbo.json
+nocodb		       restore-for-testing.ps1	unit_ids.txt
+nocodb_full.txt        scripts			verify_data.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Doc-parser service ===
+backups_pre_p1_p7	  error.log		  __pycache__
+benchmark_script.py	  filter_floorplans.py	  README.md
+benchmark_vision.py	  hybrid.py		  requirements.txt
+compare_methods.py	  job_manager.py	  server.py
+confidence.py		  mock_supabase		  slice_cv.py
+decode_docling_images.py  models.py		  slice_surya.py
+demo.pdf		  patch_server_script.py  templates
+detection.py		  preparse.py		  test_api.js
+docker-compose.yml	  preparse.txt		  test_api.py
+Dockerfile		  process_document.py	  verify_env.py
+docker_logs.txt		  prompts.py		  verify_uploads.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Hono API ===
+NOT FOUND
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Work-orders app ===
+NOT FOUND
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Hono API index.ts ===
+NOT FOUND
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Docker compose ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

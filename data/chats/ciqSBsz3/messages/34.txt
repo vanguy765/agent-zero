@@ -1,0 +1,47 @@
+conname
+---------------------
+ valid_company_scope
+ valid_project_scope
+ valid_system_scope
+(3 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === TL CONSTRAINTS ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#                conname
+--------------------------------------
+ valid_company_library
+ valid_system_library
+ wo_projects_library_id_fkey
+ work_order_templates_library_id_fkey
+(4 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === WOT NEW COLS ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#  column_name
+-------------
+(0 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > > > > Line 81:     CONSTRAINT valid_company_outcome CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company'),
+Line 81:     -- UNIQUE handled by partial indexes below
+Line 82: );
+
+Line 25:     CONSTRAINT valid_system_trade CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+Line 33:     USING (scope = 'system');
+Line 79:     CONSTRAINT valid_system_outcome CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+Line 88:     USING (scope = 'system');
+Line 108:     ON public.project_outcomes(code) WHERE scope = 'system';
+Line 169:                 AND (trades.scope = 'system' OR trades.organization_id = current_user_organization_id()))
+Line 177:                    AND trades.scope = 'system')
+Line 183:                 AND (trades.scope = 'system' OR trades.organization_id = current_user_organization_id()))
+Line 211:     CONSTRAINT valid_system_type CHECK ((scope = 'system' AND organization_id IS NULL AND project_id IS NULL) OR scope <> 'system'),
+Line 218:     ON public.type_orders(code) WHERE scope = 'system';
+Line 228:     USING (scope = 'system');
+Line 287:                 AND (type_orders.scope = 'system' OR type_orders.organization_id = current_user_organization_id()))
+Line 325:                 AND (type_orders.scope = 'system' OR type_orders.organization_id = current_user_organization_id()))
+Line 436: -- 1N. Scope rename: 'app' -> 'system'
+Line 440: UPDATE public.work_order_templates SET scope = 'system' WHERE scope = 'app';
+Line 450:     CHECK ((scope = 'system' AND organization_id IS NULL AND project_id IS NULL) OR scope <> 'system');
+Line 453: UPDATE public.template_libraries SET scope = 'system' WHERE scope = 'app';
+Line 463:     CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system');
+Line 468:     USING (scope = 'system');
+
+=== ALTER TABLE sections ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

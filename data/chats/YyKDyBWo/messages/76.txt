@@ -1,0 +1,122 @@
+1	                current_page=page_no,
+     2	                current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_candidates)}",
+     3	            )
+     4
+     5	            # Enrich prompt with table context
+     6	            enriched_prompt = FLOORPLAN_PROMPT_RICH
+     7	            if table_context:
+     8	                enriched_prompt += (
+     9	                    "
+    10
+    11	ADDITIONAL CONTEXT - Door/window schedules and "
+    12	                    "other tables extracted from this document set. Use these "
+    13	                    "to enrich your extraction with schedule data (hardware, "
+    14	                    "materials, fire ratings, etc.):
+    15
+    16	"
+    17	                    + table_context
+    18	                )
+    19
+    20	            try:
+    21	                result_str = await run_llm_extraction(
+    22	                    provider, enriched_prompt, b64
+    23	                )
+    24
+    25	                # Clean markdown code fences
+    26	                result_clean = re.sub(
+    27	                    r"```(?:json)?\s*|\s*```", "", result_str
+    28	                ).strip()
+    29
+    30	                unit_data = json.loads(result_clean)
+    31	                unit_extractions.append({
+    32	                    "page_no": page_no,
+    33	                    "data": unit_data,
+    34	                    "success": True,
+    35	                })
+    36
+    37	                logger.info(
+    38	                    f"Job {job_id}: Page {page_no} extracted - "
+    39	                    f"{len(unit_data.get("rooms", []))} rooms, "
+    40	                    f"{len(unit_data.get("doors", []))} doors"
+    41	                )
+    42
+    43	            except json.JSONDecodeError as e:
+    44	                logger.warning(
+    45	                    f"Job {job_id}: JSON parse failed for page {page_no}: {e}"
+    46	                )
+    47	                unit_extractions.append({
+    48	                    "page_no": page_no,
+    49	                    "error": f"JSON parse error: {str(e)}",
+    50	                    "raw": result_str[:500] if result_str else "",
+    51	                    "success": False,
+    52	                })
+    53
+    54	            except Exception as e:
+    55	                logger.error(
+    56	                    f"Job {job_id}: LLM extraction failed for page {page_no}: {e}"
+    57	                )
+    58	                unit_extractions.append({
+    59	                    "page_no": page_no,
+    60	                    "error": str(e),
+    61	                    "success": False,
+    62	                })
+    63
+    64	        # ==================================================
+    65	        # PHASE 5: Cross-Page Synthesis (Priority 5)
+    66	        # ==================================================
+    67	        synthesis_result = None
+    68
+    69	        successful_extractions = [
+    70	            ue for ue in unit_extractions if ue.get("success")
+    71	        ]
+    72
+    73	        if len(successful_extractions) > 1 or (
+    74	            successful_extractions and table_data
+    75	        ):
+    76	            await job_manager.update_progress(
+    77	                job_id,
+    78	                phase=ProcessingPhase.SYNTHESIS,
+    79	                current_step="cross_page_synthesis",
+    80	            )
+    81
+    82	            try:
+    83	                # Build synthesis context
+    84	                synthesis_context_parts = []
+    85
+    86	                synthesis_context_parts.append(
+    87	                    f"Total pages in document: {total_pages}"
+    88	                )
+    89	                synthesis_context_parts.append(
+    90	                    f"Floorplans analyzed: {len(successful_extractions)}"
+    91	                )
+    92
+    93	                for ue in successful_extractions:
+    94	                    synthesis_context_parts.append(
+    95	                        f"
+    96	--- Floorplan from Page {ue["page_no"]} ---
+    97	"
+    98	                        + json.dumps(ue["data"], indent=2)
+    99	                    )
+   100
+   101	                if table_data:
+   102	                    synthesis_context_parts.append(
+   103	                        "
+   104	--- TABLES/SCHEDULES ---"
+   105	                    )
+   106	                    for pg, md in table_data:
+   107	                        synthesis_context_parts.append(
+   108	                            f"
+   109	--- Table from Page {pg} ---
+   110	{md}"
+   111	                        )
+   112
+   113	                synthesis_context = "
+   114	".join(synthesis_context_parts)
+   115
+   116	                synthesis_str = await run_text_llm(
+   117	                    provider, SYNTHESIS_PROMPT, synthesis_context
+   118	                )
+   119
+   120	                synthesis_clean = re.sub(
+   121	                    r"```(?:json)?\s*|\s*```", "", synthesis_str
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

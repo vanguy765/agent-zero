@@ -1,0 +1,151 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /opt/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 70 items
+
+tests/test_hybrid.py::TestAssembleHybridOutput::test_empty_inputs PASSED [  1%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_single_successful_extraction PASSED [  2%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_multiple_successful_extractions_different_pages PASSED [  4%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_failed_extraction_error_in_pages_not_in_units PASSED [  5%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_mixed_success_failure PASSED [  7%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_table_data_in_tables_and_pages PASSED [  8%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_footer_sample_included_when_present PASSED [ 10%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_footer_sample_none_when_absent PASSED [ 11%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_site_photos_classification PASSED [ 12%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_diagrams_classification PASSED [ 14%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_summary_counts PASSED [ 15%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_summary_extraction_errors_count PASSED [ 17%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_summary_has_synthesis_flags PASSED [ 18%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_unit_fields_mapping PASSED [ 20%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_general_notes_deduplicated PASSED [ 21%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_page_classification_defaults_unknown PASSED [ 22%]
+tests/test_hybrid.py::TestAssembleHybridOutput::test_synthesis_data_passed_through PASSED [ 24%]
+tests/test_hybrid.py::TestRunLlmExtraction::test_returns_response_content PASSED [ 25%]
+tests/test_hybrid.py::TestRunLlmExtraction::test_message_format_has_image_url PASSED [ 27%]
+tests/test_hybrid.py::TestRunLlmExtraction::test_passes_temperature_and_max_tokens PASSED [ 28%]
+tests/test_hybrid.py::TestRunLlmExtraction::test_raises_on_litellm_failure PASSED [ 30%]
+tests/test_hybrid.py::TestRunTextLlm::test_returns_response_content PASSED [ 31%]
+tests/test_hybrid.py::TestRunTextLlm::test_message_format_is_text_only PASSED [ 32%]
+tests/test_hybrid.py::TestRunTextLlm::test_raises_on_failure PASSED      [ 34%]
+tests/test_hybrid.py::TestProcessHybrid::test_job_transitions_to_completed FAILED [ 35%]
+tests/test_hybrid.py::TestProcessHybrid::test_progress_updates_phases FAILED [ 37%]
+tests/test_hybrid.py::TestProcessHybrid::test_temp_file_cleanup_on_success FAILED [ 38%]
+tests/test_hybrid.py::TestProcessHybrid::test_temp_file_cleanup_on_failure FAILED [ 40%]
+tests/test_hybrid.py::TestProcessHybrid::test_failure_handling_sets_failed_status FAILED [ 41%]
+tests/test_hybrid.py::TestProcessHybrid::test_timeout_handling FAILED    [ 42%]
+tests/test_hybrid.py::TestProcessHybrid::test_confidence_scoring_included FAILED [ 44%]
+tests/test_hybrid.py::TestProcessHybrid::test_synthesis_triggered_multiple_floorplans FAILED [ 45%]
+tests/test_hybrid.py::TestProcessHybrid::test_synthesis_skipped_single_floorplan_no_tables FAILED [ 47%]
+tests/test_hybrid.py::TestProcessHybrid::test_table_context_appended_to_prompt FAILED [ 48%]
+tests/test_hybrid.py::TestProcessHybrid::test_json_cleaning_removes_code_fences FAILED [ 50%]
+tests/test_hybrid.py::TestProcessHybrid::test_failed_llm_extraction_continues FAILED [ 51%]
+tests/test_hybrid.py::TestProcessHybrid::test_full_page_fallback_detection FAILED [ 52%]
+tests/test_hybrid.py::TestProcessHybrid::test_result_has_correct_engine FAILED [ 54%]
+tests/test_server.py::TestHealthEndpoint::test_returns_200_with_healthy_status ERROR [ 55%]
+tests/test_server.py::TestHealthEndpoint::test_contains_version_and_engines ERROR [ 57%]
+tests/test_server.py::TestHealthEndpoint::test_jobs_counts_reflect_state ERROR [ 58%]
+tests/test_server.py::TestParseDoclingEndpoint::test_returns_200_with_job_info ERROR [ 60%]
+tests/test_server.py::TestParseDoclingEndpoint::test_file_upload_processed ERROR [ 61%]
+tests/test_server.py::TestParseDoclingEndpoint::test_background_task_registered ERROR [ 62%]
+tests/test_server.py::TestParseDoclingEndpoint::test_custom_provider_accepted ERROR [ 64%]
+tests/test_server.py::TestParseDoclingEndpoint::test_missing_file_returns_422 ERROR [ 65%]
+tests/test_server.py::TestParseHybridEndpoint::test_returns_200_with_job_info ERROR [ 67%]
+tests/test_server.py::TestParseHybridEndpoint::test_background_task_registered ERROR [ 68%]
+tests/test_server.py::TestParseHybridEndpoint::test_custom_provider_and_supabase_accepted ERROR [ 70%]
+tests/test_server.py::TestParseHybridEndpoint::test_missing_file_returns_422 ERROR [ 71%]
+tests/test_server.py::TestStatusEndpoint::test_returns_status_for_existing_job ERROR [ 72%]
+tests/test_server.py::TestStatusEndpoint::test_returns_404_for_unknown_job ERROR [ 74%]
+tests/test_server.py::TestStatusEndpoint::test_response_matches_status_schema ERROR [ 75%]
+tests/test_server.py::TestStatusEndpoint::test_progress_fields_included ERROR [ 77%]
+tests/test_server.py::TestStatusEndpoint::test_error_field_for_failed_jobs ERROR [ 78%]
+tests/test_server.py::TestResultsEndpoint::test_returns_full_result_for_completed ERROR [ 80%]
+tests/test_server.py::TestResultsEndpoint::test_returns_404_for_unknown_job ERROR [ 81%]
+tests/test_server.py::TestResultsEndpoint::test_returns_processing_message_for_processing ERROR [ 82%]
+tests/test_server.py::TestResultsEndpoint::test_returns_processing_message_for_queued ERROR [ 84%]
+tests/test_server.py::TestResultsEndpoint::test_returns_error_for_failed ERROR [ 85%]
+tests/test_server.py::TestResultsEndpoint::test_returns_error_for_timeout ERROR [ 87%]
+tests/test_server.py::TestResultsEndpoint::test_summary_returns_lightweight ERROR [ 88%]
+tests/test_server.py::TestResultsEndpoint::test_returns_404_when_no_result_data ERROR [ 90%]
+tests/test_server.py::TestJobsEndpoint::test_returns_list_of_all_jobs ERROR [ 91%]
+tests/test_server.py::TestJobsEndpoint::test_status_filter_works ERROR   [ 92%]
+tests/test_server.py::TestJobsEndpoint::test_empty_list_when_no_jobs ERROR [ 94%]
+tests/test_server.py::TestDeleteJobEndpoint::test_returns_deleted_for_idle_job ERROR [ 95%]
+tests/test_server.py::TestDeleteJobEndpoint::test_returns_404_for_unknown_job ERROR [ 97%]
+tests/test_server.py::TestDeleteJobEndpoint::test_returns_409_for_running_job ERROR [ 98%]
+tests/test_server.py::TestLegacyResultEndpoint::test_delegates_to_results_endpoint ERROR [100%]
+
+==================================== ERRORS ====================================
+__ ERROR at setup of TestHealthEndpoint.test_returns_200_with_healthy_status ___
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_returns_200_with_healthy_status' requested an async fixture 'client', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+____ ERROR at setup of TestHealthEndpoint.test_contains_version_and_engines ____
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_contains_version_and_engines' requested an async fixture 'client', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+_____ ERROR at setup of TestHealthEndpoint.test_jobs_counts_reflect_state ______
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_jobs_counts_reflect_state' requested an async fixture 'client_with_jobs', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+__ ERROR at setup of TestParseDoclingEndpoint.test_returns_200_with_job_info ___
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_returns_200_with_job_info' requested an async fixture 'client', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+____ ERROR at setup of TestParseDoclingEndpoint.test_file_upload_processed _____
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_file_upload_processed' requested an async fixture 'client', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+__ ERROR at setup of TestParseDoclingEndpoint.test_background_task_registered __
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_background_task_registered' requested an async fixture 'client', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+___ ERROR at setup of TestParseDoclingEndpoint.test_custom_provider_accepted ___
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_custom_provider_accepted' requested an async fixture 'client', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture
+___ ERROR at setup of TestParseDoclingEndpoint.test_missing_file_returns_422 ___
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/opt/venv/lib/python3.13/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

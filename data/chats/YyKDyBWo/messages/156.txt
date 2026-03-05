@@ -1,0 +1,41 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import { createMiddleware } from 'hono/factory';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+import { logger } from '@repo/logger';
+
+// Initialize Supabase Client (for verifying tokens)
+// Note: In a real app, you might use the Admin key or just the JWT verification capabilities.
+// For simple token verification, the standard client works if we just pass the access_token.
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+export const authMiddleware = createMiddleware(async (c, next) => {
+  const authHeader = c.req.header('Authorization');
+
+  if (!authHeader) {
+    logger.warn('Missing Authorization header');
+    return c.json({ error: 'Unauthorized', message: 'Missing Authorization header' }, 401);
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+
+  if (error || !user) {
+    logger.error({ err: error }, 'Invalid token');
+    return c.json({ error: 'Unauthorized', message: 'Invalid token' }, 401);
+  }
+
+  // Attach user to context
+  c.set('user', user);
+  
+  await next();
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

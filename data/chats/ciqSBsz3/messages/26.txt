@@ -1,0 +1,13 @@
+
+# Doc-Parser service URL (localhost when API runs on host, docker service name when in container)
+DOC_PARSER_URL=http://localhost:5000
+===WORK ORDERS ENV===
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+VITE_API_URL=http://localhost:3000/work-orders
+===API ENV===
+# Supabase Local Configuration (Auto-managed by Supabase CLI usually)
+SUPABASE_URL=http://localhost:54321
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

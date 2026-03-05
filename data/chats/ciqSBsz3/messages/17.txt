@@ -1,0 +1,29 @@
+=== File sizes ===
+-rw-r--r-- 1 root root 26049 Mar  4 21:32 supabase/migrations/20260304000001_schema_evolution_phase1.sql
+-rw-r--r-- 1 root root 14826 Mar  4 21:34 supabase/migrations/20260304000002_schema_evolution_seed.sql
+-rwxr-xr-x 1 root root  1891 Mar  4 21:36 tests/run_schema_tests.sh
+-rw-r--r-- 1 root root 25308 Mar  4 21:36 tests/test_schema_evolution.sql
+=== File 1 sections ===
+8
+=== File 1 last 20 lines ===
+CREATE OR REPLACE FUNCTION public.sync_trade_name_and_code()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.trade_id IS NOT NULL AND (TG_OP = 'INSERT' OR OLD.trade_id IS DISTINCT FROM NEW.trade_id) THEN
+        SELECT name, code INTO NEW.trade_name, NEW.trade_code FROM public.trades WHERE id = NEW.trade_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_trade_name_code_sops ON public.sops;
+CREATE TRIGGER trg_sync_trade_name_code_sops
+    BEFORE INSERT OR UPDATE OF trade_id ON public.sops
+    FOR EACH ROW EXECUTE FUNCTION public.sync_trade_name_and_code();
+
+-- =============================================================================
+-- 1P. Updated_at triggers for all new tables (already created above inline)
+-- Trades, project_outcomes, type_orders, bom_action_requests triggers
+-- were created in their respective sections above.
+-- =============================================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

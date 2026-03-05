@@ -1,0 +1,40 @@
+# ✅ Implementation Artifacts Applied Successfully
+
+All Priorities 1-7 artifacts have been surgically applied to the `voicelog-scaffold` monorepo.
+
+## Summary Table
+
+| File Path | Action | Lines | Status |
+|-----------|--------|------:|--------|
+| **doc-parser (Python service)** | | | |
+| `doc-parser/models.py` | NEW | 271 | ✅ OK |
+| `doc-parser/detection.py` | NEW (supersedes filter_floorplans.py) | 434 | ✅ OK |
+| `doc-parser/job_manager.py` | NEW | 555 | ✅ OK |
+| `doc-parser/confidence.py` | NEW | 266 | ✅ OK |
+| `doc-parser/hybrid.py` | NEW | 695 | ✅ OK |
+| `doc-parser/server.py` | REPLACE (was 584→805) | 805 | ✅ OK |
+| `doc-parser/prompts.py` | REPLACE (was 62→249) | 249 | ✅ OK |
+| `doc-parser/requirements.txt` | MERGE (was 15→42) | 42 | ✅ OK |
+| **Hono API (TypeScript)** | | | |
+| `apps/api/src/services/doc-parser-client.ts` | NEW | 242 | ✅ OK |
+| `apps/api/src/routes/doc-parser-routes.ts` | NEW | 188 | ✅ OK |
+| **Frontend (SolidJS/TSX)** | | | |
+| `apps/work-orders/src/components/doc-parser/DocParserPanel.tsx` | NEW | 589 | ✅ OK |
+| **Backups** | | | |
+| `doc-parser/backups_pre_p1_p7/server.py` | BACKUP | 584 | ✅ OK |
+| `doc-parser/backups_pre_p1_p7/prompts.py` | BACKUP | 62 | ✅ OK |
+| `doc-parser/backups_pre_p1_p7/filter_floorplans.py` | BACKUP | 80 | ✅ OK |
+| `doc-parser/backups_pre_p1_p7/requirements.txt` | BACKUP | 15 | ✅ OK |
+
+## Totals
+- **5 NEW** Python files (2,221 lines)
+- **2 REPLACED** Python files (1,054 lines)
+- **1 MERGED** requirements.txt (42 lines — added: `pydantic`, `docling`, `Pillow`, `opencv-python-headless`, `numpy`)
+- **2 NEW** Hono API files (430 lines)
+- **1 NEW** Frontend component (589 lines)
+- **4 BACKUPS** preserved (741 lines)
+
+## Notes
+- `filter_floorplans.py` remains in `doc-parser/` (not deleted) but is superseded by `detection.py`
+- No file contents were modified — only copy/merge operations performed
+- All original files backed up to `doc-parser/backups_pre_p1_p7/`

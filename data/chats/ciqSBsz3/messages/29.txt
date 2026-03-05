@@ -1,0 +1,31 @@
+tablename
+--------------------------------
+ bom_action_requests
+ organization_trades
+ trades
+ type_order_compositions
+ type_order_default_work_orders
+ type_orders
+(6 rows)
+
+===COLUMNS===
+ column_name
+-------------
+(0 rows)
+
+===CONSTRAINTS===
+              conname
+------------------------------------
+ pg_foreign_data_wrapper_oid_index
+ pg_foreign_data_wrapper_name_index
+ pg_user_mapping_oid_index
+ pg_user_mapping_user_server_index
+ valid_company_scope
+ valid_project_scope
+ valid_system_trade
+ valid_system_type
+ valid_system_scope
+ valid_system_library
+(10 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

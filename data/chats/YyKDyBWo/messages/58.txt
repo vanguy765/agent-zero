@@ -1,0 +1,415 @@
+tests/test_detection.py::TestIsArchitecturalDrawing::test_fallback_when_cv2_unavailable FAILED [ 56%]
+tests/test_detection.py::TestIsArchitecturalDrawing::test_fallback_when_numpy_unavailable PASSED [ 57%]
+tests/test_detection.py::TestHasArchitecturalText::test_text_with_dimensions_returns_true FAILED [ 58%]
+tests/test_detection.py::TestHasArchitecturalText::test_text_with_room_labels_returns_true FAILED [ 60%]
+tests/test_detection.py::TestHasArchitecturalText::test_random_text_returns_false FAILED [ 61%]
+tests/test_detection.py::TestHasArchitecturalText::test_empty_text_returns_false FAILED [ 62%]
+tests/test_detection.py::TestHasArchitecturalText::test_short_text_returns_false FAILED [ 64%]
+tests/test_detection.py::TestHasArchitecturalText::test_no_tesseract_returns_true PASSED [ 65%]
+tests/test_detection.py::TestHasArchitecturalText::test_tesseract_exception_returns_true FAILED [ 66%]
+tests/test_detection.py::TestHasArchitecturalText::test_labels_plus_scale_sufficient FAILED [ 68%]
+tests/test_detection.py::TestHasArchitecturalText::test_single_label_insufficient FAILED [ 69%]
+tests/test_detection.py::TestClassifyImage::test_floorplan_classification PASSED [ 70%]
+tests/test_detection.py::TestClassifyImage::test_photo_classification PASSED [ 72%]
+tests/test_detection.py::TestClassifyImage::test_diagram_classification PASSED [ 73%]
+tests/test_detection.py::TestClassifyImage::test_table_classification PASSED [ 74%]
+tests/test_detection.py::TestClassifyImage::test_unknown_classification PASSED [ 76%]
+tests/test_detection.py::TestClassifyImage::test_cv2_unavailable_photo PASSED [ 77%]
+tests/test_detection.py::TestClassifyImage::test_cv2_unavailable_unknown PASSED [ 78%]
+tests/test_detection.py::TestClassifyImage::test_exception_returns_unknown PASSED [ 80%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_floorplan_images_returned PASSED [ 81%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_mixed_images_filtered PASSED [ 82%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_empty_list_returns_empty PASSED [ 84%]
+tests/test_detection.py::TestExtractFloorplanCandidates::test_classification_failure_includes_candidate PASSED [ 85%]
+tests/test_detection.py::TestLegacyBwCheck::test_grayscale_returns_true FAILED [ 86%]
+tests/test_detection.py::TestLegacyBwCheck::test_colorful_returns_false FAILED [ 88%]
+tests/test_detection.py::TestLegacyBwCheck::test_numpy_unavailable_returns_true PASSED [ 89%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_photo_like_returns_true FAILED [ 90%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_line_drawing_returns_false FAILED [ 92%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_blank_image_returns_false FAILED [ 93%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_numpy_unavailable_uses_getcolors PASSED [ 94%]
+tests/test_detection.py::TestHasPhotoCharacteristics::test_numpy_unavailable_few_colors_returns_false PASSED [ 96%]
+tests/test_detection.py::TestImageToBase64::test_returns_valid_base64 PASSED [ 97%]
+tests/test_detection.py::TestImageToBase64::test_roundtrip_decode PASSED [ 98%]
+tests/test_detection.py::TestImageToBase64::test_jpeg_format PASSED      [100%]
+
+=================================== FAILURES ===================================
+________ TestIsArchitecturalDrawing.test_fallback_when_cv2_unavailable _________
+
+self = <tests.test_detection.TestIsArchitecturalDrawing object at 0x7a4586c7f680>
+
+    def test_fallback_when_cv2_unavailable(self):
+        """When HAS_CV2 is False, falls back to _legacy_bw_check."""
+        img = make_grayscale_image(400, 400)
+        with patch.object(detection, "HAS_CV2", False):
+            result = is_architectural_drawing(img)
+            # Legacy check on grayscale image should return True
+>           assert result is True
+E           assert np.True_ is True
+
+tests/test_detection.py:247: AssertionError
+_______ TestHasArchitecturalText.test_text_with_dimensions_returns_true ________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a4579f50690>
+
+    def test_text_with_dimensions_returns_true(self):
+        """Text containing dimension patterns should be detected."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:270:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4579fa0e90>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+_______ TestHasArchitecturalText.test_text_with_room_labels_returns_true _______
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a4579f50a50>
+
+    def test_text_with_room_labels_returns_true(self):
+        """Text with 2+ room labels should be detected."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:281:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4579fb5040>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+___________ TestHasArchitecturalText.test_random_text_returns_false ____________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a4579f2f6f0>
+
+    def test_random_text_returns_false(self):
+        """Random text without architectural patterns should not match."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:292:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a45846dd150>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+____________ TestHasArchitecturalText.test_empty_text_returns_false ____________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a4579f2f5c0>
+
+    def test_empty_text_returns_false(self):
+        """Empty OCR result should return False."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:303:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4578b249b0>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+____________ TestHasArchitecturalText.test_short_text_returns_false ____________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a4579f63d10>
+
+    def test_short_text_returns_false(self):
+        """Text shorter than 10 chars should return False."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:312:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4579f97770>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+________ TestHasArchitecturalText.test_tesseract_exception_returns_true ________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a4586c7f9b0>
+
+    def test_tesseract_exception_returns_true(self):
+        """When pytesseract raises exception, returns True (permissive)."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:328:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4578bb4bb0>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+__________ TestHasArchitecturalText.test_labels_plus_scale_sufficient __________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a45846dce50>
+
+    def test_labels_plus_scale_sufficient(self):
+        """2 labels (score 2) + scale (score 2) + text length (score 1) = 5 >= 3."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:337:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4578bb58d0>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+___________ TestHasArchitecturalText.test_single_label_insufficient ____________
+
+self = <tests.test_detection.TestHasArchitecturalText object at 0x7a45846dd050>
+
+    def test_single_label_insufficient(self):
+        """Only 1 label (needs 2) and no dimensions = score too low."""
+        img = make_blank_image()
+        with patch.object(detection, "HAS_TESSERACT", True), \
+>            patch("detection.pytesseract") as mock_tess:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_detection.py:348:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x7a4578bb6510>
+
+    def __enter__(self):
+        """Perform the patch."""
+        if self.is_started:
+            raise RuntimeError("Patch is already started")
+--
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'detection' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py'> does not have the attribute 'pytesseract'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+________________ TestLegacyBwCheck.test_grayscale_returns_true _________________
+
+self = <tests.test_detection.TestLegacyBwCheck object at 0x7a4579f51090>
+
+    def test_grayscale_returns_true(self):
+        """Grayscale image (low channel variance) returns True."""
+        img = make_grayscale_image(400, 400)
+        result = _legacy_bw_check(img)
+>       assert result is True
+E       assert np.True_ is True
+
+tests/test_detection.py:496: AssertionError
+________________ TestLegacyBwCheck.test_colorful_returns_false _________________
+
+self = <tests.test_detection.TestLegacyBwCheck object at 0x7a4579f511d0>
+
+    def test_colorful_returns_false(self):
+        """Highly colorful image (high channel variance) returns False."""
+        img = make_colorful_image(400, 400)
+        result = _legacy_bw_check(img)
+>       assert result is False
+E       assert np.False_ is False
+
+tests/test_detection.py:502: AssertionError
+___________ TestHasPhotoCharacteristics.test_photo_like_returns_true ___________
+
+self = <tests.test_detection.TestHasPhotoCharacteristics object at 0x7a4579f51310>
+
+    def test_photo_like_returns_true(self):
+        """Photo-like image (high std, high channel spread) returns True."""
+        img = make_photo_like(400, 400)
+        result = _has_photo_characteristics(img)
+>       assert result is True
+E       assert np.False_ is True
+
+tests/test_detection.py:523: AssertionError
+_________ TestHasPhotoCharacteristics.test_line_drawing_returns_false __________
+
+self = <tests.test_detection.TestHasPhotoCharacteristics object at 0x7a4579f51450>
+
+    def test_line_drawing_returns_false(self):
+        """Line drawing (low color variance) returns False."""
+        img = make_line_drawing(400, 400)
+        result = _has_photo_characteristics(img)
+>       assert result is False
+E       assert np.False_ is False
+
+tests/test_detection.py:529: AssertionError
+__________ TestHasPhotoCharacteristics.test_blank_image_returns_false __________
+
+self = <tests.test_detection.TestHasPhotoCharacteristics object at 0x7a4579f2fe10>
+
+    def test_blank_image_returns_false(self):
+        """Blank image returns False."""
+        img = make_blank_image(400, 400)
+        result = _has_photo_characteristics(img)
+>       assert result is False
+E       assert np.False_ is False
+
+tests/test_detection.py:535: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_detection.py::TestIsArchitecturalDrawing::test_fallback_when_cv2_unavailable
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_text_with_dimensions_returns_true
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_text_with_room_labels_returns_true
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_random_text_returns_false
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_empty_text_returns_false
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_short_text_returns_false
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_tesseract_exception_returns_true
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_labels_plus_scale_sufficient
+FAILED tests/test_detection.py::TestHasArchitecturalText::test_single_label_insufficient
+FAILED tests/test_detection.py::TestLegacyBwCheck::test_grayscale_returns_true
+FAILED tests/test_detection.py::TestLegacyBwCheck::test_colorful_returns_false
+FAILED tests/test_detection.py::TestHasPhotoCharacteristics::test_photo_like_returns_true
+FAILED tests/test_detection.py::TestHasPhotoCharacteristics::test_line_drawing_returns_false
+FAILED tests/test_detection.py::TestHasPhotoCharacteristics::test_blank_image_returns_false
+======================== 14 failed, 61 passed in 2.02s =========================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

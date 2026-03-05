@@ -1,0 +1,56 @@
+
+ RUN  v4.0.18 /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests
+
+
+ Test Files 0 passed (3)
+      Tests 0 passed (0)
+   Start at 05:46:54
+   Duration 903ms
+
+ ❯ doc-parser-client.test.ts [queued]
+
+ Test Files 0 passed (3)
+      Tests 0 passed (0)
+   Start at 05:46:54
+   Duration 1.61s
+
+ ❯ doc-parser-client.test.ts 0/24
+ ❯ doc-parser-routes.test.ts [queued]
+
+ Test Files 0 passed (3)
+      Tests 0 passed (24)
+   Start at 05:46:54
+   Duration 1.84s
+ ✓ doc-parser-client.test.ts (24 tests) 68ms
+
+ ❯ doc-parser-routes.test.ts [queued]
+
+ Test Files 1 passed (3)
+      Tests 24 passed (24)
+   Start at 05:46:54
+   Duration 1.94s
+
+ ❯ doc-parser-routes.test.ts [queued]
+ ❯ project-documents.test.ts [queued]
+
+ Test Files 1 passed (3)
+      Tests 24 passed (24)
+   Start at 05:46:54
+   Duration 2.04s
+
+ ❯ doc-parser-routes.test.ts 0/20
+ ❯ project-documents.test.ts [queued]
+
+ Test Files 1 passed (3)
+      Tests 24 passed (44)
+   Start at 05:46:54
+   Duration 2.25s
+ ✓ project-documents.test.ts (15 tests) 10ms
+ ✓ doc-parser-routes.test.ts (20 tests) 87ms
+
+ Test Files  3 passed (3)
+      Tests  59 passed (59)
+   Start at  05:46:54
+   Duration  2.41s (transform 314ms, setup 0ms, import 1.13s, tests 166ms, environment 1ms)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

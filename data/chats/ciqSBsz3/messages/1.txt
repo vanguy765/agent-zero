@@ -1,0 +1,217 @@
+#### What are all the current database tables and their columns?
+
+The system has **19 application tables**, **5 views**, and **2 NocoDB residual tables**. Here is a comprehensive listing:
+
+---
+
+**`organizations`** (Multi-tenant root)
+- `id` (uuid PK), `name` (text), `slug` (text), `settings` (jsonb), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`wo_projects`** (Job sites/properties)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `name` (text), `description` (text), `status` (text: draft/active/completed/archived), `project_type` (text), `library_id` (uuid FK → template_libraries), `metadata` (jsonb), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`rooms`** (Master room type catalog)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `name` (text), `display_order` (int4), `created_at` (timestamptz)
+- **New columns**: `status` (text: active/draft/pending_review/archived), `auto_generated` (boolean), `generation_source` (text), `generation_metadata` (jsonb)
+
+**`template_libraries`** (Importable template collections)
+- `id` (uuid PK), `name` (text), `description` (text), `project_type` (text), `scope` (text: app/company), `organization_id` (uuid FK → organizations), `icon` (text), `color` (text), `metadata` (jsonb), `is_active` (bool), `is_default` (bool), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`work_order_templates`** (Trade checklist definitions)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `trade_name` (text), `version` (int4), `is_active` (bool), `definition` (jsonb), `scope` (text: app/company/project), `project_id` (uuid FK → wo_projects), `parent_template_id` (uuid FK → self), `copied_from_template_id` (uuid FK → self), `library_id` (uuid FK → template_libraries), `created_by` (uuid), `updated_by` (uuid), `created_at` (timestamptz), `updated_at` (timestamptz)
+- **New columns**: `status` (text: active/draft/pending_review/archived), `auto_generated` (boolean), `generation_source` (text), `generation_metadata` (jsonb)
+
+**`work_orders`** (Template instances per unit)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `unit_id` (uuid FK → units), `template_id` (uuid FK → work_order_templates), `trade_name` (text), `status` (text: not_started/in_progress/completed), `assigned_contractor_id` (uuid), `inspector_id` (uuid), `start_date` (timestamptz), `completion_date` (timestamptz), `inspector_signoff_date` (timestamptz), `metadata` (jsonb), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`work_order_tasks`** (Room-level checklist execution)
+- `id` (uuid PK), `work_order_id` (uuid FK → work_orders), `room_id` (uuid FK → rooms), `row_order` (int4), `task_data` (jsonb), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`work_order_notes`** (Comments and voice log entries)
+- `id` (uuid PK), `work_order_id` (uuid FK → work_orders), `author_id` (uuid), `content` (text), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`units`** (Physical spaces — apartments, condos)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `project_id` (uuid FK → wo_projects), `unit_number` (text), `unit_type` (text), `floor` (int4), `bedrooms` (int4), `area_sf` (numeric), `status` (text: not_started/in_progress/completed), `floor_plan_image` (text), `dimensions` (jsonb), `metadata` (jsonb), `created_at` (timestamptz), `updated_at` (timestamptz)
+
+**`unit_rooms`** (Room instances within a unit)
+- `id` (uuid PK), `unit_id` (uuid FK → units), `room_id` (uuid FK → rooms), `area_sf` (numeric), `baseboard_length_ft` (numeric), `wall_length_total_ft` (numeric), `wall_length_cabinets_ft` (numeric), `notes` (text), `dimensions` (jsonb), `created_at` (timestamptz)
+
+**`unit_documents`** (Junction: documents ↔ units)
+- `id` (uuid PK), `unit_id` (uuid FK → units), `document_id` (uuid FK → project_documents), `relationship_type` (text), `created_at` (timestamptz)
+
+**`unit_room_measurements`** (Physical dimensions per room)
+- `id` (uuid PK), `unit_room_id` (uuid FK → unit_rooms), `area_sf`/`area_m2` (numeric), `wall_length_total_lf` (numeric), `wall_length_cabinets_lf` (numeric), `wall_length_paintable_lf` (numeric), `baseboard_length_lf` (numeric), `ceiling_height_ft` (numeric), `wall_area_sf` (numeric), `ceiling_area_sf` (numeric), `window_count`/`door_count` (int4), `width_ft`/`depth_ft` (numeric), `width_mm`/`depth_mm` (numeric), `source` (text: manual_entry/pdf_extraction/site_measurement)
+
+**`unit_room_calculations`** (EAV cost ledger — extensible metrics per room)
+- Described as an Entity-Attribute-Value table with multiple rows per room, one per metric. Supports area-based ($/SF), linear-based ($/LF), and per-item ($/each) cost models.
+
+**`metric_definitions`** (Reference catalog of metric types)
+- `metric_key` (text PK), `metric_label` (text), `category` (text: cost/supply/invoice/labor), `trade_key` (text), `unit_of_measure` (text), `default_formula` (text), `description` (text), `sort_order` (int4)
+
+**`project_documents`** (Uploaded PDFs, drawings)
+- Referenced by `unit_documents` and parent of `document_images`.
+
+**`document_images`** (Extracted page images from documents)
+- Parent of `image_links`.
+
+**`image_links`** (Polymorphic junction: images ↔ any entity)
+- `id` (uuid PK), `image_id` (uuid FK → document_images), `entity_type` (text), `entity_id` (uuid), `link_type` (text), `created_at` (timestamptz)
+
+**`portal_table_config`** (Per-org table access configuration)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `table_name` (text), `display_name` (text), `access_level` (text: hidden/readonly/editable), `visible_columns` (text[]), `editable_columns` (text[]), `hidden_columns` (text[]), `column_order` (text[]), `sort_column` (text), `sort_direction` (text: asc/desc), `filter_conditions` (jsonb), `page_size` (int4), `display_order` (int4), `icon` (text), `description` (text)
+
+**`pending_reviews`** (Review queue for auto-generated placeholder entities)
+- Referenced in the placeholder recovery system.
+
+**`entity_creation_log`** (Audit trail for entity creation)
+- `id` (uuid PK), `organization_id` (uuid FK → organizations), `entity_type` (text), `entity_id` (uuid), `creation_method` (text), `raw_input` (text), `parsed_data` (jsonb), `confidence_score` (numeric(3,2)), `created_by` (uuid FK → auth.users), `created_at` (timestamptz)
+
+**`agent_memories`** (Agent Zero long-term memory with vector embeddings — standalone)
+
+**NocoDB Residual Tables** (can be safely dropped):
+- `workspace` (~1 row), `workspace_user` (~1 row)
+
+**Views** (5 total):
+- `view_project_bom` — Flattens JSONB trees into rows for NocoDB consumption
+- Plus 4 additional pre-built reporting views for cost sheets, budgets, and trade comparisons.
+
+---
+
+#### What is the current template hierarchy for work orders?
+
+The system uses a **three-tier template hierarchy**, which is described as the most architecturally significant design decision:
+
+| Tier | Scope | Purpose | Example |
+|------|-------|---------|---------|
+| **App** | System-wide | Factory defaults, read-only | "Standard Painting Checklist v1" |
+| **Company** | Per organization | Tenant customizations | "Acme Painting Checklist" (adds extra steps) |
+| **Project** | Per wo_project | Job-specific overrides | "123 Main St Painting" (removes N/A rooms) |
+
+Templates **cascade**: a project template inherits from its company parent, which inherits from the app default. This is tracked through two self-referential foreign keys on `work_order_templates`:
+
+- **`parent_template_id`** (uuid FK → self) — Tracks inheritance: which template this one overrides. This is the active lineage chain used for cascading behavior.
+- **`copied_from_template_id`** (uuid FK → self) — Tracks cloning lineage: which template this was originally cloned from.
+
+The **`scope`** column on `work_order_templates` explicitly marks the tier: `app`, `company`, or `project`.
+
+- **App-scope** templates have `organization_id = NULL` and no `project_id`.
+- **Company-scope** templates have an `organization_id` set but no `project_id`.
+- **Project-scope** templates have both `organization_id` and `project_id` set.
+
+Templates are also organized into **template libraries** (`template_libraries` table), which group related templates (e.g., "Standard Residential Painting"). Libraries themselves support the same `app`/`company` scoping. Projects are linked to a library via `wo_projects.library_id`, which defines which trade checklists are available for that project.
+
+---
+
+#### How are trades, SOPs, and work orders currently structured?
+
+**Trades** are represented as a `trade_name` text field on `work_order_templates` and denormalized onto `work_orders` for quick filtering. Examples include "painting", "plumbing", "carpentry", etc. There is no separate `trades` table — the trade is an attribute of the template.
+
+**SOPs / Checklist Definitions** are stored in the `work_order_templates` table, specifically within the **`definition` JSONB column**. This column contains a hierarchical structure:
+
+```json
+{
+  "sections": {
+    "Prep": { "columns": [...] },
+    "Finish": { "columns": [...] }
+  },
+  "logic": {
+    "rules": [...]
+  }
+}
+```
+
+Sections contain columns, and columns contain individual steps — the actual checklist items that field workers execute. Templates also carry `version` (int4) for versioning and `is_active` (bool) to control availability.
+
+**Work Orders** (`work_orders` table) are **instances of a template applied to a specific unit**. The lifecycle is:
+
+1. **Admin creates a Template** — defines the JSONB `definition` with sections/columns/steps for a trade.
+2. **Admin creates a Work Order** for a specific unit + trade — linking to a template via `template_id`.
+3. **System snapshots the template** and generates `work_order_tasks` — one row per room in the unit.
+4. **Field workers execute** — interacting with `work_order_tasks.task_data` JSONB, which contains step-by-step checklist state:
+   ```json
+   { "steps": [{ "key": "...", "label": "...", "status": "...", "completed_by": "...", "completed_at": "...", "not_applicable": false }] }
+   ```
+5. **Inspector reviews and signs off** — `inspector_signoff_date` is set, work order status moves to `completed`.
+
+Work orders track their full lifecycle through: `status` (not_started → in_progress → completed), `assigned_contractor_id`, `inspector_id`, `start_date`, `completion_date`, and `inspector_signoff_date`.
+
+**Work Order Notes** (`work_order_notes`) provide free-text comments and voice transcription results attached to work orders.
+
+---
+
+#### What is the current unit/space schema?
+
+The unit/space schema follows a hierarchical structure:
+
+**`wo_projects`** → **`units`** → **`unit_rooms`** → **`unit_room_measurements`** / **`unit_room_calculations`**
+
+**Projects (`wo_projects`)** represent physical job sites or properties (e.g., "123 Main Street Condos"). They contain multiple units and are linked to a template library.
+
+**Units (`units`)** represent individual physical spaces — apartments, condos, or suites. Key attributes:
+- `unit_number` (text) — Display identifier like "201" or "A-101"
+- `unit_type` (text) — Floor plan type (A, B, C, D, E, F)
+- `floor` (int4) — Building floor number
+- `bedrooms` (int4) — Bedroom count
+- `area_sf` (numeric) — Total unit area in square feet
+- `status` (text) — not_started / in_progress / completed
+- `floor_plan_image` (text) — URL to floor plan image
+- `dimensions` (jsonb) — Detailed dimension data
+- `metadata` (jsonb) — Special instructions, notes
+- Unique constraint on (`project_id`, `unit_number`)
+
+**Rooms (`rooms`)** is a **master catalog** of room types (Kitchen, Bathroom, Bedroom, etc.) scoped per organization. This is a lookup table, not room instances.
+
+**Unit Rooms (`unit_rooms`)** are the **actual room instances** within a unit — linking a unit to a room type from the catalog with unit-specific data:
+- `room_id` (FK → rooms) — Which room type
+- `area_sf`, `baseboard_length_ft`, `wall_length_total_ft`, `wall_length_cabinets_ft` — Quick-reference measurements
+- `notes` (text) — Room-specific notes
+- `dimensions` (jsonb) — Detailed dimension breakdown
+
+**Unit Room Measurements (`unit_room_measurements`)** store detailed physical dimensions per room instance:
+- Imperial and metric areas (`area_sf`, `area_m2`)
+- Wall measurements (`wall_length_total_lf`, `wall_length_cabinets_lf`, `wall_length_paintable_lf`)
+- `baseboard_length_lf`, `ceiling_height_ft`, `wall_area_sf`, `ceiling_area_sf`
+- Fixture counts (`window_count`, `door_count`)
+- Room dimensions in both imperial (`width_ft`, `depth_ft`) and metric (`width_mm`, `depth_mm`)
+- `source` tracking: `manual_entry`, `pdf_extraction`, or `site_measurement`
+
+**Unit Room Calculations (`unit_room_calculations`)** is an EAV (Entity-Attribute-Value) table serving as an extensible cost ledger — multiple rows per room, one per metric. Supports area-based ($/SF), linear-based ($/LF), and per-item ($/each) cost models. This design allows adding new cost types without schema changes.
+
+**Unit Documents (`unit_documents`)** is a junction table linking documents (floor plan PDFs, spec sheets) to units with a `relationship_type` qualifier.
+
+---
+
+#### How does multi-tenancy work in the current schema?
+
+Multi-tenancy is implemented through a combination of **`organization_id` foreign keys** and **Row-Level Security (RLS)** policies:
+
+**The `organizations` table** is the multi-tenant root. Every business entity (contractor, property manager) is an organization with a unique `id`, `name`, `slug`, and `settings` (jsonb for feature flags and preferences).
+
+**`organization_id` as the isolation key**: Nearly all business tables carry an `organization_id` column (either directly or indirectly through parent relationships). This is the primary mechanism for data isolation:
+
+- **Direct `organization_id` FK**: `wo_projects`, `rooms`, `units`, `work_order_templates`, `work_orders`, `portal_table_config`, `entity_creation_log`
+- **Indirect isolation via parent**: `unit_rooms` (via `units`), `unit_documents` (via `units`), `work_order_tasks` (via `work_orders`), `work_order_notes` (via `work_orders`), `project_documents` (via `wo_projects`), `document_images` (via `project_documents`), `image_links` (via `document_images`), `unit_room_measurements` (via `unit_rooms`), `unit_room_calculations` (via `unit_rooms`)
+- **Global/unscoped tables**: `metric_definitions` (reference catalog, no tenant scope), `agent_memories` (scoped by `area` field, not RLS)
+
+**Row-Level Security (RLS)** is enabled on all tables containing tenant-scoped data. Policies filter using a `current_user_organization_id()` function to ensure tenants can only access their own data. The RLS status by table:
+
+| Table | RLS | Isolation Method |
+|-------|-----|-----------------|
+| `organizations` | ✅ | Self (id) |
+| `wo_projects` | — | Via `organization_id` |
+| `rooms` | ✅ | `organization_id` |
+| `units` | ✅ | `organization_id` |
+| `unit_rooms` | ✅ | Via parent `units` |
+| `unit_documents` | ✅ | Via parent `units` |
+| `work_order_templates` | ✅ | `organization_id` |
+| `work_orders` | ✅ | `organization_id` |
+| `work_order_tasks` | ✅ | Via parent `work_orders` |
+| `work_order_notes` | ✅ | Via parent `work_orders` |
+| `project_documents` | ✅ | Via parent `wo_projects` |
+| `document_images` | ✅ | Via parent `project_documents` |
+| `image_links` | ✅ | Via parent `document_images` |
+| `portal_table_config` | ✅ | `organization_id` |
+
+**Tenant Portal integration**: The `portal_table_config` table provides per-organization configuration of which database tables are visible and at what access level (hidden/readonly/editable). When tenants log in via Supabase Auth, the dashboard fetches their config (RLS-filtered by org), and all subsequent data queries are automatically filtered by RLS to their organization's data.
+
+**App-scope exceptions**: Some entities like app-scope templates (`organization_id = NULL`) and template libraries (`scope = 'app'`) are system-wide and shared across all tenants. The document notes that current RLS policies are "permissive for development" and need hardening for production with proper `organization_id` scoping and role-based access.

@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/py_compile.py", line 144, in compile
+    code = loader.source_to_code(source_bytes, dfile or file,
+                                 _optimize=optimize)
+  File "<frozen importlib._bootstrap_external>", line 1087, in source_to_code
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "hybrid.py", line 341
+    table_context = "
+                    ^
+SyntaxError: unterminated string literal (detected at line 341)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import py_compile; py_compile.compile("hybrid.py", doraise=True)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/py_compile.py", line 150, in compile
+    raise py_exc
+py_compile.PyCompileError:   File "hybrid.py", line 341
+    table_context = "
+                    ^
+SyntaxError: unterminated string literal (detected at line 341)
+
+FAIL
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

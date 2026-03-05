@@ -1,0 +1,68 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Hono API - port config ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# 1:import { config } from 'dotenv';
+2:import { resolve } from 'path';
+6:import { serve } from '@hono/node-server';
+7:import { OpenAPIHono } from '@hono/zod-openapi';
+8:import { swaggerUI } from '@hono/swagger-ui';
+9:import { logger } from 'hono/logger';
+10:import { cors } from 'hono/cors';
+11:import { z } from 'zod';
+14:// Import Routes
+15:import { deliveryRoute } from './routes/delivery';
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === doc-parser docker-compose.yml ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# version: '3.8'
+
+services:
+  doc-parser:
+    build: .
+    volumes:
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    env_file:
+      - .env
+    environment:
+      - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    # Run uvicorn server with reload for development
+    command: uvicorn server:app --host 0.0.0.0 --port 5000 --reload
+    ports:
+      - "5000:5000"
+    networks:
+      - agent-zero-network
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  agent-zero-network:
+    external: true
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Check for TypeScript errors in our import ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# -rw-r--r-- 1 root root 6375 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# -rw-r--r-- 1 root root 5919 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Check doc-parser-routes imports ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /**
+ * Doc-Parser Proxy Routes for Hono API
+ *
+ * Integrates doc-parser service into the existing work-orders API.
+ * Provides engine selection, status polling, and result retrieval.
+ *
+ * Routes:
+ *   POST /api/documents/:id/parse    - Parse document (engine selection)
+ *   GET  /api/doc-parser/status/:jobId  - Lightweight status (poll-safe)
+ *   GET  /api/doc-parser/results/:jobId - Full results (fetch-once)
+ *   GET  /api/doc-parser/health         - Service health check
+ */
+
+import { Hono } from 'hono';
+import {
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

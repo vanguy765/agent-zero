@@ -1,0 +1,102 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# FILE 1: apps/api/src/index.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- Import section (lines 26-31) ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+import { docParserRoutes } from './routes/doc-parser-routes';
+
+const app = new OpenAPIHono();
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- Route section (lines 48-55) ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+// Doc-Parser Integration (P1-P7)
+app.route('/doc-parser', docParserRoutes);
+
+// A2A Protocol (Agent-to-Agent)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# FILE 2: apps/work-orders/src/lib/api.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- Doc-parser methods section (around generateWorkOrdersFromDocument) ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 212:class ApiClient {
+517:  // Doc-Parser Integration (P1-P7)
+521:  async submitDocParserJob(
+532:  async getDocParserStatus(jobId: string): Promise<{
+555:  async getDocParserResults(jobId: string, summary?: boolean): Promise<any> {
+561:  async listDocParserJobs(status?: string): Promise<any[]> {
+567:  async deleteDocParserJob(jobId: string): Promise<{ status: string }> {
+574:  async getDocParserHealth(): Promise<{
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- Last 5 lines ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#   }
+
+}
+
+export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# FILE 3: apps/work-orders/src/pages/ProjectDocuments.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- Imports (lines 1-15) ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# import type { Component } from 'solid-js';
+import { createSignal, createResource, For, Show } from 'solid-js';
+import { useParams, A } from '@solidjs/router';
+import { api } from '../lib/api';
+import type { ProjectDocument, DocumentImage, ParsedDocumentResult } from '../lib/api';
+import {
+  useDocParserJob,
+  EngineSelector,
+  ParseProgress,
+  ParseErrorDisplay,
+  ParseResultSummary,
+  type ParseEngine,
+} from '../components/doc-parser/DocParserPanel';
+
+const ProjectDocuments: Component = () => {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- State variables (lines 16-22) ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#     const params = useParams();
+    const [uploading, setUploading] = createSignal(false);
+    const [extracting, setExtracting] = createSignal<string | null>(null);
+    const [parsing, setParsing] = createSignal<string | null>(null);
+    const [parsedResult, setParsedResult] = createSignal<ParsedDocumentResult | null>(null);
+    const [selectedDocId, setSelectedDocId] = createSignal<string | null>(null);
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- parseWithDocParser handler ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 121:    const parseWithDocParser = async (doc: ProjectDocument) => {
+259:                                                    onClick={() => parseEngine() === 'claude-direct' ? parseWithClaude(doc) : parseWithDocParser(doc)}
+298:                                            onRetry={() => parseWithDocParser(doc)}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- EngineSelector in JSX ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 8:  EngineSelector,
+24:    const [parseEngine, setParseEngine] = createSignal<ParseEngine>('hybrid');
+25:    const docParser = useDocParserJob();
+123:            await docParser.submitJob(doc.id, new File([], doc.title), parseEngine());
+253:                                                <EngineSelector
+254:                                                    value={parseEngine()}
+256:                                                    disabled={docParser.isPolling() || parsing() === doc.id}
+259:                                                    onClick={() => parseEngine() === 'claude-direct' ? parseWithClaude(doc) : parseWithDocParser(doc)}
+260:                                                    disabled={parsing() === doc.id || docParser.isPolling()}
+262:                                                    title={parseEngine() === 'hybrid' ? 'Parse with Docling + Claude hybrid engine' : 'Parse with Claude AI directly'}
+264:                                                    {(parsing() === doc.id || docParser.isPolling()) ? 'Parsing...' : `🤖 Parse (${parseEngine() === 'hybrid' ? 'Hybrid' : 'Claude'})`}
+292:                                    <Show when={docParser.isPolling() && docParser.status()}>
+293:                                        <ParseProgress status={docParser.status()!} />
+295:                                    <Show when={docParser.error()}>
+297:                                            error={docParser.error()!}
+301:                                    <Show when={docParser.result()}>
+302:                                        <ParseResultSummary result={docParser.result()!} />
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# --- Progress/Error/Result display ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 9:  ParseProgress,
+10:  ParseErrorDisplay,
+11:  ParseResultSummary,
+293:                                        <ParseProgress status={docParser.status()!} />
+296:                                        <ParseErrorDisplay
+302:                                        <ParseResultSummary result={docParser.result()!} />
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

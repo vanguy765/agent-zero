@@ -1,0 +1,300 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === apps structure ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/node_modules
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/node_modules
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/public
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/src
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/node_modules
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/src
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/node_modules
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/public
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/src
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/node_modules
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/src
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/dist
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/node_modules
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/public
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === API src structure ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/index.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/delivery.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/agentCard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/progress.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/taskStore.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/types.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/claudePdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/pdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/placeholderGenerator.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/reviewService.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === API index.ts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+
+import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+
+app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+// A2A Protocol (Agent-to-Agent)
+app.route('', a2aRoute);       // /.well-known/agent.json
+app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+
+// The OpenAPI Documentation JSON
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Construction Voice Platform API',
+    description: 'API for Web Dashboard, Site Companion, and Flutter Mobile App'
+  },
+});
+
+// The Swagger UI (Visual Documentation)
+app.get('/ui', swaggerUI({ url: '/doc' }));
+
+const port = 3000;
+console.log(`Server is running on port ${port}`);
+console.log(`Swagger UI available at http://localhost:${port}/ui`);
+
+serve({
+  fetch: app.fetch,
+  port
+});
+
+export type AppType = typeof app;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Work-orders src structure ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/doc-parser/DocParserPanel.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/Layout.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/CompanyTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Dashboard.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/LoginPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/NewProject.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Projects.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateEditor.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Templates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Units.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/WorkOrderDetail.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Find ProjectDocuments ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Find existing api.ts client ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === API index.ts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+
+import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+
+app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+// A2A Protocol (Agent-to-Agent)
+app.route('', a2aRoute);       // /.well-known/agent.json
+app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+
+// The OpenAPI Documentation JSON
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Construction Voice Platform API',
+    description: 'API for Web Dashboard, Site Companion, and Flutter Mobile App'
+  },
+});
+
+// The Swagger UI (Visual Documentation)
+app.get('/ui', swaggerUI({ url: '/doc' }));
+
+const port = 3000;
+console.log(`Server is running on port ${port}`);
+console.log(`Swagger UI available at http://localhost:${port}/ui`);
+
+serve({
+  fetch: app.fetch,
+  port
+});
+
+export type AppType = typeof app;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === API src file listing ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/index.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/delivery.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/agentCard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/progress.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/taskStore.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/types.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/claudePdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/pdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/placeholderGenerator.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/reviewService.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# ========================================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Work-orders src file listing ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/App.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/doc-parser/DocParserPanel.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/Layout.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/index.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/CompanyTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Dashboard.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/LoginPage.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/NewProject.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectDocuments.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Projects.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/ProjectTemplates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateEditor.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Templates.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Units.tsx
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/WorkOrderDetail.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

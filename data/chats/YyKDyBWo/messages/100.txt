@@ -1,0 +1,67 @@
+ALL CLEAN - zero occurrences
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === models.py lines 90-105 ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#     progress: JobProgress = Field(default_factory=JobProgress)
+    result_ref: Optional[str] = None  # Storage path for results (not inline)
+    error: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(datetime.UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(datetime.UTC))
+    expires_at: Optional[datetime] = Field(
+        default_factory=lambda: datetime.now(datetime.UTC) + timedelta(hours=2)
+    )
+
+    def touch(self):
+        """Update the updated_at timestamp."""
+        self.updated_at = datetime.now(datetime.UTC)
+
+
+# ============================================================
+# API Response Models (Priority 4a: Separate Status from Results)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Now run the full test suite ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# FAILED tests/test_server.py::TestResultsEndpoint::test_returns_processing_message_for_processing
+FAILED tests/test_server.py::TestResultsEndpoint::test_returns_error_for_failed_jobs
+FAILED tests/test_server.py::TestResultsEndpoint::test_returns_error_for_timeout_jobs
+FAILED tests/test_server.py::TestResultsEndpoint::test_summary_query_param - ...
+FAILED tests/test_server.py::TestResultsEndpoint::test_returns_404_when_no_result_data
+FAILED tests/test_server.py::TestJobsEndpoint::test_returns_list_of_all_jobs
+FAILED tests/test_server.py::TestJobsEndpoint::test_status_filter_works - Att...
+FAILED tests/test_server.py::TestDeleteJobEndpoint::test_returns_deleted_confirmation
+FAILED tests/test_server.py::TestDeleteJobEndpoint::test_returns_409_for_running_job
+FAILED tests/test_server.py::TestLegacyResultEndpoint::test_delegates_to_results_endpoint
+ERROR tests/test_job_manager.py::TestInMemoryJobStore::test_create_job_stores_and_returns_id
+ERROR tests/test_job_manager.py::TestInMemoryJobStore::test_get_job_returns_stored_job
+ERROR tests/test_job_manager.py::TestInMemoryJobStore::test_update_job_modifies_fields
+ERROR tests/test_job_manager.py::TestInMemoryJobStore::test_store_and_get_result_roundtrip
+ERROR tests/test_models.py::TestJobRecord::test_default_job_id_is_valid_uuid
+ERROR tests/test_models.py::TestJobRecord::test_default_status_is_queued - At...
+ERROR tests/test_models.py::TestJobRecord::test_touch_updates_updated_at - At...
+ERROR tests/test_models.py::TestJobRecord::test_expires_at_approximately_two_hours
+ERROR tests/test_models.py::TestJobRecord::test_default_engine - AttributeErr...
+=================== 64 failed, 264 passed, 9 errors in 6.71s ===================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# ALL CLEAN
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === models.py lines 88-106 ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#     engine: EngineType = EngineType.DOCLING
+    file_name: str = ""
+    progress: JobProgress = Field(default_factory=JobProgress)
+    result_ref: Optional[str] = None  # Storage path for results (not inline)
+    error: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(datetime.UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(datetime.UTC))
+    expires_at: Optional[datetime] = Field(
+        default_factory=lambda: datetime.now(datetime.UTC) + timedelta(hours=2)
+    )
+
+    def touch(self):
+        """Update the updated_at timestamp."""
+        self.updated_at = datetime.now(datetime.UTC)
+
+
+# ============================================================
+# API Response Models (Priority 4a: Separate Status from Results)
+# ============================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === models.py import line ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# from datetime import datetime, timedelta, timezone
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

@@ -1,0 +1,58 @@
+
+# Doc-Parser service URL (localhost when API runs on host, docker service name when in container)
+DOC_PARSER_URL=http://localhost:5000
+---
+total 136
+drwxrwxrwx 1 root root  4096 Mar  1 01:53 .
+drwxrwxrwx 1 root root  4096 Feb 22 22:14 ..
+-rw-r--r-- 1 root root   501 Feb 18 05:23 20260217000001_extensions.sql
+-rw-r--r-- 1 root root  2897 Feb 18 05:23 20260217000002_core_tables.sql
+-rw-r--r-- 1 root root  4520 Feb 18 05:23 20260217000003_work_order_tables.sql
+-rw-r--r-- 1 root root  4502 Feb 18 05:23 20260217000004_unit_tables.sql
+-rw-r--r-- 1 root root  1857 Feb 18 05:23 20260217000005_document_tables.sql
+-rw-r--r-- 1 root root   985 Feb 18 05:23 20260217000006_agent_memories.sql
+-rw-r--r-- 1 root root  3433 Feb 22 04:56 20260217000007_functions.sql
+-rw-r--r-- 1 root root  5186 Feb 18 05:23 20260217000008_foreign_keys.sql
+-rw-r--r-- 1 root root  4159 Feb 18 05:23 20260217000009_indexes.sql
+-rw-r--r-- 1 root root 15938 Feb 18 05:23 20260217000010_views.sql
+-rw-r--r-- 1 root root  1884 Feb 18 05:23 20260217000011_triggers.sql
+-rw-r--r-- 1 root root 11118 Feb 18 05:23 20260217000012_rls_policies.sql
+-rw-r--r-- 1 root root  3356 Feb 19 04:44 20260219000001_tenant_portal_config.sql
+-rw-r--r-- 1 root root  5531 Feb 19 05:37 20260219000002_placeholder_recovery.sql
+-rwxrwxrwx 1 root root  1505 Feb 22 05:18 20260222000001_template_rls_manager_admin.sql
+-rwxrwxrwx 1 root root  4055 Feb 22 06:07 20260222000002_project_lifecycle_template_inheritance.sql
+-rwxrwxrwx 1 root root  1333 Feb 22 20:28 20260222000003_user_template_prefs.sql
+-rwxrwxrwx 1 root root  2492 Feb 23 02:39 20260222000004_storage_buckets.sql
+-rwxrwxrwx 1 root root  1377 Feb 23 04:35 20260222000005_tenant_onboarding.sql
+-rw-r--r-- 1 root root   526 Feb 23 22:36 20260223000001_org_industry_description.sql
+-rw-r--r-- 1 root root  3138 Feb 23 23:09 20260223000002_sysadmin_rls_policies.sql
+-rw-r--r-- 1 root root 10951 Mar  1 01:53 20260228000001_sop_library.sql
+drwxrwxrwx 1 root root  4096 Feb 18 05:17 early-work
+---
+-- =============================================================
+-- Migration: Triggers
+-- Description: Automatic timestamp updates and other triggers
+-- =============================================================
+
+CREATE TRIGGER trg_agent_memories_updated BEFORE UPDATE ON public.agent_memories FOR EACH ROW EXECUTE FUNCTION public.update_agent_memories_timestamp();
+
+CREATE TRIGGER trg_urc_updated_at BEFORE UPDATE ON public.unit_room_calculations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER trg_urm_updated_at BEFORE UPDATE ON public.unit_room_measurements FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON public.organizations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_template_libraries_updated_at BEFORE UPDATE ON public.template_libraries FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_units_updated_at BEFORE UPDATE ON public.units FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_wo_projects_updated_at BEFORE UPDATE ON public.wo_projects FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_work_order_notes_updated_at BEFORE UPDATE ON public.work_order_notes FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_work_order_tasks_updated_at BEFORE UPDATE ON public.work_order_tasks FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_work_order_templates_updated_at BEFORE UPDATE ON public.work_order_templates FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_work_orders_updated_at BEFORE UPDATE ON public.work_orders FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

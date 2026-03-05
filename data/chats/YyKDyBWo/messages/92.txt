@@ -1,0 +1,57 @@
+# ✅ Phase 4 Frontend Tests — Complete
+
+All **59 tests pass** across 3 test files. Duration: **2.38s**.
+
+```
+ ✓ doc-parser-client.test.ts   (24 tests)  73ms
+ ✓ doc-parser-routes.test.ts   (20 tests)  88ms
+ ✓ project-documents.test.ts   (15 tests)  11ms
+
+ Test Files  3 passed (3)
+      Tests  59 passed (59)
+```
+
+## Files Created
+
+**Directory**: `_bmad-output/implementation-artifacts/frontend-tests/`
+
+| File | Purpose |
+|---|---|
+| `tsconfig.json` | TypeScript config with ESNext/bundler resolution |
+| `vitest.config.ts` | Vitest config with globals enabled |
+| `doc-parser-client.ts` | Source copy for local imports |
+| `doc-parser-routes.ts` | Source copy for local imports |
+| `project-documents-logic.ts` | Extracted pure logic from ProjectDocuments.tsx |
+| `doc-parser-client.test.ts` | **24 tests** — API client functions |
+| `doc-parser-routes.test.ts` | **20 tests** — Hono route handlers |
+| `project-documents.test.ts` | **15 tests** — Component logic |
+
+## Test Coverage Breakdown
+
+### `doc-parser-client.test.ts` (24 tests)
+- **mapToParseDocument()** — 5 tests: mapping, defaults for missing units/notes/baseboard
+- **submitParseJob()** — 6 tests: endpoint selection, FormData construction, options, error handling
+- **getJobStatus()** — 4 tests: endpoint, JSON parsing, 404/error handling
+- **getJobResults()** — 5 tests: full/summary endpoints, JSON parsing, 404/error handling
+- **checkHealth()** — 4 tests: success, unhealthy, unreachable, AbortSignal timeout
+
+### `doc-parser-routes.test.ts` (20 tests)
+- **POST /documents/:id/parse** — 7 tests: claude-direct rejection, unknown engine, no file, engine routing, response format, error handling
+- **GET /doc-parser/status/:jobId** — 4 tests: status return, result stripping, 404, 502
+- **GET /doc-parser/results/:jobId** — 6 tests: hybrid/docling with parsed field, raw fallback, summary param, 404, 502
+- **GET /doc-parser/health** — 3 tests: 200 healthy, 503 unhealthy, data passthrough
+
+### `project-documents.test.ts` (15 tests)
+- **PHASE_LABELS** — 2 tests: all phases present, human-readable labels
+- **getConfidenceColorClass()** — 3 tests: green/yellow/red thresholds
+- **calculatePercentComplete()** — 5 tests: zero pages fallback, phase progression, cap at 99, edge cases
+- **getConfidenceFields()** — 2 tests: 7 fields with correct labels and boolean mapping
+- **getConfidenceAdvice()** — 2 tests: low/high score messaging
+- **formatStep()** — 1 test: underscore replacement
+
+## Approach Notes
+- **No solid-js dependency** — tested pure extracted logic only
+- **Global fetch mock** via `vi.stubGlobal()` for API client tests
+- **`vi.mock()`** for module-level mocking in route tests
+- **Hono `app.request()`** for route integration testing
+- All assertions use real values, no placeholders

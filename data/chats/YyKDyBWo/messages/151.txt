@@ -1,0 +1,31 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx:17:    const [name, setName] = createSignal(props.project?.name || '');
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx:18:    const [description, setDescription] = createSignal(props.project?.description || '');
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx:19:    const [projectType, setProjectType] = createSignal(props.project?.project_type || 'residential_house');
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx:20:    const [libraryId, setLibraryId] = createSignal(props.project?.library_id || '');
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx:21:    const [status, setStatus] = createSignal(props.project?.status || 'active');
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/ProjectFormModal.tsx:78:                result = await api.createProject(data);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:381:  async createProject(data: Partial<WOProject>): Promise<WOProject> {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Projects.tsx:170:                                Try adjusting your filters or create a new project
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/Templates.tsx:16:    const [activeTab, setActiveTab] = createSignal<'company' | 'project'>('company');
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 8:  project_id?: string;  // NEW: Link to WO Project
+25:  project_type: string;
+37:  project_type: string;
+51:  scope: 'app' | 'company' | 'project';  // NEW: Template scope
+53:  project_id?: string;  // NEW: For project-level templates
+116:  project_id: string;
+255:  async getTemplates(scope?: 'app' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+293:  async getProjectTemplates(projectId: string): Promise<WorkOrderTemplate[]> {
+294:    return this.request<WorkOrderTemplate[]>(`/templates/project/${projectId}`);
+304:  async assignTemplateToProject(companyTemplateId: string, projectId: string, organizationId: string): Promise<WorkOrderTemplate> {
+305:    return this.request<WorkOrderTemplate>('/templates/assign-to-project', {
+307:      body: JSON.stringify({ company_template_id: companyTemplateId, project_id: projectId, organization_id: organizationId }),
+374:    return this.request<WOProject[]>('/projects');
+378:    return this.request<WOProject>(`/projects/${id}`);
+382:    return this.request<WOProject>('/projects', {
+389:    return this.request<WOProject>(`/projects/${id}`, {
+396:    return this.request(`/projects/${id}`, {
+403:    project_type?: string;
+416:  async getDefaultLibrary(projectType: string): Promise<TemplateLibrary> {
+418:      `/template-libraries/default/${projectType}`
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

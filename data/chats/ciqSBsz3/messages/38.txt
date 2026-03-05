@@ -1,0 +1,26 @@
+scope  | count
+---------+-------
+ app     |     9
+ company |     9
+(2 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#              conname
+----------------------------------
+ valid_app_scope
+ valid_company_scope
+ valid_project_scope
+ work_order_templates_scope_check
+(4 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#     is_default boolean DEFAULT false,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT project_outcomes_scope_check CHECK (scope IN ('system', 'company')),
+    CONSTRAINT valid_system_outcome CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_outcome CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company')
+    -- UNIQUE handled by partial indexes below
+);
+
+-- RLS for project_outcomes
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,45 @@
+total 9020
+drwxrwxrwx 1 root root    4096 Mar  1 01:54 .
+drwxr-xr-x 1 root root    4096 Feb 24 00:56 ..
+drwxrwxrwx 1 root root    4096 Feb 26 04:14 .agents
+drwxrwxrwx 1 root root    4096 Feb 19 04:53 apps
+drwxrwxrwx 1 root root    4096 Feb 18 05:25 backups
+-rwxrwxrwx 1 root root    1512 Feb 17 02:18 clean-documents.ps1
+-rwxrwxrwx 1 root root    1037 Feb 17 02:18 convert_bom.sql
+-rwxrwxrwx 1 root root    2112 Feb 17 02:18 create_work_order.ps1
+-rwxrwxrwx 1 root root  235104 Feb 22 04:56 db_reset_debug.log
+-rwxrwxrwx 1 root root      11 Feb 17 02:18 debug_write_test.txt
+drwxrwxrwx 1 root root    4096 Feb 26 04:18 doc-parser
+drwxrwxrwx 1 root root    4096 Mar  2 05:49 docs
+drwxrwxrwx 1 root root    4096 Mar  2 05:55 .git
+-rwxrwxrwx 1 root root     554 Feb 17 02:18 .gitattributes
+-rwxrwxrwx 1 root root     443 Feb 26 04:47 .gitignore
+drwxrwxrwx 1 root root    4096 Feb 21 02:00 nocodb
+-rwxrwxrwx 1 root root   15066 Feb 17 02:18 nocodb_full.txt
+-rwxrwxrwx 1 root root   14492 Feb 17 02:18 nocodb_logs.txt
+-rwxrwxrwx 1 root root     724 Feb 23 04:48 package.json
+-rw-r--r-- 1 root root    6064 Feb 23 22:52 package-lock.json
+drwxrwxrwx 1 root root    4096 Feb 17 02:18 packages
+-rwxrwxrwx 1 root root  112752 Feb 21 23:40 pnpm-lock.yaml
+drwxr-xr-x 1 root root    4096 Feb 24 00:50 .pnpm-store
+-rwxrwxrwx 1 root root      40 Feb 17 02:18 pnpm-workspace.yaml
+-rwxrwxrwx 1 root root     239 Feb 17 02:18 project_ids.txt
+-rwxrwxrwx 1 root root    6031 Feb 22 20:58 README.md
+-rwxrwxrwx 1 root root    2328 Feb 17 02:18 restore-for-testing.ps1
+drwxrwxrwx 1 root root    4096 Feb 23 23:03 scripts
+-rwxrwxrwx 1 root root     387 Feb 17 02:18 seed_error.txt
+drwxr-xr-x 1 root root    4096 Mar  1 01:54 skills
+drwxrwxrwx 1 root root    4096 Feb 22 22:14 supabase
+-rwxrwxrwx 1 root root   12480 Feb 17 02:18 supabase_debug.log
+-rwxrwxrwx 1 root root     157 Feb 17 02:18 table_columns.txt
+-rwxrwxrwx 1 root root 8770689 Feb 17 02:18 temp_analysis.pdf
+-rwxrwxrwx 1 root root    1326 Feb 17 02:18 test_api.ps1
+-rwxrwxrwx 1 root root   19434 Feb 17 02:18 tracked_files.txt
+drwxrwxrwx 1 root root    4096 Feb 25 22:27 .turbo
+-rwxrwxrwx 1 root root     342 Feb 17 02:18 turbo.json
+-rwxrwxrwx 1 root root     336 Feb 17 02:18 unit_ids.txt
+-rwxrwxrwx 1 root root     401 Feb 17 02:18 verify_data.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# api  material-admin  site-companion  tenant-portal  web-dashboard  work-orders
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

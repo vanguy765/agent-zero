@@ -1,0 +1,124 @@
+HAS_TESSERACT: False
+has pytesseract attr: False
+---
+        pil_image: PIL Image to analyze
+
+    Returns:
+        True if architectural text patterns are found
+    """
+    if not HAS_TESSERACT:
+        # If Tesseract unavailable, be permissive
+        logger.warning("Tesseract not available, skipping text check")
+        return True
+
+    try:
+        # Run OCR
+        text = pytesseract.image_to_string(
+            pil_image,
+            config="--psm 6 --oem 3",  # Assume uniform block of text
+            timeout=15
+        )
+
+        if not text or len(text.strip()) < 10:
+            return False
+
+        text_upper = text.upper()
+
+        # Check for dimension patterns
+        dimension_matches = DIMENSION_REGEX.findall(text)
+        has_dimensions = len(dimension_matches) >= 1
+
+        # Check for architectural labels
+        label_matches = ARCH_LABEL_REGEX.findall(text_upper)
+        has_labels = len(label_matches) >= 2  # At least 2 room labels
+
+        # Check for scale notation
+        scale_matches = SCALE_REGEX.findall(text)
+        has_scale = len(scale_matches) >= 1
+
+        # Score-based decision
+        score = 0
+        if has_dimensions:
+            score += 3  # Strong signal
+        if has_labels:
+            score += 2  # Good signal
+---
+def _legacy_bw_check(pil_image: Image.Image) -> bool:
+    """Legacy black-and-white check (fallback when OpenCV unavailable).
+
+    Original logic: checks if color channel variance is low.
+    Kept for backward compatibility but NOT recommended.
+    """
+    try:
+        img_rgb = pil_image.convert("RGB")
+        if not HAS_NUMPY:
+            # Very basic fallback
+            return True
+
+        img_array = np.array(img_rgb)
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        # Calculate mean absolute difference between channels
+        rg_diff = np.mean(np.abs(r.astype(float) - g.astype(float)))
+        rb_diff = np.mean(np.abs(r.astype(float) - b.astype(float)))
+        gb_diff = np.mean(np.abs(g.astype(float) - b.astype(float)))
+
+        avg_diff = (rg_diff + rb_diff + gb_diff) / 3.0
+
+        # Original threshold was 2.0 (too strict)
+        # Relaxed to 15.0 to catch lightly colored drawings
+        return avg_diff < 15.0
+
+    except Exception:
+        return True
+
+
+def _has_photo_characteristics(pil_image: Image.Image) -> bool:
+    """Detect if image is a photograph (vs. a drawing).
+
+    Photos have:
+    - High color variance (many unique colors)
+    - Smooth gradients (low edge density)
+    - Natural color distribution
+    """
+    try:
+        img_rgb = pil_image.convert("RGB")
+
+        if not HAS_NUMPY:
+            # Basic check: count unique colors
+            colors = img_rgb.getcolors(maxcolors=10000)
+            if colors is None:  # More than 10000 unique colors = likely photo
+                return True
+            return False
+
+        img_array = np.array(img_rgb)
+
+        # Check color variance
+        # Photos have high standard deviation across color channels
+        std_r = np.std(img_array[:, :, 0])
+        std_g = np.std(img_array[:, :, 1])
+        std_b = np.std(img_array[:, :, 2])
+        avg_std = (std_r + std_g + std_b) / 3.0
+
+        # High color variance + high inter-channel difference = photo
+        r_mean = np.mean(img_array[:, :, 0])
+        g_mean = np.mean(img_array[:, :, 1])
+        b_mean = np.mean(img_array[:, :, 2])
+
+        channel_spread = max(r_mean, g_mean, b_mean) - min(r_mean, g_mean, b_mean)
+
+        # Photos: avg_std > 40, channel_spread > 10
+        # Drawings: avg_std < 30, channel_spread < 5 (mostly B&W or single color)
+        return avg_std > 45 and channel_spread > 15
+
+    except Exception:
+        return False
+
+
+def _has_table_structure(img_gray) -> bool:
+    """Detect if image contains a table/grid structure."""
+    if not HAS_CV2 or not HAS_NUMPY:
+        return False
+
+    try:
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

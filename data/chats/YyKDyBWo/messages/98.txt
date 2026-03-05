@@ -1,0 +1,47 @@
+Python 3.13.11 (main, Dec  8 2025, 11:43:54) [GCC 15.2.0]
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# datetime.UTC available
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === AFTER: verify no utcnow remains ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# ./models.py:93:    created_at: datetime = Field(default_factory=datetime.utcnow)
+./models.py:94:    updated_at: datetime = Field(default_factory=datetime.utcnow)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Remaining utcnow occurrences ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# ./models.py:93:    created_at: datetime = Field(default_factory=datetime.utcnow)
+./models.py:94:    updated_at: datetime = Field(default_factory=datetime.utcnow)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Check imports in models.py ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# """Shared data models for doc-parser service.
+
+Provides Pydantic models for job tracking, extraction results,
+and API response schemas across all engine modes.
+"""
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, List, Any
+from enum import Enum
+from datetime import datetime, timedelta
+import uuid
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Check imports in job_manager.py ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# """Job management for doc-parser service.
+
+Priority 3: Granular progress tracking with phase/page/step updates
+Priority 4: Persistent storage, separate status/results endpoints, TTL cleanup,
+            race condition fix (POST returns "queued" not "processing")
+
+Supports two backends:
+- InMemoryJobStore: Default, for development/single-instance
+- SupabaseJobStore: Production, for persistence across restarts
+"""
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# === Check imports in test files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# """Tests for job_manager.py - Job management system.
+
+Phase 2: Async tests for InMemoryJobStore and JobManager.
+All async tests use pytest-asyncio.
+"""
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser# """Unit tests for doc-parser models.py.
+
+Covers enums, job tracking models, extraction data models,
+API response models, confidence scoring models, and output models.
+"""
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

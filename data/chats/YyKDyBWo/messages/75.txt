@@ -1,0 +1,14 @@
+Found 12 potentially problematic lines:
+  Line 368:                     "
+  Line 370: ADDITIONAL CONTEXT - Door/window schedules and "
+  Line 373:                     "materials, fire ratings, etc.):
+  Line 375: "
+  Line 454:                         f"
+  Line 456: "
+  Line 462:                         "
+  Line 463: --- TABLES/SCHEDULES ---"
+  Line 467:                             f"
+  Line 469: {md}"
+  Line 472:                 synthesis_context = "
+  Line 473: ".join(synthesis_context_parts)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

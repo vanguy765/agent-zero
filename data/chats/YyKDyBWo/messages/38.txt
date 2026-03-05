@@ -1,0 +1,311 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# @app.post("/parse/docling")
+async def parse_docling(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    provider: str = Form(DEFAULT_PROVIDER),
+    supabase_url: str = Form(None),
+    supabase_key: str = Form(None),
+    tenant_name: str = Form(None),
+    project_name: str = Form(None),
+):
+    """Parse PDF using Docling-only engine.
+
+    Returns job_id for async polling via /status and /results endpoints.
+    Initial status is 'queued' (Priority 4c: fixes race condition).
+    """
+    temp_path = await save_upload_to_temp(file)
+
+    job = await job_manager.create_job(
+        file_name=file.filename or "unknown.pdf",
+        engine="docling",
+    )
+
+    background_tasks.add_task(
+        _process_docling_background,
+        job.job_id,
+        temp_path,
+        provider,
+        supabase_url,
+        supabase_key,
+        tenant_name or "",
+        project_name or "",
+    )
+
+    return {
+        "job_id": job.job_id,
+        "status": "queued",  # P4c: correct initial state
+        "engine": "docling",
+        "file": file.filename,
+    }
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# \n=== PARSE HYBRID ENDPOINT ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# @app.post("/parse/hybrid")
+async def parse_hybrid(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    provider: str = Form(DEFAULT_PROVIDER),
+    supabase_url: str = Form(None),
+    supabase_key: str = Form(None),
+    tenant_name: str = Form(None),
+    project_name: str = Form(None),
+):
+    """Parse PDF using hybrid engine: Docling decomposition + Claude extraction.
+
+    Returns job_id for async polling via /status and /results endpoints.
+    """
+    temp_path = await save_upload_to_temp(file)
+    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+
+    job = await job_manager.create_job(
+        file_name=file.filename or "unknown.pdf",
+        engine="hybrid",
+    )
+
+    background_tasks.add_task(
+        _process_hybrid_background,
+        job.job_id,
+        temp_path,
+        provider,
+        sb_client,
+        tenant_name or "",
+        project_name or "",
+    )
+
+    return {
+        "job_id": job.job_id,
+        "status": "queued",
+        "engine": "hybrid",
+        "file": file.filename,
+    }
+
+
+async def _process_hybrid_background(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+):
+    """Background processor for hybrid engine with timeout enforcement."""
+    try:
+        await asyncio.wait_for(
+            process_hybrid(
+                job_id=job_id,
+                temp_path=temp_path,
+                provider=provider,
+                job_manager=job_manager,
+                sb_client=sb_client,
+                tenant_name=tenant_name,
+                project_name=project_name,
+            ),
+            timeout=PROCESSING_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        await job_manager.timeout_job(job_id)
+    except Exception as e:
+        traceback.print_exc()
+        await job_manager.fail_job(job_id, str(e))
+
+
+# ============================================================
+# GET /status/{job_id} - Lightweight Status (Priority 4a)
+# ============================================================
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# \n=== STATUS + RESULTS ENDPOINTS ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# @app.get("/status/{job_id}")
+async def get_status(job_id: str):
+    """Get lightweight job status for polling.
+
+    NEVER includes result data. Safe to poll every 2-5 seconds.
+    Small payload optimized for frequent requests.
+    """
+    status = await job_manager.get_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    return status.model_dump()
+
+
+# ============================================================
+# GET /results/{job_id} - Full Results (Priority 4a)
+# ============================================================
+
+@app.get("/results/{job_id}")
+async def get_results(
+    job_id: str,
+    summary: bool = Query(False, description="Return lightweight summary only"),
+):
+    """Get full extraction results for a completed job.
+
+    Heavy payload - fetch once after status confirms 'completed'.
+    Use ?summary=true for a lightweight preview.
+    """
+    # Check job exists and is completed
+    status = await job_manager.get_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if status.status == JobStatus.PROCESSING or status.status == JobStatus.QUEUED:
+        return {
+            "job_id": job_id,
+            "status": status.status.value,
+            "message": "Job is still processing. Poll /status/{job_id} for progress.",
+        }
+
+    if status.status in (JobStatus.FAILED, JobStatus.TIMEOUT):
+        return {
+            "job_id": job_id,
+            "status": status.status.value,
+            "error": status.error,
+        }
+
+    # Return summary or full results
+    if summary:
+        result_summary = await job_manager.get_result_summary(job_id)
+        if not result_summary:
+            raise HTTPException(status_code=404, detail="Results not found")
+        return {
+            "job_id": job_id,
+            "status": "completed",
+            "summary": result_summary.model_dump(),
+        }
+
+    result = await job_manager.get_result(job_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Results not found")
+
+    return {
+        "job_id": job_id,
+        "status": "completed",
+        "result": result,
+    }
+
+
+# ============================================================
+# GET /health - Health Check
+# ============================================================
+
+@app.get("/health")
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# \n=== HEALTH + JOBS ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# @app.get("/health")
+async def health_check():
+    """Service health check."""
+    # Check Docling availability
+    docling_available = False
+    try:
+        import docling
+        docling_available = True
+    except ImportError:
+        pass
+
+    # Check Tesseract availability
+    tesseract_available = False
+    try:
+        import pytesseract
+        pytesseract.get_tesseract_version()
+        tesseract_available = True
+    except Exception:
+        pass
+
+    # Check LiteLLM availability
+    litellm_available = False
+    try:
+        import litellm
+        litellm_available = True
+    except ImportError:
+        pass
+
+    jobs = await job_manager.list_jobs()
+    running_count = sum(1 for j in jobs if j.status == JobStatus.PROCESSING)
+    queued_count = sum(1 for j in jobs if j.status == JobStatus.QUEUED)
+
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "engines": ["docling", "hybrid"],
+        "dependencies": {
+            "docling": docling_available,
+            "tesseract": tesseract_available,
+            "litellm": litellm_available,
+        },
+        "jobs": {
+            "running": running_count,
+            "queued": queued_count,
+            "total": len(jobs),
+        },
+        "config": {
+            "store_backend": JOB_STORE_BACKEND,
+            "default_provider": DEFAULT_PROVIDER,
+            "processing_timeout_s": PROCESSING_TIMEOUT_SECONDS,
+        },
+    }
+
+
+# ============================================================
+# GET /jobs - List Jobs
+# ============================================================
+
+@app.get("/jobs")
+async def list_jobs(
+    status: Optional[str] = Query(None, description="Filter by status"),
+):
+    """List all jobs with optional status filter."""
+    jobs = await job_manager.list_jobs(status)
+    return {
+        "jobs": [
+            {
+                "job_id": j.job_id,
+                "status": j.status.value,
+                "engine": j.engine if isinstance(j.engine, str) else j.engine.value,
+                "file_name": j.file_name,
+                "progress": j.progress.model_dump(),
+                "created_at": j.created_at.isoformat(),
+                "updated_at": j.updated_at.isoformat(),
+            }
+            for j in jobs
+        ],
+        "total": len(jobs),
+    }
+
+
+# ============================================================
+# DELETE /jobs/{job_id} - Delete Job
+# ============================================================
+
+@app.delete("/jobs/{job_id}")
+async def delete_job(job_id: str):
+    """Delete a job and its results."""
+    job = await job_manager._store.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if job.status == JobStatus.PROCESSING:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete a running job. Wait for completion or timeout.",
+        )
+
+    # Delete result and job record
+    await job_manager._store.delete_expired()  # Piggyback cleanup
+    return {"deleted": job_id}
+
+
+# ============================================================
+# Legacy Compatibility: GET /result/{job_id}
+# Redirects to new /results endpoint
+# ============================================================
+
+@app.get("/result/{job_id}")
+async def get_result_legacy(job_id: str):
+    """Legacy endpoint - redirects to /results/{job_id}."""
+    return await get_results(job_id, summary=False)
+
+
+# ============================================================
+# Entry Point
+# ============================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

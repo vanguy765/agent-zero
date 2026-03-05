@@ -1,0 +1,33 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { PDFParser } from '../services/pdfParser';
+import { ClaudePdfParser, generateWorkOrdersFromParsedData } from '../services/claudePdfParser';
+import * as canvas from '@napi-rs/canvas';
+
+// Maximum dimension for Claude multi-image API
+const MAX_IMAGE_DIMENSION = 2000;
+
+/**
+ * Resize an image to fit within MAX_IMAGE_DIMENSION while maintaining aspect ratio
+ */
+async function resizeImageIfNeeded(
+    base64Data: string,
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import { Context } from 'hono';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+
+export const getScopedClient = (c: Context): SupabaseClient => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader ? authHeader.replace('Bearer ', '') : undefined;
+
+  // If no token, this client acts as Anonymous.
+  // If token is present, it acts as the User.
+  const options = token
+    ? { global: { headers: { Authorization: `Bearer ${token}` } } }
+    : {};
+
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

@@ -1,0 +1,256 @@
+=== taxonomy.ts ===
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+
+const taxonomyRouter = new OpenAPIHono();
+
+// Supabase client setup (using env vars would be better but following pattern if any)
+// Assuming safe to use process.env or just recreating client for now as in other routes likely
+const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'; // Use service role for backend
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const TaxonomySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  content: z.record(z.any()), // JSONB
+  version: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+
+const UpdateTaxonomySchema = z.object({
+  name: z.string(),
+  content: z.record(z.any()),
+});
+
+// GET /taxonomy - Get Master Taxonomy
+taxonomyRouter.openapi(
+  createRoute({
+    method: 'get',
+    path: '/',
+    responses: {
+      200: {
+        description: 'Get Master Taxonomy',
+        content: {
+          'application/json': {
+            schema: TaxonomySchema,
+          },
+        },
+      },
+      404: { description: 'Taxonomy not found' },
+    },
+  }),
+  async (c) => {
+    // For now, defaulting to 'master_contractor_taxonomy'
+    const name = c.req.query('name') || 'master_contractor_taxonomy';
+    const { data, error } = await supabase
+      .from('taxonomies')
+      .select('*')
+      .eq('name', name)
+      .order('version', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      // If not found, returning empty or error
+      return c.json({ error: 'Not found' }, 404);
+    }
+
+    return c.json(data);
+  }
+);
+
+// POST /taxonomy - Update Master Taxonomy
+taxonomyRouter.openapi(
+  createRoute({
+    method: 'post',
+    path: '/',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: UpdateTaxonomySchema,
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: 'Updated Taxonomy',
+        content: {
+            'application/json': {
+              schema: TaxonomySchema,
+            },
+          },
+      },
+      500: { description: 'Error updating taxonomy' },
+    },
+  }),
+  async (c) => {
+    const { name, content } = c.req.valid('json');
+
+    // Get current version
+    const { data: current } = await supabase
+        .from('taxonomies')
+        .select('version')
+        .eq('name', name)
+        .order('version', { ascending: false })
+        .limit(1)
+        .single();
+    
+    const nextVersion = (current?.version || 0) + 1;
+
+    const { data, error } = await supabase
+      .from('taxonomies')
+      .insert({
+          name,
+          content,
+          version: nextVersion
+      })
+      .select()
+      .single();
+
+    if (error) {
+        console.error('Error updating taxonomy:', error);
+      return c.json({ error: error.message }, 500);
+    }
+
+    return c.json(data);
+  }
+);
+
+export default taxonomyRouter;
+\n=== work-orders.ts (first 50 lines) ===
+import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+import {
+    buildDraftRooms,
+    buildDraftTemplate,
+    findSimilarTemplate,
+    logEntityCreation,
+} from '../services/placeholderGenerator';
+import {
+    createReviewsBatch,
+    type CreateReviewInput,
+} from '../services/reviewService';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+if (process.env.REQUIRE_AUTH === 'true') {
+    workOrdersRoute.use('*', authMiddleware);
+}
+// workOrdersRoute.use('*', authMiddleware);
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// UNITS ENDPOINTS
+// ============================================================================
+
+\n=== project-definitions.ts (first 80 lines) ===
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+
+const projectDefinitionsRouter = new OpenAPIHono();
+
+const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const ProjectDefinitionSchema = z.object({
+  project_id: z.string().uuid(),
+  taxonomy_version: z.string().nullable(),
+  floorplan_definitions: z.record(z.any()), // JSONB
+});
+
+const UpdateDefinitionSchema = z.object({
+  floorplan_definitions: z.record(z.any()),
+});
+
+// GET /projects (List)
+projectDefinitionsRouter.openapi(
+  createRoute({
+    method: 'get',
+    path: '/',
+    responses: {
+      200: {
+        description: 'List Projects',
+        content: {
+          'application/json': {
+            schema: z.array(z.object({
+              id: z.string().uuid(),
+              name: z.string(),
+              code: z.string(),
+            })),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id, name, code');
+
+    if (error) {
+      return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+  }
+);
+
+// GET /projects/:id/definitions
+projectDefinitionsRouter.openapi(
+  createRoute({
+    method: 'get',
+    path: '/{id}/definitions',
+    responses: {
+      200: {
+        description: 'Get Project Definitions',
+        content: {
+          'application/json': {
+            schema: ProjectDefinitionSchema.nullable(),
+          },
+        },
+      },
+      404: { description: 'Project not found' }
+    },
+  }),
+  async (c) => {
+    const id = c.req.param('id');
+    const { data, error } = await supabase
+      .from('project_definitions')
+      .select('*')
+      .eq('project_id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "The result contains 0 rows"
+       return c.json({ error: error.message }, 500);
+    }
+    
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

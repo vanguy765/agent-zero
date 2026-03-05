@@ -1,0 +1,16 @@
+Original file: 454 lines
+Found Images Section comment at line 266:                                     {/* Images Section */}
+Inserted progress/error/result block before line 266
+Found PDF Show block: lines 224 to 241
+Replaced PDF Show block with new version
+Found parseWithClaude at line 92
+parseWithClaude ends at line 107
+Inserted parseWithDocParser handler after line 107
+Found selectedDocId signal at line 13
+Inserted state variables after line 13
+Found last import at line 5: import type { ProjectDocument, DocumentImage, ParsedDocumentResult } from '../lib/api';
+Inserted DocParserPanel imports after line 5
+
+File written: 493 lines
+All 5 edits applied to ProjectDocuments.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,36 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > DROP TABLE
+DROP TABLE
+NOTICE:  drop cascades to constraint work_orders_bom_action_request_id_fkey on table work_orders
+DROP TABLE
+NOTICE:  drop cascades to 2 other objects
+DETAIL:  drop cascades to constraint work_orders_type_order_id_fkey on table work_orders
+drop cascades to constraint units_type_order_id_fkey on table units
+DROP TABLE
+NOTICE:  table "trade_outcome_assignments" does not exist, skipping
+DROP TABLE
+DROP TABLE
+NOTICE:  table "project_outcomes" does not exist, skipping
+DROP TABLE
+NOTICE:  drop cascades to constraint work_orders_trade_id_fkey on table work_orders
+DROP TABLE
+NOTICE:  trigger "trg_sync_trade_name_templates" for relation "public.work_order_templates" does not exist, skipping
+DROP TRIGGER
+DROP TRIGGER
+NOTICE:  trigger "trg_sync_trade_name_code_sops" for relation "public.sops" does not exist, skipping
+DROP TRIGGER
+DROP FUNCTION
+DROP FUNCTION
+ALTER TABLE
+NOTICE:  constraint "work_order_templates_scope_check" of relation "work_order_templates" does not exist, skipping
+ALTER TABLE
+ERROR:  check constraint "work_order_templates_scope_check" of relation "work_order_templates" is violated by some row
+ALTER TABLE
+NOTICE:  constraint "template_libraries_scope_check" of relation "template_libraries" does not exist, skipping
+ALTER TABLE
+ERROR:  check constraint "template_libraries_scope_check" of relation "template_libraries" is violated by some row
+      status
+------------------
+ Cleanup complete
+(1 row)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

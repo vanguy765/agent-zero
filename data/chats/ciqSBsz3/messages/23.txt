@@ -1,0 +1,41 @@
+=== Check for COALESCE UNIQUE (should NOT exist) ===
+217:-- Partial unique indexes for type_orders (cleaner than COALESCE with sentinel UUIDs)
+=== Check partial unique indexes for type_orders ===
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_system
+    ON public.type_orders(code) WHERE scope = 'system';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_company
+    ON public.type_orders(code, organization_id) WHERE scope = 'company';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_project
+    ON public.type_orders(code, organization_id, project_id) WHERE scope = 'project';
+=== All migration files in order ===
+supabase/migrations/20260217000001_extensions.sql
+supabase/migrations/20260217000002_core_tables.sql
+supabase/migrations/20260217000003_work_order_tables.sql
+supabase/migrations/20260217000004_unit_tables.sql
+supabase/migrations/20260217000005_document_tables.sql
+supabase/migrations/20260217000006_agent_memories.sql
+supabase/migrations/20260217000007_functions.sql
+supabase/migrations/20260217000008_foreign_keys.sql
+supabase/migrations/20260217000009_indexes.sql
+supabase/migrations/20260217000010_views.sql
+supabase/migrations/20260217000011_triggers.sql
+supabase/migrations/20260217000012_rls_policies.sql
+supabase/migrations/20260219000001_tenant_portal_config.sql
+supabase/migrations/20260219000002_placeholder_recovery.sql
+supabase/migrations/20260222000001_template_rls_manager_admin.sql
+supabase/migrations/20260222000002_project_lifecycle_template_inheritance.sql
+supabase/migrations/20260222000003_user_template_prefs.sql
+supabase/migrations/20260222000004_storage_buckets.sql
+supabase/migrations/20260222000005_tenant_onboarding.sql
+supabase/migrations/20260223000001_org_industry_description.sql
+supabase/migrations/20260223000002_sysadmin_rls_policies.sql
+supabase/migrations/20260228000001_sop_library.sql
+supabase/migrations/20260304000001_schema_evolution_phase1.sql
+supabase/migrations/20260304000002_schema_evolution_seed.sql
+=== Final file sizes ===
+  514 supabase/migrations/20260304000001_schema_evolution_phase1.sql
+  236 supabase/migrations/20260304000002_schema_evolution_seed.sql
+  690 tests/test_schema_evolution.sql
+   66 tests/run_schema_tests.sh
+ 1506 total
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

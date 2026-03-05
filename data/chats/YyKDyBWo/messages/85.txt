@@ -1,0 +1,58 @@
+# Phase 3 Test Implementation Complete ✅
+
+## Results: **337 tests passing** in 3.48s
+
+### Files Created/Updated
+
+| File | Tests | Status |
+|------|-------|--------|
+| `tests/test_hybrid.py` | 35 | ✅ All pass |
+| `tests/test_server.py` | 30 | ✅ All pass |
+| `tests/conftest.py` | +4 fixtures appended | ✅ |
+
+### Phase 3 Test Breakdown
+
+#### `test_hybrid.py` (35 tests)
+- **TestAssembleHybridOutput** (21 tests) — Pure function tests covering:
+  - Empty inputs, single/multiple extractions, mixed success/failure
+  - Table data, footer samples, site photos, diagrams
+  - Summary counts, synthesis flags, unit field mapping
+  - General notes deduplication, page classification
+- **TestRunLlmExtraction** (4 tests) — Mocked litellm calls verifying message format, temperature, max_tokens, error handling
+- **TestRunTextLlm** (3 tests) — Text-only LLM calls for synthesis
+- **TestProcessHybrid** (7 tests) — Full pipeline with extensive mocking:
+  - Job state transitions (QUEUED → PROCESSING → COMPLETED)
+  - Progress phase tracking, temp file cleanup (success + failure)
+  - Failure/timeout handling, confidence scoring
+  - Synthesis triggering logic, table context enrichment
+  - JSON code fence cleaning, failed extraction continuation
+  - Full-page fallback detection
+
+#### `test_server.py` (30 tests)
+- **TestHealthEndpoint** (3 tests) — Status, version, engines, job counts
+- **TestParseDoclingEndpoint** (5 tests) — Upload, job creation, provider, 422 on missing file
+- **TestParseHybridEndpoint** (4 tests) — Upload, job creation, supabase creds, 422
+- **TestStatusEndpoint** (5 tests) — Existing/unknown jobs, schema validation, progress, errors
+- **TestResultsEndpoint** (8 tests) — Completed/queued/processing/failed/timeout, summary param, 404
+- **TestJobsEndpoint** (3 tests) — List all, status filter, empty list
+- **TestDeleteJobEndpoint** (3 tests) — Delete idle, 404 unknown, 409 running
+- **TestLegacyResultEndpoint** (1 test) — Legacy /result delegates to /results
+
+### All Phases Summary
+
+| Phase | File | Tests |
+|-------|------|-------|
+| 1 | test_models.py | 42 |
+| 1 | test_prompts.py | 22 |
+| 2 | test_detection.py | 36 |
+| 2 | test_confidence.py | 41 |
+| 2 | test_job_manager.py | 40 |
+| 3 | test_hybrid.py | 35 |
+| 3 | test_server.py | 30 |
+| | **Total** | **337** |
+
+### Key Design Decisions
+- **No external dependencies**: All docling, pdf2image, litellm, pytesseract calls are mocked via `sys.modules` patching
+- **Real JobManager**: Server tests use actual `InMemoryJobStore` for realistic state management
+- **httpx AsyncClient**: FastAPI tested via `ASGITransport` without starting a real server
+- **Heredoc file writing**: Avoided Python string escaping issues for multiline test code

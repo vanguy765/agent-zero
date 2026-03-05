@@ -1,0 +1,15 @@
+---------------------------------------------------------------------------
+UnicodeEncodeError                        Traceback (most recent call last)
+Cell In[1], line 595
+      1 frontend_tsx = '''/**
+      2  * ProjectDocuments.tsx - Doc-Parser Integration
+      3  *
+   (...)    591 };
+    592 ''';
+    594 with open('/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/work-orders/ProjectDocuments.tsx', 'w') as f:
+--> 595     f.write(frontend_tsx)
+    597 print('ProjectDocuments.tsx created successfully')
+    598 print(f'Size: {len(frontend_tsx)} bytes')
+
+UnicodeEncodeError: 'utf-8' codec can't encode characters in position 9534-9535: surrogates not allowed
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

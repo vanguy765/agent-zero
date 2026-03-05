@@ -1,0 +1,60 @@
+#### What is the full template hierarchy design and inheritance model?
+
+The template system uses a **three-tier hierarchy** with inheritance and scoping:
+
+1. **App-Level Templates (Global Defaults)** — Managed by system admins, these are globally scoped and visible to all tenants. They serve as the base templates (e.g., Painting, Plumbing, Electrical). All authenticated users can read them, but only system admins can modify them.
+
+2. **Company-Level Templates (Tenant Defaults)** — Managed by tenant admins, these are scoped to a single organization/tenant. They originate by being copied from app-level templates and are fully customizable by the tenant admin. Other tenants cannot see them.
+
+3. **Project-Level Templates (Project-Specific)** — Also managed by tenant admins, these are scoped to a single project/property. They originate by being copied from company-level templates or from other projects, and are customizable per project.
+
+The inheritance flows downward: App → Company → Project. Each level copies (deep copies) the `definition` JSONB from its parent, and tracks lineage through `parent_template_id` and `copied_from_template_id` fields. The database enforces scope via a `CHECK` constraint (`'app'`, `'company'`, `'project'`), and Row-Level Security (RLS) policies ensure that app templates are read-only for non-system-admins, company templates are restricted to organization members, and project templates are restricted to project members within the organization.
+
+---
+
+#### How do template libraries work and how are they organized?
+
+Template Libraries group templates by **project type**, enabling different collections of default templates for different kinds of construction projects. The system supports these default project types (extensible):
+
+| Project Type | Description | Color |
+|---|---|---|
+| `residential_house` | Single-family residential homes | Green |
+| `commercial_apartment` | Commercial apartment buildings | Blue |
+| `office_commercial` | Office and commercial spaces | Orange |
+| `retail` | Retail spaces | Purple |
+| `mixed_use` | Mixed-use developments | Blue Grey |
+
+Libraries are stored in a `template_libraries` table with fields for `project_type`, `scope` (app or company), `organization_id` (null for app-level), visual metadata (`icon`, `color`), and an `is_default` flag (one default per project type at app level).
+
+The hierarchy is:
+
+- **App-Level Libraries** are system defaults — e.g., "Residential House - Standard" (with 8 templates), "Commercial Apartment - Standard," etc.
+- **Company-Level Libraries** allow tenants to create custom libraries for specialized workflows.
+
+Templates link to libraries via a `library_id` field, and projects also reference a `library_id` to indicate their default library. When creating a project, the user selects a project type, which determines which library (and thus which templates) are available. Currently, only the Residential House library has templates populated (8 templates); the others are created but awaiting template content.
+
+---
+
+#### How does template copying and inheritance work at each level?
+
+Template copying is the core mechanism for inheritance, and it works through deep copies of the JSONB `definition` field at each level:
+
+1. **App → Company** (`copyAppTemplateToCompany`): Retrieves the app template, creates a new template with `scope: 'company'`, sets the `organization_id`, copies the full definition, and records both `parent_template_id` and `copied_from_template_id` pointing to the original app template. Version resets to 1.
+
+2. **Company → Project** (`copyCompanyTemplateToProject`): Retrieves the company template, creates a new template with `scope: 'project'`, sets both `organization_id` and `project_id`, copies the definition, and records the company template as both parent and copied-from source. Version resets to 1.
+
+3. **Project → Project** (`copyProjectTemplateToProject`): Retrieves the source project template, creates a new template in the target project with `scope: 'project'`. Notably, `parent_template_id` is set to `null` (no parent relationship), but `copied_from_template_id` records the source template. This distinguishes cross-project copies from hierarchical inheritance.
+
+In all cases, the copy is a **snapshot** — changes to the parent do not automatically propagate to children. Template inheritance tracking, diff/comparison, and change history are listed as "Nice to Have" features for Phase 5.
+
+---
+
+#### What is the relationship between trades, templates, and projects?
+
+Templates are organized around **trades** (e.g., Painting, Plumbing, Electrical) via the `trade_name` field on `work_order_templates`. Each template contains a versioned JSONB `definition` that describes the sections, checklist steps, and items specific to that trade.
+
+**Projects** are organizational units within a tenant, stored in a `projects` table with `organization_id`, `name`, `status` (active/completed/archived), and metadata. Units (individual work locations) belong to projects via a `project_id` foreign key added to the `units` table. Projects also have a `project_type` and a `library_id` linking them to a template library.
+
+The relationship chain is: **Template Library** → contains **Templates** (organized by trade) → assigned to **Projects** (via library association) → which contain **Units** → on which **Work Orders** are created using the project's available templates.
+
+When creating a work order, the user must first select a **Project**, which determines the available templates (filtered by the project's library and any project-level template overrides). The user then selects a **Template** (by trade) to define the work order's structure. This ensures that each project only exposes relevant trade templates based on its type (residential, commercial, etc.).

@@ -1,0 +1,20 @@
+=== Check project_outcomes UNIQUE ===
+82:    UNIQUE(code, scope, organization_id)
+=== Check ON CONFLICT in seed ===
+24:ON CONFLICT (code) DO NOTHING;
+36:ON CONFLICT (code, scope, organization_id) DO NOTHING;
+54:ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+66:ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+80:ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+90:ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+109:ON CONFLICT DO NOTHING;
+118:ON CONFLICT DO NOTHING;
+126:ON CONFLICT DO NOTHING;
+133:ON CONFLICT DO NOTHING;
+142:ON CONFLICT DO NOTHING;
+154:ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+163:ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+172:ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+181:ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+236:ON CONFLICT (organization_id, trade_id) DO NOTHING;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,35 @@
+9:-- 1A. trades table (NEW)
+11:CREATE TABLE IF NOT EXISTS public.trades (
+62:-- 1B. project_outcomes table (NEW)
+64:CREATE TABLE IF NOT EXISTS public.project_outcomes (
+122:-- 1C. organization_trades junction table (NEW)
+124:CREATE TABLE IF NOT EXISTS public.organization_trades (
+153:-- 1D. trade_outcome_assignments junction table (NEW)
+155:CREATE TABLE IF NOT EXISTS public.trade_outcome_assignments (
+192:-- 1E. type_orders table (NEW)
+194:CREATE TABLE IF NOT EXISTS public.type_orders (
+270:-- 1F. type_order_compositions junction table (NEW)
+272:CREATE TABLE IF NOT EXISTS public.type_order_compositions (
+308:-- 1G. type_order_default_work_orders junction table (NEW)
+310:CREATE TABLE IF NOT EXISTS public.type_order_default_work_orders (
+346:-- 1H. bom_action_requests table (NEW)
+348:CREATE TABLE IF NOT EXISTS public.bom_action_requests (
+399:-- 1I. ALTER work_order_templates — add new columns
+409:-- 1J. ALTER work_orders — add new columns
+417:-- 1K. ALTER sops — add new columns
+425:-- 1L. ALTER units — add type_order_id
+431:-- 1M. ALTER wo_projects — add outcome_id
+437:-- 1N. Scope rename: 'app' -> 'system'
+441:UPDATE public.work_order_templates SET scope = 'system' WHERE scope = 'app';
+444:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS work_order_templates_scope_check;
+445:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_app_scope;
+448:ALTER TABLE public.work_order_templates ADD CONSTRAINT work_order_templates_scope_check
+450:ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_system_scope
+454:UPDATE public.template_libraries SET scope = 'system' WHERE scope = 'app';
+457:ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS template_libraries_scope_check;
+458:ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_app_library;
+461:ALTER TABLE public.template_libraries ADD CONSTRAINT template_libraries_scope_check
+463:ALTER TABLE public.template_libraries ADD CONSTRAINT valid_system_library
+472:-- 1O. Trade name sync trigger
+511:-- 1P. Updated_at triggers for all new tables (already created above inline)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

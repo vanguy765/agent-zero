@@ -1,0 +1,11 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:7:  organization_id: string;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:22:  organization_id: string;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:39:  organization_id?: string;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:52:  organization_id?: string;  // Now optional for app-level templates
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:83:  organization_id: string;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:300:      body: JSON.stringify({ app_template_id: appTemplateId, organization_id: organizationId }),
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/lib/api.ts:307:      body: JSON.stringify({ company_template_id: companyTemplateId, project_id: projectId, organization_id: organizationId }),
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx:78:                            <Show when={template()!.organization_id}>
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateDetail.tsx:82:                                        {template()!.organization_id?.slice(0, 8)}...
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/pages/TemplateEditor.tsx:268:                payload.organization_id = '00000000-0000-0000-0000-000000000001';
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

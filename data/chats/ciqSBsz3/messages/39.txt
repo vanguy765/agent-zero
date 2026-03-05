@@ -1,0 +1,35 @@
+437:-- 1N. Scope rename: 'app' -> 'system'
+438--- =============================================================================
+439-
+--
+441:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS work_order_templates_scope_check;
+442:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_app_scope;
+443:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_system_scope;
+444:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_company_scope;
+445:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_project_scope;
+446-
+447--- Step 2: Update data
+448:UPDATE public.work_order_templates SET scope = 'system' WHERE scope = 'app';
+449-
+450--- Step 3: Re-add constraints with new scope values
+451:ALTER TABLE public.work_order_templates ADD CONSTRAINT work_order_templates_scope_check
+452-    CHECK (scope IN ('system', 'company', 'project'));
+453:ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_system_scope
+454-    CHECK ((scope = 'system' AND organization_id IS NULL AND project_id IS NULL) OR scope <> 'system');
+455:ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_company_scope
+456-    CHECK ((scope = 'company' AND organization_id IS NOT NULL AND project_id IS NULL) OR scope <> 'company');
+457:ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_project_scope
+458-    CHECK ((scope = 'project' AND organization_id IS NOT NULL AND project_id IS NOT NULL) OR scope <> 'project');
+459-
+--
+461:ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS template_libraries_scope_check;
+462:ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_app_library;
+463-ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_system_library;
+464-ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_company_library;
+--
+466:UPDATE public.template_libraries SET scope = 'system' WHERE scope = 'app';
+467-
+468:ALTER TABLE public.template_libraries ADD CONSTRAINT template_libraries_scope_check
+469-    CHECK (scope IN ('system', 'company'));
+470-ALTER TABLE public.template_libraries ADD CONSTRAINT valid_system_library
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

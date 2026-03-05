@@ -1,0 +1,32 @@
+INSERT 0 10
+INSERT 0 4
+INSERT 0 9
+INSERT 0 7
+INSERT 0 9
+INSERT 0 5
+INSERT 0 9
+INSERT 0 4
+INSERT 0 3
+INSERT 0 2
+INSERT 0 4
+INSERT 0 3
+INSERT 0 4
+INSERT 0 4
+INSERT 0 4
+UPDATE 18
+UPDATE 0
+UPDATE 180
+UPDATE 40
+UPDATE 0
+INSERT 0 10
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#             tbl            | count
+---------------------------+-------
+ organization_trades       |    10
+ project_outcomes          |     4
+ trade_outcome_assignments |    30
+ trades                    |    10
+ type_order_compositions   |    15
+ type_orders               |    22
+(6 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

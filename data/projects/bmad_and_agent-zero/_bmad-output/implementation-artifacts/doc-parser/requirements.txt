@@ -1,0 +1,31 @@
+# Doc-parser service dependencies
+# Priority 1-7 implementation
+
+# Core framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Data models
+pydantic>=2.5.0
+
+# Document processing
+docling>=2.0.0
+pdf2image>=1.16.3
+Pillow>=10.0.0
+
+# OCR & image analysis
+pytesseract>=0.3.10
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+
+# LLM integration
+litellm>=1.0.0
+
+# Storage (optional - for Supabase persistence)
+supabase>=2.0.0
+
+# System dependencies (install via apt):
+# - tesseract-ocr
+# - poppler-utils (for pdf2image)
+# - libgl1-mesa-glx (for opencv)

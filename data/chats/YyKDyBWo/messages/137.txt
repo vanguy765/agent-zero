@@ -1,0 +1,13 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# // GET /api/doc-parser/health
+// Service health check with dependency status
+// ============================================================
+
+docParserRoutes.get('/health', async (c) => {
+  const health = await checkHealth();
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  return c.json(health, statusCode);
+});
+
+export { docParserRoutes };
+export default docParserRoutes;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

@@ -1,0 +1,258 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# import type { Component } from 'solid-js';
+import { createSignal, createResource, Show, For } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import type { WOProject, TemplateLibrary } from '../lib/api';
+import { api } from '../lib/api';
+
+interface ProjectFormModalProps {
+    project?: WOProject;
+    onClose: () => void;
+    onSuccess?: (project: WOProject) => void;
+}
+
+const ProjectFormModal: Component<ProjectFormModalProps> = (props) => {
+    const navigate = useNavigate();
+    const [libraries] = createResource<TemplateLibrary[]>(() => api.getTemplateLibraries());
+
+    const [name, setName] = createSignal(props.project?.name || '');
+    const [description, setDescription] = createSignal(props.project?.description || '');
+    const [projectType, setProjectType] = createSignal(props.project?.project_type || 'residential_house');
+    const [libraryId, setLibraryId] = createSignal(props.project?.library_id || '');
+    const [status, setStatus] = createSignal(props.project?.status || 'active');
+    const [isSubmitting, setIsSubmitting] = createSignal(false);
+    const [error, setError] = createSignal('');
+
+    const projectTypes = [
+        { value: 'residential_house', label: 'Residential House', icon: '🏠' },
+        { value: 'commercial_apartment', label: 'Commercial Apartment', icon: '🏢' },
+        { value: 'office_commercial', label: 'Office/Commercial', icon: '🏢' },
+        { value: 'retail', label: 'Retail', icon: '🏪' },
+        { value: 'mixed_use', label: 'Mixed-Use', icon: '🏗️' }
+    ];
+
+    const statuses = [
+        { value: 'active', label: 'Active' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'archived', label: 'Archived' }
+    ];
+
+    // Filter libraries by selected project type
+    const filteredLibraries = () => {
+        const allLibraries = libraries() || [];
+        return allLibraries.filter(lib => lib.project_type === projectType());
+    };
+
+    // Auto-select default library when project type changes
+    const handleProjectTypeChange = (newType: string) => {
+        setProjectType(newType);
+        const defaultLib = filteredLibraries().find(lib => lib.is_default);
+        if (defaultLib) {
+            setLibraryId(defaultLib.id);
+        } else if (filteredLibraries().length > 0) {
+            setLibraryId(filteredLibraries()[0].id);
+        } else {
+            setLibraryId('');
+        }
+    };
+
+    const handleSubmit = async (e: Event) => {
+        e.preventDefault();
+        setError('');
+        setIsSubmitting(true);
+
+        try {
+            const data: Partial<WOProject> = {
+                name: name().trim(),
+                description: description().trim() || undefined,
+                project_type: projectType(),
+                library_id: libraryId() || undefined,
+                status: status() as 'active' | 'completed' | 'archived'
+            };
+
+            let result: WOProject;
+            if (props.project) {
+                // Update existing project
+                result = await api.updateProject(props.project.id, data);
+            } else {
+                // Create new project
+                result = await api.createProject(data);
+            }
+
+            props.onSuccess?.(result);
+            props.onClose();
+
+            // Navigate to the project detail page
+            navigate(`/projects/${result.id}`);
+        } catch (err: any) {
+            console.error('Failed to save project:', err);
+            setError(err.message || 'Failed to save project. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        {props.project ? 'Edit Project' : 'Create New Project'}
+                    </h2>
+                    <button
+                        type="button"
+                        onClick={props.onClose}
+                        class="text-gray-400 hover:text-gray-600"
+                    >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} class="p-6 space-y-6">
+                    {/* Error Message */}
+                    <Show when={error()}>
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                            {error()}
+                        </div>
+                    </Show>
+
+                    {/* Name */}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Project Name <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={name()}
+                            onInput={(e) => setName(e.currentTarget.value)}
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            placeholder="e.g., Bill Hennessy Place Renovation"
+                        />
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Description
+                        </label>
+                        <textarea
+                            value={description()}
+                            onInput={(e) => setDescription(e.currentTarget.value)}
+                            rows={3}
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            placeholder="Brief description of the project..."
+                        />
+                    </div>
+
+                    {/* Project Type */}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Project Type <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <For each={projectTypes}>
+                                {(type) => (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleProjectTypeChange(type.value)}
+                                        class={`flex items-center gap-3 px-4 py-3 border-2 rounded-lg transition-all ${projectType() === type.value
+                                            ? 'border-primary-500 bg-primary-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <span class="text-2xl">{type.icon}</span>
+                                        <span class="font-medium text-gray-900">{type.label}</span>
+                                    </button>
+                                )}
+                            </For>
+                        </div>
+                    </div>
+
+                    {/* Template Library */}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Template Library
+                        </label>
+                        <Show
+                            when={!libraries.loading}
+                            fallback={<p class="text-sm text-gray-500">Loading libraries...</p>}
+                        >
+                            <Show
+                                when={filteredLibraries().length > 0}
+                                fallback={
+                                    <p class="text-sm text-gray-500">
+                                        No libraries available for this project type
+                                    </p>
+                                }
+                            >
+                                <select
+                                    value={libraryId()}
+                                    onChange={(e) => setLibraryId(e.currentTarget.value)}
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                >
+                                    <option value="">No library (optional)</option>
+                                    <For each={filteredLibraries()}>
+                                        {(library) => (
+                                            <option value={library.id}>
+                                                {library.name} {library.is_default ? '(Default)' : ''} - {library.scope}
+                                            </option>
+                                        )}
+                                    </For>
+                                </select>
+                            </Show>
+                        </Show>
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex gap-3">
+                            <For each={statuses}>
+                                {(statusOption) => (
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatus(statusOption.value as 'active' | 'completed' | 'archived')}
+                                        class={`flex-1 px-4 py-2 border-2 rounded-md transition-all ${status() === statusOption.value
+                                            ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        {statusOption.label}
+                                    </button>
+                                )}
+                            </For>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div class="flex gap-3 pt-4 border-t border-gray-200">
+                        <button
+                            type="button"
+                            onClick={props.onClose}
+                            class="flex-1 btn btn-secondary"
+                            disabled={isSubmitting()}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            class="flex-1 btn btn-primary"
+                            disabled={isSubmitting() || !name().trim()}
+                        >
+                            {isSubmitting() ? 'Saving...' : props.project ? 'Update Project' : 'Create Project'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
+export default ProjectFormModal;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

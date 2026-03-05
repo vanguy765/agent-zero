@@ -1,0 +1,19 @@
+IMPLEMENTATION.md created: 540 lines
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === COMPLETE IMPLEMENTATION ARTIFACTS ===
+
+  266 lines    8735B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/confidence.py
+  434 lines   14419B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py
+  695 lines   23226B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/hybrid.py
+  555 lines   19938B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/job_manager.py
+  271 lines    9672B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/models.py
+  249 lines    9654B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/prompts.py
+  31 lines     565B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/requirements.txt
+  805 lines   24879B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/server.py
+  242 lines    5919B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api/doc-parser-client.ts
+  188 lines    6375B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api/doc-parser-routes.ts
+  540 lines   22728B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/IMPLEMENTATION.md
+  589 lines   18231B  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/work-orders/ProjectDocuments.tsx
+
+=== TOTALS ===
+  4865 total lines, 164341 total bytes
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

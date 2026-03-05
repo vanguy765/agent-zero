@@ -1,0 +1,7 @@
+Requirement already satisfied: httpcore==1.* in /opt/venv/lib/python3.13/site-packages (from httpx) (1.0.9)
+Requirement already satisfied: idna in /opt/venv/lib/python3.13/site-packages (from httpx) (3.11)
+Requirement already satisfied: h11>=0.16 in /opt/venv/lib/python3.13/site-packages (from httpcore==1.*->httpx) (0.16.0)
+---
+conftest.py  __pycache__	 test_detection.py    test_models.py
+__init__.py  test_confidence.py  test_job_manager.py  test_prompts.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

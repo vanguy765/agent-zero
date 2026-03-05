@@ -1,0 +1,31 @@
+tests/test_job_manager.py: 19 warnings
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/../job_manager.py:370: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.utcnow() + timedelta(hours=ttl_hours),
+
+tests/test_job_manager.py::TestJobManager::test_create_job_sets_expires_at
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_job_manager.py:285: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    before = datetime.utcnow()
+
+tests/test_job_manager.py::TestJobManager::test_create_job_sets_expires_at
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_job_manager.py:287: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    after = datetime.utcnow()
+
+tests/test_job_manager.py::TestJobManager::test_create_job_default_ttl
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_job_manager.py:296: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    before = datetime.utcnow()
+
+tests/test_job_manager.py::TestJobManager::test_create_job_default_ttl
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_job_manager.py:298: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    after = datetime.utcnow()
+
+tests/test_models.py::TestStatusResponse::test_construction_with_required_fields
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_models.py:438: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_models.py::TestStatusResponse::test_optional_error_defaults_none
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_models.py:454: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+====================== 263 passed, 152 warnings in 1.11s =======================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

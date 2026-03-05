@@ -1,0 +1,188 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /opt/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser
+plugins: anyio-4.12.1
+collected 150 items
+
+tests/test_confidence.py::TestCalculateConfidenceEmpty::test_empty_units_returns_zero PASSED [  0%]
+tests/test_confidence.py::TestCalculateConfidenceEmpty::test_empty_units_all_flags_false PASSED [  1%]
+tests/test_confidence.py::TestCalculateConfidenceComplete::test_single_complete_unit_high_confidence PASSED [  2%]
+tests/test_confidence.py::TestCalculateConfidenceComplete::test_single_sparse_unit_low_confidence PASSED [  2%]
+tests/test_confidence.py::TestCalculateConfidenceComplete::test_overall_score_between_zero_and_one PASSED [  3%]
+tests/test_confidence.py::TestCalculateConfidenceComplete::test_overall_score_between_zero_and_one_sparse PASSED [  4%]
+tests/test_confidence.py::TestCalculateConfidenceRoomDimensions::test_rooms_with_area_and_dimensions PASSED [  4%]
+tests/test_confidence.py::TestCalculateConfidenceRoomDimensions::test_rooms_with_area_but_no_length_width PASSED [  5%]
+tests/test_confidence.py::TestCalculateConfidenceRoomDimensions::test_rooms_with_no_area_no_dimensions PASSED [  6%]
+tests/test_confidence.py::TestCalculateConfidenceDoors::test_doors_with_type_size_hardware PASSED [  6%]
+tests/test_confidence.py::TestCalculateConfidenceDoors::test_no_doors_but_rooms_exist PASSED [  7%]
+tests/test_confidence.py::TestCalculateConfidenceDoors::test_doors_with_type_and_size_no_hardware PASSED [  8%]
+tests/test_confidence.py::TestCalculateConfidenceWindows::test_windows_with_type_and_size PASSED [  8%]
+tests/test_confidence.py::TestCalculateConfidenceWindows::test_no_windows PASSED [  9%]
+tests/test_confidence.py::TestCalculateConfidenceFixtures::test_fixtures_with_specs PASSED [ 10%]
+tests/test_confidence.py::TestCalculateConfidenceFixtures::test_no_fixtures PASSED [ 10%]
+tests/test_confidence.py::TestCalculateConfidenceBaseboard::test_rooms_with_baseboard_data PASSED [ 11%]
+tests/test_confidence.py::TestCalculateConfidenceBaseboard::test_rooms_without_baseboard_data PASSED [ 12%]
+tests/test_confidence.py::TestCalculateConfidenceUnitIdentification::test_proper_unit_number PASSED [ 12%]
+tests/test_confidence.py::TestCalculateConfidenceUnitIdentification::test_unknown_unit_number PASSED [ 13%]
+tests/test_confidence.py::TestCalculateConfidenceUnitIdentification::test_page_prefix_unit_number PASSED [ 14%]
+tests/test_confidence.py::TestCalculateConfidenceSynthesis::test_with_synthesis_dict PASSED [ 14%]
+tests/test_confidence.py::TestCalculateConfidenceSynthesis::test_without_synthesis PASSED [ 15%]
+tests/test_confidence.py::TestCalculateConfidenceSynthesis::test_empty_synthesis_dict PASSED [ 16%]
+tests/test_confidence.py::TestCalculateConfidencePerPage::test_per_page_contains_correct_keys PASSED [ 16%]
+tests/test_confidence.py::TestCalculateConfidencePerPage::test_per_page_coverage_metrics PASSED [ 17%]
+tests/test_confidence.py::TestCalculateConfidencePerPage::test_no_coverage_when_zero_pages PASSED [ 18%]
+tests/test_confidence.py::TestCalculateConfidenceWeights::test_weights_sum_to_one PASSED [ 18%]
+tests/test_confidence.py::TestCalculateConfidenceWeights::test_multiple_units_aggregate PASSED [ 19%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_returns_string_with_overall PASSED [ 20%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_contains_checkmark_for_true PASSED [ 20%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_contains_cross_for_false PASSED [ 21%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Room Dimensions] PASSED [ 22%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Door Specifications] PASSED [ 22%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Window Specifications] PASSED [ 23%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Fixture Completeness] PASSED [ 24%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Baseboard Data] PASSED [ 24%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Unit Identification] PASSED [ 25%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_all_dimension_labels_present[Cross-Page Synthesis] PASSED [ 26%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_full_confidence_all_checkmarks PASSED [ 26%]
+tests/test_confidence.py::TestConfidenceSummaryText::test_zero_confidence_all_crosses PASSED [ 27%]
+tests/test_models.py::TestJobStatus::test_job_status_values[QUEUED-queued] PASSED [ 28%]
+tests/test_models.py::TestJobStatus::test_job_status_values[PROCESSING-processing] PASSED [ 28%]
+tests/test_models.py::TestJobStatus::test_job_status_values[COMPLETED-completed] PASSED [ 29%]
+tests/test_models.py::TestJobStatus::test_job_status_values[FAILED-failed] PASSED [ 30%]
+tests/test_models.py::TestJobStatus::test_job_status_values[TIMEOUT-timeout] PASSED [ 30%]
+tests/test_models.py::TestJobStatus::test_job_status_values[CANCELLED-cancelled] PASSED [ 31%]
+tests/test_models.py::TestJobStatus::test_job_status_is_str PASSED       [ 32%]
+tests/test_models.py::TestJobStatus::test_job_status_count PASSED        [ 32%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[QUEUED-queued] PASSED [ 33%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[DOCLING_CONVERSION-docling_conversion] PASSED [ 34%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[CLASSIFICATION-classification] PASSED [ 34%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[IMAGE_EXTRACTION-image_extraction] PASSED [ 35%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[LLM_ANALYSIS-llm_analysis] PASSED [ 36%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[SYNTHESIS-synthesis] PASSED [ 36%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[UPLOADING-uploading] PASSED [ 37%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_values[COMPLETE-complete] PASSED [ 38%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_is_str PASSED [ 38%]
+tests/test_models.py::TestProcessingPhase::test_processing_phase_count PASSED [ 39%]
+tests/test_models.py::TestEngineType::test_engine_type_values[DOCLING-docling] PASSED [ 40%]
+tests/test_models.py::TestEngineType::test_engine_type_values[HYBRID-hybrid] PASSED [ 40%]
+tests/test_models.py::TestEngineType::test_engine_type_count PASSED      [ 41%]
+tests/test_models.py::TestJobProgress::test_default_values PASSED        [ 42%]
+tests/test_models.py::TestJobProgress::test_default_phases_list PASSED   [ 42%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[queued-0.0] PASSED [ 43%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[docling_conversion-15.0] PASSED [ 44%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[classification-25.0] PASSED [ 44%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[image_extraction-40.0] PASSED [ 45%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[llm_analysis-70.0] PASSED [ 46%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[synthesis-85.0] PASSED [ 46%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[uploading-95.0] PASSED [ 47%]
+tests/test_models.py::TestJobProgress::test_update_percent_per_phase[complete-100.0] PASSED [ 48%]
+tests/test_models.py::TestJobProgress::test_update_percent_llm_analysis_page_interpolation PASSED [ 48%]
+tests/test_models.py::TestJobProgress::test_update_percent_llm_analysis_midpoint PASSED [ 49%]
+tests/test_models.py::TestJobProgress::test_update_percent_llm_analysis_zero_total_pages PASSED [ 50%]
+tests/test_models.py::TestJobRecord::test_default_job_id_is_valid_uuid PASSED [ 50%]
+tests/test_models.py::TestJobRecord::test_default_status_is_queued PASSED [ 51%]
+tests/test_models.py::TestJobRecord::test_touch_updates_updated_at PASSED [ 52%]
+tests/test_models.py::TestJobRecord::test_expires_at_approximately_two_hours PASSED [ 52%]
+tests/test_models.py::TestJobRecord::test_two_records_have_different_uuids PASSED [ 53%]
+tests/test_models.py::TestJobRecord::test_default_engine PASSED          [ 54%]
+tests/test_models.py::TestRoom::test_default_values PASSED               [ 54%]
+tests/test_models.py::TestRoom::test_full_construction PASSED            [ 55%]
+tests/test_models.py::TestRoom::test_serialization_to_dict PASSED        [ 56%]
+tests/test_models.py::TestRoom::test_list_fields_not_shared PASSED       [ 56%]
+tests/test_models.py::TestDoorSpec::test_default_values PASSED           [ 57%]
+tests/test_models.py::TestDoorSpec::test_full_construction PASSED        [ 58%]
+tests/test_models.py::TestDoorSpec::test_serialization_to_dict PASSED    [ 58%]
+tests/test_models.py::TestWindowSpec::test_default_values PASSED         [ 59%]
+tests/test_models.py::TestWindowSpec::test_full_construction PASSED      [ 60%]
+tests/test_models.py::TestWindowSpec::test_serialization_to_dict PASSED  [ 60%]
+tests/test_models.py::TestFixture::test_default_values PASSED            [ 61%]
+tests/test_models.py::TestFixture::test_full_construction PASSED         [ 62%]
+tests/test_models.py::TestFixture::test_serialization_to_dict PASSED     [ 62%]
+tests/test_models.py::TestUpgrade::test_default_values PASSED            [ 63%]
+tests/test_models.py::TestUpgrade::test_full_construction PASSED         [ 64%]
+tests/test_models.py::TestUnitExtraction::test_default_values PASSED     [ 64%]
+tests/test_models.py::TestUnitExtraction::test_full_construction PASSED  [ 65%]
+tests/test_models.py::TestUnitExtraction::test_serialization_to_dict PASSED [ 66%]
+tests/test_models.py::TestUnitExtraction::test_list_fields_not_shared PASSED [ 66%]
+tests/test_models.py::TestStatusResponse::test_construction_with_required_fields PASSED [ 67%]
+tests/test_models.py::TestStatusResponse::test_optional_error_defaults_none PASSED [ 68%]
+tests/test_models.py::TestResultSummary::test_default_values PASSED      [ 68%]
+tests/test_models.py::TestResultSummary::test_construction_with_data PASSED [ 69%]
+tests/test_models.py::TestConfidenceScore::test_default_overall_is_zero PASSED [ 70%]
+tests/test_models.py::TestConfidenceScore::test_all_boolean_flags_default_false PASSED [ 70%]
+tests/test_models.py::TestConfidenceScore::test_per_page_defaults_empty_dict PASSED [ 71%]
+tests/test_models.py::TestHybridOutput::test_default_engine_is_hybrid PASSED [ 72%]
+tests/test_models.py::TestHybridOutput::test_all_collection_fields_default_empty PASSED [ 72%]
+tests/test_models.py::TestHybridOutput::test_full_construction_with_nested_data PASSED [ 73%]
+tests/test_models.py::TestPageData::test_default_classification_is_unknown PASSED [ 74%]
+tests/test_models.py::TestPageData::test_list_fields_default_empty PASSED [ 74%]
+tests/test_models.py::TestPageData::test_default_page_number PASSED      [ 75%]
+tests/test_models.py::TestPageData::test_full_page_image_default_none PASSED [ 76%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_is_non_empty_string PASSED [ 76%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[unit_number] PASSED [ 77%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[unit_type] PASSED [ 78%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[rooms] PASSED [ 78%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[doors] PASSED [ 79%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[windows] PASSED [ 80%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[fixtures] PASSED [ 80%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[upgrades] PASSED [ 81%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_required_json_keys[general_notes] PASSED [ 82%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_baseboard_instructions PASSED [ 82%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_door_swing_analysis PASSED [ 83%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_contains_json_only_instruction PASSED [ 84%]
+tests/test_prompts.py::TestFloorplanPromptRich::test_does_not_exceed_length_limit PASSED [ 84%]
+tests/test_prompts.py::TestSynthesisPrompt::test_is_non_empty_string PASSED [ 85%]
+tests/test_prompts.py::TestSynthesisPrompt::test_contains_correlation_instructions PASSED [ 86%]
+tests/test_prompts.py::TestSynthesisPrompt::test_contains_required_output_keys[units] PASSED [ 86%]
+tests/test_prompts.py::TestSynthesisPrompt::test_contains_required_output_keys[discrepancies] PASSED [ 87%]
+tests/test_prompts.py::TestSynthesisPrompt::test_contains_required_output_keys[totals] PASSED [ 88%]
+tests/test_prompts.py::TestSynthesisPrompt::test_contains_json_only_instruction PASSED [ 88%]
+tests/test_prompts.py::TestSynthesisPrompt::test_does_not_exceed_length_limit PASSED [ 89%]
+tests/test_prompts.py::TestTableAnalysisPrompt::test_is_non_empty_string PASSED [ 90%]
+tests/test_prompts.py::TestTableAnalysisPrompt::test_lists_expected_table_types[door_schedule] PASSED [ 90%]
+tests/test_prompts.py::TestTableAnalysisPrompt::test_lists_expected_table_types[window_schedule] PASSED [ 91%]
+tests/test_prompts.py::TestTableAnalysisPrompt::test_lists_expected_table_types[finish_schedule] PASSED [ 92%]
+tests/test_prompts.py::TestTableAnalysisPrompt::test_contains_json_only_instruction PASSED [ 92%]
+tests/test_prompts.py::TestTableAnalysisPrompt::test_does_not_exceed_length_limit PASSED [ 93%]
+tests/test_prompts.py::TestFloorplanPromptBackwardCompat::test_exists_and_is_non_empty PASSED [ 94%]
+tests/test_prompts.py::TestFloorplanPromptBackwardCompat::test_contains_basic_keys[rooms] PASSED [ 94%]
+tests/test_prompts.py::TestFloorplanPromptBackwardCompat::test_contains_basic_keys[total_area_sf] PASSED [ 95%]
+tests/test_prompts.py::TestFloorplanPromptBackwardCompat::test_contains_basic_keys[door_count] PASSED [ 96%]
+tests/test_prompts.py::TestFloorplanPromptBackwardCompat::test_contains_json_only_instruction PASSED [ 96%]
+tests/test_prompts.py::TestFloorplanPromptBackwardCompat::test_does_not_exceed_length_limit PASSED [ 97%]
+tests/test_prompts.py::TestAllPromptsJsonExamples::test_embedded_json_is_parseable[FLOORPLAN_PROMPT_RICH-You are an expert architectural document analyst specializing in residential renovation projects. Analyze this floorplan image and extract ALL construction-relevant data with maximum precision.\n\nReturn a JSON object with the following structure. Be exhaustive - extract every detail visible in the drawing.\n\n```json\n{\n  "unit_number": "string - unit/apartment number from title block or drawing label",\n  "unit_type": "string - e.g. '1BR', '2BR', 'Studio', '3BR', based on bedroom count",\n  "floor": 0,\n  "bedrooms": 0,\n  "bathrooms": 0,\n  "half_baths": 0,\n  "total_area_sf": 0.0,\n\n  "rooms": [\n    {\n      "name": "string - room name as labeled (e.g. 'Master Bedroom', 'Kitchen', 'Living Room')",\n      "area_sf": 0.0,\n      "length_ft": 0.0,\n      "width_ft": 0.0,\n      "ceiling_height_ft": 0.0,\n      "baseboard_length_ft": 0.0,\n      "baseboard_exclusions": ["list of items that interrupt baseboard: 'kitchen cabinets', 'bathtub', 'shower', 'closet opening', 'doorway'"],\n      "baseboard_exclusion_reasoning": "string - explain WHY each exclusion reduces baseboard length, with measurements",\n      "fixtures": ["list of visible fixtures in this room"],\n      "flooring_type": "string - if indicated: 'tile', 'hardwood', 'carpet', 'vinyl', 'concrete'",\n      "notes": "string - any additional annotations visible for this room"\n    }\n  ],\n\n  "doors": [\n    {\n      "location": "string - e.g. 'Master Bedroom to Hallway', 'Unit Entry'",\n      "room": "string - primary room this door serves",\n      "type": "string - 'interior', 'exterior', 'closet', 'pocket', 'barn', 'french', 'sliding', 'bifold'",\n      "width_in": 0.0,\n      "height_in": 0.0,\n      "hardware": "string - 'lever', 'knob', 'pull', 'push plate', 'deadbolt' if visible",\n      "action": "string - 'swing', 'slide', 'fold', 'pivot'",\n      "swing_direction": "string - 'in', 'out', 'left', 'right' based on arc symbol",\n      "material": "string - 'hollow-core', 'solid-core', 'glass', 'metal' if determinable",\n      "notes": "string - any schedule references or special annotations"\n    }\n  ],\n\n  "windows": [\n    {\n      "location": "string - e.g. 'Living Room - North Wall'",\n      "room": "string - room containing this window",\n      "type": "string - 'single-hung', 'double-hung', 'casement', 'fixed', 'sliding', 'awning'",\n      "width_in": 0.0,\n      "height_in": 0.0,\n      "sill_height_in": 0.0,\n      "count": 1,\n      "glazing": "string - 'single', 'double', 'triple', 'low-e' if noted",\n      "operable": true,\n      "notes": "string - schedule references, egress requirements"\n    }\n  ],\n\n  "fixtures": [\n    {\n      "name": "string - e.g. 'Toilet', 'Vanity Sink', 'Bathtub', 'Shower', 'Range', 'Refrigerator'",\n      "room": "string - room containing this fixture",\n      "type": "string - 'plumbing', 'electrical', 'hvac', 'appliance'",\n      "specifications": "string - any visible specs, model numbers, sizes",\n      "count": 1\n    }\n  ],\n\n  "upgrades": [\n    {\n      "description": "string - renovation work item",\n      "trade": "string - 'electrical', 'plumbing', 'hvac', 'carpentry', 'painting', 'flooring', 'drywall'",\n      "location": "string - where in the unit",\n      "specifications": "string - detailed specs if visible"\n    }\n  ],\n\n  "general_notes": ["list of any general notes, code references, or annotations visible on the drawing"]\n}\n```\n\nIMPORTANT INSTRUCTIONS:\n1. Extract EVERY door visible in the floorplan - count door swing arcs carefully. Include closet doors.\n2. Extract EVERY window - look for window symbols on exterior walls.\n3. For baseboard calculations: measure the PERIMETER of each room, then SUBTRACT door openings, window sills at floor level, built-in cabinets, bathtubs, showers, and any other items that interrupt the baseboard run. Show your reasoning.\n4. If dimensions are shown in the drawing (e.g. 12'-6" x 10'-0"), use them exactly. If not shown, estimate based on scale and standard construction dimensions.\n5. Identify the unit number from title blocks, drawing labels, or sheet references.\n6. For door types: look at the swing arc symbol - a quarter circle means swing door, parallel lines mean sliding, zigzag means folding.\n7. For fixtures: include ALL plumbing fixtures (toilets, sinks, tubs, showers), kitchen appliances (range, refrigerator, dishwasher), and HVAC equipment visible.\n8. Return ONLY the JSON object, no markdown formatting, no explanation text.\n] PASSED [ 98%]
+tests/test_prompts.py::TestAllPromptsJsonExamples::test_embedded_json_is_parseable[SYNTHESIS_PROMPT-You are an expert architectural document analyst. You have been given extraction results from multiple pages of an architectural document set. Your task is to SYNTHESIZE and CORRELATE data across pages to produce a unified, deduplicated result.\n\nYou will receive:\n1. Floorplan extraction data (per-page JSON with rooms, doors, windows, fixtures)\n2. Table/schedule data (markdown tables extracted from schedule pages)\n3. Total page count\n\nPerform the following synthesis tasks:\n\n1. **CORRELATE SCHEDULES WITH FLOORPLANS**: If door schedules, window schedules, or finish schedules are present in the table data, match each schedule entry to the corresponding item in the floorplan extractions. Update door/window specs with schedule details (hardware, material, fire rating, etc.).\n\n2. **IDENTIFY UNITS**: Determine distinct unit numbers and types from title blocks, drawing labels, and room layouts. If multiple pages show the same unit (e.g., floor plan + enlarged bathroom), merge their data.\n\n3. **APPLY GENERAL NOTES**: If general notes pages are present, determine which notes apply to which units/rooms and attach them.\n\n4. **DEDUPLICATE**: If the same room, door, or window appears on multiple pages (e.g., overview + detail), merge into a single entry keeping the most detailed version.\n\n5. **VALIDATE COUNTS**: Cross-check door counts from schedules vs. floorplans. Flag discrepancies.\n\n6. **COMPUTE TOTALS**: Calculate aggregate metrics:\n   - Total baseboard linear feet across all units\n   - Total door count by type\n   - Total window count by type\n   - Total area by unit\n   - Trade-specific scope summaries\n\nReturn a JSON object:\n```json\n{\n  "units": [\n    {\n      "unit_number": "string",\n      "unit_type": "string",\n      "source_pages": [1, 3],\n      "merged_data": {\n        "rooms": [],\n        "doors": [],\n        "windows": [],\n        "fixtures": [],\n        "upgrades": []\n      },\n      "schedule_correlations": [\n        {\n          "schedule_type": "door_schedule",\n          "schedule_page": 5,\n          "items_matched": 8,\n          "items_unmatched": 1,\n          "discrepancies": ["Door D-09 in schedule not found in floorplan"]\n        }\n      ]\n    }\n  ],\n  "general_notes_applied": [\n    {\n      "note": "string",\n      "applies_to": ["Unit 101", "Unit 102"],\n      "source_page": 1\n    }\n  ],\n  "discrepancies": [\n    "Door count mismatch: schedule shows 12 doors, floorplans show 10"\n  ],\n  "totals": {\n    "total_units": 0,\n    "total_baseboard_ft": 0.0,\n    "total_doors": 0,\n    "total_windows": 0,\n    "total_area_sf": 0.0,\n    "doors_by_type": {},\n    "windows_by_type": {},\n    "trades_summary": {}\n  }\n}\n```\n\nReturn ONLY the JSON object. Be precise with correlations - only match items when confident.\n] PASSED [ 98%]
+tests/test_prompts.py::TestAllPromptsJsonExamples::test_embedded_json_is_parseable[TABLE_ANALYSIS_PROMPT-Analyze this table/schedule from an architectural document. Determine the table type and extract structured data.\n\nCommon table types in architectural documents:\n- Door Schedule: lists doors with marks (D-01), sizes, types, hardware, fire ratings\n- Window Schedule: lists windows with marks (W-01), sizes, types, glazing\n- Finish Schedule: lists rooms with floor, wall, ceiling finishes\n- Room Schedule: lists rooms with areas, occupancy, finishes\n- Fixture Schedule: lists plumbing/electrical fixtures\n- Equipment Schedule: lists mechanical equipment\n\nReturn a JSON object:\n```json\n{\n  "table_type": "string - one of: door_schedule, window_schedule, finish_schedule, room_schedule, fixture_schedule, equipment_schedule, general_notes, unknown",\n  "entries": [\n    {\n      "mark": "string - item identifier (e.g. D-01, W-03)",\n      "description": "string - item description",\n      "specifications": {}\n    }\n  ],\n  "notes": ["any footnotes or general notes from the table"]\n}\n```\n\nReturn ONLY the JSON object.\n] PASSED [ 99%]
+tests/test_prompts.py::TestAllPromptsJsonExamples::test_embedded_json_is_parseable[FLOORPLAN_PROMPT-Analyze this architectural floorplan image and extract the following information as JSON:\n\n```json\n{\n  "rooms": [\n    {\n      "name": "room name",\n      "area_sf": 0.0,\n      "dimensions": "LxW"\n    }\n  ],\n  "total_area_sf": 0.0,\n  "door_count": 0,\n  "window_count": 0,\n  "notes": []\n}\n```\n\nReturn ONLY the JSON object.\n] PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/test_models.py: 14 warnings
+  /opt/venv/lib/python3.13/site-packages/pydantic/main.py:250: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+
+tests/test_models.py::TestJobRecord::test_default_job_id_is_valid_uuid
+tests/test_models.py::TestJobRecord::test_default_status_is_queued
+tests/test_models.py::TestJobRecord::test_touch_updates_updated_at
+tests/test_models.py::TestJobRecord::test_expires_at_approximately_two_hours
+tests/test_models.py::TestJobRecord::test_two_records_have_different_uuids
+tests/test_models.py::TestJobRecord::test_two_records_have_different_uuids
+tests/test_models.py::TestJobRecord::test_default_engine
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/../models.py:96: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    default_factory=lambda: datetime.utcnow() + timedelta(hours=2)
+
+tests/test_models.py::TestJobRecord::test_touch_updates_updated_at
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/../models.py:101: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.updated_at = datetime.utcnow()
+
+tests/test_models.py::TestStatusResponse::test_construction_with_required_fields
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_models.py:438: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+tests/test_models.py::TestStatusResponse::test_optional_error_defaults_none
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/test_models.py:454: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    now = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 150 passed, 24 warnings in 0.47s =======================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

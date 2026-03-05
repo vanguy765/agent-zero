@@ -1,0 +1,201 @@
+---
+stepsCompleted: [step-01-init, step-02-discovery, step-02b-vision, step-02c-executive-summary, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish]
+inputDocuments: [product-brief-taskflow-2026-02-26.md]
+workflowType: 'prd'
+briefCount: 1
+researchCount: 0
+brainstormingCount: 0
+projectDocsCount: 0
+classification:
+  projectType: web_app
+  domain: general
+  complexity: low
+  projectContext: greenfield
+---
+
+# Product Requirements Document - TaskFlow
+
+**Author:** Root
+**Date:** 2026-02-26
+
+## Executive Summary
+
+TaskFlow is a mobile-first web application that replaces verbal coordination on construction remodeling sites with a shared, real-time digital task board. It targets small remodeling crews — typically 15 workers across 5 trades managing ~25 residential units — where a single site superintendent currently serves as the sole coordination bottleneck, manually directing each worker to their next task every morning.
+
+Workers self-assign tasks by viewing a live board organized by unit and trade, claiming work through a single checkbox tap or voice command. The primary users are trades workers (electricians, plumbers, painters, laborers) who need instant task visibility with zero friction, and site superintendents who need to shift from human dispatchers to exception-focused managers.
+
+TaskFlow solves a coordination problem, not a project management problem. It does not compete with Procore, Fieldwire, or other construction PM platforms. It competes with shouting across the job site.
+
+### What Makes This Special
+
+The core insight is that construction coordination fails at a human bottleneck, not a software gap. When one person's brain is the system of record for who goes where, every morning starts with a queue of workers waiting for instructions. TaskFlow eliminates that queue entirely.
+
+The differentiator is radical simplicity for a hostile-to-technology environment: dirty hands, bright sunlight, zero patience for onboarding. The entire interaction model is a checkbox tap or a voice command like "Claim Unit 12." No logins in MVP, no complex navigation, no training required. Workers see their trades' tasks, tap to claim, and walk to the unit.
+
+Users choose TaskFlow over alternatives because there are no alternatives at this level. Enterprise construction tools are overbuilt for a 15-person crew. Group texts and whiteboards don't provide real-time visibility. TaskFlow occupies the gap: structured enough to coordinate, simple enough to actually get used.
+
+## Project Classification
+
+| Dimension | Value |
+|---|---|
+| **Project Type** | Web App (Mobile-first PWA) |
+| **Domain** | General — Construction Operations |
+| **Complexity** | Low |
+| **Project Context** | Greenfield |
+
+## Success Criteria
+
+### User Success
+
+- **Elimination of coordination dependency**: 90% reduction in "where should I go?" questions directed at the superintendent by end of week 1.
+- **Faster productive start**: Workers begin productive work within 15 minutes of site arrival (vs. current 30+ minutes waiting for direction).
+- **Self-directing workforce**: 80%+ of daily tasks are self-assigned by workers through the board, not directed by the superintendent.
+- **Blocked work prevention**: At least 1 blocked-work incident per week is caught via the board before a worker physically arrives at an occupied or unready unit.
+- **Zero-friction interaction**: Workers complete the claim-a-task flow in under 10 seconds via tap or voice — no training, no onboarding friction.
+
+### Business Success
+
+- **Rapid crew adoption**: 80% of crew actively using TaskFlow daily by day 3 of rollout.
+- **Organic stickiness**: Superintendent stops reminding workers to check the app by end of week 1 — usage becomes self-sustaining.
+- **Measurable time recovery**: 30 minutes saved per worker per day (7.5 hours total crew savings for a 15-person crew), measured at 2-week mark.
+- **Superintendent liberation**: Superintendent spends <20% of the day on task direction (down from ~50%), freeing capacity for quality management and problem-solving.
+- **Go/No-Go gate**: All four metrics above met at the 2-week mark triggers green light for V2 investment.
+
+### Technical Success
+
+- **Real-time sync latency**: Board state updates propagate to all connected clients within 2 seconds of any change.
+- **Mobile performance**: First meaningful paint under 3 seconds on a mid-range Android phone over 4G. Interaction response under 200ms.
+- **Voice command reliability**: Voice-to-action success rate ≥85% in outdoor construction site noise conditions.
+- **Offline resilience**: App remains usable for viewing last-known board state when connectivity drops; syncs automatically on reconnection.
+- **Concurrent capacity**: Supports 25+ simultaneous users on a single project board without degradation.
+
+### Measurable Outcomes
+
+| Metric | Target | Measurement Method | Timeframe |
+|--------|--------|-------------------|----------|
+| Daily Active Users | 80%+ of crew | TaskFlow usage logs | Day 3 |
+| Task Claim Rate | 80%+ self-assigned | Claimed vs. super-assigned ratio | Week 1 |
+| Blocked Task Detection | ≥1/week caught early | Tasks flagged blocked before worker arrival | Week 2 |
+| Site Throughput | Measurable increase in units/week | Pre vs. post TaskFlow comparison | Week 2 |
+| Super Satisfaction | Weekly qualitative rating | "How much time did TaskFlow save you?" | Ongoing |
+
+## Product Scope & Phased Development
+
+### MVP Strategy & Philosophy
+
+**MVP Approach:** Problem-Solving / Validation MVP
+
+The MVP exists to answer one question: *Does replacing verbal coordination with a shared digital board change crew behavior?* Every feature included must directly serve this validation. Every feature excluded is deferred until the answer is "yes."
+
+**MVP Success Gate:** All four business success metrics met at the 2-week mark (80% daily adoption, 80% self-assigned tasks, measurable time savings, superintendent time recovery) triggers V2 investment.
+
+**Resource Estimate:** 1 full-stack developer, 4–6 weeks. Target architecture: mobile-first offline-capable web client with low-latency real-time sync and lightweight persistence.
+
+### MVP — Minimum Viable Product
+
+**Core User Journeys Supported:**
+- ✅ Carlos Claims His First Task (Worker Happy Path)
+- ✅ Carlos Hits a Blocked Unit (Worker Edge Case)
+- ✅ Mike Sets Up the Board (Admin/Setup Path)
+- ✅ Mike Manages the Day (Superintendent Monitoring)
+- ❌ Sarah Checks Progress Remotely (deferred to V2)
+
+| # | Feature | Description | Why Essential |
+|---|---------|-------------|---------------|
+| 1 | **Unit Board** | Grid/list of all units with status: Available, In-Progress, Done, Blocked | The product's core — single source of truth replacing the superintendent's mental model |
+| 2 | **Multi-Trade Tagging** | Workers select one or more trades on first use (e.g., Laborer + Painter) | Reflects real-world reality where workers carry multiple trades |
+| 3 | **Board Filtering** | Filter by trade; defaults to worker's own trades; preferences remembered | Prevents information overload — Carlos sees electrical, not plumbing |
+| 4 | **Task Claiming** | Tap checkbox to claim a unit task; name and trade appear on the board | The core interaction replacing "Hey Mike, where should I go?" |
+| 5 | **Live Board** | Real-time updates — everyone sees claims, completions, and blocks as they happen | Eliminates the information vacuum that causes wasted trips |
+| 6 | **Voice Commands** | "Claim Unit 12" / "Mark Unit 7 electrical done" — hands-free operation | Non-negotiable for dirty-hands, job-site reality |
+
+### Explicitly Excluded from MVP
+
+| Feature | Reason for Exclusion | Workaround |
+|---------|---------------------|------------|
+| User authentication | Adds friction; single-crew doesn't need it | Shared link + localStorage identity |
+| Remote PM dashboard | Not needed to validate core hypothesis | Mike screenshots the board |
+| Automatic dependency blocking | Requires usage data to design correctly | Manual "blocked" status flag |
+| Photo documentation | Enhancement, not coordination | Workers use phone camera separately |
+| Historical analytics | Premature — need data first | Manual observation at 2-week gate |
+| Multi-site support | V1 is one crew, one project | Separate board per project |
+
+### Growth Features (Post-MVP)
+
+| Phase | Feature | Rationale |
+|-------|---------|----------|
+| **V2** | Remote PM Dashboard | Sarah's view — real-time progress visibility without calling Mike |
+| **V2** | Automatic Dependency Blocking | Replace manual "blocked" flags with trade-dependency logic learned from V1 usage patterns |
+| **V2** | Photo Documentation | Natural extension of task completion — visual proof of work |
+| **V2** | Historical Reports & Analytics | Progress tracking for PMs and property owners |
+| **V2** | User Accounts & Auth | Required foundation for multi-site and data security |
+
+### Vision (Future)
+
+| Phase | Milestone | Key Additions |
+|-------|-----------|---------------|
+| **V3** | Multi-site, multi-crew | Site switching, GC oversight view, cross-project visibility |
+| **V4** | City-wide platform | Crew marketplace, trade scheduling across projects, reputation system |
+
+The MVP is the wedge — prove it works for one crew, then expand outward.
+
+### Risk Mitigation Strategy
+
+**Technical Risks:**
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| Voice recognition fails in construction noise | Medium | Voice is enhancement, not dependency. Tap-first design ensures MVP works without voice. Degrade gracefully. |
+| Real-time sync unreliable on job sites | High | Offline-first architecture. Last-known board state cached locally. Auto-reconnect with visual indicator. |
+| PWA limitations on iOS Safari | Medium | Core features (board, claiming) work in any browser. PWA install is nice-to-have. |
+| localStorage identity loss | Low | Cookie + localStorage redundancy. Worst case: re-enter name and trade (10 seconds). |
+
+**Market Risks:**
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| Workers won't adopt voluntarily | High | Superintendent introduces it. Zero-friction design. If board is faster than waiting for Mike, adoption follows. |
+| Superintendent feels replaced/threatened | Medium | Frame as "liberation" not replacement. Mike gains quality-check time. |
+| One crew success doesn't generalize | Medium | V1 validates the concept. V2 tests with different crew sizes and trade mixes. |
+
+**Resource Risks:**
+
+| Risk | Severity | Mitigation |
+|------|----------|------------|
+| Solo developer bottleneck | Medium | MVP scope is deliberately small. Use managed backend services to reduce infrastructure work. |
+| Scope creep during development | High | MVP feature list is frozen. Any addition requires removing something else. |
+| Timeline exceeds 6 weeks | Low | Phased delivery: board-only in week 2, claiming in week 3, voice in week 5. Usable at each stage. |
+
+## User Journeys
+
+### Journey 1: Carlos Claims His First Task (Worker Happy Path)
+
+**Persona:** Carlos, electrician, 10 years in the trade. Smartphone in his back pocket. Zero patience for apps.
+
+**Opening Scene:** It's 6:55am on a Tuesday. Carlos pulls into the gravel lot at the Riverside Apartments remodel — 25 units, five trades, controlled chaos. Normally he'd find Mike standing by the trailer with a clipboard and a coffee, rattling off assignments to a semicircle of workers. Today Mike just says: "Check the board. Link's on the group text."
+
+**Rising Action:** Carlos taps the link on his phone. A simple page loads — no login, no signup. It asks one thing: his name and trade. He types "Carlos" and taps "Electrical." The board appears — a list of units, each showing what trades are needed. He filters to electrical. Units 4, 7, 12, and 18 need rough-in. Unit 12 is closest to where he parked.
+
+**Climax:** Carlos taps the checkbox next to "Unit 12 — Electrical Rough-In." His name appears on the board. Done. He pockets his phone and walks to Unit 12. It took nine seconds. He didn't talk to Mike. He didn't wait in line. He didn't walk to the wrong unit.
+
+**Resolution:** By 7:05am Carlos is pulling wire in Unit 12. He checks the board at lunch — Units 4 and 7 are claimed by Ricky, Unit 18 is still open. He claims it for the afternoon. At 3pm he taps "Done" on both units. Tomorrow morning he won't even think about it — he'll just check the board like checking the weather.
+
+**Capabilities Revealed:** Trade selection on first use, board filtering by trade, one-tap task claiming, real-time status updates, remembered preferences.
+
+### Journey 2: Carlos Hits a Blocked Unit (Worker Edge Case)
+
+**Persona:** Same Carlos, one week into using TaskFlow. He's a convert.
+
+**Opening Scene:** Wednesday morning. Carlos checks the board over coffee in his truck. Three electrical tasks are available. He taps Unit 9 — it's a big unit, good for a full morning.
+
+**Rising Action:** Carlos walks into Unit 9 and immediately sees the problem: plumbing rough-in isn't finished. Pipes are half-run, tools are sitting out, but no plumber in sight. He can't start electrical until plumbing is done — wires go behind the pipes.
+
+**Climax:** Carlos pulls out his phone, finds Unit 9 on the board, and taps the status from "In-Progress" to "Blocked." He adds a quick note via voice: "Plumbing not done, can't start electrical." The board updates instantly. Mike sees the block notification. Meanwhile, Carlos unclaims Unit 9 and claims Unit 15 instead — no time wasted, no hunting for Mike to ask what to do.
+
+**Resolution:** Mike sees the block, finds out the plumber called in sick, and reassigns plumbing coverage. By afternoon, Unit 9 is unblocked and another electrician claims it. The blocked-work incident that would have cost an hour of idle time cost Carlos three minutes.
+
+**Capabilities Revealed:** Status change (to Blocked), voice-input notes, unclaim/reclaim flow, block visibility for superintendent, real-time notification of status changes.
+
+### Journey 3: Mike Sets Up the Board (Admin/Setup Path)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

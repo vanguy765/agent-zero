@@ -1,0 +1,12 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:82:documentsRoute.get('/projects/:projectId/documents', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:100:documentsRoute.post('/projects/:projectId/documents', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts:20:// GET /projects (List)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts:52:// GET /projects/:id/definitions
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts:86:// PUT /projects/:id/definitions
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:106:workOrdersRoute.get('/projects', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:121:workOrdersRoute.get('/projects/:id', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:138:workOrdersRoute.post('/projects', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:155:workOrdersRoute.patch('/projects/:id', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:174:workOrdersRoute.delete('/projects/:id', async (c) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts:515:workOrdersRoute.post('/templates/assign-to-project', async (c) => {
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

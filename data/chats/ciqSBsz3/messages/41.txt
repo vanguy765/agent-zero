@@ -1,0 +1,56 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:24: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000001"
+LINE 3:     ('t0000000-0000-0000-0000-000000000001', 'PNT', 'Paintin...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:36: ERROR:  invalid input syntax for type uuid: "o0000000-0000-0000-0000-000000000001"
+LINE 3:     ('o0000000-0000-0000-0000-000000000001', 'res_reno',   '...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:54: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000001"
+LINE 3:     ('t0000000-0000-0000-0000-000000000001', 'o0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:66: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000001"
+LINE 3:     ('t0000000-0000-0000-0000-000000000001', 'o0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:80: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000001"
+LINE 3:     ('t0000000-0000-0000-0000-000000000001', 'o0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:90: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000003"
+LINE 3:     ('t0000000-0000-0000-0000-000000000003', 'o0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:109: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000001"
+LINE 3:     ('s0000000-0000-0000-0000-000000000001', 'kitchen',     ...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:118: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000020"
+LINE 3:     ('s0000000-0000-0000-0000-000000000020', 'balcony',  'Ba...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:126: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000030"
+LINE 3:     ('s0000000-0000-0000-0000-000000000030', 'common_hallway...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:133: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000040"
+LINE 3:     ('s0000000-0000-0000-0000-000000000040', 'demo_zone', 'D...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:142: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000050"
+LINE 3:     ('s0000000-0000-0000-0000-000000000050', 'studio', 'Stud...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:154: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000050"
+LINE 3:     ('s0000000-0000-0000-0000-000000000050', 's0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:163: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000051"
+LINE 3:     ('s0000000-0000-0000-0000-000000000051', 's0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:172: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000052"
+LINE 3:     ('s0000000-0000-0000-0000-000000000052', 's0000000-0000-...
+             ^
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:181: ERROR:  invalid input syntax for type uuid: "s0000000-0000-0000-0000-000000000053"
+LINE 3:     ('s0000000-0000-0000-0000-000000000053', 's0000000-0000-...
+             ^
+UPDATE 0
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:197: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000009"
+LINE 2: SET trade_id = 't0000000-0000-0000-0000-000000000009'
+                       ^
+UPDATE 0
+psql:supabase/migrations/20260304000002_schema_evolution_seed.sql:213: ERROR:  invalid input syntax for type uuid: "t0000000-0000-0000-0000-000000000009"
+LINE 2: SET trade_id = 't0000000-0000-0000-0000-000000000009'
+                       ^
+UPDATE 0
+INSERT 0 0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

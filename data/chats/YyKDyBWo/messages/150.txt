@@ -1,0 +1,8 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === Verify script ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#     { email: 'alice@example.com', password: 'password123', metadata: { role: 'manager', organization_id: '00000000-0000-0000-0000-000000000001' } },
+    { email: 'eric@example.com', password: 'password123$', metadata: { role: 'admin', organization_id: '00000000-0000-0000-0000-000000000001' } },
+];
+--
+            user_metadata: user.metadata,
+        });
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

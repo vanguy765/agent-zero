@@ -1,0 +1,1055 @@
+=== FILE 1: apps/api/src/index.ts ===
+     1	import { config } from 'dotenv';
+     2	import { resolve } from 'path';
+     3
+     4	// Load .env from project root (two levels up from apps/api/src)
+     5	config({ path: resolve(__dirname, '../../../.env') });
+     6	import { serve } from '@hono/node-server';
+     7	import { OpenAPIHono } from '@hono/zod-openapi';
+     8	import { swaggerUI } from '@hono/swagger-ui';
+     9	import { logger } from 'hono/logger';
+    10	import { cors } from 'hono/cors';
+    11	import { z } from 'zod';
+    12	console.log('[API] Zod Version:', (z as any).version || 'undefined');
+    13
+    14	// Import Routes
+    15	import { deliveryRoute } from './routes/delivery';
+    16	import { todosRoute } from './routes/todos';
+    17	import { voiceRoute } from './routes/voice';
+    18	import materials from './routes/materials';
+    19	import taxonomyRoute from './routes/taxonomy';
+    20	import projectDefinitionsRoute from './routes/project-definitions';
+    21	import unitsRoute from './routes/units';
+    22	import { workOrdersRoute } from './routes/work-orders';
+    23	import { documentsRoute } from './routes/documents';
+    24	import { a2aRoute } from './routes/a2a';
+    25
+    26	import { reviewsRoute } from './routes/reviews';
+    27	import { entityCreationRoute } from './routes/entity-creation';
+    28	import { onboardRoute } from './routes/onboard';
+    29
+    30	const app = new OpenAPIHono();
+    31
+    32	// Middleware
+    33	app.use('*', logger());
+    34	app.use('*', cors());
+    35
+    36	// Routes
+    37	app.route('/delivery', deliveryRoute);
+    38	app.route('/todos', todosRoute);
+    39	app.route('/voice', voiceRoute);
+    40	app.route('/materials', materials);
+    41	app.route('/taxonomy', taxonomyRoute);
+    42	app.route('/projects', projectDefinitionsRoute);
+    43	app.route('/units', unitsRoute);
+    44	app.route('/work-orders', workOrdersRoute);
+    45	app.route('/work-orders', documentsRoute);
+    46
+    47	app.route('/reviews', reviewsRoute);
+    48	app.route('/entity', entityCreationRoute);
+    49	app.route('/onboard', onboardRoute);
+    50
+    51	// A2A Protocol (Agent-to-Agent)
+    52	app.route('', a2aRoute);       // /.well-known/agent.json
+    53	app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+    54
+    55	// The OpenAPI Documentation JSON
+    56	app.doc('/doc', {
+    57	  openapi: '3.0.0',
+    58	  info: {
+    59	    version: '1.0.0',
+    60	    title: 'Construction Voice Platform API',
+    61	    description: 'API for Web Dashboard, Site Companion, and Flutter Mobile App'
+    62	  },
+    63	});
+    64
+    65	// The Swagger UI (Visual Documentation)
+    66	app.get('/ui', swaggerUI({ url: '/doc' }));
+    67
+    68	const port = 3000;
+    69	console.log(`Server is running on port ${port}`);
+    70	console.log(`Swagger UI available at http://localhost:${port}/ui`);
+    71
+    72	serve({
+    73	  fetch: app.fetch,
+    74	  port
+    75	});
+    76
+    77	export type AppType = typeof app;
+
+=== FILE 2: apps/work-orders/src/lib/api.ts ===
+     1	import { supabase } from './supabase';
+     2
+     3	const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/work-orders';
+     4
+     5	export interface Unit {
+     6	  id: string;
+     7	  organization_id: string;
+     8	  project_id?: string;  // NEW: Link to WO Project
+     9	  unit_number: string;
+    10	  unit_type: string;
+    11	  floor: number;
+    12	  area_sf: number;
+    13	  bedrooms?: number;
+    14	  status: 'not_started' | 'in_progress' | 'completed';
+    15	  metadata?: Record<string, any>;
+    16	  created_at: string;
+    17	  updated_at: string;
+    18	}
+    19
+    20	export interface WOProject {
+    21	  id: string;
+    22	  organization_id: string;
+    23	  name: string;
+    24	  description?: string;
+    25	  project_type: string;
+    26	  library_id?: string;
+    27	  status: 'staged' | 'active' | 'paused' | 'completed' | 'archived';
+    28	  metadata?: Record<string, any>;
+    29	  created_at: string;
+    30	  updated_at: string;
+    31	}
+    32
+    33	export interface TemplateLibrary {
+    34	  id: string;
+    35	  name: string;
+    36	  description?: string;
+    37	  project_type: string;
+    38	  scope: 'app' | 'company';
+    39	  organization_id?: string;
+    40	  icon?: string;
+    41	  color?: string;
+    42	  is_active: boolean;
+    43	  is_default: boolean;
+    44	  metadata?: Record<string, any>;
+    45	  created_at: string;
+    46	  updated_at: string;
+    47	}
+    48
+    49	export interface WorkOrderTemplate {
+    50	  id: string;
+    51	  scope: 'app' | 'company' | 'project';  // NEW: Template scope
+    52	  organization_id?: string;  // Now optional for app-level templates
+    53	  project_id?: string;  // NEW: For project-level templates
+    54	  library_id?: string;  // NEW: Template library association
+    55	  trade_name: string;
+    56	  version: number;
+    57	  is_active: boolean;
+    58	  is_frozen?: boolean;
+    59	  definition: {
+    60	    sections: Record<string, {
+    61	      label: string;
+    62	      order: number;
+    63	      columns: Array<{
+    64	        key: string;
+    65	        label: string;
+    66	        type: string;
+    67	        order: number;
+    68	      }>;
+    69	      items?: string[];
+    70	    }>;
+    71	  } | null;
+    72	  parent_template_id?: string;
+    73	  copied_from_template_id?: string;
+    74	  created_by?: string;
+    75	  updated_by?: string;
+    76	  created_at: string;
+    77	  updated_at: string;
+    78	  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+    79	}
+    80
+    81	export interface WorkOrder {
+    82	  id: string;
+    83	  organization_id: string;
+    84	  unit_id: string;
+    85	  template_id: string;
+    86	  trade_name: string;
+    87	  assigned_contractor_id?: string;
+    88	  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+    89	  started_at?: string;
+    90	  completed_at?: string;
+    91	  created_at: string;
+    92	  updated_at: string;
+    93	}
+    94
+    95	export interface WorkOrderTask {
+    96	  id: string;
+    97	  work_order_id: string;
+    98	  room_id: string;
+    99	  row_order: number;
+   100	  task_data: {
+   101	    steps: Array<{
+   102	      key: string;
+   103	      label: string;
+   104	      status: 'pending' | 'complete' | 'blocked';
+   105	      not_applicable: boolean;
+   106	      completed_by?: string;
+   107	      completed_at?: string;
+   108	    }>;
+   109	  };
+   110	  created_at: string;
+   111	  updated_at: string;
+   112	}
+   113
+   114	export interface ProjectDocument {
+   115	  id: string;
+   116	  project_id: string;
+   117	  title: string;
+   118	  description?: string;
+   119	  file_url: string;
+   120	  file_type: string;
+   121	  file_size_bytes: number;
+   122	  uploaded_by?: string;
+   123	  uploaded_at: string;
+   124	  metadata?: {
+   125	    page_count?: number;
+   126	    original_name?: string;
+   127	    mime_type?: string;
+   128	    [key: string]: any;
+   129	  };
+   130	  created_at: string;
+   131	}
+   132
+   133	export interface DocumentImage {
+   134	  id: string;
+   135	  document_id: string;
+   136	  image_url: string;
+   137	  page_number?: number;
+   138	  image_type?: string;
+   139	  caption?: string;
+   140	  metadata?: {
+   141	    width?: number;
+   142	    height?: number;
+   143	    type?: string;
+   144	    [key: string]: any;
+   145	  };
+   146	  signed_url?: string;
+   147	  created_at: string;
+   148	}
+   149
+   150	export interface ParsedDocumentResult {
+   151	  success: boolean;
+   152	  document_id: string;
+   153	  parsed: {
+   154	    document_id: string;
+   155	    units: Array<{
+   156	      unit_number: string;
+   157	      unit_type: string;
+   158	      floor: number;
+   159	      bedrooms: number;
+   160	      bathrooms: number;
+   161	      area_sf: number;
+   162	      rooms: Array<{
+   163	        name: string;
+   164	        dimensions: { length_ft: number; width_ft: number; area_sf: number };
+   165	        baseboard_length_ft: number;
+   166	        baseboard_exclusions: string[];
+   167	      }>;
+   168	      doors: Array<{
+   169	        location: string;
+   170	        type: string;
+   171	        dimensions: string;
+   172	        hardware: string;
+   173	        action: string;
+   174	        do_not_install?: boolean;
+   175	      }>;
+   176	      windows: Array<{
+   177	        location: string;
+   178	        type: string;
+   179	        dimensions: string;
+   180	        coverings: string;
+   181	      }>;
+   182	      fixtures: Array<{
+   183	        category: string;
+   184	        name: string;
+   185	        location: string;
+   186	        specifications: string;
+   187	      }>;
+   188	      upgrades: Array<{
+   189	        trade: string;
+   190	        description: string;
+   191	        quantity?: number;
+   192	        unit?: string;
+   193	      }>;
+   194	    }>;
+   195	    general_notes: string[];
+   196	    total_baseboard_ft: number;
+   197	    summary: {
+   198	      units_count: number;
+   199	      trades: string[];
+   200	      total_doors: number;
+   201	      total_windows: number;
+   202	    };
+   203	    raw_text?: string;
+   204	  };
+   205	  summary: {
+   206	    units_count: number;
+   207	    total_baseboard_ft: number;
+   208	    trades: string[];
+   209	  };
+   210	}
+   211
+   212	class ApiClient {
+   213	  private baseUrl: string;
+   214
+   215	  constructor(baseUrl: string) {
+   216	    this.baseUrl = baseUrl;
+   217	  }
+   218
+   219	  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+   220	    const { data: { session } } = await supabase.auth.getSession();
+   221	    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+   222	      ...options,
+   223	      headers: {
+   224	        'Content-Type': 'application/json',
+   225	        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+   226	        ...options?.headers,
+   227	      },
+   228	    });
+   229
+   230	    if (!response.ok) {
+   231	      const error = await response.text();
+   232	      throw new Error(`API Error: ${response.status} - ${error}`);
+   233	    }
+   234
+   235	    return response.json();
+   236	  }
+   237
+   238	  // Units
+   239	  async getUnits(): Promise<Unit[]> {
+   240	    return this.request<Unit[]>('/units');
+   241	  }
+   242
+   243	  async getUnit(id: string): Promise<Unit> {
+   244	    return this.request<Unit>(`/units/${id}`);
+   245	  }
+   246
+   247	  async updateUnit(id: string, data: Partial<Unit>): Promise<Unit> {
+   248	    return this.request<Unit>(`/units/${id}`, {
+   249	      method: 'PATCH',
+   250	      body: JSON.stringify(data),
+   251	    });
+   252	  }
+   253
+   254	  // Templates
+   255	  async getTemplates(scope?: 'app' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+   256	    const query = scope ? `?scope=${scope}` : '';
+   257	    return this.request<WorkOrderTemplate[]>(`/templates${query}`);
+   258	  }
+   259
+   260	  async getTemplate(id: string): Promise<WorkOrderTemplate> {
+   261	    return this.request<WorkOrderTemplate>(`/templates/${id}`);
+   262	  }
+   263
+   264	  async createTemplate(data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+   265	    return this.request<WorkOrderTemplate>('/templates', {
+   266	      method: 'POST',
+   267	      body: JSON.stringify(data),
+   268	    });
+   269	  }
+   270
+   271	  async updateTemplate(id: string, data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+   272	    return this.request<WorkOrderTemplate>(`/templates/${id}`, {
+   273	      method: 'PATCH',
+   274	      body: JSON.stringify(data),
+   275	    });
+   276	  }
+   277
+   278	  async deleteTemplate(id: string): Promise<{ success: boolean }> {
+   279	    return this.request(`/templates/${id}`, {
+   280	      method: 'DELETE',
+   281	    });
+   282	  }
+   283
+   284	  // Template Inheritance / Assignment
+   285	  async getAppTemplates(): Promise<WorkOrderTemplate[]> {
+   286	    return this.request<WorkOrderTemplate[]>('/templates/app');
+   287	  }
+   288
+   289	  async getCompanyTemplates(): Promise<WorkOrderTemplate[]> {
+   290	    return this.request<WorkOrderTemplate[]>('/templates/company');
+   291	  }
+   292
+   293	  async getProjectTemplates(projectId: string): Promise<WorkOrderTemplate[]> {
+   294	    return this.request<WorkOrderTemplate[]>(`/templates/project/${projectId}`);
+   295	  }
+   296
+   297	  async assignTemplateToCompany(appTemplateId: string, organizationId: string): Promise<WorkOrderTemplate> {
+   298	    return this.request<WorkOrderTemplate>('/templates/assign-to-company', {
+   299	      method: 'POST',
+   300	      body: JSON.stringify({ app_template_id: appTemplateId, organization_id: organizationId }),
+   301	    });
+   302	  }
+   303
+   304	  async assignTemplateToProject(companyTemplateId: string, projectId: string, organizationId: string): Promise<WorkOrderTemplate> {
+   305	    return this.request<WorkOrderTemplate>('/templates/assign-to-project', {
+   306	      method: 'POST',
+   307	      body: JSON.stringify({ company_template_id: companyTemplateId, project_id: projectId, organization_id: organizationId }),
+   308	    });
+   309	  }
+   310
+   311	  async unassignTemplateFromProject(templateId: string): Promise<{ success: boolean }> {
+   312	    return this.request(`/templates/${templateId}/unassign`, {
+   313	      method: 'DELETE',
+   314	    });
+   315	  }
+   316
+   317	  // Template Visibility Preferences
+   318	  async getHiddenTemplateIds(): Promise<string[]> {
+   319	    return this.request<string[]>('/templates/prefs/hidden');
+   320	  }
+   321
+   322	  async setTemplateHidden(templateId: string, isHidden: boolean): Promise<{ success: boolean }> {
+   323	    return this.request(`/templates/prefs/${templateId}/hidden`, {
+   324	      method: 'PUT',
+   325	      body: JSON.stringify({ is_hidden: isHidden }),
+   326	    });
+   327	  }
+   328
+   329	  // Work Orders
+   330	  async getWorkOrders(): Promise<WorkOrder[]> {
+   331	    return this.request<WorkOrder[]>('/work-orders');
+   332	  }
+   333
+   334	  async getWorkOrder(id: string): Promise<WorkOrder> {
+   335	    return this.request<WorkOrder>(`/work-orders/${id}`);
+   336	  }
+   337
+   338	  async createWorkOrder(data: { unit_id: string; template_id: string }): Promise<WorkOrder> {
+   339	    return this.request<WorkOrder>('/work-orders', {
+   340	      method: 'POST',
+   341	      body: JSON.stringify(data),
+   342	    });
+   343	  }
+   344
+   345	  async updateWorkOrder(id: string, data: Partial<WorkOrder>): Promise<WorkOrder> {
+   346	    return this.request<WorkOrder>(`/work-orders/${id}`, {
+   347	      method: 'PATCH',
+   348	      body: JSON.stringify(data),
+   349	    });
+   350	  }
+   351
+   352	  // Tasks
+   353	  async updateTask(workOrderId: string, taskId: string, data: Partial<WorkOrderTask>): Promise<WorkOrderTask> {
+   354	    return this.request<WorkOrderTask>(`/work-orders/${workOrderId}/tasks/${taskId}`, {
+   355	      method: 'PATCH',
+   356	      body: JSON.stringify(data),
+   357	    });
+   358	  }
+   359
+   360	  // Notes
+   361	  async getNotes(workOrderId: string): Promise<any[]> {
+   362	    return this.request<any[]>(`/work-orders/${workOrderId}/notes`);
+   363	  }
+   364
+   365	  async createNote(workOrderId: string, content: string): Promise<any> {
+   366	    return this.request<any>(`/work-orders/${workOrderId}/notes`, {
+   367	      method: 'POST',
+   368	      body: JSON.stringify({ content }),
+   369	    });
+   370	  }
+   371
+   372	  // Projects
+   373	  async getProjects(): Promise<WOProject[]> {
+   374	    return this.request<WOProject[]>('/projects');
+   375	  }
+   376
+   377	  async getProject(id: string): Promise<WOProject> {
+   378	    return this.request<WOProject>(`/projects/${id}`);
+   379	  }
+   380
+   381	  async createProject(data: Partial<WOProject>): Promise<WOProject> {
+   382	    return this.request<WOProject>('/projects', {
+   383	      method: 'POST',
+   384	      body: JSON.stringify(data),
+   385	    });
+   386	  }
+   387
+   388	  async updateProject(id: string, data: Partial<WOProject>): Promise<WOProject> {
+   389	    return this.request<WOProject>(`/projects/${id}`, {
+   390	      method: 'PATCH',
+   391	      body: JSON.stringify(data),
+   392	    });
+   393	  }
+   394
+   395	  async deleteProject(id: string): Promise<{ success: boolean }> {
+   396	    return this.request(`/projects/${id}`, {
+   397	      method: 'DELETE',
+   398	    });
+   399	  }
+   400
+   401	  // Template Libraries
+   402	  async getTemplateLibraries(params?: {
+   403	    project_type?: string;
+   404	    scope?: 'app' | 'company';
+   405	  }): Promise<TemplateLibrary[]> {
+   406	    const query = params ? new URLSearchParams(params as any).toString() : '';
+   407	    return this.request<TemplateLibrary[]>(
+   408	      `/template-libraries${query ? `?${query}` : ''}`
+   409	    );
+   410	  }
+   411
+   412	  async getTemplateLibrary(id: string): Promise<TemplateLibrary> {
+   413	    return this.request<TemplateLibrary>(`/template-libraries/${id}`);
+   414	  }
+   415
+   416	  async getDefaultLibrary(projectType: string): Promise<TemplateLibrary> {
+   417	    return this.request<TemplateLibrary>(
+   418	      `/template-libraries/default/${projectType}`
+   419	    );
+   420	  }
+   421
+   422	  // Documents
+   423	  async getProjectDocuments(projectId: string): Promise<ProjectDocument[]> {
+   424	    return this.request<ProjectDocument[]>(`/projects/${projectId}/documents`);
+   425	  }
+   426
+   427	  async uploadDocument(projectId: string, file: File, title?: string, description?: string): Promise<ProjectDocument> {
+   428	    const formData = new FormData();
+   429	    formData.append('file', file);
+   430	    if (title) formData.append('title', title);
+   431	    if (description) formData.append('description', description);
+   432
+   433	    const response = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+   434	      method: 'POST',
+   435	      body: formData,
+   436	    });
+   437
+   438	    if (!response.ok) {
+   439	      const error = await response.text();
+   440	      throw new Error(`API Error: ${response.status} - ${error}`);
+   441	    }
+   442
+   443	    return response.json();
+   444	  }
+   445
+   446	  async getDocument(documentId: string): Promise<ProjectDocument> {
+   447	    return this.request<ProjectDocument>(`/documents/${documentId}`);
+   448	  }
+   449
+   450	  async updateDocument(documentId: string, data: Partial<ProjectDocument>): Promise<ProjectDocument> {
+   451	    return this.request<ProjectDocument>(`/documents/${documentId}`, {
+   452	      method: 'PATCH',
+   453	      body: JSON.stringify(data),
+   454	    });
+   455	  }
+   456
+   457	  async deleteDocument(documentId: string): Promise<{ success: boolean }> {
+   458	    return this.request(`/documents/${documentId}`, {
+   459	      method: 'DELETE',
+   460	    });
+   461	  }
+   462
+   463	  async getDocumentDownloadUrl(documentId: string): Promise<{ url: string; filename: string; expires_at: string }> {
+   464	    return this.request(`/documents/${documentId}/download`);
+   465	  }
+   466
+   467	  // Image Extraction
+   468	  async extractImagesFromDocument(documentId: string): Promise<{ success: boolean; images_extracted: number; images: DocumentImage[] }> {
+   469	    return this.request(`/documents/${documentId}/extract-images`, {
+   470	      method: 'POST',
+   471	    });
+   472	  }
+   473
+   474	  async getDocumentImages(documentId: string): Promise<DocumentImage[]> {
+   475	    return this.request<DocumentImage[]>(`/documents/${documentId}/images`);
+   476	  }
+   477
+   478	  async getImage(imageId: string): Promise<DocumentImage> {
+   479	    return this.request<DocumentImage>(`/images/${imageId}`);
+   480	  }
+   481
+   482	  async updateImage(imageId: string, data: Partial<DocumentImage>): Promise<DocumentImage> {
+   483	    return this.request<DocumentImage>(`/images/${imageId}`, {
+   484	      method: 'PATCH',
+   485	      body: JSON.stringify(data),
+   486	    });
+   487	  }
+   488
+   489	  async deleteImage(imageId: string): Promise<{ success: boolean }> {
+   490	    return this.request(`/images/${imageId}`, {
+   491	      method: 'DELETE',
+   492	    });
+   493	  }
+   494
+   495	  // Text Extraction
+   496	  async extractTextFromDocument(documentId: string): Promise<{ success: boolean; page_count: number; text: string; pages: string[] }> {
+   497	    return this.request(`/documents/${documentId}/extract-text`, {
+   498	      method: 'POST',
+   499	    });
+   500	  }
+   501
+   502	  // Claude AI Parsing
+   503	  async parseDocumentWithClaude(documentId: string, customPrompt?: string): Promise<ParsedDocumentResult> {
+   504	    return this.request(`/documents/${documentId}/parse`, {
+   505	      method: 'POST',
+   506	      body: customPrompt ? JSON.stringify({ customPrompt }) : undefined,
+   507	    });
+   508	  }
+   509
+   510	  async generateWorkOrdersFromDocument(documentId: string): Promise<{ success: boolean; work_orders_count: number; work_orders: any[] }> {
+   511	    return this.request(`/documents/${documentId}/generate-work-orders`, {
+   512	      method: 'POST',
+   513	    });
+   514	  }
+   515
+   516	}
+   517
+   518	export const api = new ApiClient(API_URL);
+
+=== FILE 3: apps/work-orders/src/pages/ProjectDocuments.tsx ===
+     1	import type { Component } from 'solid-js';
+     2	import { createSignal, createResource, For, Show } from 'solid-js';
+     3	import { useParams, A } from '@solidjs/router';
+     4	import { api } from '../lib/api';
+     5	import type { ProjectDocument, DocumentImage, ParsedDocumentResult } from '../lib/api';
+     6
+     7	const ProjectDocuments: Component = () => {
+     8	    const params = useParams();
+     9	    const [uploading, setUploading] = createSignal(false);
+    10	    const [extracting, setExtracting] = createSignal<string | null>(null);
+    11	    const [parsing, setParsing] = createSignal<string | null>(null);
+    12	    const [parsedResult, setParsedResult] = createSignal<ParsedDocumentResult | null>(null);
+    13	    const [selectedDocId, setSelectedDocId] = createSignal<string | null>(null);
+    14
+    15	    // Load project info
+    16	    const [project] = createResource(() =>
+    17	        params.id ? api.getProject(params.id) : Promise.reject('No project ID')
+    18	    );
+    19
+    20	    // Load documents
+    21	    const [documents, { refetch: refetchDocuments }] = createResource(() =>
+    22	        params.id ? api.getProjectDocuments(params.id) : Promise.reject('No project ID')
+    23	    );
+    24
+    25	    // Load images for selected document
+    26	    const [images, { refetch: refetchImages }] = createResource(
+    27	        selectedDocId,
+    28	        (docId) => api.getDocumentImages(docId)
+    29	    );
+    30
+    31	    const handleUpload = async (e: Event) => {
+    32	        const input = e.target as HTMLInputElement;
+    33	        const file = input.files?.[0];
+    34	        if (!file || !params.id) return;
+    35
+    36	        setUploading(true);
+    37	        try {
+    38	            await api.uploadDocument(params.id, file, file.name);
+    39	            refetchDocuments();
+    40	            input.value = '';
+    41	        } catch (error) {
+    42	            console.error('Upload failed:', error);
+    43	            alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    44	        } finally {
+    45	            setUploading(false);
+    46	        }
+    47	    };
+    48
+    49	    const extractImages = async (doc: ProjectDocument) => {
+    50	        setExtracting(doc.id);
+    51	        try {
+    52	            const result = await api.extractImagesFromDocument(doc.id);
+    53	            alert(`Successfully extracted ${result.images_extracted} images from ${doc.title}`);
+    54	            if (selectedDocId() === doc.id) {
+    55	                refetchImages();
+    56	            }
+    57	        } catch (error) {
+    58	            console.error('Image extraction failed:', error);
+    59	            alert(`Image extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    60	        } finally {
+    61	            setExtracting(null);
+    62	        }
+    63	    };
+    64
+    65	    const deleteDocument = async (doc: ProjectDocument) => {
+    66	        if (!confirm(`Delete "${doc.title}"? This will also delete all extracted images.`)) {
+    67	            return;
+    68	        }
+    69
+    70	        try {
+    71	            await api.deleteDocument(doc.id);
+    72	            refetchDocuments();
+    73	            if (selectedDocId() === doc.id) {
+    74	                setSelectedDocId(null);
+    75	            }
+    76	        } catch (error) {
+    77	            console.error('Delete failed:', error);
+    78	            alert(`Delete failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    79	        }
+    80	    };
+    81
+    82	    const downloadDocument = async (doc: ProjectDocument) => {
+    83	        try {
+    84	            const result = await api.getDocumentDownloadUrl(doc.id);
+    85	            window.open(result.url, '_blank');
+    86	        } catch (error) {
+    87	            console.error('Download failed:', error);
+    88	            alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    89	        }
+    90	    };
+    91
+    92	    const parseWithClaude = async (doc: ProjectDocument) => {
+    93	        setParsing(doc.id);
+    94	        setParsedResult(null);
+    95	        try {
+    96	            const result = await api.parseDocumentWithClaude(doc.id);
+    97	            setParsedResult(result);
+    98	            const unitsCount = result.summary?.units_count ?? result.parsed?.units?.length ?? 0;
+    99	            const baseboard = result.summary?.total_baseboard_ft ?? result.parsed?.total_baseboard_ft ?? 0;
+   100	            alert(`Successfully parsed document! Found ${unitsCount} units, ${baseboard} ft total baseboard.`);
+   101	        } catch (error) {
+   102	            console.error('Parsing failed:', error);
+   103	            alert(`Parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+   104	        } finally {
+   105	            setParsing(null);
+   106	        }
+   107	    };
+   108
+   109	    const toggleImages = async (docId: string) => {
+   110	        if (selectedDocId() === docId) {
+   111	            setSelectedDocId(null);
+   112	        } else {
+   113	            setSelectedDocId(docId);
+   114	        }
+   115	    };
+   116
+   117	    const formatFileSize = (bytes: number): string => {
+   118	        if (bytes < 1024) return `${bytes} B`;
+   119	        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+   120	        return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+   121	    };
+   122
+   123	    const getFileTypeIcon = (fileType: string): string => {
+   124	        if (fileType.includes('pdf')) return '📄';
+   125	        if (fileType.includes('image')) return '🖼️';
+   126	        if (fileType.includes('dwg') || fileType.includes('dxf')) return '📐';
+   127	        return '📎';
+   128	    };
+   129
+   130	    return (
+   131	        <div class="space-y-6">
+   132	            {/* Header */}
+   133	            <div class="flex items-center justify-between">
+   134	                <div>
+   135	                    <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+   136	                        <A href="/projects" class="hover:text-blue-600">Projects</A>
+   137	                        <span>/</span>
+   138	                        <Show when={project()} fallback={<span>...</span>}>
+   139	                            {(p) => (
+   140	                                <>
+   141	                                    <A href={`/projects/${p().id}`} class="hover:text-blue-600">
+   142	                                        {p().name}
+   143	                                    </A>
+   144	                                    <span>/</span>
+   145	                                    <span>Documents</span>
+   146	                                </>
+   147	                            )}
+   148	                        </Show>
+   149	                    </div>
+   150	                    <h1 class="text-2xl font-bold">Project Documents</h1>
+   151	                </div>
+   152	                <A href={`/projects/${params.id}`} class="btn btn-secondary">
+   153	                    Back to Project
+   154	                </A>
+   155	            </div>
+   156
+   157	            {/* Upload Area */}
+   158	            <div class="card">
+   159	                <h2 class="text-lg font-semibold mb-4">Upload Document</h2>
+   160	                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+   161	                    <input
+   162	                        type="file"
+   163	                        accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
+   164	                        onChange={handleUpload}
+   165	                        disabled={uploading()}
+   166	                        class="block w-full text-sm text-gray-500
+   167	                            file:mr-4 file:py-2 file:px-4
+   168	                            file:rounded-md file:border-0
+   169	                            file:text-sm file:font-semibold
+   170	                            file:bg-blue-50 file:text-blue-700
+   171	                            hover:file:bg-blue-100
+   172	                            disabled:opacity-50 disabled:cursor-not-allowed"
+   173	                    />
+   174	                    <Show when={uploading()}>
+   175	                        <p class="mt-2 text-sm text-gray-500">Uploading...</p>
+   176	                    </Show>
+   177	                    <p class="mt-2 text-xs text-gray-400">
+   178	                        Supported: PDF, PNG, JPG, DWG, DXF
+   179	                    </p>
+   180	                </div>
+   181	            </div>
+   182
+   183	            {/* Documents List */}
+   184	            <Show
+   185	                when={!documents.loading}
+   186	                fallback={<div class="text-center py-8">Loading documents...</div>}
+   187	            >
+   188	                <Show
+   189	                    when={documents() && documents()!.length > 0}
+   190	                    fallback={
+   191	                        <div class="card text-center py-8">
+   192	                            <p class="text-gray-500">No documents uploaded yet.</p>
+   193	                            <p class="text-sm text-gray-400 mt-2">Upload a PDF or image to get started.</p>
+   194	                        </div>
+   195	                    }
+   196	                >
+   197	                    <div class="space-y-4">
+   198	                        <For each={documents()}>
+   199	                            {(doc) => (
+   200	                                <div class="card hover:shadow-md transition-shadow">
+   201	                                    <div class="flex items-start justify-between">
+   202	                                        <div class="flex-1">
+   203	                                            <div class="flex items-center gap-2">
+   204	                                                <span class="text-2xl">{getFileTypeIcon(doc.file_type)}</span>
+   205	                                                <div>
+   206	                                                    <h3 class="font-semibold">{doc.title}</h3>
+   207	                                                    <div class="flex items-center gap-4 text-sm text-gray-500 mt-1">
+   208	                                                        <span>{formatFileSize(doc.file_size_bytes)}</span>
+   209	                                                        <span>{doc.file_type}</span>
+   210	                                                        <Show when={doc.metadata?.page_count}>
+   211	                                                            <span>{doc.metadata!.page_count} pages</span>
+   212	                                                        </Show>
+   213	                                                        <span>
+   214	                                                            {new Date(doc.uploaded_at).toLocaleDateString()}
+   215	                                                        </span>
+   216	                                                    </div>
+   217	                                                    <Show when={doc.description}>
+   218	                                                        <p class="text-sm text-gray-600 mt-2">{doc.description}</p>
+   219	                                                    </Show>
+   220	                                                </div>
+   221	                                            </div>
+   222	                                        </div>
+   223	                                        <div class="flex items-center gap-2">
+   224	                                            <Show when={doc.file_type.includes('pdf')}>
+   225	                                                <button
+   226	                                                    onClick={() => extractImages(doc)}
+   227	                                                    disabled={extracting() === doc.id}
+   228	                                                    class="btn btn-secondary text-sm"
+   229	                                                    title="Extract images from PDF"
+   230	                                                >
+   231	                                                    {extracting() === doc.id ? 'Extracting...' : '🔍 Extract Images'}
+   232	                                                </button>
+   233	                                                <button
+   234	                                                    onClick={() => parseWithClaude(doc)}
+   235	                                                    disabled={parsing() === doc.id}
+   236	                                                    class="btn btn-primary text-sm"
+   237	                                                    title="Parse with Claude AI"
+   238	                                                >
+   239	                                                    {parsing() === doc.id ? 'Parsing...' : '🤖 Parse with Claude'}
+   240	                                                </button>
+   241	                                            </Show>
+   242	                                            <button
+   243	                                                onClick={() => toggleImages(doc.id)}
+   244	                                                class="btn btn-outline text-sm"
+   245	                                                title="View extracted images"
+   246	                                            >
+   247	                                                📷 Images
+   248	                                            </button>
+   249	                                            <button
+   250	                                                onClick={() => downloadDocument(doc)}
+   251	                                                class="btn btn-outline text-sm"
+   252	                                                title="Download document"
+   253	                                            >
+   254	                                                ⬇️ Download
+   255	                                            </button>
+   256	                                            <button
+   257	                                                onClick={() => deleteDocument(doc)}
+   258	                                                class="btn btn-danger text-sm"
+   259	                                                title="Delete document"
+   260	                                            >
+   261	                                                🗑️ Delete
+   262	                                            </button>
+   263	                                        </div>
+   264	                                    </div>
+   265
+   266	                                    {/* Images Section */}
+   267	                                    <Show when={selectedDocId() === doc.id}>
+   268	                                        <div class="mt-4 pt-4 border-t border-gray-200">
+   269	                                            <h4 class="font-semibold mb-3">Extracted Images</h4>
+   270	                                            <Show
+   271	                                                when={!images.loading}
+   272	                                                fallback={<div class="text-sm text-gray-500">Loading images...</div>}
+   273	                                            >
+   274	                                                <Show
+   275	                                                    when={images() && images()!.length > 0}
+   276	                                                    fallback={
+   277	                                                        <div class="text-sm text-gray-500">
+   278	                                                            No images extracted yet.
+   279	                                                            {doc.file_type.includes('pdf') && ' Click "Extract Images" to extract from PDF.'}
+   280	                                                        </div>
+   281	                                                    }
+   282	                                                >
+   283	                                                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+   284	                                                        <For each={images()}>
+   285	                                                            {(image) => (
+   286	                                                                <div class="border border-gray-200 rounded-lg p-2 hover:shadow-md transition-shadow">
+   287	                                                                    <Show
+   288	                                                                        when={image.signed_url}
+   289	                                                                        fallback={
+   290	                                                                            <div class="aspect-square bg-gray-100 rounded flex items-center justify-center">
+   291	                                                                                <span class="text-gray-400">No preview</span>
+   292	                                                                            </div>
+   293	                                                                        }
+   294	                                                                    >
+   295	                                                                        <img
+   296	                                                                            src={image.signed_url!}
+   297	                                                                            alt={image.caption || `Page ${image.page_number}`}
+   298	                                                                            class="w-full aspect-square object-cover rounded"
+   299	                                                                            loading="lazy"
+   300	                                                                        />
+   301	                                                                    </Show>
+   302	                                                                    <div class="mt-2 text-xs text-gray-600">
+   303	                                                                        <Show when={image.page_number}>
+   304	                                                                            <div>Page {image.page_number}</div>
+   305	                                                                        </Show>
+   306	                                                                        <Show when={image.metadata?.width && image.metadata?.height}>
+   307	                                                                            <div>
+   308	                                                                                {image.metadata!.width}×{image.metadata!.height}
+   309	                                                                            </div>
+   310	                                                                        </Show>
+   311	                                                                    </div>
+   312	                                                                </div>
+   313	                                                            )}
+   314	                                                        </For>
+   315	                                                    </div>
+   316	                                                </Show>
+   317	                                            </Show>
+   318	                                        </div>
+   319	                                    </Show>
+   320	                                </div>
+   321	                            )}
+   322	                        </For>
+   323	                    </div>
+   324	                </Show>
+   325	            </Show>
+   326
+   327	            {/* Parsed Results Modal/Section */}
+   328	            <Show when={parsedResult()}>
+   329	                {(result) => (
+   330	                    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+   331	                        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+   332	                            <div class="p-4 border-b flex items-center justify-between">
+   333	                                <h2 class="text-xl font-bold">Claude AI Parsing Results</h2>
+   334	                                <button
+   335	                                    onClick={() => setParsedResult(null)}
+   336	                                    class="text-gray-500 hover:text-gray-700 text-2xl"
+   337	                                >
+   338	                                    &times;
+   339	                                </button>
+   340	                            </div>
+   341	                            <div class="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+   342	                                {/* Summary */}
+   343	                                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+   344	                                    <h3 class="font-semibold text-green-800 mb-2">Summary</h3>
+   345	                                    <div class="grid grid-cols-3 gap-4 text-sm">
+   346	                                        <div>
+   347	                                            <span class="text-gray-600">Units Found:</span>
+   348	                                            <span class="font-bold ml-2">{result().summary?.units_count ?? result().parsed?.units?.length ?? 0}</span>
+   349	                                        </div>
+   350	                                        <div>
+   351	                                            <span class="text-gray-600">Total Baseboard:</span>
+   352	                                            <span class="font-bold ml-2">{result().summary?.total_baseboard_ft ?? result().parsed?.total_baseboard_ft ?? 0} ft</span>
+   353	                                        </div>
+   354	                                        <div>
+   355	                                            <span class="text-gray-600">Trades:</span>
+   356	                                            <span class="font-bold ml-2">{result().summary?.trades?.length ?? 0}</span>
+   357	                                        </div>
+   358	                                    </div>
+   359	                                </div>
+   360
+   361	                                {/* Trades */}
+   362	                                <Show when={(result().summary?.trades?.length ?? 0) > 0}>
+   363	                                    <div class="mb-4">
+   364	                                        <h3 class="font-semibold mb-2">Trades Identified</h3>
+   365	                                        <div class="flex flex-wrap gap-2">
+   366	                                            <For each={result().summary?.trades ?? []}>
+   367	                                                {(trade) => (
+   368	                                                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+   369	                                                        {trade}
+   370	                                                    </span>
+   371	                                                )}
+   372	                                            </For>
+   373	                                        </div>
+   374	                                    </div>
+   375	                                </Show>
+   376
+   377	                                {/* Units */}
+   378	                                <Show when={(result().parsed?.units?.length ?? 0) > 0}>
+   379	                                    <div class="mb-4">
+   380	                                        <h3 class="font-semibold mb-2">Units ({result().parsed?.units?.length ?? 0})</h3>
+   381	                                        <div class="space-y-3">
+   382	                                            <For each={result().parsed?.units ?? []}>
+   383	                                                {(unit) => (
+   384	                                                    <div class="border border-gray-200 rounded-lg p-3">
+   385	                                                        <div class="flex items-center justify-between mb-2">
+   386	                                                            <span class="font-semibold">Unit {unit.unit_number}</span>
+   387	                                                            <span class="text-sm text-gray-500">{unit.unit_type}</span>
+   388	                                                        </div>
+   389	                                                        <div class="grid grid-cols-4 gap-2 text-sm text-gray-600">
+   390	                                                            <div>Floor: {unit.floor ?? '-'}</div>
+   391	                                                            <div>Beds: {unit.bedrooms ?? '-'}</div>
+   392	                                                            <div>Baths: {unit.bathrooms ?? '-'}</div>
+   393	                                                            <div>Area: {unit.area_sf ?? '-'} sf</div>
+   394	                                                        </div>
+   395	                                                        <Show when={(unit.rooms?.length ?? 0) > 0}>
+   396	                                                            <div class="mt-2 text-sm">
+   397	                                                                <span class="text-gray-500">Rooms: </span>
+   398	                                                                {(unit.rooms ?? []).map(r => r.name).join(', ')}
+   399	                                                            </div>
+   400	                                                            <div class="text-sm text-blue-600">
+   401	                                                                Total Baseboard: {(unit.rooms ?? []).reduce((sum, r) => sum + (r.baseboard_length_ft ?? r.baseboard_ft ?? 0), 0).toFixed(1)} ft
+   402	                                                            </div>
+   403	                                                        </Show>
+   404	                                                        <Show when={(unit.upgrades?.length ?? 0) > 0}>
+   405	                                                            <div class="mt-2 text-sm text-gray-500">
+   406	                                                                Upgrades: {unit.upgrades?.length ?? 0} items
+   407	                                                            </div>
+   408	                                                        </Show>
+   409	                                                    </div>
+   410	                                                )}
+   411	                                            </For>
+   412	                                        </div>
+   413	                                    </div>
+   414	                                </Show>
+   415
+   416	                                {/* General Notes */}
+   417	                                <Show when={(result().parsed?.general_notes?.length ?? 0) > 0}>
+   418	                                    <div class="mb-4">
+   419	                                        <h3 class="font-semibold mb-2">General Notes</h3>
+   420	                                        <ul class="list-disc list-inside text-sm text-gray-600">
+   421	                                            <For each={result().parsed?.general_notes ?? []}>
+   422	                                                {(note) => <li>{note}</li>}
+   423	                                            </For>
+   424	                                        </ul>
+   425	                                    </div>
+   426	                                </Show>
+   427
+   428	                                {/* Raw Response (collapsible) */}
+   429	                                <details class="mt-4">
+   430	                                    <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+   431	                                        View Raw Response
+   432	                                    </summary>
+   433	                                    <pre class="mt-2 p-4 bg-gray-100 rounded text-xs overflow-x-auto">
+   434	                                        {result().parsed.raw_text || JSON.stringify(result().parsed, null, 2)}
+   435	                                    </pre>
+   436	                                </details>
+   437	                            </div>
+   438	                            <div class="p-4 border-t bg-gray-50">
+   439	                                <button
+   440	                                    onClick={() => setParsedResult(null)}
+   441	                                    class="btn btn-secondary"
+   442	                                >
+   443	                                    Close
+   444	                                </button>
+   445	                            </div>
+   446	                        </div>
+   447	                    </div>
+   448	                )}
+   449	            </Show>
+   450	        </div>
+   451	    );
+   452	};
+   453
+   454	export default ProjectDocuments;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

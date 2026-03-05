@@ -1,0 +1,21 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/a2a/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@anthropic-ai+sdk@0.72.1_zod@3.25.76/node_modules/@anthropic-ai/sdk/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@anthropic-ai+sdk@0.72.1_zod@3.25.76/node_modules/@anthropic-ai/sdk/src/core/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@anthropic-ai+sdk@0.72.1_zod@3.25.76/node_modules/@anthropic-ai/sdk/src/internal/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@anthropic-ai+sdk@0.72.1_zod@3.25.76/node_modules/@anthropic-ai/sdk/src/_vendor/partial-json-parser/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@asteasolutions+zod-to-openapi@8.4.0_zod@3.23.8/node_modules/@asteasolutions/zod-to-openapi/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@asteasolutions+zod-to-openapi@8.4.0_zod@3.25.76/node_modules/@asteasolutions/zod-to-openapi/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+code-frame@7.27.1/node_modules/@babel/code-frame/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+compat-data@7.28.5/node_modules/@babel/compat-data/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+core@7.28.5/node_modules/@babel/core/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+generator@7.28.5/node_modules/@babel/generator/README.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+helper-compilation-targets@7.27.2/node_modules/@babel/helper-compilation-targets/README.md
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

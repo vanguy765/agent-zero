@@ -1,0 +1,259 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===== prompts.py =====
+# Prompt Templates for Architectural PDF Extraction
+
+# 1. Floor Plan Data Extraction
+FLOORPLAN_PROMPT = """
+You are a highly capable architectural estimation AI. You are viewing an isolated Architectural Floor Plan.
+Carefully analyze the drawing and extract the exact counts and dimensions for the following properties.
+
+Output Format (STRICT JSON):
+{
+  "room_names": ["Kitchen", "Primary Bath", "Living Room", ...],
+  "total_area": <float, total square footage of the unit shown>,
+  "total_wall_perimeter": <float, total linear feet of wall shown in the unit>,
+  "kitchen_area": <float, square footage of kitchen>,
+  "kitchen_perimeter": <float, linear feet of kitchen walls>,
+  "bathroom_area": <float, square footage of bathroom (sum if multiple)>,
+  "bathroom_perimeter": <float, linear feet of bathroom walls (sum if multiple)>,
+  "window_count": <integer, total number of exterior windows>,
+  "interior_door_count": <integer, standard interior swinging doors>,
+  "sliding_door_count": <integer, exterior sliding glass doors or large sliding closet doors>,
+  "bifold_door_count": <integer, folding closet doors>
+}
+
+Rules:
+- Respond ONLY with the JSON. Do not include markdown formatting or conversational text.
+- If a value is not explicitly written or cannot be reasonably inferred from visually marked dimensions, put 0.
+- If multiple bathrooms exist, sum their area and perimeter.
+"""
+
+# 2. Site Photo / General Image Classification
+PHOTO_PROMPT = """
+You are an architectural construction AI evaluating a site photo or miscellaneous drawing pulled from an architectural packet.
+
+Output Format (STRICT JSON):
+{
+  "image_type": "Site Photo" | "Render" | "Diagram" | "Unknown",
+  "description": "Brief 1-sentence description of what this image shows (e.g., 'A photo of the existing kitchen layout prior to demolition.')"
+}
+
+Rules:
+- Respond ONLY with the JSON.
+"""
+
+# 3. Table Extraction (Schedules, BOMs)
+TABLE_PROMPT = """
+You are a precise data extraction AI. Analyze the provided image and extract all tabular data.
+Architectural drawings often contain "Schedules" (Door Schedule, Window Schedule, Finish Schedule).
+
+If you are provided with raw CSV context, use it to accurately map the data shown in the image.
+
+Output Format (STRICT JSON):
+{
+  "tables": [
+    {
+      "title": "Table Title or inferred type",
+      "markdown": "| Header 1 | ... \\n|--- | ...",
+      "data": [
+        {"col1": "val1", ...}
+      ]
+    }
+  ]
+}
+"""
+
+===== filter_floorplans.py =====
+import os
+import cv2
+import numpy as np
+import pytesseract
+
+def is_black_and_white(img_path):
+    """
+    Returns True if an image is purely black/white/grayscale.
+    If it's a real photograph, it will have R/G/B variance.
+    """
+    img = cv2.imread(img_path)
+    if img is None:
+        return False
+        
+    # Some images might be loaded as 1-channel grayscale directly
+    if len(img.shape) < 3:
+        return True
+        
+    b, g, r = cv2.split(img)
+    
+    # Calculate difference between color channels.
+    # A true grayscale/B&W image has identical R, G, and B values.
+    # Therefore, the absolute difference between them should be near 0.
+    diff = np.mean(np.abs(b - g)) + np.mean(np.abs(g - r))
+    
+    # Allow a tiny bit of compression noise margin
+    return diff < 2.0
+
+def has_sufficient_text(img_path, min_words=3):
+    """
+    Uses Tesseract OCR to quickly scan an image for text.
+    Floorplans have room names/dimensions. Blank boxes do not.
+    """
+    img = cv2.imread(img_path)
+    if img is None:
+        return False
+        
+    # Convert to grayscale for OCR
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    # Extract text block
+    text = pytesseract.image_to_string(gray)
+    word_count = len(text.split())
+    
+    return word_count >= min_words
+
+def filter_images(base_dir="structured_output"):
+    """
+    Walks through all page folders. Identifies 'floorplans' vs 'junk/photos'.
+    """
+    floorplans_found = 0
+    
+    print(f"Scanning {base_dir} for Floorplans...")
+    
+    for page_folder in os.listdir(base_dir):
+        page_path = os.path.join(base_dir, page_folder)
+        if not os.path.isdir(page_path) or not page_folder.startswith("page_"):
+            continue
+            
+        for file in os.listdir(page_path):
+            if file.startswith("picture_") and file.endswith(".png"):
+                img_path = os.path.join(page_path, file)
+                
+                # Check 1: Is it Black and White? (Filters out site photos)
+                if not is_black_and_white(img_path):
+                    # print(f"Skipping {page_folder}/{file} - Color photo detected.")
+                    continue
+                    
+                # Check 2: Does it have text? (Filters out empty boxes/logos)
+                if not has_sufficient_text(img_path):
+                    # print(f"Skipping {page_folder}/{file} - No text detected.")
+                    continue
+                    
+                print(f"✅ Found Floorplan: {page_folder}/{file}")
+                floorplans_found += 1
+                
+    print(f"\nTotal Floorplans Discovered: {floorplans_found}")
+
+if __name__ == "__main__":
+    filter_images()
+
+===== process_document.py =====
+import os
+import requests
+import time
+import base64
+import json
+import argparse
+import shutil
+from io import BytesIO
+from PIL import Image
+
+def compress_and_save_b64_image(b64_str, output_path):
+    """Saves a Base64 image to disk, compressing it to save space."""
+    img_data = base64.b64decode(b64_str)
+    try:
+        img = Image.open(BytesIO(img_data))
+        # Convert to RGB to safely save as highly-compressed JPEG
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+        img.save(output_path, "JPEG", optimize=True, quality=80)
+    except Exception as e:
+        print(f"Compression failed for {output_path}: {e}")
+        # Fallback to uncompressed
+        with open(output_path, "wb") as f:
+            f.write(img_data)
+
+def main():
+    parser = argparse.ArgumentParser(description="Process document and mock Supabase storage.")
+    parser.add_argument("--pdf", default="demo.pdf", help="Path to PDF file")
+    parser.add_argument("--tenant", required=False, default="demo_tenant", help="Tenant Name")
+    parser.add_argument("--project", required=False, default="demo_project", help="Project Name")
+    parser.add_argument("--supabase-url", required=False, help="Supabase URL for direct upload")
+    parser.add_argument("--supabase-key", required=False, help="Supabase Service Key for direct upload")
+    args = parser.parse_args()
+
+    API_URL = "http://localhost:5000/parse/docling"
+    PDF_FILE = args.pdf
+    
+    # Mock Supabase Bucket Path
+    OUTPUT_DIR = f"mock_supabase/storage/tenants/{args.tenant}/project/{args.project}/originals/pdf/parsed"
+
+    # Clean up old structure if it exists
+    if os.path.exists("structured_output"):
+        print("Cleaning up old 'structured_output' directory...")
+        shutil.rmtree("structured_output")
+
+    print(f"Sending {PDF_FILE} to Docling endpoint (this parses the entire document)...")
+    start_time = time.time()
+
+    if not os.path.exists(PDF_FILE):
+        print(f"Error: PDF file '{PDF_FILE}' not found.")
+        return
+
+    with open(PDF_FILE, 'rb') as f:
+        files = {'file': f}
+        data = {
+            'type': 'text',
+            'tenant_name': args.tenant,
+            'project_name': args.project
+        }
+        if args.supabase_url and args.supabase_key:
+            data['supabase_url'] = args.supabase_url
+            data['supabase_key'] = args.supabase_key
+            
+        print(f"Sending request data: tenant={args.tenant}, project={args.project}")
+        response = requests.post(API_URL, files=files, data=data)
+
+    if response.status_code == 200:
+        job_data = response.json()
+        job_id = job_data.get("job_id")
+        print(f"Job started with ID: {job_id}. Polling for completion...")
+        
+        result = {}
+        while True:
+            time.sleep(15)  # Wait 15 seconds between polls
+            status_url = f"http://localhost:5000/status/{job_id}"
+            try:
+                status_resp = requests.get(status_url)
+                if status_resp.status_code == 200:
+                    job_status = status_resp.json()
+                    status = job_status.get("status")
+                    if status == "completed":
+                        result = job_status.get("result", {})
+                        break
+                    elif status == "failed":
+                        print(f"Job failed: {job_status.get('error')}")
+                        return
+                    else:
+                        print(f"Job status: {status}... waiting")
+                else:
+                    print(f"Error checking status: {status_resp.status_code} - {status_resp.text}")
+                    return
+            except Exception as e:
+                print(f"Connection error while polling: {e}")
+                return
+
+        elapsed = time.time() - start_time
+        print(f"\\nSuccessfully processed in {elapsed:.2f}s")
+        
+        # Result no longer contains heavy base64 strings if supabase was used,
+        # it just contains the bucket object paths!
+        print("\\n=== API RESULT ===")
+        print(json.dumps(result, indent=2))
+        print("==================\\n")
+        print("Note: If you provided Supabase credentials, the values above are Remote Bucket Paths.")
+        print("No files were saved locally.")
+        
+    else:
+        print(f"Error {response.status_code}: {response.text}")
+
+if __name__ == "__main__":
+    main()
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

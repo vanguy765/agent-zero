@@ -1,0 +1,993 @@
+========== DETECTION.PY ==========
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# """Floorplan detection utilities for doc-parser service.
+
+Priority 2: Replace B&W-only heuristic with robust architectural drawing detection.
+- Canny edge-density detection (supports color drawings)
+- Architectural text pattern recognition
+- Multi-candidate extraction (no one-per-page limit)
+"""
+import re
+import logging
+from typing import List, Tuple, Optional
+from io import BytesIO
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+
+try:
+    import cv2
+    HAS_CV2 = True
+except ImportError:
+    HAS_CV2 = False
+
+try:
+    import pytesseract
+    HAS_TESSERACT = True
+except ImportError:
+    HAS_TESSERACT = False
+
+from PIL import Image
+
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# Architectural dimension patterns
+# ============================================================
+
+# Matches: 12\'-6", 12\'-6, 12\'6", 10\' x 12\', 3660mm, 3.5m, 10\'-0"
+DIMENSION_PATTERNS = [
+    r"\d+\'\s*-?\s*\d+\s*\"",          # 12\'-6"
+    r"\d+\'\s*-?\s*\d+",               # 12\'-6 or 12-6
+    r"\d+\'\s*x\s*\d+\'",              # 10\' x 12\'
+    r"\d+\.\d+\s*m\b",                 # 3.5m
+    r"\d{3,5}\s*mm\b",                 # 3660mm
+    r"\d+\'-\d+\"\s*x\s*\d+\'-\d+\"", # 12\'-6" x 10\'-0"
+    r"\d+\s*ft\.?\s*\d*\s*in\.?",      # 12 ft 6 in
+]
+
+DIMENSION_REGEX = re.compile("|".join(DIMENSION_PATTERNS), re.IGNORECASE)
+
+# Architectural room/space labels
+ARCH_LABELS = [
+    "bedroom", "kitchen", "bathroom", "bath", "living", "dining",
+    "closet", "hallway", "entry", "foyer", "laundry", "utility",
+    "master", "garage", "patio", "balcony", "deck", "porch",
+    "den", "study", "office", "pantry", "mudroom", "vestibule",
+    "mechanical", "storage", "w.i.c", "wic", "w/d", "ref",
+    "dw", "oven", "range", "shower", "tub", "lav", "wh",
+]
+
+ARCH_LABEL_REGEX = re.compile(
+    r"\b(" + "|".join(ARCH_LABELS) + r")\b", re.IGNORECASE
+)
+
+# Scale notations
+SCALE_PATTERNS = [
+    r"scale\s*[:=]?\s*\d+",
+    r"1/\d+\"\s*=\s*1\'-0\"",
+    r"\d+\"\s*=\s*\d+\'-\d+\"",
+    r"1:\d+",
+    r"NTS",  # Not To Scale
+]
+
+SCALE_REGEX = re.compile("|".join(SCALE_PATTERNS), re.IGNORECASE)
+
+
+# ============================================================
+# Core Detection Functions
+# ============================================================
+
+def is_architectural_drawing(pil_image: Image.Image, edge_threshold: float = 0.04) -> bool:
+    """Detect if an image is an architectural drawing using Canny edge density.
+
+    Replaces the old is_black_and_white_pil() check (diff < 2.0) which
+    missed color-coded architectural drawings (blue=plumbing, red=electrical).
+
+    Args:
+        pil_image: PIL Image to analyze
+        edge_threshold: Minimum edge pixel ratio (default 0.04 = 4%)
+
+    Returns:
+        True if image has characteristics of an architectural drawing
+    """
+    if not HAS_NUMPY or not HAS_CV2:
+        # Fallback to legacy B&W check if OpenCV not available
+        return _legacy_bw_check(pil_image)
+
+    try:
+        # Convert to grayscale numpy array
+        img_gray = pil_image.convert("L")
+        img_array = np.array(img_gray)
+
+        # Skip very small images (likely icons or artifacts)
+        if img_array.shape[0] < 100 or img_array.shape[1] < 100:
+            return False
+
+        # Apply Gaussian blur to reduce noise
+        blurred = cv2.GaussianBlur(img_array, (5, 5), 0)
+
+        # Canny edge detection
+        edges = cv2.Canny(blurred, 50, 150)
+
+        # Calculate edge density ratio
+        total_pixels = edges.shape[0] * edges.shape[1]
+        edge_pixels = np.count_nonzero(edges)
+        edge_ratio = edge_pixels / total_pixels
+
+        # Architectural drawings have structured line work
+        # Typical range: 0.04 - 0.25 for floorplans
+        # Photos: < 0.03 (soft gradients, few hard edges)
+        # Text-heavy pages: 0.02 - 0.06 (but different line structure)
+        if edge_ratio < edge_threshold:
+            return False
+
+        # Additional check: line structure analysis
+        # Architectural drawings have many long straight lines
+        # Use Hough Line Transform to detect this
+        lines = cv2.HoughLinesP(
+            edges, 1, np.pi / 180,
+            threshold=50,
+            minLineLength=30,
+            maxLineGap=10
+        )
+
+        if lines is None:
+            return edge_ratio > edge_threshold * 1.5  # Higher bar without lines
+
+        # Count significant lines (architectural drawings have many)
+        line_count = len(lines)
+
+        # Architectural drawings typically have 20+ significant lines
+        # Combined with edge density, this filters out photos and text pages
+        return edge_ratio >= edge_threshold and line_count >= 15
+
+    except Exception as e:
+        logger.warning(f"Edge detection failed, using fallback: {e}")
+        return _legacy_bw_check(pil_image)
+
+
+def has_architectural_text(pil_image: Image.Image) -> bool:
+    """Enhanced text detection checking for architectural annotations.
+
+    Replaces has_sufficient_text_pil() with pattern-aware detection:
+    - Dimension patterns (12\'-6", 3.5m)
+    - Room labels (BEDROOM, KITCHEN)
+    - Scale notations (1/4" = 1\'-0")
+
+    Args:
+        pil_image: PIL Image to analyze
+
+    Returns:
+        True if architectural text patterns are found
+    """
+    if not HAS_TESSERACT:
+        # If Tesseract unavailable, be permissive
+        logger.warning("Tesseract not available, skipping text check")
+        return True
+
+    try:
+        # Run OCR
+        text = pytesseract.image_to_string(
+            pil_image,
+            config="--psm 6 --oem 3",  # Assume uniform block of text
+            timeout=15
+        )
+
+        if not text or len(text.strip()) < 10:
+            return False
+
+        text_upper = text.upper()
+
+        # Check for dimension patterns
+        dimension_matches = DIMENSION_REGEX.findall(text)
+        has_dimensions = len(dimension_matches) >= 1
+
+        # Check for architectural labels
+        label_matches = ARCH_LABEL_REGEX.findall(text_upper)
+        has_labels = len(label_matches) >= 2  # At least 2 room labels
+
+        # Check for scale notation
+        scale_matches = SCALE_REGEX.findall(text)
+        has_scale = len(scale_matches) >= 1
+
+        # Score-based decision
+        score = 0
+        if has_dimensions:
+            score += 3  # Strong signal
+        if has_labels:
+            score += 2  # Good signal
+        if has_scale:
+            score += 2  # Good signal
+        if len(text.strip()) > 50:
+            score += 1  # Some text present
+
+        # Need at least score of 3 to qualify
+        # (dimensions alone, or labels + scale, or labels + text, etc.)
+        return score >= 3
+
+    except Exception as e:
+        logger.warning(f"OCR text detection failed: {e}")
+        # On failure, be permissive to avoid data loss
+        return True
+
+
+def classify_image(pil_image: Image.Image) -> str:
+    """Comprehensive image classifier for architectural document pages.
+
+    Returns:
+        One of: "floorplan", "site_photo", "diagram", "table", "title_block", "unknown"
+    """
+    if not HAS_NUMPY or not HAS_CV2:
+        # Without CV2, can only do basic classification
+        if _has_photo_characteristics(pil_image):
+            return "site_photo"
+        return "unknown"
+
+    try:
+        img_array = np.array(pil_image.convert("RGB"))
+        img_gray = np.array(pil_image.convert("L"))
+
+        # ---- Check if it's a photograph ----
+        # Photos have smooth gradients and high color variance
+        if _has_photo_characteristics(pil_image):
+            return "site_photo"
+
+        # ---- Check if it's an architectural drawing ----
+        if is_architectural_drawing(pil_image) and has_architectural_text(pil_image):
+            return "floorplan"
+
+        # ---- Check if it's a table ----
+        # Tables have regular grid patterns
+        if _has_table_structure(img_gray):
+            return "table"
+
+        # ---- Check if it's a diagram ----
+        # Diagrams have line work but lack room labels
+        if is_architectural_drawing(pil_image) and not has_architectural_text(pil_image):
+            return "diagram"
+
+        # ---- Check for title block ----
+        if _is_title_block(pil_image):
+            return "title_block"
+
+        return "unknown"
+
+    except Exception as e:
+        logger.warning(f"Image classification failed: {e}")
+        return "unknown"
+
+
+def extract_floorplan_candidates(
+    images_with_pages: List[Tuple[int, Image.Image]]
+) -> List[Tuple[int, Image.Image]]:
+    """Extract ALL floorplan candidates from page images.
+
+    NO one-per-page limit - processes all candidates per page.
+    This fixes the has_valid_floorplan guard that previously
+    stopped after finding one floorplan per page.
+
+    Args:
+        images_with_pages: List of (page_number, pil_image) tuples
+
+    Returns:
+        List of (page_number, pil_image) tuples for all floorplan candidates
+    """
+    candidates = []
+
+    for page_no, pil_image in images_with_pages:
+        try:
+            if is_architectural_drawing(pil_image) and has_architectural_text(pil_image):
+                candidates.append((page_no, pil_image))
+                logger.info(
+                    f"Page {page_no}: Floorplan candidate detected "
+                    f"({pil_image.size[0]}x{pil_image.size[1]})"
+                )
+            else:
+                classification = classify_image(pil_image)
+                logger.debug(f"Page {page_no}: Classified as {classification}")
+        except Exception as e:
+            logger.warning(f"Page {page_no}: Classification failed: {e}")
+            # On failure, include as candidate to prevent data loss
+            candidates.append((page_no, pil_image))
+
+    logger.info(f"Found {len(candidates)} floorplan candidates across {len(images_with_pages)} images")
+    return candidates
+
+
+# ============================================================
+# Helper Functions
+# ============================================================
+
+def _legacy_bw_check(pil_image: Image.Image) -> bool:
+    """Legacy black-and-white check (fallback when OpenCV unavailable).
+
+    Original logic: checks if color channel variance is low.
+    Kept for backward compatibility but NOT recommended.
+    """
+    try:
+        img_rgb = pil_image.convert("RGB")
+        if not HAS_NUMPY:
+            # Very basic fallback
+            return True
+
+        img_array = np.array(img_rgb)
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        # Calculate mean absolute difference between channels
+        rg_diff = np.mean(np.abs(r.astype(float) - g.astype(float)))
+        rb_diff = np.mean(np.abs(r.astype(float) - b.astype(float)))
+        gb_diff = np.mean(np.abs(g.astype(float) - b.astype(float)))
+
+        avg_diff = (rg_diff + rb_diff + gb_diff) / 3.0
+
+        # Original threshold was 2.0 (too strict)
+        # Relaxed to 15.0 to catch lightly colored drawings
+        return avg_diff < 15.0
+
+    except Exception:
+        return True
+
+
+def _has_photo_characteristics(pil_image: Image.Image) -> bool:
+    """Detect if image is a photograph (vs. a drawing).
+
+    Photos have:
+    - High color variance (many unique colors)
+    - Smooth gradients (low edge density)
+    - Natural color distribution
+    """
+    try:
+        img_rgb = pil_image.convert("RGB")
+
+        if not HAS_NUMPY:
+            # Basic check: count unique colors
+            colors = img_rgb.getcolors(maxcolors=10000)
+            if colors is None:  # More than 10000 unique colors = likely photo
+                return True
+            return False
+
+        img_array = np.array(img_rgb)
+
+        # Check color variance
+        # Photos have high standard deviation across color channels
+        std_r = np.std(img_array[:, :, 0])
+        std_g = np.std(img_array[:, :, 1])
+        std_b = np.std(img_array[:, :, 2])
+        avg_std = (std_r + std_g + std_b) / 3.0
+
+        # High color variance + high inter-channel difference = photo
+        r_mean = np.mean(img_array[:, :, 0])
+        g_mean = np.mean(img_array[:, :, 1])
+        b_mean = np.mean(img_array[:, :, 2])
+
+        channel_spread = max(r_mean, g_mean, b_mean) - min(r_mean, g_mean, b_mean)
+
+        # Photos: avg_std > 40, channel_spread > 10
+        # Drawings: avg_std < 30, channel_spread < 5 (mostly B&W or single color)
+        return avg_std > 45 and channel_spread > 15
+
+    except Exception:
+        return False
+
+
+def _has_table_structure(img_gray) -> bool:
+    """Detect if image contains a table/grid structure."""
+    if not HAS_CV2 or not HAS_NUMPY:
+        return False
+
+    try:
+        # Detect horizontal and vertical lines
+        # Tables have regular grid patterns
+        edges = cv2.Canny(img_gray, 50, 150)
+
+        # Detect horizontal lines
+        horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+        horizontal = cv2.morphologyEx(edges, cv2.MORPH_OPEN, horizontal_kernel)
+        h_lines = np.count_nonzero(horizontal)
+
+        # Detect vertical lines
+        vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
+        vertical = cv2.morphologyEx(edges, cv2.MORPH_OPEN, vertical_kernel)
+        v_lines = np.count_nonzero(vertical)
+
+        total_pixels = img_gray.shape[0] * img_gray.shape[1]
+
+        # Tables have significant horizontal AND vertical line presence
+        h_ratio = h_lines / total_pixels
+        v_ratio = v_lines / total_pixels
+
+        return h_ratio > 0.005 and v_ratio > 0.005
+
+    except Exception:
+        return False
+
+
+def _is_title_block(pil_image: Image.Image) -> bool:
+    """Detect if image is a title block."""
+    if not HAS_TESSERACT:
+        return False
+
+    try:
+        text = pytesseract.image_to_string(pil_image, timeout=10)
+        text_upper = text.upper()
+
+        title_keywords = [
+            "PROJECT NO", "DRAWN BY", "CHECKED BY", "SCALE",
+            "SHEET NO", "DATE", "REVISION", "ARCHITECT",
+            "DRAWING NO", "APPROVED", "ISSUED FOR",
+        ]
+
+        matches = sum(1 for kw in title_keywords if kw in text_upper)
+        return matches >= 3
+
+    except Exception:
+        return False
+
+
+def image_to_base64(pil_image: Image.Image, format: str = "PNG") -> str:
+    """Convert PIL Image to base64 string."""
+    import base64
+    buffered = BytesIO()
+    pil_image.save(buffered, format=format)
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ========== JOB_MANAGER.PY ==========
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# """Job management for doc-parser service.
+
+Priority 3: Granular progress tracking with phase/page/step updates
+Priority 4: Persistent storage, separate status/results endpoints, TTL cleanup,
+            race condition fix (POST returns "queued" not "processing")
+
+Supports two backends:
+- InMemoryJobStore: Default, for development/single-instance
+- SupabaseJobStore: Production, for persistence across restarts
+"""
+import json
+import asyncio
+import logging
+from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any
+
+from models import (
+    JobRecord, JobStatus, JobProgress, ProcessingPhase, EngineType,
+    StatusResponse, ResultSummary
+)
+
+logger = logging.getLogger(__name__)
+
+# Default TTL for job records and results
+DEFAULT_TTL_HOURS = 2
+# Hard timeout for background processing
+PROCESSING_TIMEOUT_SECONDS = 1800  # 30 minutes
+
+
+# ============================================================
+# Abstract Job Store Interface
+# ============================================================
+
+class JobStore(ABC):
+    """Abstract interface for job persistence."""
+
+    @abstractmethod
+    async def create_job(self, job: JobRecord) -> str:
+        """Create a new job record. Returns job_id."""
+        ...
+
+    @abstractmethod
+    async def get_job(self, job_id: str) -> Optional[JobRecord]:
+        """Get job record by ID (without result data)."""
+        ...
+
+    @abstractmethod
+    async def update_job(self, job_id: str, **kwargs) -> None:
+        """Update job fields."""
+        ...
+
+    @abstractmethod
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get full result data for a completed job."""
+        ...
+
+    @abstractmethod
+    async def store_result(self, job_id: str, result: Dict[str, Any]) -> None:
+        """Store result data for a job."""
+        ...
+
+    @abstractmethod
+    async def delete_expired(self) -> int:
+        """Delete expired jobs and their results. Returns count deleted."""
+        ...
+
+    @abstractmethod
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        """List jobs, optionally filtered by status."""
+        ...
+
+
+# ============================================================
+# In-Memory Job Store (Development)
+# ============================================================
+
+class InMemoryJobStore(JobStore):
+    """In-memory job storage for development and single-instance deployments.
+
+    WARNING: All data lost on restart. Use SupabaseJobStore for production.
+    """
+
+    def __init__(self):
+        self._jobs: Dict[str, JobRecord] = {}
+        self._results: Dict[str, Dict[str, Any]] = {}
+
+    async def create_job(self, job: JobRecord) -> str:
+        self._jobs[job.job_id] = job
+        logger.info(f"Job created: {job.job_id} (engine={job.engine}, file={job.file_name})")
+        return job.job_id
+
+    async def get_job(self, job_id: str) -> Optional[JobRecord]:
+        return self._jobs.get(job_id)
+
+    async def update_job(self, job_id: str, **kwargs) -> None:
+        job = self._jobs.get(job_id)
+        if not job:
+            logger.warning(f"Job not found for update: {job_id}")
+            return
+        for key, value in kwargs.items():
+            if hasattr(job, key):
+                setattr(job, key, value)
+        job.touch()
+
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        return self._results.get(job_id)
+
+    async def store_result(self, job_id: str, result: Dict[str, Any]) -> None:
+        self._results[job_id] = result
+        logger.info(f"Result stored for job: {job_id}")
+
+    async def delete_expired(self) -> int:
+        now = datetime.utcnow()
+        expired = [
+            jid for jid, job in self._jobs.items()
+            if job.expires_at and job.expires_at < now
+            and job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.TIMEOUT)
+        ]
+        for jid in expired:
+            del self._jobs[jid]
+            self._results.pop(jid, None)
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired jobs")
+        return len(expired)
+
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        jobs = list(self._jobs.values())
+        if status:
+            jobs = [j for j in jobs if j.status == status]
+        return jobs
+
+
+# ============================================================
+# Supabase Job Store (Production)
+# ============================================================
+
+class SupabaseJobStore(JobStore):
+    """Persistent job storage using Supabase (Postgres + Storage).
+
+    Schema required:
+        CREATE TABLE doc_parser_jobs (
+            job_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'queued',
+            engine TEXT NOT NULL DEFAULT 'docling',
+            file_name TEXT,
+            progress JSONB DEFAULT '{}',
+            result_ref TEXT,  -- Storage path, NOT inline result
+            error TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW(),
+            expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '2 hours')
+        );
+
+        CREATE INDEX idx_jobs_status ON doc_parser_jobs(status);
+        CREATE INDEX idx_jobs_expires ON doc_parser_jobs(expires_at);
+    """
+
+    def __init__(self, supabase_url: str, supabase_key: str):
+        try:
+            from supabase import create_client
+            self._client = create_client(supabase_url, supabase_key)
+            self._bucket = "doc-parser-results"
+        except ImportError:
+            raise ImportError("supabase package required: pip install supabase")
+
+    async def create_job(self, job: JobRecord) -> str:
+        data = {
+            "job_id": job.job_id,
+            "status": job.status.value,
+            "engine": job.engine.value if isinstance(job.engine, EngineType) else job.engine,
+            "file_name": job.file_name,
+            "progress": job.progress.model_dump(),
+            "created_at": job.created_at.isoformat(),
+            "updated_at": job.updated_at.isoformat(),
+            "expires_at": job.expires_at.isoformat() if job.expires_at else None,
+        }
+        await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs").insert(data).execute()
+        )
+        logger.info(f"Job created in Supabase: {job.job_id}")
+        return job.job_id
+
+    async def get_job(self, job_id: str) -> Optional[JobRecord]:
+        result = await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .select("*")
+            .eq("job_id", job_id)
+            .execute()
+        )
+        if not result.data:
+            return None
+        row = result.data[0]
+        return JobRecord(
+            job_id=row["job_id"],
+            status=JobStatus(row["status"]),
+            engine=row.get("engine", "docling"),
+            file_name=row.get("file_name", ""),
+            progress=JobProgress(**row.get("progress", {})),
+            result_ref=row.get("result_ref"),
+            error=row.get("error"),
+            created_at=datetime.fromisoformat(row["created_at"]),
+            updated_at=datetime.fromisoformat(row["updated_at"]),
+            expires_at=datetime.fromisoformat(row["expires_at"]) if row.get("expires_at") else None,
+        )
+
+    async def update_job(self, job_id: str, **kwargs) -> None:
+        update_data = {}
+        for key, value in kwargs.items():
+            if key == "status" and isinstance(value, JobStatus):
+                update_data[key] = value.value
+            elif key == "progress" and isinstance(value, JobProgress):
+                update_data[key] = value.model_dump()
+            elif key == "engine" and isinstance(value, EngineType):
+                update_data[key] = value.value
+            else:
+                update_data[key] = value
+        update_data["updated_at"] = datetime.utcnow().isoformat()
+
+        await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .update(update_data)
+            .eq("job_id", job_id)
+            .execute()
+        )
+
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        job = await self.get_job(job_id)
+        if not job or not job.result_ref:
+            return None
+        try:
+            response = await asyncio.to_thread(
+                lambda: self._client.storage
+                .from_(self._bucket)
+                .download(job.result_ref)
+            )
+            return json.loads(response)
+        except Exception as e:
+            logger.error(f"Failed to download result for {job_id}: {e}")
+            return None
+
+    async def store_result(self, job_id: str, result: Dict[str, Any]) -> None:
+        result_path = f"results/{job_id}.json"
+        result_bytes = json.dumps(result, default=str).encode("utf-8")
+
+        await asyncio.to_thread(
+            lambda: self._client.storage
+            .from_(self._bucket)
+            .upload(result_path, result_bytes, {"content-type": "application/json"})
+        )
+
+        await self.update_job(job_id, result_ref=result_path)
+        logger.info(f"Result stored in Supabase Storage: {result_path}")
+
+    async def delete_expired(self) -> int:
+        now = datetime.utcnow().isoformat()
+        # Get expired jobs
+        result = await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .select("job_id, result_ref")
+            .lt("expires_at", now)
+            .in_("status", ["completed", "failed", "timeout"])
+            .execute()
+        )
+        if not result.data:
+            return 0
+
+        # Delete result files from storage
+        for row in result.data:
+            if row.get("result_ref"):
+                try:
+                    await asyncio.to_thread(
+                        lambda ref=row["result_ref"]: self._client.storage
+                        .from_(self._bucket)
+                        .remove([ref])
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to delete result file {row["result_ref"]}: {e}")
+
+        # Delete job records
+        job_ids = [row["job_id"] for row in result.data]
+        await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .delete()
+            .in_("job_id", job_ids)
+            .execute()
+        )
+
+        logger.info(f"Cleaned up {len(job_ids)} expired jobs from Supabase")
+        return len(job_ids)
+
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        query = self._client.table("doc_parser_jobs").select("*")
+        if status:
+            query = query.eq("status", status)
+        result = await asyncio.to_thread(lambda: query.execute())
+        return [
+            JobRecord(
+                job_id=row["job_id"],
+                status=JobStatus(row["status"]),
+                engine=row.get("engine", "docling"),
+                file_name=row.get("file_name", ""),
+                progress=JobProgress(**row.get("progress", {})),
+                result_ref=row.get("result_ref"),
+                error=row.get("error"),
+                created_at=datetime.fromisoformat(row["created_at"]),
+                updated_at=datetime.fromisoformat(row["updated_at"]),
+            )
+            for row in result.data
+        ]
+
+
+# ============================================================
+# Job Manager (Facade)
+# ============================================================
+
+class JobManager:
+    """High-level job management facade.
+
+    Provides:
+    - Job creation with correct initial state ("queued", not "processing")
+    - Progress updates with automatic percent calculation
+    - Status/result separation (Priority 4a)
+    - TTL-based cleanup (Priority 4b)
+    - Processing timeout enforcement
+    """
+
+    def __init__(self, store: Optional[JobStore] = None):
+        self._store = store or InMemoryJobStore()
+        self._cleanup_task: Optional[asyncio.Task] = None
+
+    async def start_cleanup_loop(self, interval_minutes: int = 10):
+        """Start background cleanup of expired jobs."""
+        async def _cleanup_loop():
+            while True:
+                try:
+                    count = await self._store.delete_expired()
+                    if count > 0:
+                        logger.info(f"Cleanup: removed {count} expired jobs")
+                except Exception as e:
+                    logger.error(f"Cleanup error: {e}")
+                await asyncio.sleep(interval_minutes * 60)
+
+        self._cleanup_task = asyncio.create_task(_cleanup_loop())
+        logger.info(f"Job cleanup loop started (interval={interval_minutes}min)")
+
+    async def stop_cleanup_loop(self):
+        """Stop the background cleanup loop."""
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            self._cleanup_task = None
+
+    # ---- Job Lifecycle ----
+
+    async def create_job(
+        self,
+        file_name: str,
+        engine: str = "docling",
+        ttl_hours: int = DEFAULT_TTL_HOURS
+    ) -> JobRecord:
+        """Create a new job in QUEUED state.
+
+        Priority 4c: Returns "queued" (not "processing") to fix race condition.
+        The background task transitions to "processing" when it actually starts.
+        """
+        job = JobRecord(
+            file_name=file_name,
+            engine=engine,
+            status=JobStatus.QUEUED,  # Correct initial state
+            expires_at=datetime.utcnow() + timedelta(hours=ttl_hours),
+        )
+        await self._store.create_job(job)
+        return job
+
+    async def start_processing(self, job_id: str) -> None:
+        """Transition job from QUEUED to PROCESSING.
+
+        Called by the background task when it actually begins work.
+        """
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.PROCESSING,
+        )
+
+    async def update_progress(
+        self,
+        job_id: str,
+        phase: Optional[ProcessingPhase] = None,
+        current_page: Optional[int] = None,
+        total_pages: Optional[int] = None,
+        current_step: Optional[str] = None,
+        floorplans_found: Optional[int] = None,
+        tables_found: Optional[int] = None,
+    ) -> None:
+        """Update job progress with granular tracking.
+
+        Priority 3: Provides real-time progress visibility.
+        """
+        job = await self._store.get_job(job_id)
+        if not job:
+            return
+
+        progress = job.progress
+        if phase is not None:
+            progress.current_phase = phase
+        if current_page is not None:
+            progress.current_page = current_page
+        if total_pages is not None:
+            progress.total_pages = total_pages
+        if current_step is not None:
+            progress.current_step = current_step
+        if floorplans_found is not None:
+            progress.floorplans_found = floorplans_found
+        if tables_found is not None:
+            progress.tables_found = tables_found
+
+        progress.update_percent()
+
+        await self._store.update_job(job_id, progress=progress)
+
+    async def complete_job(self, job_id: str, result: Dict[str, Any]) -> None:
+        """Mark job as completed and store results.
+
+        Priority 4a: Results stored separately from status.
+        """
+        await self._store.store_result(job_id, result)
+        progress = JobProgress(
+            current_phase=ProcessingPhase.COMPLETE,
+            percent_complete=100.0,
+        )
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.COMPLETED,
+            progress=progress,
+        )
+        logger.info(f"Job completed: {job_id}")
+
+    async def fail_job(self, job_id: str, error: str) -> None:
+        """Mark job as failed with error message."""
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.FAILED,
+            error=error,
+        )
+        logger.error(f"Job failed: {job_id} - {error}")
+
+    async def timeout_job(self, job_id: str) -> None:
+        """Mark job as timed out."""
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.TIMEOUT,
+            error=f"Processing exceeded {PROCESSING_TIMEOUT_SECONDS}s timeout",
+        )
+        logger.warning(f"Job timed out: {job_id}")
+
+    # ---- Query Methods (Priority 4a: Separate Status from Results) ----
+
+    async def get_status(self, job_id: str) -> Optional[StatusResponse]:
+        """Get lightweight status for polling.
+
+        NEVER includes result data. Safe to call every 2-5 seconds.
+        This is the response for GET /status/{job_id}.
+        """
+        job = await self._store.get_job(job_id)
+        if not job:
+            return None
+        return StatusResponse(
+            job_id=job.job_id,
+            status=job.status,
+            engine=job.engine if isinstance(job.engine, str) else job.engine.value,
+            file_name=job.file_name,
+            progress=job.progress,
+            error=job.error,
+            created_at=job.created_at,
+            updated_at=job.updated_at,
+        )
+
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get full result data. Only call after status is COMPLETED.
+
+        This is the response for GET /results/{job_id}.
+        Heavy payload - fetch once, not for polling.
+        """
+        return await self._store.get_result(job_id)
+
+    async def get_result_summary(self, job_id: str) -> Optional[ResultSummary]:
+        """Get lightweight result summary.
+
+        For GET /results/{job_id}?summary=true.
+        """
+        result = await self._store.get_result(job_id)
+        if not result:
+            return None
+
+        return ResultSummary(
+            pages_count=len(result.get("pages", {})),
+            floorplans_count=sum(
+                len(p.get("floorplans", []))
+                for p in result.get("pages", {}).values()
+                if isinstance(p, dict)
+            ),
+            tables_count=len(result.get("tables", [])),
+            units_count=len(result.get("units", [])),
+            has_footer=result.get("footer_sample") is not None,
+            total_doors=sum(
+                len(u.get("doors", []))
+                for u in result.get("units", [])
+            ),
+            total_windows=sum(
+                len(u.get("windows", []))
+                for u in result.get("units", [])
+            ),
+            total_baseboard_ft=sum(
+                sum(r.get("baseboard_length_ft", 0) for r in u.get("rooms", []))
+                for u in result.get("units", [])
+            ),
+            trades=list(set(
+                up.get("trade", "")
+                for u in result.get("units", [])
+                for up in u.get("upgrades", [])
+                if up.get("trade")
+            )),
+        )
+
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        """List all jobs."""
+        return await self._store.list_jobs(status)
+
+
+# ============================================================
+# Factory
+# ============================================================
+
+def create_job_manager(
+    backend: str = "memory",
+    supabase_url: Optional[str] = None,
+    supabase_key: Optional[str] = None,
+) -> JobManager:
+    """Create a JobManager with the specified backend.
+
+    Args:
+        backend: "memory" or "supabase"
+        supabase_url: Required if backend is "supabase"
+        supabase_key: Required if backend is "supabase"
+    """
+    if backend == "supabase" and supabase_url and supabase_key:
+        store = SupabaseJobStore(supabase_url, supabase_key)
+        logger.info("Using Supabase job store")
+    else:
+        store = InMemoryJobStore()
+        if backend == "supabase":
+            logger.warning("Supabase credentials missing, falling back to in-memory store")
+        else:
+            logger.info("Using in-memory job store")
+    return JobManager(store)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

@@ -1,0 +1,746 @@
+=== DOC-PARSER FILES ===
+total 8812
+drwxrwxrwx 1 root root    4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root    4096 Mar  1 01:54 ..
+drwxr-xr-x 1 root root    4096 Mar  3 04:06 backups_pre_p1_p7
+-rwxrwxrwx 1 root root    1993 Feb 17 02:18 benchmark_script.py
+-rwxrwxrwx 1 root root    3810 Feb 24 06:05 benchmark_vision.py
+-rwxrwxrwx 1 root root    2475 Feb 24 04:38 compare_methods.py
+-rw-r--r-- 1 root root    8735 Mar  3 04:06 confidence.py
+-rwxrwxrwx 1 root root    1561 Feb 24 06:16 decode_docling_images.py
+-rwxrwxrwx 1 root root 8770689 Feb 17 02:18 demo.pdf
+-rw-r--r-- 1 root root   14419 Mar  3 04:06 detection.py
+-rwxrwxrwx 1 root root     873 Feb 17 02:18 docker-compose.yml
+-rwxrwxrwx 1 root root     917 Feb 26 04:07 Dockerfile
+-rwxrwxrwx 1 root root   13200 Feb 24 05:45 docker_logs.txt
+-rwxrwxrwx 1 root root      92 Feb 24 04:54 .env
+-rwxrwxrwx 1 root root    6038 Feb 26 04:10 error.log
+-rwxrwxrwx 1 root root    2774 Feb 25 23:20 filter_floorplans.py
+-rw-r--r-- 1 root root   23226 Mar  3 04:06 hybrid.py
+-rw-r--r-- 1 root root   19938 Mar  3 04:06 job_manager.py
+drwxrwxrwx 1 root root    4096 Feb 26 04:18 mock_supabase
+-rw-r--r-- 1 root root    9672 Mar  3 04:06 models.py
+-rwxrwxrwx 1 root root    6562 Feb 25 23:54 patch_server_script.py
+-rwxrwxrwx 1 root root    6547 Feb 24 04:37 preparse.py
+-rwxrwxrwx 1 root root    9866 Feb 17 02:18 preparse.txt
+-rwxrwxrwx 1 root root    4533 Feb 26 04:33 process_document.py
+-rwxrwxrwx 1 root root    9654 Mar  3 04:06 prompts.py
+drwxrwxrwx 1 root root    4096 Feb 26 04:44 __pycache__
+-rwxrwxrwx 1 root root    3539 Feb 26 04:33 README.md
+-rwxrwxrwx 1 root root     635 Mar  3 04:07 requirements.txt
+-rwxrwxrwx 1 root root   24879 Mar  3 04:06 server.py
+-rwxrwxrwx 1 root root    2789 Feb 25 23:02 slice_cv.py
+-rwxrwxrwx 1 root root    2774 Feb 25 22:38 slice_surya.py
+drwxrwxrwx 1 root root    4096 Feb 17 02:18 templates
+-rwxrwxrwx 1 root root    2032 Feb 17 02:18 test_api.js
+-rwxrwxrwx 1 root root    2553 Feb 17 02:18 test_api.py
+-rwxrwxrwx 1 root root    1308 Feb 17 02:18 verify_env.py
+-rwxrwxrwx 1 root root    1524 Feb 17 02:18 verify_uploads.py
+\n=== MODELS.PY ===
+"""Shared data models for doc-parser service.
+
+Provides Pydantic models for job tracking, extraction results,
+and API response schemas across all engine modes.
+"""
+from pydantic import BaseModel, Field
+from typing import Optional, Dict, List, Any
+from enum import Enum
+from datetime import datetime, timedelta
+import uuid
+
+
+# ============================================================
+# Job State Machine
+# ============================================================
+
+class JobStatus(str, Enum):
+    """Job lifecycle states: queued -> processing -> completed|failed|timeout."""
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    TIMEOUT = "timeout"
+    CANCELLED = "cancelled"
+
+
+class ProcessingPhase(str, Enum):
+    """Granular processing phases for progress tracking."""
+    QUEUED = "queued"
+    DOCLING_CONVERSION = "docling_conversion"
+    CLASSIFICATION = "classification"
+    IMAGE_EXTRACTION = "image_extraction"
+    LLM_ANALYSIS = "llm_analysis"
+    SYNTHESIS = "synthesis"
+    UPLOADING = "uploading"
+    COMPLETE = "complete"
+
+
+class EngineType(str, Enum):
+    """Available parsing engine modes."""
+    DOCLING = "docling"
+    HYBRID = "hybrid"
+
+
+# ============================================================
+# Job Tracking Models
+# ============================================================
+
+class JobProgress(BaseModel):
+    """Real-time progress tracking for background jobs."""
+    current_phase: ProcessingPhase = ProcessingPhase.QUEUED
+    phases: List[str] = Field(default_factory=lambda: [
+        "docling_conversion", "classification", "image_extraction",
+        "llm_analysis", "synthesis", "uploading"
+    ])
+    current_page: int = 0
+    total_pages: int = 0
+    current_step: str = "initializing"
+    floorplans_found: int = 0
+    tables_found: int = 0
+    percent_complete: float = 0.0
+
+    def update_percent(self):
+        """Calculate percent complete based on phase progression."""
+        phase_weights = {
+            ProcessingPhase.QUEUED: 0.0,
+            ProcessingPhase.DOCLING_CONVERSION: 0.15,
+            ProcessingPhase.CLASSIFICATION: 0.25,
+            ProcessingPhase.IMAGE_EXTRACTION: 0.40,
+            ProcessingPhase.LLM_ANALYSIS: 0.70,
+            ProcessingPhase.SYNTHESIS: 0.85,
+            ProcessingPhase.UPLOADING: 0.95,
+            ProcessingPhase.COMPLETE: 1.0,
+        }
+        base = phase_weights.get(self.current_phase, 0.0)
+        # Add page-level granularity within LLM_ANALYSIS phase
+        if self.current_phase == ProcessingPhase.LLM_ANALYSIS and self.total_pages > 0:
+            page_progress = self.current_page / self.total_pages
+            phase_range = phase_weights[ProcessingPhase.SYNTHESIS] - phase_weights[ProcessingPhase.LLM_ANALYSIS]
+            base = phase_weights[ProcessingPhase.LLM_ANALYSIS] + (page_progress * phase_range)
+        self.percent_complete = round(base * 100, 1)
+
+
+class JobRecord(BaseModel):
+    """Complete job record for persistence."""
+    job_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    status: JobStatus = JobStatus.QUEUED
+    engine: EngineType = EngineType.DOCLING
+    file_name: str = ""
+    progress: JobProgress = Field(default_factory=JobProgress)
+    result_ref: Optional[str] = None  # Storage path for results (not inline)
+    error: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    expires_at: Optional[datetime] = Field(
+        default_factory=lambda: datetime.utcnow() + timedelta(hours=2)
+    )
+
+    def touch(self):
+        """Update the updated_at timestamp."""
+        self.updated_at = datetime.utcnow()
+
+
+# ============================================================
+# API Response Models (Priority 4a: Separate Status from Results)
+# ============================================================
+
+class StatusResponse(BaseModel):
+    """Lightweight status response for polling - NEVER includes result data.
+
+    This is the response for GET /status/{job_id}.
+    Safe to poll every 2-5 seconds. Small payload.
+    """
+    job_id: str
+    status: JobStatus
+    engine: str
+    file_name: str
+    progress: JobProgress
+    error: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ResultSummary(BaseModel):
+    """Lightweight result summary for GET /results/{job_id}?summary=true."""
+    pages_count: int = 0
+    floorplans_count: int = 0
+    tables_count: int = 0
+    units_count: int = 0
+    has_footer: bool = False
+    total_doors: int = 0
+    total_windows: int = 0
+    total_baseboard_ft: float = 0.0
+    trades: List[str] = Field(default_factory=list)
+
+
+# ============================================================
+# Extraction Data Models (Priority 1: Aligned with ParsedDocument)
+# ============================================================
+
+class Room(BaseModel):
+    """Per-room extraction matching claudePdfParser granularity."""
+    name: str = ""
+    area_sf: float = 0.0
+    length_ft: float = 0.0
+    width_ft: float = 0.0
+    ceiling_height_ft: float = 0.0
+    baseboard_length_ft: float = 0.0
+    baseboard_exclusions: List[str] = Field(default_factory=list)
+    baseboard_exclusion_reasoning: str = ""
+    fixtures: List[str] = Field(default_factory=list)
+    flooring_type: str = ""
+    notes: str = ""
+
+
+class DoorSpec(BaseModel):
+    """Individual door specification matching claudePdfParser detail."""
+    location: str = ""  # "Master Bedroom to Hallway"
+    room: str = ""  # Room the door belongs to
+    type: str = ""  # "interior", "exterior", "closet", "pocket", "barn", "french"
+    width_in: float = 0.0
+    height_in: float = 0.0
+    hardware: str = ""  # "lever", "knob", "pull", "push plate"
+    action: str = ""  # "swing", "slide", "fold", "pivot"
+    swing_direction: str = ""  # "in", "out", "left", "right"
+    material: str = ""  # "hollow-core", "solid-core", "glass"
+    notes: str = ""
+
+
+class WindowSpec(BaseModel):
+    """Individual window specification matching claudePdfParser detail."""
+    location: str = ""  # "Living Room - North Wall"
+    room: str = ""
+    type: str = ""  # "single-hung", "double-hung", "casement", "fixed", "sliding"
+    width_in: float = 0.0
+    height_in: float = 0.0
+    sill_height_in: float = 0.0
+    count: int = 1
+    glazing: str = ""  # "single", "double", "triple", "low-e"
+    operable: bool = True
+    notes: str = ""
+
+
+class Fixture(BaseModel):
+    """Fixture specification per room."""
+    name: str = ""
+    room: str = ""
+    type: str = ""  # "plumbing", "electrical", "hvac", "appliance"
+    specifications: str = ""
+    count: int = 1
+
+
+class Upgrade(BaseModel):
+    """Renovation scope item by trade."""
+    description: str = ""
+    trade: str = ""  # "electrical", "plumbing", "hvac", "carpentry", "painting"
+    location: str = ""
+    specifications: str = ""
+    estimated_hours: float = 0.0
+
+
+class UnitExtraction(BaseModel):
+    """Unit-oriented extraction compatible with ParsedDocument schema.
+
+    This is the primary output format for the hybrid engine,
+    directly consumable by the work-orders frontend.
+    """
+    unit_number: str = ""
+    unit_type: str = "unknown"  # "1BR", "2BR", "studio", etc.
+    floor: int = 0
+    bedrooms: int = 0
+    bathrooms: int = 0
+    half_baths: int = 0
+    area_sf: float = 0.0
+    rooms: List[Room] = Field(default_factory=list)
+    doors: List[DoorSpec] = Field(default_factory=list)
+    windows: List[WindowSpec] = Field(default_factory=list)
+    fixtures: List[Fixture] = Field(default_factory=list)
+    upgrades: List[Upgrade] = Field(default_factory=list)
+    general_notes: List[str] = Field(default_factory=list)
+    source_page: int = 0
+
+
+# ============================================================
+# Confidence Scoring (Priority 6)
+# ============================================================
+
+class ConfidenceScore(BaseModel):
+    """Completeness and confidence metrics for extraction results."""
+    overall: float = 0.0  # 0.0 - 1.0
+    room_dimensions: bool = False
+    door_specifications: bool = False
+    window_specifications: bool = False
+    fixture_completeness: bool = False
+    cross_page_synthesis: bool = False
+    baseboard_data: bool = False
+    unit_identification: bool = False
+    per_page: Dict[str, Any] = Field(default_factory=dict)
+
+
+# ============================================================
+# Output Models
+# ============================================================
+
+class PageData(BaseModel):
+    """Per-page extraction data (page-oriented format)."""
+    page_number: int = 0
+    full_page_image: Optional[str] = None  # URL or base64
+    floorplans: List[Dict[str, Any]] = Field(default_factory=list)
+    tables: List[str] = Field(default_factory=list)  # Markdown tables
+    site_photos: List[str] = Field(default_factory=list)
+    diagrams: List[str] = Field(default_factory=list)
+    classification: str = "unknown"
+
+
+class HybridOutput(BaseModel):
+    """Complete output from hybrid pipeline.
+
+    Contains BOTH page-oriented and unit-oriented formats:
+    - pages: for doc-parser native consumers
+    - units: for direct ParsedDocument compatibility (work-orders)
+    """
+    engine: str = "hybrid"
+    pages: Dict[int, Any] = Field(default_factory=dict)
+    units: List[UnitExtraction] = Field(default_factory=list)
+    tables: List[Dict[str, Any]] = Field(default_factory=list)
+    footer_sample: Optional[Dict[str, Any]] = None
+    general_notes: List[str] = Field(default_factory=list)
+    synthesis: Optional[Dict[str, Any]] = None
+    confidence: Optional[ConfidenceScore] = None
+    summary: Optional[ResultSummary] = None
+\n=== DETECTION.PY ===
+"""Floorplan detection utilities for doc-parser service.
+
+Priority 2: Replace B&W-only heuristic with robust architectural drawing detection.
+- Canny edge-density detection (supports color drawings)
+- Architectural text pattern recognition
+- Multi-candidate extraction (no one-per-page limit)
+"""
+import re
+import logging
+from typing import List, Tuple, Optional
+from io import BytesIO
+
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+
+try:
+    import cv2
+    HAS_CV2 = True
+except ImportError:
+    HAS_CV2 = False
+
+try:
+    import pytesseract
+    HAS_TESSERACT = True
+except ImportError:
+    HAS_TESSERACT = False
+
+from PIL import Image
+
+logger = logging.getLogger(__name__)
+
+# ============================================================
+# Architectural dimension patterns
+# ============================================================
+
+# Matches: 12\'-6", 12\'-6, 12\'6", 10\' x 12\', 3660mm, 3.5m, 10\'-0"
+DIMENSION_PATTERNS = [
+    r"\d+\'\s*-?\s*\d+\s*\"",          # 12\'-6"
+    r"\d+\'\s*-?\s*\d+",               # 12\'-6 or 12-6
+    r"\d+\'\s*x\s*\d+\'",              # 10\' x 12\'
+    r"\d+\.\d+\s*m\b",                 # 3.5m
+    r"\d{3,5}\s*mm\b",                 # 3660mm
+    r"\d+\'-\d+\"\s*x\s*\d+\'-\d+\"", # 12\'-6" x 10\'-0"
+    r"\d+\s*ft\.?\s*\d*\s*in\.?",      # 12 ft 6 in
+]
+
+DIMENSION_REGEX = re.compile("|".join(DIMENSION_PATTERNS), re.IGNORECASE)
+
+# Architectural room/space labels
+ARCH_LABELS = [
+    "bedroom", "kitchen", "bathroom", "bath", "living", "dining",
+    "closet", "hallway", "entry", "foyer", "laundry", "utility",
+    "master", "garage", "patio", "balcony", "deck", "porch",
+    "den", "study", "office", "pantry", "mudroom", "vestibule",
+    "mechanical", "storage", "w.i.c", "wic", "w/d", "ref",
+    "dw", "oven", "range", "shower", "tub", "lav", "wh",
+]
+
+ARCH_LABEL_REGEX = re.compile(
+    r"\b(" + "|".join(ARCH_LABELS) + r")\b", re.IGNORECASE
+)
+
+# Scale notations
+SCALE_PATTERNS = [
+    r"scale\s*[:=]?\s*\d+",
+    r"1/\d+\"\s*=\s*1\'-0\"",
+    r"\d+\"\s*=\s*\d+\'-\d+\"",
+    r"1:\d+",
+    r"NTS",  # Not To Scale
+]
+
+SCALE_REGEX = re.compile("|".join(SCALE_PATTERNS), re.IGNORECASE)
+
+
+# ============================================================
+# Core Detection Functions
+# ============================================================
+
+def is_architectural_drawing(pil_image: Image.Image, edge_threshold: float = 0.04) -> bool:
+    """Detect if an image is an architectural drawing using Canny edge density.
+
+    Replaces the old is_black_and_white_pil() check (diff < 2.0) which
+    missed color-coded architectural drawings (blue=plumbing, red=electrical).
+
+    Args:
+        pil_image: PIL Image to analyze
+        edge_threshold: Minimum edge pixel ratio (default 0.04 = 4%)
+
+    Returns:
+        True if image has characteristics of an architectural drawing
+    """
+    if not HAS_NUMPY or not HAS_CV2:
+        # Fallback to legacy B&W check if OpenCV not available
+        return _legacy_bw_check(pil_image)
+
+    try:
+        # Convert to grayscale numpy array
+        img_gray = pil_image.convert("L")
+        img_array = np.array(img_gray)
+
+        # Skip very small images (likely icons or artifacts)
+        if img_array.shape[0] < 100 or img_array.shape[1] < 100:
+            return False
+
+        # Apply Gaussian blur to reduce noise
+        blurred = cv2.GaussianBlur(img_array, (5, 5), 0)
+
+        # Canny edge detection
+        edges = cv2.Canny(blurred, 50, 150)
+
+        # Calculate edge density ratio
+        total_pixels = edges.shape[0] * edges.shape[1]
+        edge_pixels = np.count_nonzero(edges)
+        edge_ratio = edge_pixels / total_pixels
+
+        # Architectural drawings have structured line work
+        # Typical range: 0.04 - 0.25 for floorplans
+        # Photos: < 0.03 (soft gradients, few hard edges)
+        # Text-heavy pages: 0.02 - 0.06 (but different line structure)
+        if edge_ratio < edge_threshold:
+            return False
+
+        # Additional check: line structure analysis
+        # Architectural drawings have many long straight lines
+        # Use Hough Line Transform to detect this
+        lines = cv2.HoughLinesP(
+            edges, 1, np.pi / 180,
+            threshold=50,
+            minLineLength=30,
+            maxLineGap=10
+        )
+
+        if lines is None:
+            return edge_ratio > edge_threshold * 1.5  # Higher bar without lines
+
+        # Count significant lines (architectural drawings have many)
+        line_count = len(lines)
+
+        # Architectural drawings typically have 20+ significant lines
+        # Combined with edge density, this filters out photos and text pages
+        return edge_ratio >= edge_threshold and line_count >= 15
+
+    except Exception as e:
+        logger.warning(f"Edge detection failed, using fallback: {e}")
+        return _legacy_bw_check(pil_image)
+
+
+def has_architectural_text(pil_image: Image.Image) -> bool:
+    """Enhanced text detection checking for architectural annotations.
+
+    Replaces has_sufficient_text_pil() with pattern-aware detection:
+    - Dimension patterns (12\'-6", 3.5m)
+    - Room labels (BEDROOM, KITCHEN)
+    - Scale notations (1/4" = 1\'-0")
+
+    Args:
+        pil_image: PIL Image to analyze
+
+    Returns:
+        True if architectural text patterns are found
+    """
+    if not HAS_TESSERACT:
+        # If Tesseract unavailable, be permissive
+        logger.warning("Tesseract not available, skipping text check")
+        return True
+
+    try:
+        # Run OCR
+        text = pytesseract.image_to_string(
+            pil_image,
+            config="--psm 6 --oem 3",  # Assume uniform block of text
+            timeout=15
+        )
+
+        if not text or len(text.strip()) < 10:
+            return False
+
+        text_upper = text.upper()
+
+        # Check for dimension patterns
+        dimension_matches = DIMENSION_REGEX.findall(text)
+        has_dimensions = len(dimension_matches) >= 1
+
+        # Check for architectural labels
+        label_matches = ARCH_LABEL_REGEX.findall(text_upper)
+        has_labels = len(label_matches) >= 2  # At least 2 room labels
+
+        # Check for scale notation
+        scale_matches = SCALE_REGEX.findall(text)
+        has_scale = len(scale_matches) >= 1
+
+        # Score-based decision
+        score = 0
+        if has_dimensions:
+            score += 3  # Strong signal
+        if has_labels:
+            score += 2  # Good signal
+        if has_scale:
+            score += 2  # Good signal
+        if len(text.strip()) > 50:
+            score += 1  # Some text present
+
+        # Need at least score of 3 to qualify
+        # (dimensions alone, or labels + scale, or labels + text, etc.)
+        return score >= 3
+
+    except Exception as e:
+        logger.warning(f"OCR text detection failed: {e}")
+        # On failure, be permissive to avoid data loss
+        return True
+
+
+def classify_image(pil_image: Image.Image) -> str:
+    """Comprehensive image classifier for architectural document pages.
+
+    Returns:
+        One of: "floorplan", "site_photo", "diagram", "table", "title_block", "unknown"
+    """
+    if not HAS_NUMPY or not HAS_CV2:
+        # Without CV2, can only do basic classification
+        if _has_photo_characteristics(pil_image):
+            return "site_photo"
+        return "unknown"
+
+    try:
+        img_array = np.array(pil_image.convert("RGB"))
+        img_gray = np.array(pil_image.convert("L"))
+
+        # ---- Check if it's a photograph ----
+        # Photos have smooth gradients and high color variance
+        if _has_photo_characteristics(pil_image):
+            return "site_photo"
+
+        # ---- Check if it's an architectural drawing ----
+        if is_architectural_drawing(pil_image) and has_architectural_text(pil_image):
+            return "floorplan"
+
+        # ---- Check if it's a table ----
+        # Tables have regular grid patterns
+        if _has_table_structure(img_gray):
+            return "table"
+
+        # ---- Check if it's a diagram ----
+        # Diagrams have line work but lack room labels
+        if is_architectural_drawing(pil_image) and not has_architectural_text(pil_image):
+            return "diagram"
+
+        # ---- Check for title block ----
+        if _is_title_block(pil_image):
+            return "title_block"
+
+        return "unknown"
+
+    except Exception as e:
+        logger.warning(f"Image classification failed: {e}")
+        return "unknown"
+
+
+def extract_floorplan_candidates(
+    images_with_pages: List[Tuple[int, Image.Image]]
+) -> List[Tuple[int, Image.Image]]:
+    """Extract ALL floorplan candidates from page images.
+
+    NO one-per-page limit - processes all candidates per page.
+    This fixes the has_valid_floorplan guard that previously
+    stopped after finding one floorplan per page.
+
+    Args:
+        images_with_pages: List of (page_number, pil_image) tuples
+
+    Returns:
+        List of (page_number, pil_image) tuples for all floorplan candidates
+    """
+    candidates = []
+
+    for page_no, pil_image in images_with_pages:
+        try:
+            if is_architectural_drawing(pil_image) and has_architectural_text(pil_image):
+                candidates.append((page_no, pil_image))
+                logger.info(
+                    f"Page {page_no}: Floorplan candidate detected "
+                    f"({pil_image.size[0]}x{pil_image.size[1]})"
+                )
+            else:
+                classification = classify_image(pil_image)
+                logger.debug(f"Page {page_no}: Classified as {classification}")
+        except Exception as e:
+            logger.warning(f"Page {page_no}: Classification failed: {e}")
+            # On failure, include as candidate to prevent data loss
+            candidates.append((page_no, pil_image))
+
+    logger.info(f"Found {len(candidates)} floorplan candidates across {len(images_with_pages)} images")
+    return candidates
+
+
+# ============================================================
+# Helper Functions
+# ============================================================
+
+def _legacy_bw_check(pil_image: Image.Image) -> bool:
+    """Legacy black-and-white check (fallback when OpenCV unavailable).
+
+    Original logic: checks if color channel variance is low.
+    Kept for backward compatibility but NOT recommended.
+    """
+    try:
+        img_rgb = pil_image.convert("RGB")
+        if not HAS_NUMPY:
+            # Very basic fallback
+            return True
+
+        img_array = np.array(img_rgb)
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        # Calculate mean absolute difference between channels
+        rg_diff = np.mean(np.abs(r.astype(float) - g.astype(float)))
+        rb_diff = np.mean(np.abs(r.astype(float) - b.astype(float)))
+        gb_diff = np.mean(np.abs(g.astype(float) - b.astype(float)))
+
+        avg_diff = (rg_diff + rb_diff + gb_diff) / 3.0
+
+        # Original threshold was 2.0 (too strict)
+        # Relaxed to 15.0 to catch lightly colored drawings
+        return avg_diff < 15.0
+
+    except Exception:
+        return True
+
+
+def _has_photo_characteristics(pil_image: Image.Image) -> bool:
+    """Detect if image is a photograph (vs. a drawing).
+
+    Photos have:
+    - High color variance (many unique colors)
+    - Smooth gradients (low edge density)
+    - Natural color distribution
+    """
+    try:
+        img_rgb = pil_image.convert("RGB")
+
+        if not HAS_NUMPY:
+            # Basic check: count unique colors
+            colors = img_rgb.getcolors(maxcolors=10000)
+            if colors is None:  # More than 10000 unique colors = likely photo
+                return True
+            return False
+
+        img_array = np.array(img_rgb)
+
+        # Check color variance
+        # Photos have high standard deviation across color channels
+        std_r = np.std(img_array[:, :, 0])
+        std_g = np.std(img_array[:, :, 1])
+        std_b = np.std(img_array[:, :, 2])
+        avg_std = (std_r + std_g + std_b) / 3.0
+
+        # High color variance + high inter-channel difference = photo
+        r_mean = np.mean(img_array[:, :, 0])
+        g_mean = np.mean(img_array[:, :, 1])
+        b_mean = np.mean(img_array[:, :, 2])
+
+        channel_spread = max(r_mean, g_mean, b_mean) - min(r_mean, g_mean, b_mean)
+
+        # Photos: avg_std > 40, channel_spread > 10
+        # Drawings: avg_std < 30, channel_spread < 5 (mostly B&W or single color)
+        return avg_std > 45 and channel_spread > 15
+
+    except Exception:
+        return False
+
+
+def _has_table_structure(img_gray) -> bool:
+    """Detect if image contains a table/grid structure."""
+    if not HAS_CV2 or not HAS_NUMPY:
+        return False
+
+    try:
+        # Detect horizontal and vertical lines
+        # Tables have regular grid patterns
+        edges = cv2.Canny(img_gray, 50, 150)
+
+        # Detect horizontal lines
+        horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+        horizontal = cv2.morphologyEx(edges, cv2.MORPH_OPEN, horizontal_kernel)
+        h_lines = np.count_nonzero(horizontal)
+
+        # Detect vertical lines
+        vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
+        vertical = cv2.morphologyEx(edges, cv2.MORPH_OPEN, vertical_kernel)
+        v_lines = np.count_nonzero(vertical)
+
+        total_pixels = img_gray.shape[0] * img_gray.shape[1]
+
+        # Tables have significant horizontal AND vertical line presence
+        h_ratio = h_lines / total_pixels
+        v_ratio = v_lines / total_pixels
+
+        return h_ratio > 0.005 and v_ratio > 0.005
+
+    except Exception:
+        return False
+
+
+def _is_title_block(pil_image: Image.Image) -> bool:
+    """Detect if image is a title block."""
+    if not HAS_TESSERACT:
+        return False
+
+    try:
+        text = pytesseract.image_to_string(pil_image, timeout=10)
+        text_upper = text.upper()
+
+        title_keywords = [
+            "PROJECT NO", "DRAWN BY", "CHECKED BY", "SCALE",
+            "SHEET NO", "DATE", "REVISION", "ARCHITECT",
+            "DRAWING NO", "APPROVED", "ISSUED FOR",
+        ]
+
+        matches = sum(1 for kw in title_keywords if kw in text_upper)
+        return matches >= 3
+
+    except Exception:
+        return False
+
+
+def image_to_base64(pil_image: Image.Image, format: str = "PNG") -> str:
+    """Convert PIL Image to base64 string."""
+    import base64
+    buffered = BytesIO()
+    pil_image.save(buffered, format=format)
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

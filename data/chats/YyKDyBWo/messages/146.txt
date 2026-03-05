@@ -1,0 +1,87 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# // POST /entity/rooms
+// Supports: manual_form, text_input, ai_assisted, clone
+// ============================================================================
+entityCreationRoute.post('/rooms', async (c) => {
+  const supabase = getScopedClient(c);
+  const body = await c.req.json();
+  const user = (c.get('user') as any) || { id: 'system' };
+
+  const {
+    organization_id,
+    name,
+    display_order = 0,
+    creation_method = 'manual_form' as CreationMethod,
+    raw_input,           // Original text if text_input or ai_assisted
+    confidence_score,    // AI confidence if ai_assisted
+    status = 'active',   // 'active' for manual, 'pending_review' for AI
+    clone_from_id,       // If cloning an existing room
+  } = body;
+
+  if (!organization_id || !name) {
+    return c.json({ error: 'organization_id and name are required' }, 400);
+  }
+
+  // If cloning, fetch source room
+  let generation_metadata: Record<string, unknown> = {};
+  if (creation_method === 'clone' && clone_from_id) {
+    const { data: source } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('id', clone_from_id)
+      .single();
+    if (source) {
+      generation_metadata = { cloned_from: clone_from_id, source_name: source.name };
+    }
+  }
+
+  // Determine status based on creation method
+  const effectiveStatus = ['ai_assisted', 'text_input'].includes(creation_method)
+    ? 'pending_review'
+    : status;
+
+  const { data: room, error } = await supabase
+    .from('rooms')
+    .insert({
+      organization_id,
+      name,
+      display_order,
+      status: effectiveStatus,
+      auto_generated: creation_method !== 'manual_form',
+      generation_source: creation_method,
+      generation_metadata,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  // Log creation
+  await logEntityCreation(supabase, {
+    organization_id,
+    entity_type: 'room',
+    entity_id: room.id,
+    creation_method,
+    raw_input,
+    confidence_score,
+    created_by: user.id,
+  });
+
+  // If pending_review, auto-create a review entry
+  if (effectiveStatus === 'pending_review') {
+    await supabase.from('pending_reviews').insert({
+      organization_id,
+      entity_type: 'room',
+      entity_id: room.id,
+      trigger_action: `${creation_method}_creation`,
+      suggested_data: { name, display_order, raw_input },
+    });
+  }
+
+  return c.json(room, 201);
+});
+
+// ============================================================================
+// CREATE ROOM (BATCH)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

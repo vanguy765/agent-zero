@@ -1,0 +1,13 @@
+=== Implementation Artifacts ===
+266 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/confidence.py
+434 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/detection.py
+695 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/hybrid.py
+555 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/job_manager.py
+271 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/models.py
+249 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/prompts.py
+31 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/requirements.txt
+805 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/server.py
+242 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api/doc-parser-client.ts
+188 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/hono-api/doc-parser-routes.ts
+589 lines  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/work-orders/ProjectDocuments.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

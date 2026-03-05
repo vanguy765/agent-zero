@@ -1,0 +1,14 @@
+26:    import pytesseract
+27:    HAS_TESSERACT = True
+29:    HAS_TESSERACT = False
+97:        return _legacy_bw_check(pil_image)
+148:        return _legacy_bw_check(pil_image)
+165:    if not HAS_TESSERACT:
+172:        text = pytesseract.image_to_string(
+224:        if _has_photo_characteristics(pil_image):
+234:        if _has_photo_characteristics(pil_image):
+303:def _legacy_bw_check(pil_image: Image.Image) -> bool:
+333:def _has_photo_characteristics(pil_image: Image.Image) -> bool:
+409:    if not HAS_TESSERACT:
+413:        text = pytesseract.image_to_string(pil_image, timeout=10)
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

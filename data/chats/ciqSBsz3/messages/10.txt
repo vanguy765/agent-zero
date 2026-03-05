@@ -1,0 +1,29 @@
+CREATE TABLE public.rooms (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    name text NOT NULL,
+    display_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+===SEPARATOR===
+CREATE TABLE public.template_libraries (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    description text,
+    project_type text NOT NULL,
+    scope text DEFAULT 'app'::text NOT NULL,
+    organization_id uuid,
+    icon text,
+    color text,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    is_active boolean DEFAULT true NOT NULL,
+    is_default boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT template_libraries_scope_check CHECK ((scope = ANY (ARRAY['app'::text, 'company'::text]))),
+    CONSTRAINT valid_app_library CHECK ((((scope = 'app'::text) AND (organization_id IS NULL)) OR (scope <> 'app'::text))),
+    CONSTRAINT valid_company_library CHECK ((((scope = 'company'::text) AND (organization_id IS NOT NULL)) OR (scope <> 'company'::text)))
+);
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

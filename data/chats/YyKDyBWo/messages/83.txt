@@ -1,0 +1,806 @@
+"""Doc-parser FastAPI service.
+
+Integrates all priorities:
+- P1: Rich prompts (via prompts.py)
+- P2: Improved detection (via detection.py)
+- P3: Granular progress tracking (via job_manager.py)
+- P4: Persistent jobs, separate status/results endpoints, TTL cleanup
+- P5: Cross-page synthesis (via hybrid.py)
+- P6: Confidence scoring (via confidence.py)
+- P7: Hybrid engine mode (via hybrid.py)
+
+Endpoints:
+  POST /parse/docling       - Original Docling-only engine
+  POST /parse/hybrid        - Hybrid engine (Docling + Claude)
+  GET  /status/{job_id}     - Lightweight status (poll-safe)
+  GET  /results/{job_id}    - Full results (fetch-once after completed)
+  GET  /health              - Health check
+  GET  /jobs                - List all jobs
+  DELETE /jobs/{job_id}     - Cancel/delete a job
+"""
+import os
+import re
+import json
+import uuid
+import base64
+import asyncio
+import logging
+import tempfile
+import traceback
+from typing import Optional
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from models import (
+    JobStatus, ProcessingPhase, EngineType,
+    StatusResponse, ResultSummary,
+)
+from job_manager import (
+    JobManager, create_job_manager, PROCESSING_TIMEOUT_SECONDS,
+)
+from prompts import FLOORPLAN_PROMPT_RICH, FLOORPLAN_PROMPT
+from detection import (
+    is_architectural_drawing, has_architectural_text,
+    classify_image, extract_floorplan_candidates, image_to_base64,
+)
+from confidence import calculate_confidence
+from hybrid import process_hybrid, run_llm_extraction
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+
+# ============================================================
+# Configuration
+# ============================================================
+
+JOB_STORE_BACKEND = os.getenv("JOB_STORE_BACKEND", "memory")  # "memory" or "supabase"
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+DEFAULT_PROVIDER = os.getenv("DEFAULT_LLM_PROVIDER", "anthropic/claude-3.5-sonnet")
+CLEANUP_INTERVAL_MINUTES = int(os.getenv("CLEANUP_INTERVAL_MINUTES", "10"))
+
+# ============================================================
+# Application Lifecycle
+# ============================================================
+
+job_manager: Optional[JobManager] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application startup and shutdown."""
+    global job_manager
+
+    # Initialize job manager
+    job_manager = create_job_manager(
+        backend=JOB_STORE_BACKEND,
+        supabase_url=SUPABASE_URL,
+        supabase_key=SUPABASE_KEY,
+    )
+
+    # Start cleanup loop
+    await job_manager.start_cleanup_loop(
+        interval_minutes=CLEANUP_INTERVAL_MINUTES
+    )
+
+    logger.info(
+        f"Doc-parser started (store={JOB_STORE_BACKEND}, "
+        f"provider={DEFAULT_PROVIDER})"
+    )
+
+    yield
+
+    # Shutdown
+    await job_manager.stop_cleanup_loop()
+    logger.info("Doc-parser shutting down")
+
+
+app = FastAPI(
+    title="Doc-Parser Service",
+    description=(
+        "Architectural PDF parsing service using IBM Docling, "
+        "Tesseract OCR, and Claude 3.5 Sonnet."
+    ),
+    version="2.0.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============================================================
+# Helper: Get Supabase client for a specific request
+# ============================================================
+
+def get_request_supabase_client(
+    supabase_url: Optional[str] = None,
+    supabase_key: Optional[str] = None,
+):
+    """Create a Supabase client from request-level credentials."""
+    url = supabase_url or SUPABASE_URL
+    key = supabase_key or SUPABASE_KEY
+    if not url or not key:
+        return None
+    try:
+        from supabase import create_client
+        return create_client(url, key)
+    except ImportError:
+        logger.warning("supabase package not installed")
+        return None
+
+
+# ============================================================
+# Helper: Save upload to temp file
+# ============================================================
+
+async def save_upload_to_temp(file: UploadFile) -> str:
+    """Save uploaded file to a temporary path."""
+    suffix = os.path.splitext(file.filename or "upload.pdf")[1]
+    fd, temp_path = tempfile.mkstemp(suffix=suffix)
+    try:
+        content = await file.read()
+        with os.fdopen(fd, "wb") as f:
+            f.write(content)
+    except Exception:
+        os.close(fd)
+        raise
+    return temp_path
+
+
+# ============================================================
+# POST /parse/docling - Original Docling Engine
+# ============================================================
+
+@app.post("/parse/docling")
+async def parse_docling(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    provider: str = Form(DEFAULT_PROVIDER),
+    supabase_url: str = Form(None),
+    supabase_key: str = Form(None),
+    tenant_name: str = Form(None),
+    project_name: str = Form(None),
+):
+    """Parse PDF using Docling-only engine.
+
+    Returns job_id for async polling via /status and /results endpoints.
+    Initial status is 'queued' (Priority 4c: fixes race condition).
+    """
+    temp_path = await save_upload_to_temp(file)
+
+    job = await job_manager.create_job(
+        file_name=file.filename or "unknown.pdf",
+        engine="docling",
+    )
+
+    background_tasks.add_task(
+        _process_docling_background,
+        job.job_id,
+        temp_path,
+        provider,
+        supabase_url,
+        supabase_key,
+        tenant_name or "",
+        project_name or "",
+    )
+
+    return {
+        "job_id": job.job_id,
+        "status": "queued",  # P4c: correct initial state
+        "engine": "docling",
+        "file": file.filename,
+    }
+
+
+async def _process_docling_background(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    supabase_url: str,
+    supabase_key: str,
+    tenant_name: str,
+    project_name: str,
+):
+    """Background processor for Docling-only engine.
+
+    Enhanced with:
+    - P1: Rich prompts for floorplan analysis
+    - P2: Improved detection heuristics
+    - P3: Granular progress tracking
+    - P5: Cross-page synthesis
+    - P6: Confidence scoring
+    """
+    try:
+        # Wrap in timeout
+        await asyncio.wait_for(
+            _docling_pipeline(
+                job_id, temp_path, provider,
+                supabase_url, supabase_key,
+                tenant_name, project_name,
+            ),
+            timeout=PROCESSING_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        await job_manager.timeout_job(job_id)
+    except Exception as e:
+        traceback.print_exc()
+        await job_manager.fail_job(job_id, str(e))
+    finally:
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+
+async def _docling_pipeline(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    supabase_url: str,
+    supabase_key: str,
+    tenant_name: str,
+    project_name: str,
+):
+    """Docling-only pipeline with all priority enhancements."""
+    await job_manager.start_processing(job_id)
+    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+
+    # Phase 1: Docling conversion
+    await job_manager.update_progress(
+        job_id,
+        phase=ProcessingPhase.DOCLING_CONVERSION,
+        current_step="converting_pdf",
+    )
+
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from pdf2image import convert_from_path
+
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.generate_picture_images = True
+    pipeline_options.generate_table_images = True
+
+    converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pipeline_options
+            )
+        }
+    )
+
+    result_doc_wrapper = await asyncio.to_thread(
+        converter.convert, temp_path
+    )
+    result_doc = result_doc_wrapper.document
+    pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+    total_pages = len(pdf_pages)
+
+    await job_manager.update_progress(
+        job_id, total_pages=total_pages,
+    )
+
+    # Phase 2: Classification (P2: improved detection)
+    await job_manager.update_progress(
+        job_id,
+        phase=ProcessingPhase.CLASSIFICATION,
+        current_step="classifying_pages",
+    )
+
+    pages_result = {}
+    footer_sample = None
+    table_data = []
+
+    FOOTER_KEYWORDS = [
+        "project no", "drawn by", "checked by", "scale",
+        "sheet no", "date", "revision", "architect",
+    ]
+
+    # Process tables
+    for table in result_doc.tables:
+        md_text = table.export_to_markdown()
+        page_no = table.prov[0].page_no if table.prov else 1
+
+        is_footer = sum(
+            1 for kw in FOOTER_KEYWORDS if kw in md_text.lower()
+        ) >= 3
+
+        if is_footer:
+            if not footer_sample:
+                footer_sample = {"markdown": md_text, "page_no": page_no}
+            continue
+
+        table_data.append((page_no, md_text))
+
+        if page_no not in pages_result:
+            pages_result[page_no] = {
+                "floorplans": [], "tables": [],
+                "site_photos": [], "diagrams": [],
+            }
+        pages_result[page_no]["tables"].append(md_text)
+
+    await job_manager.update_progress(
+        job_id, tables_found=len(table_data),
+    )
+
+    # Process pictures with improved detection (P2)
+    floorplan_images = []
+
+    for pic in result_doc.pictures:
+        if not pic.image:
+            continue
+        try:
+            pil_img = pic.image.pil_image
+        except AttributeError:
+            continue
+
+        page_no = pic.prov[0].page_no if pic.prov else 1
+
+        await job_manager.update_progress(
+            job_id, current_page=page_no,
+            current_step=f"classifying_page_{page_no}",
+        )
+
+        if page_no not in pages_result:
+            pages_result[page_no] = {
+                "floorplans": [], "tables": [],
+                "site_photos": [], "diagrams": [],
+            }
+
+        classification = classify_image(pil_img)
+
+        if classification == "floorplan":
+            b64 = image_to_base64(pil_img)
+            floorplan_images.append((page_no, pil_img, b64))
+        elif classification == "site_photo":
+            pages_result[page_no]["site_photos"].append("detected")
+        elif classification == "diagram":
+            pages_result[page_no]["diagrams"].append("detected")
+
+    await job_manager.update_progress(
+        job_id, floorplans_found=len(floorplan_images),
+    )
+
+    # Phase 3: LLM Analysis (P1: rich prompts)
+    await job_manager.update_progress(
+        job_id,
+        phase=ProcessingPhase.LLM_ANALYSIS,
+        current_step="starting_llm_analysis",
+    )
+
+    # Build table context for enrichment
+    table_context = ""
+    if table_data:
+        table_context = "\n\n".join([
+            f"--- Table from Page {pg} ---\n{md}"
+            for pg, md in table_data
+        ])
+
+    for i, (page_no, pil_img, b64) in enumerate(floorplan_images):
+        await job_manager.update_progress(
+            job_id,
+            current_page=page_no,
+            current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_images)}",
+        )
+
+        enriched_prompt = FLOORPLAN_PROMPT_RICH
+        if table_context:
+            enriched_prompt += (
+                "\n\nADDITIONAL CONTEXT from document schedules:\n\n"
+                + table_context
+            )
+
+        try:
+            result_str = await run_llm_extraction(provider, enriched_prompt, b64)
+            result_clean = re.sub(
+                r'```(?:json)?\s*|\s*```', '', result_str
+            ).strip()
+            floorplan_data = json.loads(result_clean)
+
+            if page_no not in pages_result:
+                pages_result[page_no] = {
+                    "floorplans": [], "tables": [],
+                    "site_photos": [], "diagrams": [],
+                }
+            pages_result[page_no]["floorplans"].append(floorplan_data)
+
+        except Exception as e:
+            logger.error(f"LLM analysis failed for page {page_no}: {e}")
+            if page_no not in pages_result:
+                pages_result[page_no] = {
+                    "floorplans": [], "tables": [],
+                    "site_photos": [], "diagrams": [],
+                }
+            pages_result[page_no]["floorplans"].append(
+                {"error": str(e)}
+            )
+
+    # Phase 4: Synthesis (P5)
+    synthesis_result = None
+    successful_fps = [
+        fp for page_data in pages_result.values()
+        for fp in page_data.get("floorplans", [])
+        if "error" not in fp
+    ]
+
+    if len(successful_fps) > 1 or (successful_fps and table_data):
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.SYNTHESIS,
+            current_step="cross_page_synthesis",
+        )
+
+        try:
+            from hybrid import run_text_llm
+            from prompts import SYNTHESIS_PROMPT
+
+            synth_parts = [f"Total pages: {total_pages}"]
+            for idx, fp in enumerate(successful_fps):
+                synth_parts.append(
+                    f"\n--- Floorplan {idx + 1} ---\n"
+                    + json.dumps(fp, indent=2)
+                )
+            if table_data:
+                synth_parts.append("\n--- TABLES ---")
+                for pg, md in table_data:
+                    synth_parts.append(f"\nPage {pg}:\n{md}")
+
+            synth_str = await run_text_llm(
+                provider, SYNTHESIS_PROMPT, "\n".join(synth_parts)
+            )
+            synth_clean = re.sub(
+                r'```(?:json)?\s*|\s*```', '', synth_str
+            ).strip()
+            synthesis_result = json.loads(synth_clean)
+
+        except Exception as e:
+            logger.warning(f"Synthesis failed (non-fatal): {e}")
+            synthesis_result = {"error": str(e)}
+
+    # Assemble final result
+    result = {
+        "engine": "docling",
+        "pages": pages_result,
+        "footer_sample": footer_sample,
+        "synthesis": synthesis_result,
+    }
+
+    # Build units array from floorplan extractions
+    units = []
+    for page_no, page_data in pages_result.items():
+        for fp in page_data.get("floorplans", []):
+            if "error" in fp:
+                continue
+            units.append({
+                "unit_number": fp.get("unit_number", f"page_{page_no}"),
+                "unit_type": fp.get("unit_type", "unknown"),
+                "floor": fp.get("floor", 0),
+                "bedrooms": fp.get("bedrooms", 0),
+                "bathrooms": fp.get("bathrooms", 0),
+                "area_sf": fp.get("total_area_sf", 0),
+                "rooms": fp.get("rooms", []),
+                "doors": fp.get("doors", []),
+                "windows": fp.get("windows", []),
+                "fixtures": fp.get("fixtures", []),
+                "upgrades": fp.get("upgrades", []),
+                "general_notes": fp.get("general_notes", []),
+                "source_page": page_no,
+            })
+    result["units"] = units
+
+    # Confidence scoring (P6)
+    result["confidence"] = calculate_confidence(
+        units=units,
+        tables=[{"page_no": pg, "markdown": md} for pg, md in table_data],
+        synthesis=synthesis_result,
+        total_pages=total_pages,
+        floorplans_found=len(floorplan_images),
+    ).model_dump()
+
+    # Summary
+    result["summary"] = {
+        "units_count": len(units),
+        "pages_count": total_pages,
+        "floorplans_count": len(floorplan_images),
+        "tables_count": len(table_data),
+        "total_doors": sum(len(u.get("doors", [])) for u in units),
+        "total_windows": sum(len(u.get("windows", [])) for u in units),
+        "total_baseboard_ft": sum(
+            sum(r.get("baseboard_length_ft", 0) for r in u.get("rooms", []))
+            for u in units
+        ),
+        "has_footer": footer_sample is not None,
+    }
+
+    await job_manager.complete_job(job_id, result)
+
+
+# ============================================================
+# POST /parse/hybrid - Hybrid Engine (Priority 7)
+# ============================================================
+
+@app.post("/parse/hybrid")
+async def parse_hybrid(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    provider: str = Form(DEFAULT_PROVIDER),
+    supabase_url: str = Form(None),
+    supabase_key: str = Form(None),
+    tenant_name: str = Form(None),
+    project_name: str = Form(None),
+):
+    """Parse PDF using hybrid engine: Docling decomposition + Claude extraction.
+
+    Returns job_id for async polling via /status and /results endpoints.
+    """
+    temp_path = await save_upload_to_temp(file)
+    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+
+    job = await job_manager.create_job(
+        file_name=file.filename or "unknown.pdf",
+        engine="hybrid",
+    )
+
+    background_tasks.add_task(
+        _process_hybrid_background,
+        job.job_id,
+        temp_path,
+        provider,
+        sb_client,
+        tenant_name or "",
+        project_name or "",
+    )
+
+    return {
+        "job_id": job.job_id,
+        "status": "queued",
+        "engine": "hybrid",
+        "file": file.filename,
+    }
+
+
+async def _process_hybrid_background(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+):
+    """Background processor for hybrid engine with timeout enforcement."""
+    try:
+        await asyncio.wait_for(
+            process_hybrid(
+                job_id=job_id,
+                temp_path=temp_path,
+                provider=provider,
+                job_manager=job_manager,
+                sb_client=sb_client,
+                tenant_name=tenant_name,
+                project_name=project_name,
+            ),
+            timeout=PROCESSING_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        await job_manager.timeout_job(job_id)
+    except Exception as e:
+        traceback.print_exc()
+        await job_manager.fail_job(job_id, str(e))
+
+
+# ============================================================
+# GET /status/{job_id} - Lightweight Status (Priority 4a)
+# ============================================================
+
+@app.get("/status/{job_id}")
+async def get_status(job_id: str):
+    """Get lightweight job status for polling.
+
+    NEVER includes result data. Safe to poll every 2-5 seconds.
+    Small payload optimized for frequent requests.
+    """
+    status = await job_manager.get_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    return status.model_dump()
+
+
+# ============================================================
+# GET /results/{job_id} - Full Results (Priority 4a)
+# ============================================================
+
+@app.get("/results/{job_id}")
+async def get_results(
+    job_id: str,
+    summary: bool = Query(False, description="Return lightweight summary only"),
+):
+    """Get full extraction results for a completed job.
+
+    Heavy payload - fetch once after status confirms 'completed'.
+    Use ?summary=true for a lightweight preview.
+    """
+    # Check job exists and is completed
+    status = await job_manager.get_status(job_id)
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if status.status == JobStatus.PROCESSING or status.status == JobStatus.QUEUED:
+        return {
+            "job_id": job_id,
+            "status": status.status.value,
+            "message": "Job is still processing. Poll /status/{job_id} for progress.",
+        }
+
+    if status.status in (JobStatus.FAILED, JobStatus.TIMEOUT):
+        return {
+            "job_id": job_id,
+            "status": status.status.value,
+            "error": status.error,
+        }
+
+    # Return summary or full results
+    if summary:
+        result_summary = await job_manager.get_result_summary(job_id)
+        if not result_summary:
+            raise HTTPException(status_code=404, detail="Results not found")
+        return {
+            "job_id": job_id,
+            "status": "completed",
+            "summary": result_summary.model_dump(),
+        }
+
+    result = await job_manager.get_result(job_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Results not found")
+
+    return {
+        "job_id": job_id,
+        "status": "completed",
+        "result": result,
+    }
+
+
+# ============================================================
+# GET /health - Health Check
+# ============================================================
+
+@app.get("/health")
+async def health_check():
+    """Service health check."""
+    # Check Docling availability
+    docling_available = False
+    try:
+        import docling
+        docling_available = True
+    except ImportError:
+        pass
+
+    # Check Tesseract availability
+    tesseract_available = False
+    try:
+        import pytesseract
+        pytesseract.get_tesseract_version()
+        tesseract_available = True
+    except Exception:
+        pass
+
+    # Check LiteLLM availability
+    litellm_available = False
+    try:
+        import litellm
+        litellm_available = True
+    except ImportError:
+        pass
+
+    jobs = await job_manager.list_jobs()
+    running_count = sum(1 for j in jobs if j.status == JobStatus.PROCESSING)
+    queued_count = sum(1 for j in jobs if j.status == JobStatus.QUEUED)
+
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "engines": ["docling", "hybrid"],
+        "dependencies": {
+            "docling": docling_available,
+            "tesseract": tesseract_available,
+            "litellm": litellm_available,
+        },
+        "jobs": {
+            "running": running_count,
+            "queued": queued_count,
+            "total": len(jobs),
+        },
+        "config": {
+            "store_backend": JOB_STORE_BACKEND,
+            "default_provider": DEFAULT_PROVIDER,
+            "processing_timeout_s": PROCESSING_TIMEOUT_SECONDS,
+        },
+    }
+
+
+# ============================================================
+# GET /jobs - List Jobs
+# ============================================================
+
+@app.get("/jobs")
+async def list_jobs(
+    status: Optional[str] = Query(None, description="Filter by status"),
+):
+    """List all jobs with optional status filter."""
+    jobs = await job_manager.list_jobs(status)
+    return {
+        "jobs": [
+            {
+                "job_id": j.job_id,
+                "status": j.status.value,
+                "engine": j.engine if isinstance(j.engine, str) else j.engine.value,
+                "file_name": j.file_name,
+                "progress": j.progress.model_dump(),
+                "created_at": j.created_at.isoformat(),
+                "updated_at": j.updated_at.isoformat(),
+            }
+            for j in jobs
+        ],
+        "total": len(jobs),
+    }
+
+
+# ============================================================
+# DELETE /jobs/{job_id} - Delete Job
+# ============================================================
+
+@app.delete("/jobs/{job_id}")
+async def delete_job(job_id: str):
+    """Delete a job and its results."""
+    job = await job_manager._store.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+
+    if job.status == JobStatus.PROCESSING:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete a running job. Wait for completion or timeout.",
+        )
+
+    # Delete result and job record
+    await job_manager._store.delete_expired()  # Piggyback cleanup
+    return {"deleted": job_id}
+
+
+# ============================================================
+# Legacy Compatibility: GET /result/{job_id}
+# Redirects to new /results endpoint
+# ============================================================
+
+@app.get("/result/{job_id}")
+async def get_result_legacy(job_id: str):
+    """Legacy endpoint - redirects to /results/{job_id}."""
+    return await get_results(job_id, summary=False)
+
+
+# ============================================================
+# Entry Point
+# ============================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "server:app",
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "5000")),
+        reload=os.getenv("ENV", "production") == "development",
+    )
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

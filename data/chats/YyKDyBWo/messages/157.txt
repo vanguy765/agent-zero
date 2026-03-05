@@ -1,0 +1,16 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# workOrdersRoute.post('/projects', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .insert(body)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

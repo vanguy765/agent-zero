@@ -1,0 +1,61 @@
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+DO
+CREATE TABLE
+ALTER TABLE
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+ALTER TABLE
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+ALTER TABLE
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+DO
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:406: ERROR:  relation "public.project_outcomes" does not exist
+ALTER TABLE
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:422: ERROR:  relation "public.project_outcomes" does not exist
+ALTER TABLE
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:434: ERROR:  relation "public.project_outcomes" does not exist
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:441: ERROR:  new row for relation "work_order_templates" violates check constraint "work_order_templates_scope_check"
+DETAIL:  Failing row contains (30000000-0000-0000-0000-000000000001, null, Painting, 1, t, {"sections": {"walls": {"label": "Walls", "columns": [{"key": "h..., 2026-02-12 02:02:43.973884+00, 2026-03-04 22:07:02.074865+00, system, null, null, null, null, null, null, active, f, null, {}, f).
+ALTER TABLE
+ALTER TABLE
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:449: ERROR:  check constraint "work_order_templates_scope_check" of relation "work_order_templates" is violated by some row
+ALTER TABLE
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:454: ERROR:  new row for relation "template_libraries" violates check constraint "template_libraries_scope_check"
+DETAIL:  Failing row contains (c8991ce2-1638-4ed5-ac12-293e909185bc, Residential House - Standard, Standard template library for single-family residential homes, residential_house, system, null, home, #4CAF50, {}, t, t, 2026-02-12 02:02:44.003352+00, 2026-03-04 22:07:02.092118+00).
+ALTER TABLE
+ALTER TABLE
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:462: ERROR:  check constraint "template_libraries_scope_check" of relation "template_libraries" is violated by some row
+ALTER TABLE
+DROP POLICY
+CREATE POLICY
+CREATE FUNCTION
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:484: NOTICE:  trigger "trg_sync_trade_name_templates" for relation "public.work_order_templates" does not exist, skipping
+DROP TRIGGER
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:487: ERROR:  column "trade_id" of relation "work_order_templates" does not exist
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:489: NOTICE:  trigger "trg_sync_trade_name_work_orders" for relation "public.work_orders" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:505: NOTICE:  trigger "trg_sync_trade_name_code_sops" for relation "public.sops" does not exist, skipping
+DROP TRIGGER
+psql:supabase/migrations/20260304000001_schema_evolution_phase1.sql:508: ERROR:  column "trade_id" of relation "sops" does not exist
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,103 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === doc-parser ===
+total 8712
+drwxrwxrwx 1 root root    4096 Feb 26 04:18 .
+drwxrwxrwx 1 root root    4096 Mar  1 01:54 ..
+-rwxrwxrwx 1 root root    1993 Feb 17 02:18 benchmark_script.py
+-rwxrwxrwx 1 root root    3810 Feb 24 06:05 benchmark_vision.py
+-rwxrwxrwx 1 root root    2475 Feb 24 04:38 compare_methods.py
+-rwxrwxrwx 1 root root    1561 Feb 24 06:16 decode_docling_images.py
+-rwxrwxrwx 1 root root 8770689 Feb 17 02:18 demo.pdf
+-rwxrwxrwx 1 root root     873 Feb 17 02:18 docker-compose.yml
+-rwxrwxrwx 1 root root     917 Feb 26 04:07 Dockerfile
+-rwxrwxrwx 1 root root   13200 Feb 24 05:45 docker_logs.txt
+-rwxrwxrwx 1 root root      92 Feb 24 04:54 .env
+-rwxrwxrwx 1 root root    6038 Feb 26 04:10 error.log
+-rwxrwxrwx 1 root root    2774 Feb 25 23:20 filter_floorplans.py
+drwxrwxrwx 1 root root    4096 Feb 26 04:18 mock_supabase
+-rwxrwxrwx 1 root root    6562 Feb 25 23:54 patch_server_script.py
+-rwxrwxrwx 1 root root    6547 Feb 24 04:37 preparse.py
+-rwxrwxrwx 1 root root    9866 Feb 17 02:18 preparse.txt
+-rwxrwxrwx 1 root root    4533 Feb 26 04:33 process_document.py
+-rwxrwxrwx 1 root root    2444 Feb 25 23:53 prompts.py
+drwxrwxrwx 1 root root    4096 Feb 26 04:44 __pycache__
+-rwxrwxrwx 1 root root    3539 Feb 26 04:33 README.md
+-rwxrwxrwx 1 root root     157 Feb 26 04:11 requirements.txt
+-rwxrwxrwx 1 root root   24496 Feb 26 04:44 server.py
+-rwxrwxrwx 1 root root    2789 Feb 25 23:02 slice_cv.py
+-rwxrwxrwx 1 root root    2774 Feb 25 22:38 slice_surya.py
+drwxrwxrwx 1 root root    4096 Feb 17 02:18 templates
+-rwxrwxrwx 1 root root    2032 Feb 17 02:18 test_api.js
+-rwxrwxrwx 1 root root    2553 Feb 17 02:18 test_api.py
+-rwxrwxrwx 1 root root    1308 Feb 17 02:18 verify_env.py
+-rwxrwxrwx 1 root root    1524 Feb 17 02:18 verify_uploads.py
+
+=== apps ===
+total 0
+drwxrwxrwx 1 root root 4096 Feb 19 04:53 .
+drwxrwxrwx 1 root root 4096 Mar  1 01:54 ..
+drwxrwxrwx 1 root root 4096 Feb 24 01:25 api
+drwxrwxrwx 1 root root 4096 Feb 24 01:25 material-admin
+drwxrwxrwx 1 root root 4096 Feb 24 01:25 site-companion
+drwxr-xr-x 1 root root 4096 Feb 24 01:25 tenant-portal
+drwxrwxrwx 1 root root 4096 Feb 24 01:25 web-dashboard
+drwxrwxrwx 1 root root 4096 Feb 24 01:25 work-orders
+
+=== doc-parser Python files ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_vision.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/compare_methods.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/decode_docling_images.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/filter_floorplans.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/patch_server_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/preparse.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/process_document.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_cv.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_surya.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_api.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_env.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_uploads.py
+
+=== work-orders src ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/add_image_column.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_migration.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_recreation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_rls_fix.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_table_conversion.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_table_conversion_seq.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_triggers.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_update_view_enums.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/apply_view_update.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/check_db.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/check_renovation_data.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/check_taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/clean_config_repopulate.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/clean_renovation_data.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/configure_nocodb_columns.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/create_user.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/debug_create_product.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/debug_pdf.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/debug_seed_taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/debug_suppliers.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/inspect_nocodb_columns.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/inspect_schema.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/parse_pdf.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/parse_pdf_v2.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/reload_schema.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/reset_materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/run_migration.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/run_rls_fix.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/seed_materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/seed_renovation_demo.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/seed_renovation_sql.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/seed_site.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/simple_pdf_test.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/test_client.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/test_hardcoded.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/test_realtime.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/verify_data.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/verify_enums.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/verify_enums_debug.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/scripts/verify_table_exists.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

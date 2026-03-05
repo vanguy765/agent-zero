@@ -1,0 +1,18 @@
+=== Planning Artifacts ===
+total 76
+drwxr-xr-x 1 root root  4096 Feb 27 04:37 .
+drwxr-xr-x 1 root root  4096 Feb 26 19:38 ..
+-rw-r--r-- 1 root root   377 Feb 27 04:37 architecture.md
+-rw-r--r-- 1 root root 30828 Feb 27 04:36 prd.md
+-rwxrwxrwx 1 root root   952 Feb 27 04:32 prd.validate-all-steps.md
+-rwxrwxrwx 1 root root 26080 Feb 27 04:31 prd.validation.md
+-rw-r--r-- 1 root root 11401 Mar  2 23:59 product-brief-taskflow-2026-02-26.md
+=== Implementation Artifacts ===
+total 0
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 .
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 ..
+=== Docs ===
+total 0
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 .
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 ..
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

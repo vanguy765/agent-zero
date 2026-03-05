@@ -1,0 +1,59 @@
+# Phase 2 Test Implementation Complete ✅
+
+**All 263 tests passing** (1.11s execution time)
+
+## Files Created/Updated
+
+### 1. `test_detection.py` — 75 tests
+Covers all detection.py functionality with programmatically generated synthetic images:
+
+| Test Class | Tests | Coverage |
+|---|---|---|
+| `TestDimensionRegex` | 15 | Valid/invalid dimension pattern matching |
+| `TestArchLabelRegex` | 12 | Architectural label recognition |
+| `TestScaleRegex` | 8 | Scale notation detection |
+| `TestIsArchitecturalDrawing` | 8 | Edge density + Hough line detection, cv2/numpy fallbacks |
+| `TestHasArchitecturalText` | 9 | OCR mocking, scoring thresholds, tesseract fallbacks |
+| `TestClassifyImage` | 8 | All classification paths (floorplan/photo/diagram/table/unknown) |
+| `TestExtractFloorplanCandidates` | 4 | Tuple input format, filtering, error-tolerant data loss prevention |
+| `TestLegacyBwCheck` | 3 | Grayscale vs colorful detection, numpy fallback |
+| `TestHasPhotoCharacteristics` | 5 | Std/channel-spread thresholds, getcolors fallback |
+| `TestImageToBase64` | 3 | Base64 encoding, roundtrip decode |
+
+**Key techniques:**
+- Synthetic images via PIL/numpy (smooth gradients, line grids, solid colors)
+- `patch.object(detection, "HAS_CV2", False)` for library-unavailable paths
+- `patch("detection.pytesseract", create=True)` for mocking uninstalled pytesseract
+
+### 2. `test_job_manager.py` — 40 tests
+All async tests using `pytest-asyncio`:
+
+| Test Class | Tests | Coverage |
+|---|---|---|
+| `TestInMemoryJobStore` | 12 | CRUD, expiration, result storage, status filtering |
+| `TestJobManager` | 23 | Full lifecycle (create→start→progress→complete/fail/timeout), status/result retrieval, summary calculation |
+| `TestCreateJobManager` | 5 | Factory function, backend selection, Supabase fallback |
+
+**Key validations:**
+- Jobs created with QUEUED status (Priority 4c race condition fix)
+- `update_progress` auto-calculates `percent_complete` from phase
+- `delete_expired` respects QUEUED/PROCESSING immunity
+- Full success and failure lifecycle integration tests
+
+### 3. `conftest.py` — Updated with Phase 2 fixtures
+- `in_memory_store()` — fresh InMemoryJobStore
+- `job_manager()` — JobManager with InMemoryJobStore  
+- `sample_result_data()` — HybridOutput-structured dict
+
+## Test Summary
+```
+tests/test_confidence.py  — 41 passed
+tests/test_detection.py   — 75 passed
+tests/test_job_manager.py — 40 passed
+tests/test_models.py      — 63 passed
+tests/test_prompts.py     — 44 passed
+─────────────────────────────────
+Total: 263 passed in 1.11s
+```
+
+All warnings are deprecation notices from the source code's `datetime.utcnow()` usage — not test issues.

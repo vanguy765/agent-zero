@@ -1,0 +1,75 @@
+total 20
+drwxr-xr-x 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Mar  3 04:06 ..
+-rw-r--r-- 1 root root 18231 Mar  3 04:06 DocParserPanel.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === backups_pre_p1_p7/ ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# total 32
+drwxr-xr-x 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Mar  3 04:06 ..
+-rwxr-xr-x 1 root root  2774 Mar  3 04:06 filter_floorplans.py
+-rwxr-xr-x 1 root root  2444 Mar  3 04:06 prompts.py
+-rwxr-xr-x 1 root root   157 Mar  3 04:06 requirements.txt
+-rwxr-xr-x 1 root root 24496 Mar  3 04:06 server.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === LINE COUNTS ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# --- NEW files ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 271 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/models.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 434 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 555 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/job_manager.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 266 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/confidence.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 695 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# --- REPLACED files ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 805 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 249 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# --- MERGED ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 42 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/requirements.txt
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# --- HONO API ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 242 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 188 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# --- FRONTEND ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 589 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/doc-parser/DocParserPanel.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# --- BACKUPS ---
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#    80 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/filter_floorplans.py
+   62 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/prompts.py
+   15 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/requirements.txt
+  584 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/server.py
+  741 total
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === FRONTEND CHECK ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# total 20
+drwxr-xr-x 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Mar  3 04:06 ..
+-rw-r--r-- 1 root root 18231 Mar  3 04:06 DocParserPanel.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# === LINE COUNTS - ALL FILES ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# NEW:
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#   271 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/models.py
+  434 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection.py
+  555 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/job_manager.py
+  266 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/confidence.py
+  695 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+ 2221 total
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# REPLACED:
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#   805 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+  249 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+ 1054 total
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# MERGED:
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 42 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/requirements.txt
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# HONO API (NEW):
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#   242 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+  188 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+  430 total
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# FRONTEND (NEW):
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 589 /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/src/components/doc-parser/DocParserPanel.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# BACKUPS:
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#    80 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/filter_floorplans.py
+   62 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/prompts.py
+   15 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/requirements.txt
+  584 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7/server.py
+  741 total
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

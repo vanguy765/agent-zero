@@ -1,0 +1,8 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#        conname       |                                                        pg_get_constraintdef
+---------------------+------------------------------------------------------------------------------------------------------------------------------------
+ valid_company_scope | CHECK ((((scope = 'company'::text) AND (organization_id IS NOT NULL) AND (project_id IS NULL)) OR (scope <> 'company'::text)))
+ valid_project_scope | CHECK ((((scope = 'project'::text) AND (organization_id IS NOT NULL) AND (project_id IS NOT NULL)) OR (scope <> 'project'::text)))
+ valid_system_scope  | CHECK ((((scope = 'system'::text) AND (organization_id IS NULL) AND (project_id IS NULL)) OR (scope <> 'system'::text)))
+(3 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

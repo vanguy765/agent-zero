@@ -1,0 +1,61 @@
+# normalise False to None
+        if spec is False:
+            spec = None
+        if spec_set is False:
+            spec_set = None
+        if autospec is False:
+            autospec = None
+    
+        if spec is not None and autospec is not None:
+            raise TypeError("Can't specify spec and autospec")
+        if ((spec is not None or autospec is not None) and
+            spec_set not in (True, None)):
+            raise TypeError("Can't provide explicit spec_set *and* spec or autospec")
+    
+>       original, local = self.get_original()
+                          ^^^^^^^^^^^^^^^^^^^
+
+/usr/lib/python3.13/unittest/mock.py:1497:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x773f32b74440>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'hybrid' from '/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/hybrid.py'> does not have the attribute 'DocumentConverter'
+
+/usr/lib/python3.13/unittest/mock.py:1467: AttributeError
+=============================== warnings summary ===============================
+tests/test_hybrid.py::TestProcessHybrid::test_job_transitions_to_completed
+  /a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser/tests/../job_manager.py:370: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    expires_at=datetime.utcnow() + timedelta(hours=ttl_hours),
+
+tests/test_hybrid.py::TestProcessHybrid::test_job_transitions_to_completed
+tests/test_hybrid.py::TestProcessHybrid::test_job_transitions_to_completed
+  /opt/venv/lib/python3.13/site-packages/pydantic/main.py:250: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_hybrid.py::TestProcessHybrid::test_job_transitions_to_completed
+======================== 1 failed, 3 warnings in 0.51s =========================
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/doc-parser#

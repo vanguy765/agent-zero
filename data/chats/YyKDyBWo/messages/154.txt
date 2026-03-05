@@ -1,0 +1,39 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# workOrdersRoute.post('/projects', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .insert(body)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+
+// UPDATE WO PROJECT
+workOrdersRoute.patch('/projects/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const { data, error } = await supabase
+        .from('wo_projects')
+        .update(body)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// DELETE WO PROJECT
+workOrdersRoute.delete('/projects/:id', async (c) => {
+    const supabase = getScopedClient(c);
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

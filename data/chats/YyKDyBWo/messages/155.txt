@@ -1,0 +1,17 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts:20:  const { data: { user }, error } = await supabase.auth.getUser(token);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts:5:export const getScopedClient = (c: Context): SupabaseClient => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:66:const getScopedClient = (c: any) => {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:83:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:101:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:186:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:204:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:228:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:266:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:302:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:358:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:390:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:416:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:440:    const supabase = getScopedClient(c);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:460:    const supabase = getScopedClient(c);
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

@@ -1,0 +1,555 @@
+"""Job management for doc-parser service.
+
+Priority 3: Granular progress tracking with phase/page/step updates
+Priority 4: Persistent storage, separate status/results endpoints, TTL cleanup,
+            race condition fix (POST returns "queued" not "processing")
+
+Supports two backends:
+- InMemoryJobStore: Default, for development/single-instance
+- SupabaseJobStore: Production, for persistence across restarts
+"""
+import json
+import asyncio
+import logging
+from abc import ABC, abstractmethod
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict, Any
+
+from models import (
+    JobRecord, JobStatus, JobProgress, ProcessingPhase, EngineType,
+    StatusResponse, ResultSummary
+)
+
+logger = logging.getLogger(__name__)
+
+# Default TTL for job records and results
+DEFAULT_TTL_HOURS = 2
+# Hard timeout for background processing
+PROCESSING_TIMEOUT_SECONDS = 1800  # 30 minutes
+
+
+# ============================================================
+# Abstract Job Store Interface
+# ============================================================
+
+class JobStore(ABC):
+    """Abstract interface for job persistence."""
+
+    @abstractmethod
+    async def create_job(self, job: JobRecord) -> str:
+        """Create a new job record. Returns job_id."""
+        ...
+
+    @abstractmethod
+    async def get_job(self, job_id: str) -> Optional[JobRecord]:
+        """Get job record by ID (without result data)."""
+        ...
+
+    @abstractmethod
+    async def update_job(self, job_id: str, **kwargs) -> None:
+        """Update job fields."""
+        ...
+
+    @abstractmethod
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get full result data for a completed job."""
+        ...
+
+    @abstractmethod
+    async def store_result(self, job_id: str, result: Dict[str, Any]) -> None:
+        """Store result data for a job."""
+        ...
+
+    @abstractmethod
+    async def delete_expired(self) -> int:
+        """Delete expired jobs and their results. Returns count deleted."""
+        ...
+
+    @abstractmethod
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        """List jobs, optionally filtered by status."""
+        ...
+
+
+# ============================================================
+# In-Memory Job Store (Development)
+# ============================================================
+
+class InMemoryJobStore(JobStore):
+    """In-memory job storage for development and single-instance deployments.
+
+    WARNING: All data lost on restart. Use SupabaseJobStore for production.
+    """
+
+    def __init__(self):
+        self._jobs: Dict[str, JobRecord] = {}
+        self._results: Dict[str, Dict[str, Any]] = {}
+
+    async def create_job(self, job: JobRecord) -> str:
+        self._jobs[job.job_id] = job
+        logger.info(f"Job created: {job.job_id} (engine={job.engine}, file={job.file_name})")
+        return job.job_id
+
+    async def get_job(self, job_id: str) -> Optional[JobRecord]:
+        return self._jobs.get(job_id)
+
+    async def update_job(self, job_id: str, **kwargs) -> None:
+        job = self._jobs.get(job_id)
+        if not job:
+            logger.warning(f"Job not found for update: {job_id}")
+            return
+        for key, value in kwargs.items():
+            if hasattr(job, key):
+                setattr(job, key, value)
+        job.touch()
+
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        return self._results.get(job_id)
+
+    async def store_result(self, job_id: str, result: Dict[str, Any]) -> None:
+        self._results[job_id] = result
+        logger.info(f"Result stored for job: {job_id}")
+
+    async def delete_expired(self) -> int:
+        now = datetime.now(timezone.utc)
+        expired = [
+            jid for jid, job in self._jobs.items()
+            if job.expires_at and job.expires_at < now
+            and job.status in (JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.TIMEOUT)
+        ]
+        for jid in expired:
+            del self._jobs[jid]
+            self._results.pop(jid, None)
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired jobs")
+        return len(expired)
+
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        jobs = list(self._jobs.values())
+        if status:
+            jobs = [j for j in jobs if j.status == status]
+        return jobs
+
+
+# ============================================================
+# Supabase Job Store (Production)
+# ============================================================
+
+class SupabaseJobStore(JobStore):
+    """Persistent job storage using Supabase (Postgres + Storage).
+
+    Schema required:
+        CREATE TABLE doc_parser_jobs (
+            job_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'queued',
+            engine TEXT NOT NULL DEFAULT 'docling',
+            file_name TEXT,
+            progress JSONB DEFAULT '{}',
+            result_ref TEXT,  -- Storage path, NOT inline result
+            error TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW(),
+            expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '2 hours')
+        );
+
+        CREATE INDEX idx_jobs_status ON doc_parser_jobs(status);
+        CREATE INDEX idx_jobs_expires ON doc_parser_jobs(expires_at);
+    """
+
+    def __init__(self, supabase_url: str, supabase_key: str):
+        try:
+            from supabase import create_client
+            self._client = create_client(supabase_url, supabase_key)
+            self._bucket = "doc-parser-results"
+        except ImportError:
+            raise ImportError("supabase package required: pip install supabase")
+
+    async def create_job(self, job: JobRecord) -> str:
+        data = {
+            "job_id": job.job_id,
+            "status": job.status.value,
+            "engine": job.engine.value if isinstance(job.engine, EngineType) else job.engine,
+            "file_name": job.file_name,
+            "progress": job.progress.model_dump(),
+            "created_at": job.created_at.isoformat(),
+            "updated_at": job.updated_at.isoformat(),
+            "expires_at": job.expires_at.isoformat() if job.expires_at else None,
+        }
+        await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs").insert(data).execute()
+        )
+        logger.info(f"Job created in Supabase: {job.job_id}")
+        return job.job_id
+
+    async def get_job(self, job_id: str) -> Optional[JobRecord]:
+        result = await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .select("*")
+            .eq("job_id", job_id)
+            .execute()
+        )
+        if not result.data:
+            return None
+        row = result.data[0]
+        return JobRecord(
+            job_id=row["job_id"],
+            status=JobStatus(row["status"]),
+            engine=row.get("engine", "docling"),
+            file_name=row.get("file_name", ""),
+            progress=JobProgress(**row.get("progress", {})),
+            result_ref=row.get("result_ref"),
+            error=row.get("error"),
+            created_at=datetime.fromisoformat(row["created_at"]),
+            updated_at=datetime.fromisoformat(row["updated_at"]),
+            expires_at=datetime.fromisoformat(row["expires_at"]) if row.get("expires_at") else None,
+        )
+
+    async def update_job(self, job_id: str, **kwargs) -> None:
+        update_data = {}
+        for key, value in kwargs.items():
+            if key == "status" and isinstance(value, JobStatus):
+                update_data[key] = value.value
+            elif key == "progress" and isinstance(value, JobProgress):
+                update_data[key] = value.model_dump()
+            elif key == "engine" and isinstance(value, EngineType):
+                update_data[key] = value.value
+            else:
+                update_data[key] = value
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .update(update_data)
+            .eq("job_id", job_id)
+            .execute()
+        )
+
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        job = await self.get_job(job_id)
+        if not job or not job.result_ref:
+            return None
+        try:
+            response = await asyncio.to_thread(
+                lambda: self._client.storage
+                .from_(self._bucket)
+                .download(job.result_ref)
+            )
+            return json.loads(response)
+        except Exception as e:
+            logger.error(f"Failed to download result for {job_id}: {e}")
+            return None
+
+    async def store_result(self, job_id: str, result: Dict[str, Any]) -> None:
+        result_path = f"results/{job_id}.json"
+        result_bytes = json.dumps(result, default=str).encode("utf-8")
+
+        await asyncio.to_thread(
+            lambda: self._client.storage
+            .from_(self._bucket)
+            .upload(result_path, result_bytes, {"content-type": "application/json"})
+        )
+
+        await self.update_job(job_id, result_ref=result_path)
+        logger.info(f"Result stored in Supabase Storage: {result_path}")
+
+    async def delete_expired(self) -> int:
+        now = datetime.now(timezone.utc).isoformat()
+        # Get expired jobs
+        result = await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .select("job_id, result_ref")
+            .lt("expires_at", now)
+            .in_("status", ["completed", "failed", "timeout"])
+            .execute()
+        )
+        if not result.data:
+            return 0
+
+        # Delete result files from storage
+        for row in result.data:
+            if row.get("result_ref"):
+                try:
+                    await asyncio.to_thread(
+                        lambda ref=row["result_ref"]: self._client.storage
+                        .from_(self._bucket)
+                        .remove([ref])
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to delete result file {row["result_ref"]}: {e}")
+
+        # Delete job records
+        job_ids = [row["job_id"] for row in result.data]
+        await asyncio.to_thread(
+            lambda: self._client.table("doc_parser_jobs")
+            .delete()
+            .in_("job_id", job_ids)
+            .execute()
+        )
+
+        logger.info(f"Cleaned up {len(job_ids)} expired jobs from Supabase")
+        return len(job_ids)
+
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        query = self._client.table("doc_parser_jobs").select("*")
+        if status:
+            query = query.eq("status", status)
+        result = await asyncio.to_thread(lambda: query.execute())
+        return [
+            JobRecord(
+                job_id=row["job_id"],
+                status=JobStatus(row["status"]),
+                engine=row.get("engine", "docling"),
+                file_name=row.get("file_name", ""),
+                progress=JobProgress(**row.get("progress", {})),
+                result_ref=row.get("result_ref"),
+                error=row.get("error"),
+                created_at=datetime.fromisoformat(row["created_at"]),
+                updated_at=datetime.fromisoformat(row["updated_at"]),
+            )
+            for row in result.data
+        ]
+
+
+# ============================================================
+# Job Manager (Facade)
+# ============================================================
+
+class JobManager:
+    """High-level job management facade.
+
+    Provides:
+    - Job creation with correct initial state ("queued", not "processing")
+    - Progress updates with automatic percent calculation
+    - Status/result separation (Priority 4a)
+    - TTL-based cleanup (Priority 4b)
+    - Processing timeout enforcement
+    """
+
+    def __init__(self, store: Optional[JobStore] = None):
+        self._store = store or InMemoryJobStore()
+        self._cleanup_task: Optional[asyncio.Task] = None
+
+    async def start_cleanup_loop(self, interval_minutes: int = 10):
+        """Start background cleanup of expired jobs."""
+        async def _cleanup_loop():
+            while True:
+                try:
+                    count = await self._store.delete_expired()
+                    if count > 0:
+                        logger.info(f"Cleanup: removed {count} expired jobs")
+                except Exception as e:
+                    logger.error(f"Cleanup error: {e}")
+                await asyncio.sleep(interval_minutes * 60)
+
+        self._cleanup_task = asyncio.create_task(_cleanup_loop())
+        logger.info(f"Job cleanup loop started (interval={interval_minutes}min)")
+
+    async def stop_cleanup_loop(self):
+        """Stop the background cleanup loop."""
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
+            self._cleanup_task = None
+
+    # ---- Job Lifecycle ----
+
+    async def create_job(
+        self,
+        file_name: str,
+        engine: str = "docling",
+        ttl_hours: int = DEFAULT_TTL_HOURS
+    ) -> JobRecord:
+        """Create a new job in QUEUED state.
+
+        Priority 4c: Returns "queued" (not "processing") to fix race condition.
+        The background task transitions to "processing" when it actually starts.
+        """
+        job = JobRecord(
+            file_name=file_name,
+            engine=engine,
+            status=JobStatus.QUEUED,  # Correct initial state
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=ttl_hours),
+        )
+        await self._store.create_job(job)
+        return job
+
+    async def start_processing(self, job_id: str) -> None:
+        """Transition job from QUEUED to PROCESSING.
+
+        Called by the background task when it actually begins work.
+        """
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.PROCESSING,
+        )
+
+    async def update_progress(
+        self,
+        job_id: str,
+        phase: Optional[ProcessingPhase] = None,
+        current_page: Optional[int] = None,
+        total_pages: Optional[int] = None,
+        current_step: Optional[str] = None,
+        floorplans_found: Optional[int] = None,
+        tables_found: Optional[int] = None,
+    ) -> None:
+        """Update job progress with granular tracking.
+
+        Priority 3: Provides real-time progress visibility.
+        """
+        job = await self._store.get_job(job_id)
+        if not job:
+            return
+
+        progress = job.progress
+        if phase is not None:
+            progress.current_phase = phase
+        if current_page is not None:
+            progress.current_page = current_page
+        if total_pages is not None:
+            progress.total_pages = total_pages
+        if current_step is not None:
+            progress.current_step = current_step
+        if floorplans_found is not None:
+            progress.floorplans_found = floorplans_found
+        if tables_found is not None:
+            progress.tables_found = tables_found
+
+        progress.update_percent()
+
+        await self._store.update_job(job_id, progress=progress)
+
+    async def complete_job(self, job_id: str, result: Dict[str, Any]) -> None:
+        """Mark job as completed and store results.
+
+        Priority 4a: Results stored separately from status.
+        """
+        await self._store.store_result(job_id, result)
+        progress = JobProgress(
+            current_phase=ProcessingPhase.COMPLETE,
+            percent_complete=100.0,
+        )
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.COMPLETED,
+            progress=progress,
+        )
+        logger.info(f"Job completed: {job_id}")
+
+    async def fail_job(self, job_id: str, error: str) -> None:
+        """Mark job as failed with error message."""
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.FAILED,
+            error=error,
+        )
+        logger.error(f"Job failed: {job_id} - {error}")
+
+    async def timeout_job(self, job_id: str) -> None:
+        """Mark job as timed out."""
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.TIMEOUT,
+            error=f"Processing exceeded {PROCESSING_TIMEOUT_SECONDS}s timeout",
+        )
+        logger.warning(f"Job timed out: {job_id}")
+
+    # ---- Query Methods (Priority 4a: Separate Status from Results) ----
+
+    async def get_status(self, job_id: str) -> Optional[StatusResponse]:
+        """Get lightweight status for polling.
+
+        NEVER includes result data. Safe to call every 2-5 seconds.
+        This is the response for GET /status/{job_id}.
+        """
+        job = await self._store.get_job(job_id)
+        if not job:
+            return None
+        return StatusResponse(
+            job_id=job.job_id,
+            status=job.status,
+            engine=job.engine if isinstance(job.engine, str) else job.engine.value,
+            file_name=job.file_name,
+            progress=job.progress,
+            error=job.error,
+            created_at=job.created_at,
+            updated_at=job.updated_at,
+        )
+
+    async def get_result(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get full result data. Only call after status is COMPLETED.
+
+        This is the response for GET /results/{job_id}.
+        Heavy payload - fetch once, not for polling.
+        """
+        return await self._store.get_result(job_id)
+
+    async def get_result_summary(self, job_id: str) -> Optional[ResultSummary]:
+        """Get lightweight result summary.
+
+        For GET /results/{job_id}?summary=true.
+        """
+        result = await self._store.get_result(job_id)
+        if not result:
+            return None
+
+        return ResultSummary(
+            pages_count=len(result.get("pages", {})),
+            floorplans_count=sum(
+                len(p.get("floorplans", []))
+                for p in result.get("pages", {}).values()
+                if isinstance(p, dict)
+            ),
+            tables_count=len(result.get("tables", [])),
+            units_count=len(result.get("units", [])),
+            has_footer=result.get("footer_sample") is not None,
+            total_doors=sum(
+                len(u.get("doors", []))
+                for u in result.get("units", [])
+            ),
+            total_windows=sum(
+                len(u.get("windows", []))
+                for u in result.get("units", [])
+            ),
+            total_baseboard_ft=sum(
+                sum(r.get("baseboard_length_ft", 0) for r in u.get("rooms", []))
+                for u in result.get("units", [])
+            ),
+            trades=list(set(
+                up.get("trade", "")
+                for u in result.get("units", [])
+                for up in u.get("upgrades", [])
+                if up.get("trade")
+            )),
+        )
+
+    async def list_jobs(self, status: Optional[str] = None) -> list:
+        """List all jobs."""
+        return await self._store.list_jobs(status)
+
+
+# ============================================================
+# Factory
+# ============================================================
+
+def create_job_manager(
+    backend: str = "memory",
+    supabase_url: Optional[str] = None,
+    supabase_key: Optional[str] = None,
+) -> JobManager:
+    """Create a JobManager with the specified backend.
+
+    Args:
+        backend: "memory" or "supabase"
+        supabase_url: Required if backend is "supabase"
+        supabase_key: Required if backend is "supabase"
+    """
+    if backend == "supabase" and supabase_url and supabase_key:
+        store = SupabaseJobStore(supabase_url, supabase_key)
+        logger.info("Using Supabase job store")
+    else:
+        store = InMemoryJobStore()
+        if backend == "supabase":
+            logger.warning("Supabase credentials missing, falling back to in-memory store")
+        else:
+            logger.info("Using in-memory job store")
+    return JobManager(store)

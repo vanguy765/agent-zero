@@ -1,0 +1,72 @@
+conname                 |                                         pg_get_constraintdef
+-----------------------------------------+-------------------------------------------------------------------------------------------------------
+ template_libraries_organization_id_fkey | FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
+ template_libraries_pkey                 | PRIMARY KEY (id)
+ valid_company_library                   | CHECK ((((scope = 'company'::text) AND (organization_id IS NOT NULL)) OR (scope <> 'company'::text)))
+ valid_system_library                    | CHECK ((((scope = 'system'::text) AND (organization_id IS NULL)) OR (scope <> 'system'::text)))
+(4 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === PROJECT_OUTCOMES TEST ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ERROR:  relation "public.project_outcomes" does not exist
+LINE 1: SELECT 1 FROM public.project_outcomes LIMIT 1;
+                      ^
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -- 1B. project_outcomes table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.project_outcomes (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    name text NOT NULL,
+    code text NOT NULL,
+    description text,
+    scope text NOT NULL DEFAULT 'system',
+    organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+    icon text,
+    color text,
+    metadata jsonb DEFAULT '{}',
+    is_active boolean NOT NULL DEFAULT true,
+    is_default boolean DEFAULT false,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT project_outcomes_scope_check CHECK (scope IN ('system', 'company')),
+    CONSTRAINT valid_system_outcome CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_outcome CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company'),
+    -- UNIQUE handled by partial indexes below
+);
+
+-- RLS for project_outcomes
+ALTER TABLE public.project_outcomes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "project_outcomes_select_system" ON public.project_outcomes FOR SELECT
+    USING (scope = 'system');
+
+CREATE POLICY "project_outcomes_select_company" ON public.project_outcomes FOR SELECT
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_insert_company" ON public.project_outcomes FOR INSERT
+    WITH CHECK (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_update_company" ON public.project_outcomes FOR UPDATE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_delete_company" ON public.project_outcomes FOR DELETE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+-- Indexes for project_outcomes
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_code ON public.project_outcomes(code);
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_scope ON public.project_outcomes(scope);
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_organization_id ON public.project_outcomes(organization_id);
+-- Partial unique indexes for project_outcomes (handles NULL organization_id)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_outcomes_unique_system
+    ON public.project_outcomes(code) WHERE scope = 'system';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_outcomes_unique_company
+    ON public.project_outcomes(code, organization_id) WHERE scope = 'company';
+
+-- Updated_at trigger for project_outcomes
+DO $$ BEGIN
+    CREATE TRIGGER update_project_outcomes_updated_at
+        BEFORE UPDATE ON public.project_outcomes
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,21 @@
+/**
+ * Doc-Parser Proxy Routes for Hono API
+ *
+ * Integrates doc-parser service into the existing work-orders API.
+ * Provides engine selection, status polling, and result retrieval.
+ *
+ * Routes:
+ *   POST /api/documents/:id/parse    - Parse document (engine selection)
+ *   GET  /api/doc-parser/status/:jobId  - Lightweight status (poll-safe)
+ *   GET  /api/doc-parser/results/:jobId - Full results (fetch-once)
+ *   GET  /api/doc-parser/health         - Service health check
+ */
+
+import { Hono } from 'hono';
+import {
+  submitParseJob,
+  getJobStatus,
+  getJobResults,
+  checkHealth,
+  mapToParseDocument,
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#

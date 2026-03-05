@@ -1,0 +1,245 @@
+-- =============================================================
+-- Migration: Unit & Measurement Tables
+-- Description: Units, rooms, measurements, calculations, and unit-document links
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: units
+-- -----------------------------------------------
+
+CREATE TABLE public.units (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    unit_number text NOT NULL,
+    unit_type text,
+    floor integer,
+    area_sf numeric,
+    status text DEFAULT 'not_started'::text,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    project_id uuid,
+    floor_plan_image text,
+    dimensions jsonb,
+    bedrooms integer
+);
+
+ALTER TABLE ONLY public.units
+    ADD CONSTRAINT units_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: unit_rooms
+-- -----------------------------------------------
+
+CREATE TABLE public.unit_rooms (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    unit_id uuid,
+    room_id uuid,
+    area_sf numeric(10,2),
+    baseboard_length_ft numeric(10,2),
+    notes text,
+    created_at timestamp with time zone DEFAULT now(),
+    wall_length_total_ft numeric,
+    wall_length_cabinets_ft numeric,
+    dimensions jsonb DEFAULT '{}'::jsonb
+);
+
+ALTER TABLE ONLY public.unit_rooms
+    ADD CONSTRAINT unit_rooms_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: unit_room_measurements
+-- -----------------------------------------------
+
+CREATE TABLE public.unit_room_measurements (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    unit_room_id uuid NOT NULL,
+    area_sf numeric(10,2),
+    area_m2 numeric(10,2),
+    wall_length_total_lf numeric(10,2),
+    wall_length_cabinets_lf numeric(10,2),
+    wall_length_paintable_lf numeric(10,2),
+    baseboard_length_lf numeric(10,2),
+    ceiling_height_ft numeric(6,2),
+    wall_area_sf numeric(10,2),
+    ceiling_area_sf numeric(10,2),
+    window_count integer DEFAULT 0,
+    door_count integer DEFAULT 0,
+    width_ft numeric(8,2),
+    depth_ft numeric(8,2),
+    width_mm numeric(8,0),
+    depth_mm numeric(8,0),
+    source text DEFAULT 'pdf_extraction'::text,
+    extraction_confidence numeric(3,2),
+    extras jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.unit_room_measurements
+    ADD CONSTRAINT unit_room_measurements_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: unit_room_calculations
+-- -----------------------------------------------
+
+CREATE TABLE public.unit_room_calculations (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    unit_room_id uuid NOT NULL,
+    metric_key text NOT NULL,
+    metric_label text,
+    category text DEFAULT 'general'::text NOT NULL,
+    trade_key text,
+    value_numeric numeric(14,4),
+    value_text text,
+    unit_of_measure text,
+    is_calculated boolean DEFAULT false,
+    is_editable boolean DEFAULT true,
+    source text DEFAULT 'manual'::text,
+    formula text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    rate numeric(14,4),
+    rate_unit text,
+    quantity numeric(14,4),
+    quantity_source text DEFAULT 'measured'::text,
+    product_estimated text,
+    product_actual text,
+    price_estimated numeric(14,4),
+    price_actual numeric(14,4),
+    hours_estimated numeric(10,2),
+    hours_actual numeric(10,2),
+    percent_complete numeric(5,2) DEFAULT 0,
+    CONSTRAINT chk_percent_complete CHECK (((percent_complete IS NULL) OR ((percent_complete >= (0)::numeric) AND (percent_complete <= (100)::numeric))))
+);
+
+ALTER TABLE ONLY public.unit_room_calculations
+    ADD CONSTRAINT unit_room_calculations_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: unit_documents
+-- -----------------------------------------------
+
+CREATE TABLE public.unit_documents (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    unit_id uuid,
+    document_id uuid,
+    relationship_type text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.unit_documents
+    ADD CONSTRAINT unit_documents_pkey PRIMARY KEY (id);
+===SEPARATOR===
+-- =============================================================
+-- Migration: Work Order Tables
+-- Description: Projects, work orders, tasks, notes, and templates
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: wo_projects
+-- -----------------------------------------------
+
+CREATE TABLE public.wo_projects (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    name text NOT NULL,
+    description text,
+    status text DEFAULT 'active'::text NOT NULL,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    project_type text,
+    library_id uuid,
+    CONSTRAINT wo_projects_status_check CHECK ((status = ANY (ARRAY['active'::text, 'completed'::text, 'archived'::text])))
+);
+
+ALTER TABLE ONLY public.wo_projects
+    ADD CONSTRAINT wo_projects_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: work_orders
+-- -----------------------------------------------
+
+CREATE TABLE public.work_orders (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid NOT NULL,
+    unit_id uuid NOT NULL,
+    template_id uuid NOT NULL,
+    trade_name text NOT NULL,
+    status text DEFAULT 'pending'::text,
+    assigned_contractor_id uuid,
+    inspector_id uuid,
+    start_date timestamp with time zone,
+    completion_date timestamp with time zone,
+    inspector_signoff_date timestamp with time zone,
+    metadata jsonb DEFAULT '{}'::jsonb,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE ONLY public.work_orders
+    ADD CONSTRAINT work_orders_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: work_order_tasks
+-- -----------------------------------------------
+
+CREATE TABLE public.work_order_tasks (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    work_order_id uuid NOT NULL,
+    room_id uuid NOT NULL,
+    row_order integer DEFAULT 0,
+    task_data jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE ONLY public.work_order_tasks
+    ADD CONSTRAINT work_order_tasks_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: work_order_notes
+-- -----------------------------------------------
+
+CREATE TABLE public.work_order_notes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    work_order_id uuid NOT NULL,
+    author_id uuid NOT NULL,
+    content text NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE ONLY public.work_order_notes
+    ADD CONSTRAINT work_order_notes_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: work_order_templates
+-- -----------------------------------------------
+
+CREATE TABLE public.work_order_templates (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    organization_id uuid,
+    trade_name text NOT NULL,
+    version integer DEFAULT 1,
+    is_active boolean DEFAULT true,
+    definition jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    scope text DEFAULT 'company'::text NOT NULL,
+    project_id uuid,
+    parent_template_id uuid,
+    copied_from_template_id uuid,
+    created_by uuid,
+    updated_by uuid,
+    library_id uuid,
+    CONSTRAINT valid_app_scope CHECK ((((scope = 'app'::text) AND (organization_id IS NULL) AND (project_id IS NULL)) OR (scope <> 'app'::text))),
+    CONSTRAINT valid_company_scope CHECK ((((scope = 'company'::text) AND (organization_id IS NOT NULL) AND (project_id IS NULL)) OR (scope <> 'company'::text))),
+    CONSTRAINT valid_project_scope CHECK ((((scope = 'project'::text) AND (organization_id IS NOT NULL) AND (project_id IS NOT NULL)) OR (scope <> 'project'::text))),
+    CONSTRAINT work_order_templates_scope_check CHECK ((scope = ANY (ARRAY['app'::text, 'company'::text, 'project'::text])))
+);
+
+ALTER TABLE ONLY public.work_order_templates
+    ADD CONSTRAINT work_order_templates_pkey PRIMARY KEY (id);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

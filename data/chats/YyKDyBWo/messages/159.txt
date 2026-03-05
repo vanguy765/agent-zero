@@ -1,0 +1,36 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 153:  parsed: {
+503:  async parseDocumentWithClaude(documentId: string, customPrompt?: string): Promise<ParsedDocumentResult> {
+504:    return this.request(`/documents/${documentId}/parse`, {
+520:  /** Submit a document for parsing via doc-parser service */
+523:    engine: 'claude-direct' | 'hybrid' = 'hybrid'
+525:    return this.request(`/doc-parser/parse`, {
+551:    return this.request(`/doc-parser/status/${jobId}`);
+557:    return this.request(`/doc-parser/results/${jobId}${query}`);
+560:  /** List all doc-parser jobs */
+563:    return this.request(`/doc-parser/jobs${query}`);
+566:  /** Delete a doc-parser job */
+568:    return this.request(`/doc-parser/jobs/${jobId}`, {
+573:  /** Check doc-parser service health */
+579:    return this.request('/doc-parser/health');
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# 13:} from '../components/doc-parser/DocParserPanel';
+20:    const [parsedResult, setParsedResult] = createSignal<ParsedDocumentResult | null>(null);
+24:    const [parseEngine, setParseEngine] = createSignal<ParseEngine>('hybrid');
+104:    const parseWithClaude = async (doc: ProjectDocument) => {
+108:            const result = await api.parseDocumentWithClaude(doc.id);
+110:            const unitsCount = result.summary?.units_count ?? result.parsed?.units?.length ?? 0;
+111:            const baseboard = result.summary?.total_baseboard_ft ?? result.parsed?.total_baseboard_ft ?? 0;
+112:            alert(`Successfully parsed document! Found ${unitsCount} units, ${baseboard} ft total baseboard.`);
+121:    const parseWithDocParser = async (doc: ProjectDocument) => {
+123:            await docParser.submitJob(doc.id, new File([], doc.title), parseEngine());
+125:            console.error('Doc-parser submission failed:', error);
+254:                                                    value={parseEngine()}
+259:                                                    onClick={() => parseEngine() === 'claude-direct' ? parseWithClaude(doc) : parseWithDocParser(doc)}
+262:                                                    title={parseEngine() === 'hybrid' ? 'Parse with Docling + Claude hybrid engine' : 'Parse with Claude AI directly'}
+264:                                                    {(parsing() === doc.id || docParser.isPolling()) ? 'Parsing...' : `🤖 Parse (${parseEngine() === 'hybrid' ? 'Hybrid' : 'Claude'})`}
+298:                                            onRetry={() => parseWithDocParser(doc)}
+367:            <Show when={parsedResult()}>
+387:                                            <span class="font-bold ml-2">{result().summary?.units_count ?? result().parsed?.units?.length ?? 0}</span>
+391:                                            <span class="font-bold ml-2">{result().summary?.total_baseboard_ft ?? result().parsed?.total_baseboard_ft ?? 0} ft</span>
+417:                                <Show when={(result().parsed?.units?.length ?? 0) > 0}>
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

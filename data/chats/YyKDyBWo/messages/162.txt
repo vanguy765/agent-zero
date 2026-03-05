@@ -1,0 +1,62 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#             .eq('id', id)
+            .single();
+
+        if (fetchError || !document) {
+            return c.json({ error: 'Document not found' }, 404);
+        }
+
+        // Check if it's a PDF
+        if (!document.file_type.includes('pdf')) {
+            return c.json({ error: 'Document is not a PDF' }, 400);
+        }
+
+        // Download PDF from storage
+        const { data: fileData, error: downloadError } = await supabase.storage
+            .from('project-documents')
+            .download(document.file_url);
+
+        if (downloadError || !fileData) {
+            return c.json({ error: 'Failed to download document' }, 500);
+        }
+
+        // Convert blob to buffer
+        const arrayBuffer = await fileData.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Extract images
+        const parser = new PDFParser(supabase);
+        const images = await parser.extractAndStoreImages(
+            buffer,
+            document.project_id,
+            id
+        );
+
+        return c.json({
+            success: true,
+            images_extracted: images.length,
+            images
+        });
+    } catch (error) {
+        console.error('Error extracting images:', error);
+        return c.json({
+            error: error instanceof Error ? error.message : 'Failed to extract images'
+        }, 500);
+    }
+});
+
+// LIST IMAGES FOR A DOCUMENT
+documentsRoute.get('/documents/:id/images', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('document_images')
+        .select('*')
+        .eq('document_id', id)
+        .order('page_number', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

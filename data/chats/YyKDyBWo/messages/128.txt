@@ -1,0 +1,41 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === doc-parser-client.ts imports ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# /**
+ * Doc-Parser HTTP Client
+ *
+ * Shared service for communicating with the doc-parser backend.
+ * Used by both docling and hybrid engine proxy routes.
+ */
+
+const DOC_PARSER_URL = process.env.DOC_PARSER_URL || 'http://doc-parser:5000';
+
+export interface DocParserJobResponse {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+  engine: 'docling' | 'hybrid';
+  file: string;
+}
+
+export interface DocParserProgress {
+  current_phase: string;
+  phases: string[];
+  current_page: number;
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === doc-parser-routes.ts full imports ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# 14:import { Hono } from 'hono';
+15:import {
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Check if Hono (not OpenAPIHono) is used in routes ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# const docParserRoutes = new Hono();
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# (venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# === Check existing route patterns for consistency ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
+import { CreateDeliverySchema } from '@repo/schemas';
+import { z } from 'zod';
+
+export const deliveryRoute = new OpenAPIHono();
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests# import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { PDFParser } from '../services/pdfParser';
+import { ClaudePdfParser, generateWorkOrdersFromParsedData } from '../services/claudePdfParser';
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero/_bmad-output/implementation-artifacts/frontend-tests#
