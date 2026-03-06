@@ -1,0 +1,30 @@
+69:                        "type": "image_url",
+70:                        "image_url": {
+129:async def upload_image_to_storage(
+163:                    "image_url": path,
+188:async def upload_table_to_storage(
+305:        site_photos: List[Tuple[int, Image.Image]] = []
+360:                site_photos.append((page_no, pil_img))
+362:                diagrams.append((page_no, pil_img))
+377:        docling_photo_pages = {p[0] for p in site_photos}
+416:                        site_photos.append((page_no, pil_img))
+420:                        diagrams.append((page_no, pil_img))
+512:            f"{len(site_photos)} photos, "
+690:                url = await upload_image_to_storage(
+701:            for i, (page_no, img) in enumerate(site_photos):
+702:                url = await upload_image_to_storage(
+714:                url = await upload_image_to_storage(
+726:                tbl_url = await upload_table_to_storage(
+746:            for i, (page_no, img) in enumerate(site_photos):
+775:        result = assemble_hybrid_output(
+780:            site_photos=site_photos,
+832:def assemble_hybrid_output(
+837:    site_photos: List[Tuple[int, Image.Image]],
+872:            "site_photos": [],
+893:                data["image_url"] = floorplan_urls[page_no]
+915:            unit["image_url"] = floorplan_urls[page_no]
+932:    for page_no, _ in site_photos:
+936:                output["pages"][page_no]["site_photos"].append(photo_urls[page_no])
+942:                output["pages"][page_no]["diagrams"].append(diagram_urls[page_no])
+960:        "site_photos_count": len(site_photos),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

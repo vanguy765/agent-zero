@@ -1,0 +1,34 @@
+Status: 200
+Response: {
+  "job_id": "317e5e87-cf1a-44b4-9e8a-0debd88915cc",
+  "status": "queued",
+  "engine": "hybrid",
+  "file": "page_8.pdf"
+}
+
+Job submitted: 317e5e87-cf1a-44b4-9e8a-0debd88915cc
+  [0s] processing -  ({'current_phase': 'docling_conversion', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 0, 'total_pages': 0, 'current_step': 'converting_pdf_with_docling', 'floorplans_found': 0, 'tables_found': 0, 'percent_complete': 15.0}%)
+  [5s] processing -  ({'current_phase': 'docling_conversion', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 0, 'total_pages': 0, 'current_step': 'converting_pdf_with_docling', 'floorplans_found': 0, 'tables_found': 0, 'percent_complete': 15.0}%)
+  [10s] processing -  ({'current_phase': 'docling_conversion', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 0, 'total_pages': 0, 'current_step': 'converting_pdf_with_docling', 'floorplans_found': 0, 'tables_found': 0, 'percent_complete': 15.0}%)
+  [15s] processing -  ({'current_phase': 'docling_conversion', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 0, 'total_pages': 0, 'current_step': 'converting_pdf_with_docling', 'floorplans_found': 0, 'tables_found': 0, 'percent_complete': 15.0}%)
+  [20s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'cropping_and_uploading_elements', 'floorplans_found': 1, 'tables_found': 0, 'percent_complete': 85.0}%)
+  [25s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'extracting_tables', 'floorplans_found': 1, 'tables_found': 0, 'percent_complete': 85.0}%)
+  [30s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'extracting_tables', 'floorplans_found': 1, 'tables_found': 0, 'percent_complete': 85.0}%)
+  [35s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [40s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [45s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [50s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [55s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [60s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [65s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [70s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [75s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [80s] processing -  ({'current_phase': 'llm_analysis', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 1, 'total_pages': 1, 'current_step': 'analyzing_floorplan_1_of_1', 'floorplans_found': 1, 'tables_found': 1, 'percent_complete': 85.0}%)
+  [85s] completed -  ({'current_phase': 'complete', 'phases': ['docling_conversion', 'classification', 'image_extraction', 'llm_analysis', 'synthesis', 'uploading'], 'current_page': 0, 'total_pages': 0, 'current_step': 'initializing', 'floorplans_found': 0, 'tables_found': 0, 'percent_complete': 100.0}%)
+
+Page 1:
+  thumbnail: test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0960af/doc-parser/job_317e5e87-cf1a-44 ✅ PATH
+  floorplan: test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0960af/doc-parser/job_317e5e87-cf1a-44 ✅ PATH
+  photos (11): first=test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0960af/doc-parser/ ✅ PATH
+  tables (1): first=test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0960af/doc-parser/ ✅ PATH
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

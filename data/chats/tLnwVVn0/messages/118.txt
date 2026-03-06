@@ -1,0 +1,121 @@
+{
+    "job_id": "ff753632-6435-49b2-9411-9f368b1b77ed",
+    "status": "completed",
+    "result": {
+        "job_id": "ff753632-6435-49b2-9411-9f368b1b77ed",
+        "engine": "hybrid_page_render",
+        "timestamp": "2026-03-06T04:51:06.372717",
+        "summary": {
+            "total_pages": 1,
+            "units_found": 0,
+            "floorplans_found": 1,
+            "tables_found": 0,
+            "photos_found": 9,
+            "diagrams_found": 0,
+            "thumbnails_count": 1,
+            "pages_with_elements": 1
+        },
+        "confidence": {
+            "overall": 0.0,
+            "room_dimensions": false,
+            "door_specifications": false,
+            "window_specifications": false,
+            "fixture_completeness": false,
+            "cross_page_synthesis": false,
+            "baseboard_data": false,
+            "unit_identification": false,
+            "per_page": {
+                "note": "No units extracted"
+            }
+        },
+        "units": [],
+        "pages": {
+            "1": {
+                "thumbnail_url": "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_thumb_page_1.png",
+                "floorplan_url": "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_floorplan_page_1.png",
+                "site_photos": [
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_0_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_1_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_2_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_3_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_4_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_5_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_6_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_7_page_1.png",
+                    "http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_ff753632-6435-49b2-9411-9f368b1b77ed_photo_8_page_1.png"
+                ],
+                "diagrams": [],
+                "tables": [],
+                "elements_detected": [
+                    {
+                        "type": "floorplan",
+                        "bbox": [
+                            0.02,
+                            0.02,
+                            0.45,
+                            0.4
+                        ],
+                        "label": "Building floor plan showing multiple units",
+                        "confidence": 0.95
+                    },
+                    {
+                        "type": "floorplan",
+                        "bbox": [
+                            0.46,
+                            0.02,
+                            0.85,
+                            0.4
+                        ],
+                        "label": "Detailed floor plan of Unit 201 with dimensions",
+                        "confidence": 0.98
+                    },
+                    {
+                        "type": "photo",
+                        "bbox": [
+                            0.03,
+                            0.41,
+                            0.15,
+                            0.57
+                        ],
+                        "label": "Entry area photo",
+                        "confidence": 0.95
+                    },
+                    {
+                        "type": "photo",
+                        "bbox": [
+                            0.16,
+                            0.41,
+                            0.28,
+                            0.57
+                        ],
+                        "label": "Hall storage photo",
+                        "confidence": 0.95
+                    },
+                    {
+                        "type": "photo",
+                        "bbox": [
+                            0.29,
+                            0.41,
+                            0.41,
+                            0.57
+                        ],
+                        "label": "Kitchen photo 1",
+                        "confidence": 0.95
+                    },
+                    {
+                        "type": "photo",
+                        "bbox": [
+                            0.42,
+                            0.41,
+                            0.54,
+                            0.57
+                        ],
+                        "label": "Kitchen photo 2",
+                        "confidence": 0.95
+                    },
+                    {
+                        "type": "photo",
+                        "bbox": [
+                            0.55,
+                            0.41,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

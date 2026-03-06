@@ -1,0 +1,11 @@
+Line 139:         )
+Line 140:         url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+Line 141:         try:
+Line 142:             await asyncio.to_thread(
+Line 143:                 lambda: sb_client.table("document_images").insert({
+Line 181:         )
+Line 182:         url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+Line 183:         logger.info(f"Table markdown uploaded: {path}")
+Line 184:         return url_response
+Line 185:     except Exception as e:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

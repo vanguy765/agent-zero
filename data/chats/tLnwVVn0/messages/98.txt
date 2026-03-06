@@ -1,0 +1,13 @@
+63:SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+64:SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+83:        supabase_url=SUPABASE_URL,
+84:        supabase_key=SUPABASE_KEY,
+127:def get_request_supabase_client(
+132:    url = supabase_url or SUPABASE_URL
+133:    key = supabase_key or SUPABASE_KEY
+262:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+553:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+565:        sb_client,
+582:    sb_client,
+594:                sb_client=sb_client,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

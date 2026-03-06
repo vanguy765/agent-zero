@@ -1,0 +1,473 @@
+L   3: Priority 7: Docling structural decomposition -> Claude semantic extraction.
+L   4: Uses Docling for what it does best (OCR, table extraction, image classification)
+L   5: and Claude for what it does best (semantic understanding of architectural drawings).
+
+L   7: Pipeline:
+L   8:   PDF -> Docling (structural decomposition) -> Classified pages
+L   9:        -> Claude (only floorplan images + table context) -> Unit-oriented output
+
+L   8:   PDF -> Docling (structural decomposition) -> Classified pages
+L   9:        -> Claude (only floorplan images + table context) -> Unit-oriented output
+L  10: """
+
+L  27: )
+L  28: from prompts import FLOORPLAN_PROMPT_RICH, SYNTHESIS_PROMPT, TABLE_ANALYSIS_PROMPT
+L  29: from detection import (
+
+L  30:     is_architectural_drawing, has_architectural_text,
+L  31:     classify_image, image_to_base64
+L  32: )
+
+L  98: ) -> str:
+L  99:     """Send text-only prompt to LLM (for synthesis, table analysis)."""
+L 100:     try:
+
+L 159:         await asyncio.to_thread(
+L 160:             lambda: sb_client.table("document_images").insert({
+L 161:                 "document_id": project_name,  # The API routes pass document_id as project_name
+
+L 200:     1. Docling Conversion - PDF to structured document
+L 201:     2. Classification - Identify floorplans, tables, photos
+L 202:     3. Image Extraction - Prepare floorplan images for Claude
+
+L 226:         pipeline_options.generate_picture_images = True
+L 227:         pipeline_options.generate_table_images = True
+L 228:
+
+L 254:         # ==================================================
+L 255:         # PHASE 2: Classification & Collection
+L 256:         # ==================================================
+
+L 258:             job_id,
+L 259:             phase=ProcessingPhase.CLASSIFICATION,
+L 260:             current_step="classifying_pages",
+
+L 259:             phase=ProcessingPhase.CLASSIFICATION,
+L 260:             current_step="classifying_pages",
+L 261:         )
+
+L 263:         floorplan_candidates: List[Tuple[int, Image.Image, str]] = []  # (page, img, b64)
+L 264:         table_data: List[Tuple[int, str]] = []  # (page, markdown)
+L 265:         site_photos: List[Tuple[int, Image.Image]] = []
+
+L 264:         table_data: List[Tuple[int, str]] = []  # (page, markdown)
+L 265:         site_photos: List[Tuple[int, Image.Image]] = []
+L 266:         diagrams: List[Tuple[int, Image.Image]] = []
+
+L 265:         site_photos: List[Tuple[int, Image.Image]] = []
+L 266:         diagrams: List[Tuple[int, Image.Image]] = []
+L 267:         footer_sample: Optional[Dict[str, Any]] = None
+
+L 268:
+L 269:         # --- Collect tables from Docling's structured extraction ---
+L 270:         for table in result_doc.tables:
+
+L 269:         # --- Collect tables from Docling's structured extraction ---
+L 270:         for table in result_doc.tables:
+L 271:             md_text = table.export_to_markdown()
+
+L 270:         for table in result_doc.tables:
+L 271:             md_text = table.export_to_markdown()
+L 272:             page_no = table.prov[0].page_no if table.prov else 1
+
+L 271:             md_text = table.export_to_markdown()
+L 272:             page_no = table.prov[0].page_no if table.prov else 1
+L 273:
+
+L 273:
+L 274:             # Check if this is a footer/title block table
+L 275:             is_footer = sum(
+
+L 284:
+L 285:             table_data.append((page_no, md_text))
+L 286:
+
+L 287:
+L 288:         # FIX: Save table markdown to .md files locally
+L 289:         if table_data:
+
+L 288:         # FIX: Save table markdown to .md files locally
+L 289:         if table_data:
+L 290:             table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+
+L 289:         if table_data:
+L 290:             table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+L 291:             os.makedirs(table_output_dir, exist_ok=True)
+
+L 290:             table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+L 291:             os.makedirs(table_output_dir, exist_ok=True)
+L 292:             for tbl_idx, (pg, md) in enumerate(table_data):
+
+L 291:             os.makedirs(table_output_dir, exist_ok=True)
+L 292:             for tbl_idx, (pg, md) in enumerate(table_data):
+L 293:                 md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+
+L 292:             for tbl_idx, (pg, md) in enumerate(table_data):
+L 293:                 md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+L 294:                 with open(md_path, 'w') as md_file:
+
+L 295:                     md_file.write(md)
+L 296:                 logger.info(f"Job {job_id}: Saved table markdown: {md_path}")
+L 297:
+
+L 299:             job_id,
+L 300:             tables_found=len(table_data),
+L 301:             current_step=f"found_{len(table_data)}_tables",
+
+L 300:             tables_found=len(table_data),
+L 301:             current_step=f"found_{len(table_data)}_tables",
+L 302:         )
+
+L 303:
+L 304:         # --- Classify pictures using improved heuristic (Priority 2) ---
+L 305:         for pic in result_doc.pictures:
+
+L 318:                 current_page=page_no,
+L 319:                 current_step=f"classifying_image_page_{page_no}",
+L 320:             )
+
+L 321:
+L 322:             classification = classify_image(pil_img)
+L 323:
+
+L 323:
+L 324:             if classification == "floorplan":
+L 325:                 b64 = image_to_base64(pil_img)
+
+L 326:                 floorplan_candidates.append((page_no, pil_img, b64))
+L 327:             elif classification == "site_photo":
+L 328:                 site_photos.append((page_no, pil_img))
+
+L 327:             elif classification == "site_photo":
+L 328:                 site_photos.append((page_no, pil_img))
+L 329:             elif classification == "diagram":
+
+L 328:                 site_photos.append((page_no, pil_img))
+L 329:             elif classification == "diagram":
+L 330:                 diagrams.append((page_no, pil_img))
+
+L 329:             elif classification == "diagram":
+L 330:                 diagrams.append((page_no, pil_img))
+L 331:             # tables and title_blocks already handled by Docling
+
+L 330:                 diagrams.append((page_no, pil_img))
+L 331:             # tables and title_blocks already handled by Docling
+L 332:
+
+L 363:                         if pil_img.width > 200 and pil_img.height > 200:
+L 364:                             classification = classify_image(pil_img)
+L 365:                             if classification == "floorplan":
+
+L 364:                             classification = classify_image(pil_img)
+L 365:                             if classification == "floorplan":
+L 366:                                 b64 = image_to_base64(pil_img)
+
+L 369:                                 fitz_found_floorplan_on_page = True
+L 370:                             elif classification == "site_photo":
+L 371:                                 site_photos.append((page_no, pil_img))
+
+L 370:                             elif classification == "site_photo":
+L 371:                                 site_photos.append((page_no, pil_img))
+L 372:                             elif classification == "diagram":
+
+L 371:                                 site_photos.append((page_no, pil_img))
+L 372:                             elif classification == "diagram":
+L 373:                                 diagrams.append((page_no, pil_img))
+
+L 372:                             elif classification == "diagram":
+L 373:                                 diagrams.append((page_no, pil_img))
+L 374:                     except Exception as e:
+
+L 405:             floorplans_found=len(floorplan_candidates),
+L 406:             current_step=f"classification_complete_{len(floorplan_candidates)}_floorplans",
+L 407:         )
+
+L 409:         logger.info(
+L 410:             f"Job {job_id}: Classification complete - "
+L 411:             f"{len(floorplan_candidates)} floorplans, "
+
+L 411:             f"{len(floorplan_candidates)} floorplans, "
+L 412:             f"{len(table_data)} tables, "
+L 413:             f"{len(site_photos)} photos, "
+
+L 412:             f"{len(table_data)} tables, "
+L 413:             f"{len(site_photos)} photos, "
+L 414:             f"{len(diagrams)} diagrams"
+
+L 413:             f"{len(site_photos)} photos, "
+L 414:             f"{len(diagrams)} diagrams"
+L 415:         )
+
+L 425:
+L 426:         # Build table context string for enriching Claude prompts
+L 427:         table_context = ""
+
+L 426:         # Build table context string for enriching Claude prompts
+L 427:         table_context = ""
+L 428:         if table_data:
+
+L 427:         table_context = ""
+L 428:         if table_data:
+L 429:             table_context = "\n\n".join([
+
+L 428:         if table_data:
+L 429:             table_context = "\n\n".join([
+L 430:                 f"--- Table from Page {pg} ---\n{md}"
+
+L 429:             table_context = "\n\n".join([
+L 430:                 f"--- Table from Page {pg} ---\n{md}"
+L 431:                 for pg, md in table_data
+
+L 430:                 f"--- Table from Page {pg} ---\n{md}"
+L 431:                 for pg, md in table_data
+L 432:             ])
+
+L 451:
+L 452:             # Enrich prompt with table context
+L 453:             enriched_prompt = FLOORPLAN_PROMPT_RICH
+
+L 453:             enriched_prompt = FLOORPLAN_PROMPT_RICH
+L 454:             if table_context:
+L 455:                 enriched_prompt += (
+
+L 456:                     "\n\nADDITIONAL CONTEXT - Door/window schedules and "
+L 457:                     "other tables extracted from this document set. Use these "
+L 458:                     "to enrich your extraction with schedule data (hardware, "
+
+L 459:                     "materials, fire ratings, etc.):\n\n"
+L 460:                     + table_context
+L 461:                 )
+
+L 516:         if len(successful_extractions) > 1 or (
+L 517:             successful_extractions and table_data
+L 518:         ):
+
+L 541:
+L 542:                 if table_data:
+L 543:                     synthesis_context_parts.append(
+
+L 543:                     synthesis_context_parts.append(
+L 544:                         "\n--- TABLES/SCHEDULES ---"
+L 545:                     )
+
+L 545:                     )
+L 546:                     for pg, md in table_data:
+L 547:                         synthesis_context_parts.append(
+
+L 547:                         synthesis_context_parts.append(
+L 548:                             f"\n--- Table from Page {pg} ---\n{md}"
+L 549:                         )
+
+L 579:         floorplan_urls = {}
+L 580:         photo_urls = {}
+L 581:         diagram_urls = {}
+
+L 580:         photo_urls = {}
+L 581:         diagram_urls = {}
+L 582:
+
+L 591:
+L 592:         for i, (page_no, img) in enumerate(site_photos):
+L 593:             local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')
+
+L 592:         for i, (page_no, img) in enumerate(site_photos):
+L 593:             local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')
+L 594:             img.save(local_path, format='PNG')
+
+L 594:             img.save(local_path, format='PNG')
+L 595:             logger.info(f"Job {job_id}: Saved photo locally: {local_path}")
+L 596:
+
+L 596:
+L 597:         for i, (page_no, img) in enumerate(diagrams):
+L 598:             local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}.png')
+
+L 597:         for i, (page_no, img) in enumerate(diagrams):
+L 598:             local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}.png')
+L 599:             img.save(local_path, format='PNG')
+
+L 599:             img.save(local_path, format='PNG')
+L 600:             logger.info(f"Job {job_id}: Saved diagram locally: {local_path}")
+L 601:
+
+L 613:
+L 614:             # Upload site photos
+L 615:             for i, (page_no, img) in enumerate(site_photos):
+
+L 614:             # Upload site photos
+L 615:             for i, (page_no, img) in enumerate(site_photos):
+L 616:                 url = await upload_image_to_storage(
+
+L 617:                     img, sb_client, tenant_name, project_name,
+L 618:                     f"job_{job_id}_photo_page_{page_no}.png",
+L 619:                     page_no=page_no,
+
+L 619:                     page_no=page_no,
+L 620:                     image_type="site_photo"
+L 621:                 )
+
+L 622:                 if url:
+L 623:                     photo_urls[page_no] = url
+L 624:
+
+L 624:
+L 625:             # Upload diagrams
+L 626:             for i, (page_no, img) in enumerate(diagrams):
+
+L 625:             # Upload diagrams
+L 626:             for i, (page_no, img) in enumerate(diagrams):
+L 627:                 url = await upload_image_to_storage(
+
+L 628:                     img, sb_client, tenant_name, project_name,
+L 629:                     f"job_{job_id}_diagram_page_{page_no}.png",
+L 630:                     page_no=page_no,
+
+L 630:                     page_no=page_no,
+L 631:                     image_type="diagram"
+L 632:                 )
+
+L 633:                 if url:
+L 634:                     diagram_urls[page_no] = url
+L 635:
+
+L 646:             unit_extractions=unit_extractions,
+L 647:             table_data=table_data,
+L 648:             footer_sample=footer_sample,
+
+L 649:             floorplan_candidates=floorplan_candidates,
+L 650:             site_photos=site_photos,
+L 651:             diagrams=diagrams,
+
+L 650:             site_photos=site_photos,
+L 651:             diagrams=diagrams,
+L 652:             pdf_pages=pdf_pages,
+
+L 657:             floorplan_urls=floorplan_urls,
+L 658:             photo_urls=photo_urls,
+L 659:             diagram_urls=diagram_urls,
+
+L 658:             photo_urls=photo_urls,
+L 659:             diagram_urls=diagram_urls,
+L 660:         )
+
+L 664:             units=result.get("units", []),
+L 665:             tables=result.get("tables", []),
+L 666:             synthesis=synthesis_result,
+
+L 702:     unit_extractions: List[Dict[str, Any]],
+L 703:     table_data: List[Tuple[int, str]],
+L 704:     footer_sample: Optional[Dict[str, Any]],
+
+L 705:     floorplan_candidates: List[Tuple[int, Image.Image, str]],
+L 706:     site_photos: List[Tuple[int, Image.Image]],
+L 707:     diagrams: List[Tuple[int, Image.Image]],
+
+L 706:     site_photos: List[Tuple[int, Image.Image]],
+L 707:     diagrams: List[Tuple[int, Image.Image]],
+L 708:     pdf_pages: list,
+
+L 713:     floorplan_urls: Optional[Dict[int, str]] = None,
+L 714:     photo_urls: Optional[Dict[int, str]] = None,
+L 715:     diagram_urls: Optional[Dict[int, str]] = None,
+
+L 714:     photo_urls: Optional[Dict[int, str]] = None,
+L 715:     diagram_urls: Optional[Dict[int, str]] = None,
+L 716: ) -> Dict[str, Any]:
+
+L 726:         "units": [],
+L 727:         "tables": [],
+L 728:         "footer_sample": footer_sample,
+
+L 738:             "floorplans": [],
+L 739:             "tables": [],
+L 740:             "site_photos": [],
+
+L 739:             "tables": [],
+L 740:             "site_photos": [],
+L 741:             "diagrams": [],
+
+L 740:             "site_photos": [],
+L 741:             "diagrams": [],
+L 742:             "classification": "unknown",
+
+L 741:             "diagrams": [],
+L 742:             "classification": "unknown",
+L 743:         }
+
+L 762:             output["pages"][page_no]["floorplans"].append(data)
+L 763:             output["pages"][page_no]["classification"] = "floorplan"
+L 764:
+
+L 790:
+L 791:     # --- Add Docling tables to output ---
+L 792:     for page_no, md in table_data:
+
+L 791:     # --- Add Docling tables to output ---
+L 792:     for page_no, md in table_data:
+L 793:         output["tables"].append({"page_no": page_no, "markdown": md})
+
+L 792:     for page_no, md in table_data:
+L 793:         output["tables"].append({"page_no": page_no, "markdown": md})
+L 794:         if page_no in output["pages"]:
+
+L 794:         if page_no in output["pages"]:
+L 795:             output["pages"][page_no]["tables"].append(md)
+L 796:             if output["pages"][page_no]["classification"] == "unknown":
+
+L 795:             output["pages"][page_no]["tables"].append(md)
+L 796:             if output["pages"][page_no]["classification"] == "unknown":
+L 797:                 output["pages"][page_no]["classification"] = "table"
+
+L 796:             if output["pages"][page_no]["classification"] == "unknown":
+L 797:                 output["pages"][page_no]["classification"] = "table"
+L 798:
+
+L 798:
+L 799:     # --- Mark site photo and diagram pages ---
+L 800:     for page_no, _ in site_photos:
+
+L 799:     # --- Mark site photo and diagram pages ---
+L 800:     for page_no, _ in site_photos:
+L 801:         if page_no in output["pages"]:
+
+L 801:         if page_no in output["pages"]:
+L 802:             output["pages"][page_no]["classification"] = "site_photo"
+L 803:             if photo_urls and page_no in photo_urls:
+
+L 802:             output["pages"][page_no]["classification"] = "site_photo"
+L 803:             if photo_urls and page_no in photo_urls:
+L 804:                 output["pages"][page_no]["site_photos"].append(photo_urls[page_no])
+
+L 803:             if photo_urls and page_no in photo_urls:
+L 804:                 output["pages"][page_no]["site_photos"].append(photo_urls[page_no])
+L 805:
+
+L 805:
+L 806:     for page_no, _ in diagrams:
+L 807:         if page_no in output["pages"]:
+
+L 807:         if page_no in output["pages"]:
+L 808:             output["pages"][page_no]["classification"] = "diagram"
+L 809:             if diagram_urls and page_no in diagram_urls:
+
+L 808:             output["pages"][page_no]["classification"] = "diagram"
+L 809:             if diagram_urls and page_no in diagram_urls:
+L 810:                 output["pages"][page_no]["diagrams"].append(diagram_urls[page_no])
+
+L 809:             if diagram_urls and page_no in diagram_urls:
+L 810:                 output["pages"][page_no]["diagrams"].append(diagram_urls[page_no])
+L 811:
+
+L 816:         "floorplans_count": len(floorplan_candidates),
+L 817:         "tables_count": len(table_data),
+L 818:         "site_photos_count": len(site_photos),
+
+L 817:         "tables_count": len(table_data),
+L 818:         "site_photos_count": len(site_photos),
+L 819:         "diagrams_count": len(diagrams),
+
+L 818:         "site_photos_count": len(site_photos),
+L 819:         "diagrams_count": len(diagrams),
+L 820:         "total_doors": sum(
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

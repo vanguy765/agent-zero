@@ -1,0 +1,19 @@
+Downloading 14 items...
+  ✅ thumbnail: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/thumbnail.png
+  ✅ floorplan: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/floorplan.png
+  ✅ photo_0: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_0.png
+  ✅ photo_1: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_1.png
+  ✅ photo_2: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_2.png
+  ✅ photo_3: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_3.png
+  ✅ photo_4: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_4.png
+  ✅ photo_5: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_5.png
+  ✅ photo_6: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_6.png
+  ✅ photo_7: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_7.png
+  ✅ photo_8: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_8.png
+  ✅ photo_9: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_9.png
+  ✅ photo_10: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/photo_10.png
+  ✅ table_0: 400 76 bytes → /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2/table_0.md
+
+Done. Files saved to: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2
+Files: ['floorplan.png', 'photo_0.png', 'photo_1.png', 'photo_10.png', 'photo_2.png', 'photo_3.png', 'photo_4.png', 'photo_5.png', 'photo_6.png', 'photo_7.png', 'photo_8.png', 'photo_9.png', 'table_0.md', 'thumbnail.png']
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

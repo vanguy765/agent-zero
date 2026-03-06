@@ -1,0 +1,92 @@
+Total lines: 793
+
+=== KEY SECTIONS ===
+L   3: Priority 7: Docling structural decomposition -> Claude semantic extraction.
+L   4: Uses Docling for what it does best (OCR, table extraction, image classification)
+L   8: PDF -> Docling (structural decomposition) -> Classified pages
+L   9: -> Claude (only floorplan images + table context) -> Unit-oriented output
+L  50: async def run_llm_extraction(
+L  93: async def run_text_llm(
+L  99: """Send text-only prompt to LLM (for synthesis, table analysis)."""
+L 129: async def upload_image_to_storage(
+L 144: pil_image.save(buffered, format="PNG")
+L 152: .upload(path, image_bytes, {"content-type": "image/png", "upsert": "true"})
+L 160: lambda: sb_client.table("document_images").insert({
+L 177: logger.warning(f"Image upload failed for {filename}: {e}")
+L 185: async def process_hybrid(
+L 194: """Execute the hybrid pipeline: Docling decomposition -> Claude extraction.
+L 200: 1. Docling Conversion - PDF to structured document
+L 201: 2. Classification - Identify floorplans, tables, photos
+L 212: # PHASE 1: Docling Structural Decomposition
+L 217: current_step="converting_pdf_with_docling",
+L 220: from docling.document_converter import DocumentConverter, PdfFormatOption
+L 221: from docling.datamodel.base_models import InputFormat
+L 222: from docling.datamodel.pipeline_options import PdfPipelineOptions
+L 227: pipeline_options.generate_table_images = True
+L 249: current_step="docling_conversion_complete",
+L 252: logger.info(f"Job {job_id}: Docling converted {total_pages} pages")
+L 263: floorplan_candidates: List[Tuple[int, Image.Image, str]] = []  # (page, img, b64)
+L 264: table_data: List[Tuple[int, str]] = []  # (page, markdown)
+L 269: # --- Collect tables from Docling's structured extraction ---
+L 270: for table in result_doc.tables:
+L 271: md_text = table.export_to_markdown()
+L 272: page_no = table.prov[0].page_no if table.prov else 1
+L 274: # Check if this is a footer/title block table
+L 282: footer_sample = {"markdown": md_text, "page_no": page_no}
+L 285: table_data.append((page_no, md_text))
+L 289: tables_found=len(table_data),
+L 290: current_step=f"found_{len(table_data)}_tables",
+L 315: floorplan_candidates.append((page_no, pil_img, b64))
+L 320: # tables and title_blocks already handled by Docling
+L 323: docling_fp_pages = {fp[0] for fp in floorplan_candidates}
+L 325: # 1. Try PyMuPDF (fitz) to extract embedded CAD/architectural image layers
+L 326: import fitz
+L 328: pdf_doc = fitz.open(temp_path)
+L 346: floorplan_candidates.append((page_no, pil_img, b64))
+L 353: logger.warning(f"Job {job_id}: Failed to process fitz image on page {page_no}: {e}")
+L 357: # 2. Fallback to full page if no floorplans found
+L 358: docling_fp_pages = {fp[0] for fp in floorplan_candidates}
+L 361: if page_no in docling_fp_pages:
+L 362: continue  # Already found via Docling pictures or Fitz
+L 366: floorplan_candidates.append((page_no, page_img, b64))
+L 371: floorplans_found=len(floorplan_candidates),
+L 372: current_step=f"classification_complete_{len(floorplan_candidates)}_floorplans",
+L 377: f"{len(floorplan_candidates)} floorplans, "
+L 378: f"{len(table_data)} tables, "
+L 392: # Build table context string for enriching Claude prompts
+L 393: table_context = ""
+L 394: if table_data:
+L 395: table_context = "\n\n".join([
+L 397: for pg, md in table_data
+L 411: for i, (page_no, pil_img, b64) in enumerate(floorplan_candidates):
+L 415: current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_candidates)}",
+L 418: # Enrich prompt with table context
+L 420: if table_context:
+L 423: "other tables extracted from this document set. Use these "
+L 426: + table_context
+L 434: # Clean markdown code fences
+L 483: successful_extractions and table_data
+L 508: if table_data:
+L 512: for pg, md in table_data:
+L 542: current_step="uploading_images_to_storage",
+L 551: for i, (page_no, img, _) in enumerate(floorplan_candidates):
+L 552: url = await upload_image_to_storage(
+L 563: url = await upload_image_to_storage(
+L 574: url = await upload_image_to_storage(
+L 594: table_data=table_data,
+L 596: floorplan_candidates=floorplan_candidates,
+L 612: tables=result.get("tables", []),
+L 615: floorplans_found=len(floorplan_candidates),
+L 648: def assemble_hybrid_output(
+L 650: table_data: List[Tuple[int, str]],
+L 652: floorplan_candidates: List[Tuple[int, Image.Image, str]],
+L 674: "tables": [],
+L 686: "tables": [],
+L 738: # --- Add Docling tables to output ---
+L 739: for page_no, md in table_data:
+L 740: output["tables"].append({"page_no": page_no, "markdown": md})
+L 742: output["pages"][page_no]["tables"].append(md)
+L 744: output["pages"][page_no]["classification"] = "table"
+L 763: "floorplans_count": len(floorplan_candidates),
+L 764: "tables_count": len(table_data),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,32 @@
+fname, page_no=page_no, image_type="diagram"
+                        )
+                        if url:
+                            diagram_urls.setdefault(page_no, []).append(url)
+                    else:
+                        local_dir = os.path.join(
+                            os.path.dirname(temp_path), "parsed_images", job_id
+                        )
+                        os.makedirs(local_dir, exist_ok=True)
+                        local_path = os.path.join(local_dir, fname)
+                        cropped.save(local_path, format="PNG")
+                        diagram_urls.setdefault(page_no, []).append(local_path)
+
+                elif el_type == "spec_table":
+                    spec_table_pages.append(page_no)
+
+        total_photos = sum(len(v) for v in photo_crops.values())
+        total_diagrams = sum(len(v) for v in diagram_crops.values())
+        logger.info(
+            f"Job {job_id}: Cropped {len(floorplan_crops)} floorplans, "
+            f"{total_photos} photos, {total_diagrams} diagrams, "
+            f"{len(spec_table_pages)} spec_table regions"
+        )
+
+        # ==================================================
+        # PHASE 6: Table Extraction & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id, current_step="extracting_tables",
+        )
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

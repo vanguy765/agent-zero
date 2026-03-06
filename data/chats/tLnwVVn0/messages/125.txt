@@ -1,0 +1,96 @@
+# PHASE 7: LLM Floorplan Analysis
+        # ==================================================
+        await job_manager.update_progress(
+            job_id, phase=ProcessingPhase.LLM_ANALYSIS,
+            current_step="analyzing_floorplans",
+        )
+
+        unit_extractions: List[Dict[str, Any]] = []
+        raw_llm_responses: Dict[int, str] = {}
+
+        # Build table context for LLM
+        table_context = ""
+        if table_urls:
+            table_context = "\n\nRELATED SPECIFICATION TABLES:\n"
+            for t in table_urls:
+                table_context += f"\n--- Table from page {t['page_no']} ---\n{t['markdown']}\n"
+
+        for fp_idx, (page_no, fp_img, fp_b64) in enumerate(floorplan_crops):
+            await job_manager.update_progress(
+                job_id, current_page=page_no,
+                current_step=f"analyzing_floorplan_{fp_idx + 1}_of_{len(floorplan_crops)}",
+            )
+
+            prompt_with_tables = FLOORPLAN_PROMPT_RICH + table_context
+
+            try:
+                raw = await run_llm_extraction(
+                    provider, prompt_with_tables, fp_b64, max_tokens=8192
+                )
+                raw_llm_responses[page_no] = raw
+
+                cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+                parsed = json.loads(cleaned)
+
+                units = parsed.get("units", [])
+                if not units and parsed.get("unit_id"):
+                    units = [parsed]
+
+                for unit in units:
+                    unit["source_page"] = page_no
+                    unit["image_url"] = floorplan_urls.get(page_no, "")
+                    unit_extractions.append(unit)
+
+                logger.info(
+                    f"Job {job_id}: Page {page_no} - extracted {len(units)} units"
+                )
+            except json.JSONDecodeError as e:
+                logger.warning(f"Job {job_id}: JSON parse failed page {page_no}: {e}")
+                unit_extractions.append({
+                    "source_page": page_no,
+                    "raw_response": raw,
+                    "parse_error": str(e),
+                    "image_url": floorplan_urls.get(page_no, ""),
+                })
+            except Exception as e:
+                logger.error(f"Job {job_id}: LLM analysis failed page {page_no}: {e}")
+
+        await job_manager.update_progress(
+            job_id,
+            current_step=f"extracted_{len(unit_extractions)}_units",
+        )
+
+
+
+
+
+        # ==================================================
+        # PHASE 8: Cross-Page Synthesis
+        # ==================================================
+        if len(unit_extractions) > 1 and len(floorplan_crops) > 1:
+            await job_manager.update_progress(
+                job_id, phase=ProcessingPhase.SYNTHESIS,
+                current_step="cross_page_synthesis",
+            )
+            try:
+                synthesis_context = json.dumps(unit_extractions, indent=2)
+                raw_synth = await run_text_llm(
+                    provider, SYNTHESIS_PROMPT, synthesis_context, max_tokens=8192
+                )
+                cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw_synth).strip()
+                synthesized = json.loads(cleaned)
+                if isinstance(synthesized, list):
+                    unit_extractions = synthesized
+                elif isinstance(synthesized, dict) and "units" in synthesized:
+                    unit_extractions = synthesized["units"]
+                logger.info(f"Job {job_id}: Synthesis complete, {len(unit_extractions)} units")
+            except Exception as e:
+                logger.warning(f"Job {job_id}: Synthesis failed, using raw extractions: {e}")
+        else:
+            logger.info(f"Job {job_id}: Skipping synthesis (single page/unit)")
+
+        # ==================================================
+        # PHASE 9: Assembly & Cleanup
+        # ==================================================
+        await job_manager.update_progress(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

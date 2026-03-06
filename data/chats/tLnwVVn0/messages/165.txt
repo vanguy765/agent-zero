@@ -1,0 +1,134 @@
+def detect_elements_cv2(
+    pil_image: Image.Image,
+    min_area_ratio: float = 0.01,
+    max_area_ratio: float = 0.85,
+) -> List[dict]:
+    """Detect distinct visual elements on a page using CV2 contour detection.
+
+    This is an alternative to LLM-based bounding box detection.
+    Uses morphological operations and contour analysis to find
+    distinct regions (photos, drawings, tables) on a rendered page.
+
+    Args:
+        pil_image: Full-page rendered image
+        min_area_ratio: Minimum element area as fraction of page area
+        max_area_ratio: Maximum element area as fraction of page area
+
+    Returns:
+        List of dicts with keys: type, bbox (normalized [x_min, y_min, x_max, y_max]),
+        label, confidence
+    """
+    if not HAS_CV2 or not HAS_NUMPY:
+        logger.warning("CV2/numpy not available for bounding box detection")
+        return []
+
+    try:
+        img_array = np.array(pil_image.convert("RGB"))
+        img_gray = np.array(pil_image.convert("L"))
+        h, w = img_gray.shape
+        page_area = h * w
+
+        # Step 1: Edge detection
+        blurred = cv2.GaussianBlur(img_gray, (5, 5), 0)
+        edges = cv2.Canny(blurred, 30, 100)
+
+        # Step 2: Dilate to connect nearby edges into regions
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+        dilated = cv2.dilate(edges, kernel, iterations=3)
+
+        # Step 3: Find contours
+        contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        elements = []
+        for contour in contours:
+            x, y, cw, ch = cv2.boundingRect(contour)
+            area = cw * ch
+            area_ratio = area / page_area
+
+            # Filter by size
+            if area_ratio < min_area_ratio or area_ratio > max_area_ratio:
+                continue
+
+            # Skip very thin strips (likely borders or lines)
+            aspect = max(cw, ch) / max(min(cw, ch), 1)
+            if aspect > 15:
+                continue
+
+            # Normalize coordinates
+            bbox = [
+                round(x / w, 4),
+                round(y / h, 4),
+                round((x + cw) / w, 4),
+                round((y + ch) / h, 4),
+            ]
+
+            # Classify the region by extracting and analyzing it
+            region = pil_image.crop((x, y, x + cw, y + ch))
+            region_type = classify_image(region)
+
+            # Map classify_image output to bounding box types
+            type_map = {
+                "floorplan": "floorplan",
+                "site_photo": "photo",
+                "diagram": "diagram",
+                "table": "table",
+                "title_block": "title_block",
+                "unknown": "unknown",
+            }
+
+            elements.append({
+                "type": type_map.get(region_type, "unknown"),
+                "bbox": bbox,
+                "label": f"{region_type} region ({cw}x{ch}px)",
+                "confidence": 0.6,  # CV2 detection has lower confidence than LLM
+                "pixel_bbox": [x, y, x + cw, y + ch],  # Keep pixel coords for cropping
+            })
+
+        # Sort by area (largest first)
+        elements.sort(key=lambda e: (
+            (e["bbox"][2] - e["bbox"][0]) * (e["bbox"][3] - e["bbox"][1])
+        ), reverse=True)
+
+        logger.info(f"CV2 detected {len(elements)} elements on page")
+        return elements
+
+    except Exception as e:
+        logger.warning(f"CV2 bounding box detection failed: {e}")
+        return []
+
+
+def crop_element(
+    pil_image: Image.Image,
+    bbox: List[float],
+    padding_pct: float = 0.01,
+) -> Image.Image:
+    """Crop an element from a page image using normalized bounding box.
+
+    Args:
+        pil_image: Full-page rendered image
+        bbox: Normalized [x_min, y_min, x_max, y_max] (0.0 to 1.0)
+        padding_pct: Extra padding as fraction of dimension (default 1%)
+
+    Returns:
+        Cropped PIL Image
+    """
+    w, h = pil_image.size
+
+    # Convert normalized to pixel coordinates
+    x_min = int(bbox[0] * w)
+    y_min = int(bbox[1] * h)
+    x_max = int(bbox[2] * w)
+    y_max = int(bbox[3] * h)
+
+    # Add padding
+    pad_x = int((x_max - x_min) * padding_pct)
+    pad_y = int((y_max - y_min) * padding_pct)
+
+    x_min = max(0, x_min - pad_x)
+    y_min = max(0, y_min - pad_y)
+    x_max = min(w, x_max + pad_x)
+    y_max = min(h, y_max + pad_y)
+
+    return pil_image.crop((x_min, y_min, x_max, y_max))
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

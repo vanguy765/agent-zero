@@ -1,0 +1,41 @@
+4:  PDF -> Docling (structural decomposition for tables/text - saves tokens)
+31:    TABLE_ANALYSIS_PROMPT, BOUNDING_BOX_PROMPT
+143:                lambda: sb_client.table("document_images").insert({
+162:async def upload_table_to_storage(
+169:    table_type: str = "table",
+171:    """Upload table markdown to Supabase Storage."""
+233:    1. Docling Conversion - structural decomposition (tables, text)
+238:    6. Table Extraction - Docling tables + LLM spec-table fallback
+263:        pipeline_options.generate_table_images = True
+330:        table_data: List[Tuple[int, str]] = []
+335:        # Collect tables from Docling
+336:        for table in result_doc.tables:
+337:            md_text = table.export_to_markdown()
+338:            page_no = table.prov[0].page_no if table.prov else 1
+344:            table_data.append((page_no, md_text))
+371:        docling_table_pages = {pg for pg, _ in table_data}
+377:            elif page_no not in docling_table_pages:
+378:                # Check for image-based tables via grid detection
+398:            job_id, tables_found=len(table_data),
+404:            f"{len(table_data)} tables, {len(pages_needing_bbox)} pages for bbox"
+472:        spec_table_pages: List[int] = []  # pages with spec_table bbox elements
+553:                elif el_type == "spec_table":
+554:                    spec_table_pages.append(page_no)
+561:            f"{len(spec_table_pages)} spec_table regions"
+568:            job_id, current_step="extracting_tables",
+571:        table_urls: List[Dict[str, Any]] = []
+572:        seen_table_keys: set = set()
+574:        # 6a: Docling-extracted tables
+575:        for t_idx, (page_no, md_text) in enumerate(table_data):
+577:            if dedup_key in seen_table_keys:
+579:            seen_table_keys.add(dedup_key)
+581:            fname = f"job_{job_id}_table_page_{page_no}_{t_idx}.md"
+584:                url = await upload_table_to_storage(
+598:            table_urls.append({
+605:        # 6b: LLM spec-table extraction for bbox-detected spec_table regions
+606:        for page_no in spec_table_pages:
+612:            if dedup_key in seen_table_keys:
+614:            seen_table_keys.add(dedup_key)
+619:                    provider, TABLE_ANALYSIS_PROMPT, page_b64, max_tokens=4096
+623:                fname = f"job_{job_id}_table_page_{page_no}_spec.md"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,22 @@
+285 cv2_detect.py
+import cv2
+import numpy as np
+from PIL import Image
+from collections import Counter
+import sys
+
+def detect_all_elements(image_path):
+    pil_img = Image.open(image_path)
+    img_rgb = np.array(pil_img.convert('RGB'))
+    img_gray = np.array(pil_img.convert('L'))
+    h, w = img_gray.shape
+    page_area = h * w
+    hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    sat_channel = hsv[:, :, 1]
+    print(f"Page: {w}x{h}")
+
+    elements = []
+
+    # ================================================================
+    # PHASE 1: Detect PHOTOS via HSV saturation
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

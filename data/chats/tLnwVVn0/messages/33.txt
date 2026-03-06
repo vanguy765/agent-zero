@@ -1,0 +1,18 @@
+Table structure analysis - why is everything classified as 'table'?
+Img |         Size |  h_ratio |  v_ratio | Table? |  Threshold
+----------------------------------------------------------------------
+  0 |  2550x1650  |   0.0139 |   0.0056 |   True | h>0.005 v>0.005
+  1 |   642x555   |   0.0108 |   0.0131 |   True | h>0.005 v>0.005
+  2 |   235x308   |   0.0119 |   0.0163 |   True | h>0.005 v>0.005
+  3 |   235x306   |   0.0094 |   0.0166 |   True | h>0.005 v>0.005
+  4 |   508x727   |   0.0098 |   0.0163 |   True | h>0.005 v>0.005
+  5 |   233x310   |   0.0114 |   0.0200 |   True | h>0.005 v>0.005
+  6 |    97x160   |   0.0108 |   0.0173 |   True | h>0.005 v>0.005
+  7 |   235x306   |   0.0126 |   0.0178 |   True | h>0.005 v>0.005
+  8 |    51x72    |   0.0340 |   0.0384 |   True | h>0.005 v>0.005
+  9 |   275x252   |   0.0369 |   0.0315 |   True | h>0.005 v>0.005
+ 10 |   234x308   |   0.0109 |   0.0171 |   True | h>0.005 v>0.005
+ 11 |   234x306   |   0.0103 |   0.0157 |   True | h>0.005 v>0.005
+
+Threshold 0.005 is WAY too low - catches everything with any edges
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

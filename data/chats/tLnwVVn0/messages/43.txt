@@ -1,0 +1,31 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 8:- P5: Cross-page synthesis (via hybrid.py)
+10:- P7: Hybrid engine mode (via hybrid.py)
+14:  POST /parse/hybrid        - Hybrid engine (Docling + Claude)
+50:from hybrid import process_hybrid, run_llm_extraction
+62:JOB_STORE_BACKEND = os.getenv("JOB_STORE_BACKEND", "memory")  # "memory" or "supabase"
+83:        supabase_url=SUPABASE_URL,
+84:        supabase_key=SUPABASE_KEY,
+127:def get_request_supabase_client(
+128:    supabase_url: Optional[str] = None,
+129:    supabase_key: Optional[str] = None,
+132:    url = supabase_url or SUPABASE_URL
+133:    key = supabase_key or SUPABASE_KEY
+137:        from supabase import create_client
+140:        logger.warning(f"supabase package not installed: {e}")
+174:    supabase_url: str = Form(None),
+175:    supabase_key: str = Form(None),
+176:    tenant_name: str = Form(None),
+177:    project_name: str = Form(None),
+196:        supabase_url,
+197:        supabase_key,
+198:        tenant_name or "",
+199:        project_name or "",
+214:    supabase_url: str,
+215:    supabase_key: str,
+216:    tenant_name: str,
+217:    project_name: str,
+233:                supabase_url, supabase_key,
+234:                tenant_name, project_name,
+255:    supabase_url: str,
+256:    supabase_key: str,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

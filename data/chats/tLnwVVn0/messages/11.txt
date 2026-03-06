@@ -1,0 +1,82 @@
+Total lines: 846
+
+=== FIX found at L288 ===
+    L 286:
+    L 287:
+>>> L 288:         # FIX: Save table markdown to .md files locally
+    L 289:         if table_data:
+    L 290:             table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+    L 291:             os.makedirs(table_output_dir, exist_ok=True)
+    L 292:             for tbl_idx, (pg, md) in enumerate(table_data):
+    L 293:                 md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+    L 294:                 with open(md_path, 'w') as md_file:
+    L 295:                     md_file.write(md)
+    L 296:                 logger.info(f"Job {job_id}: Saved table markdown: {md_path}")
+    L 297:
+    L 298:         await job_manager.update_progress(
+    L 299:             job_id,
+
+=== FIX found at L343 ===
+    L 341:                 page_no = page_idx + 1
+    L 342:
+>>> L 343:                 # FIX: Skip pages already found by Docling
+    L 344:                 if page_no in docling_fp_pages:
+    L 345:                     continue
+    L 346:
+    L 347:                 fitz_found_floorplan_on_page = False  # Track per-page to avoid duplicates
+    L 348:
+    L 349:                 images_on_page = pdf_doc[page_idx].get_images(full=True)
+    L 350:                 for img_idx, img_info in enumerate(images_on_page):
+    L 351:                     xref = img_info[0]
+    L 352:                     base_image = pdf_doc.extract_image(xref)
+    L 353:                     image_bytes = base_image["image"]
+    L 354:
+
+=== FIX found at L358 ===
+    L 356:                         from io import BytesIO
+    L 357:                         pil_img = Image.open(BytesIO(image_bytes))
+>>> L 358:                         # FIX: Skip if we already found a floorplan on this page
+    L 359:                         if fitz_found_floorplan_on_page:
+    L 360:                             continue
+    L 361:
+    L 362:                         # Only check reasonably large images to avoid icons/logos
+    L 363:                         if pil_img.width > 200 and pil_img.height > 200:
+    L 364:                             classification = classify_image(pil_img)
+    L 365:                             if classification == "floorplan":
+    L 366:                                 b64 = image_to_base64(pil_img)
+    L 367:                                 floorplan_candidates.append((page_no, pil_img, b64))
+    L 368:                                 logger.info(f"Job {job_id}: Fitz cropped floorplan detected on page {page_no}")
+    L 369:                                 fitz_found_floorplan_on_page = True
+
+=== FIX found at L392 ===
+    L 390:
+    L 391:
+>>> L 392:         # FIX: Deduplicate floorplan_candidates - keep first per page
+    L 393:         seen_pages = set()
+    L 394:         unique_candidates = []
+    L 395:         for candidate in floorplan_candidates:
+    L 396:             if candidate[0] not in seen_pages:
+    L 397:                 seen_pages.add(candidate[0])
+    L 398:                 unique_candidates.append(candidate)
+    L 399:             else:
+    L 400:                 logger.info(f"Job {job_id}: Dedup - skipping duplicate floorplan on page {candidate[0]}")
+    L 401:         floorplan_candidates = unique_candidates
+    L 402:
+    L 403:         await job_manager.update_progress(
+
+=== FIX found at L583 ===
+    L 581:         diagram_urls = {}
+    L 582:
+>>> L 583:         # FIX: Save images locally regardless of Supabase availability
+    L 584:         local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)
+    L 585:         os.makedirs(local_output_dir, exist_ok=True)
+    L 586:
+    L 587:         for i, (page_no, img, _) in enumerate(floorplan_candidates):
+    L 588:             local_path = os.path.join(local_output_dir, f'floorplan_page_{page_no}.png')
+    L 589:             img.save(local_path, format='PNG')
+    L 590:             logger.info(f"Job {job_id}: Saved floorplan locally: {local_path}")
+    L 591:
+    L 592:         for i, (page_no, img) in enumerate(site_photos):
+    L 593:             local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')
+    L 594:             img.save(local_path, format='PNG')
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

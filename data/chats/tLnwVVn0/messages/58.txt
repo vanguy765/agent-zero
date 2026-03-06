@@ -1,0 +1,27 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# Syntax OK
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 675:        floorplan_urls = {}
+676:        photo_urls = {}
+677:        diagram_urls = {}
+678:        table_urls = {}
+694:                    floorplan_urls[page_no] = url
+706:                    photo_urls[page_no] = url
+718:                    diagram_urls[page_no] = url
+730:                    table_urls[pg] = tbl_url
+772:        result = assemble_hybrid_output(
+784:            floorplan_urls=floorplan_urls,
+785:            photo_urls=photo_urls,
+786:            diagram_urls=diagram_urls,
+828:def assemble_hybrid_output(
+840:    floorplan_urls: Optional[Dict[int, str]] = None,
+841:    photo_urls: Optional[Dict[int, str]] = None,
+842:    diagram_urls: Optional[Dict[int, str]] = None,
+887:            if floorplan_urls and page_no in floorplan_urls:
+888:                data["image_url"] = floorplan_urls[page_no]
+909:        if floorplan_urls and page_no in floorplan_urls:
+910:            unit["image_url"] = floorplan_urls[page_no]
+930:            if photo_urls and page_no in photo_urls:
+931:                output["pages"][page_no]["site_photos"].append(photo_urls[page_no])
+936:            if diagram_urls and page_no in diagram_urls:
+937:                output["pages"][page_no]["diagrams"].append(diagram_urls[page_no])
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

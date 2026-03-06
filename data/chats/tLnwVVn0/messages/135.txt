@@ -1,0 +1,19 @@
+Saturation - mean: 10.7, max: 255, std: 32.1
+Value - mean: 224.2, max: 255, std: 60.6
+Saturated pixels: 570701 / 4207500 (13.6%)
+
+Contours found: 28
+Photo regions after filtering: 9
+  Photo 0: pos=(478,752) size=324x314 area_ratio=0.0242 fill=0.78
+  Photo 1: pos=(61,764) size=228x300 area_ratio=0.0163 fill=0.73
+  Photo 2: pos=(322,764) size=127x300 area_ratio=0.0091 fill=0.91
+  Photo 3: pos=(843,765) size=228x301 area_ratio=0.0163 fill=0.97
+  Photo 4: pos=(1102,765) size=224x301 area_ratio=0.0160 fill=0.97
+  Photo 5: pos=(61,1105) size=227x327 area_ratio=0.0176 fill=0.92
+  Photo 6: pos=(322,1128) size=480x304 area_ratio=0.0347 fill=0.94
+  Photo 7: pos=(843,1128) size=226x302 area_ratio=0.0162 fill=0.93
+  Photo 8: pos=(1102,1128) size=224x299 area_ratio=0.0159 fill=0.99
+
+Visualization saved to cv2_saturation_v3.png
+Saturation mask saved
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

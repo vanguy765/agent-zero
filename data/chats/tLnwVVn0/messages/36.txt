@@ -1,0 +1,44 @@
+Submit status: 200
+{
+  "job_id": "e6b37512-4ba4-4536-b689-e6114527982c",
+  "status": "queued",
+  "engine": "hybrid",
+  "file": "page_8.pdf"
+}
+
+Job ID: e6b37512-4ba4-4536-b689-e6114527982c
+  [0s] State=processing, Phase=, Step=converting_pdf_with_docling
+  [5s] State=processing, Phase=, Step=converting_pdf_with_docling
+  [10s] State=processing, Phase=, Step=converting_pdf_with_docling
+  [15s] State=processing, Phase=, Step=classifying_image_page_1
+  [20s] State=processing, Phase=, Step=classifying_image_page_1
+  [25s] State=processing, Phase=, Step=classifying_image_page_1
+  [30s] State=processing, Phase=, Step=analyzing_floorplan_1_of_1
+  [35s] State=processing, Phase=, Step=analyzing_floorplan_1_of_1
+  [40s] State=processing, Phase=, Step=analyzing_floorplan_1_of_1
+  [45s] State=processing, Phase=, Step=analyzing_floorplan_1_of_1
+  [50s] State=processing, Phase=, Step=analyzing_floorplan_1_of_1
+  [55s] State=processing, Phase=, Step=analyzing_floorplan_1_of_1
+  [60s] State=processing, Phase=, Step=cross_page_synthesis
+  [65s] State=processing, Phase=, Step=cross_page_synthesis
+  [70s] State=processing, Phase=, Step=cross_page_synthesis
+  [75s] State=processing, Phase=, Step=cross_page_synthesis
+  [80s] State=completed, Phase=, Step=initializing
+
+Full result saved to test_result_patched.json
+
+=== SUMMARY ===
+Units: 1
+Floorplans: 1
+Tables: 1
+Photos: 7
+Diagrams: 0
+Total doors: 4
+Total windows: 2
+
+--- Unit: 201 ---
+  Type: 1BR
+  Rooms: 4
+  Doors: 4
+  Windows: 2
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

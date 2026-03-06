@@ -1,0 +1,1010 @@
+1007 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+---
+"""Hybrid engine pipeline for doc-parser service.
+
+Priority 7: Docling structural decomposition -> Claude semantic extraction.
+Uses Docling for what it does best (OCR, table extraction, image classification)
+and Claude for what it does best (semantic understanding of architectural drawings).
+
+Pipeline:
+  PDF -> Docling (structural decomposition) -> Classified pages
+       -> Claude (only floorplan images + table context) -> Unit-oriented output
+"""
+import os
+import re
+import json
+import base64
+import asyncio
+import logging
+import traceback
+from io import BytesIO
+from typing import Dict, Any, List, Tuple, Optional
+from datetime import datetime
+
+from PIL import Image
+
+from models import (
+    JobRecord, JobStatus, ProcessingPhase, UnitExtraction,
+    HybridOutput, ResultSummary, ConfidenceScore
+)
+from prompts import FLOORPLAN_PROMPT_RICH, SYNTHESIS_PROMPT, TABLE_ANALYSIS_PROMPT
+from detection import (
+    is_architectural_drawing, has_architectural_text,
+    classify_image, image_to_base64
+)
+from confidence import calculate_confidence
+from job_manager import JobManager, PROCESSING_TIMEOUT_SECONDS
+
+logger = logging.getLogger(__name__)
+
+# Footer detection keywords
+FOOTER_KEYWORDS = [
+    "project no", "drawn by", "checked by", "scale",
+    "sheet no", "date", "revision", "architect",
+    "drawing no", "approved", "issued for",
+]
+
+
+# ============================================================
+# LLM Extraction Helper
+# ============================================================
+
+async def run_llm_extraction(
+    provider: str,
+    prompt: str,
+    image_b64: str,
+    max_tokens: int = 4096,
+) -> str:
+    """Send image + prompt to LLM provider and return response text.
+
+    Supports litellm-compatible provider strings.
+    """
+    try:
+        import litellm
+
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_b64}"
+                        },
+                    },
+                ],
+            }
+        ]
+
+        response = await asyncio.to_thread(
+            litellm.completion,
+            model=provider,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=0.1,
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        logger.error(f"LLM extraction failed: {e}")
+        raise
+
+
+async def run_text_llm(
+    provider: str,
+    prompt: str,
+    context: str,
+    max_tokens: int = 4096,
+) -> str:
+    """Send text-only prompt to LLM (for synthesis, table analysis)."""
+    try:
+        import litellm
+
+        messages = [
+            {
+                "role": "user",
+                "content": f"{prompt}\n\n--- DATA ---\n\n{context}",
+            }
+        ]
+
+        response = await asyncio.to_thread(
+            litellm.completion,
+            model=provider,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=0.1,
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+        logger.error(f"Text LLM call failed: {e}")
+        raise
+
+
+# ============================================================
+# Image Processing Helpers
+# ============================================================
+
+async def upload_image_to_storage(
+    pil_image: Image.Image,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    image_type: str = "doc-parser_extraction",
+) -> Optional[str]:
+    """Upload image to Supabase Storage and return public URL."""
+    if not sb_client:
+        return None
+
+    try:
+        buffered = BytesIO()
+        pil_image.save(buffered, format="PNG")
+        image_bytes = buffered.getvalue()
+
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+
+        await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, image_bytes, {"content-type": "image/png", "upsert": "true"})
+        )
+
+        # Get public URL
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+
+        # Insert DB record (non-blocking - don't lose URL if FK fails)
+        try:
+            await asyncio.to_thread(
+                lambda: sb_client.table("document_images").insert({
+                    "document_id": project_name if project_name else None,
+                    "image_url": path,
+                    "page_number": page_no,
+                    "image_type": image_type,
+                    "metadata": {
+                        "type": "png",
+                        "source": "doc-parser",
+                        "width": pil_image.width,
+                        "height": pil_image.height
+                    }
+                }).execute()
+            )
+        except Exception as db_err:
+            logger.warning(f"DB record insert failed for {filename} (file still uploaded): {db_err}")
+
+        return url_response
+
+    except Exception as e:
+        logger.warning(f"Image upload to storage failed for {filename}: {e}")
+        return None
+
+# Default storage path components
+DEFAULT_TENANT = "default"
+DEFAULT_PROJECT = "unassigned"
+
+
+async def upload_table_to_storage(
+    markdown_content: str,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    table_type: str = "table",
+) -> Optional[str]:
+    """Upload table markdown to Supabase Storage and return public URL."""
+    if not sb_client:
+        return None
+
+    try:
+        content_bytes = markdown_content.encode("utf-8")
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+
+        await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, content_bytes, {"content-type": "text/markdown", "upsert": "true"})
+        )
+
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+
+        logger.info(f"Table markdown uploaded: {path}")
+        return url_response
+
+    except Exception as e:
+        logger.warning(f"Table upload failed for {filename}: {e}")
+        return None
+
+
+# ============================================================
+# Hybrid Pipeline Processor
+# ============================================================
+
+async def process_hybrid(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    job_manager: JobManager,
+    sb_client=None,
+    tenant_name: str = "",
+    project_name: str = "",
+) -> None:
+    """Execute the hybrid pipeline: Docling decomposition -> Claude extraction.
+
+    This is the main background task for hybrid mode.
+    Wrapped in timeout enforcement by the caller.
+
+    Phases:
+    1. Docling Conversion - PDF to structured document
+    2. Classification - Identify floorplans, tables, photos
+    3. Image Extraction - Prepare floorplan images for Claude
+    4. LLM Analysis - Claude analyzes each floorplan with rich prompt
+    5. Synthesis - Cross-page correlation (Priority 5)
+    6. Upload - Store images and results
+    """
+    try:
+        # Transition to PROCESSING
+        await job_manager.start_processing(job_id)
+
+        # ==================================================
+        # PHASE 1: Docling Structural Decomposition
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.DOCLING_CONVERSION,
+            current_step="converting_pdf_with_docling",
+        )
+
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+        from pdf2image import convert_from_path
+
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.generate_picture_images = True
+        pipeline_options.generate_table_images = True
+
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(
+                    pipeline_options=pipeline_options
+                )
+            }
+        )
+
+        result_doc_wrapper = await asyncio.to_thread(
+            converter.convert, temp_path
+        )
+        result_doc = result_doc_wrapper.document
+
+        # Generate full page images for reference
+        pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+        total_pages = len(pdf_pages)
+
+        await job_manager.update_progress(
+            job_id,
+            total_pages=total_pages,
+            current_step="docling_conversion_complete",
+        )
+
+        logger.info(f"Job {job_id}: Docling converted {total_pages} pages")
+
+        # ==================================================
+        # PHASE 2: Classification & Collection
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.CLASSIFICATION,
+            current_step="classifying_pages",
+        )
+
+        floorplan_candidates: List[Tuple[int, Image.Image, str]] = []  # (page, img, b64)
+        table_data: List[Tuple[int, str]] = []  # (page, markdown)
+        site_photos: List[Tuple[int, Image.Image]] = []
+        diagrams: List[Tuple[int, Image.Image]] = []
+        footer_sample: Optional[Dict[str, Any]] = None
+
+        # --- Collect tables from Docling's structured extraction ---
+        for table in result_doc.tables:
+            md_text = table.export_to_markdown()
+            page_no = table.prov[0].page_no if table.prov else 1
+
+            # Check if this is a footer/title block table
+            is_footer = sum(
+                1 for kw in FOOTER_KEYWORDS
+                if kw in md_text.lower()
+            ) >= 3
+
+            if is_footer:
+                if not footer_sample:
+                    footer_sample = {"markdown": md_text, "page_no": page_no}
+                continue
+
+            table_data.append((page_no, md_text))
+
+
+        # Table markdown upload deferred to Phase 5.5 (Supabase Storage)
+
+        await job_manager.update_progress(
+            job_id,
+            tables_found=len(table_data),
+            current_step=f"found_{len(table_data)}_tables",
+        )
+
+        # --- Classify pictures using improved heuristic (Priority 2) ---
+        for pic in result_doc.pictures:
+            if not pic.image:
+                continue
+
+            try:
+                pil_img = pic.image.pil_image
+            except AttributeError:
+                continue
+
+            page_no = pic.prov[0].page_no if pic.prov else 1
+
+            await job_manager.update_progress(
+                job_id,
+                current_page=page_no,
+                current_step=f"classifying_image_page_{page_no}",
+            )
+
+            classification = classify_image(pil_img)
+
+            if classification == "floorplan":
+                b64 = image_to_base64(pil_img)
+                floorplan_candidates.append((page_no, pil_img, b64))
+            elif classification == "site_photo":
+                site_photos.append((page_no, pil_img))
+            elif classification == "diagram":
+                diagrams.append((page_no, pil_img))
+            # tables and title_blocks already handled by Docling
+
+        # --- Supplemental PyMuPDF extraction ---
+        # Docling excels at structural decomposition but can miss embedded
+        # raster images (photos, diagrams) on composite pages. PyMuPDF
+        # extracts ALL image layers from the PDF, so we use it to find
+        # content Docling missed.
+        #
+        # Strategy:
+        #   - Pages WITH a Docling floorplan: extract images but only
+        #     classify as photo/diagram (skip floorplan to avoid dupes)
+        #   - Pages WITHOUT a Docling floorplan: extract and classify all
+        #     image types including floorplan
+        docling_fp_pages = {fp[0] for fp in floorplan_candidates}
+        docling_photo_pages = {p[0] for p in site_photos}
+        docling_diagram_pages = {p[0] for p in diagrams}
+
+        import fitz
+        try:
+            pdf_doc = fitz.open(temp_path)
+            for page_idx in range(len(pdf_doc)):
+                page_no = page_idx + 1
+                page_has_docling_fp = page_no in docling_fp_pages
+
+                fitz_found_floorplan_on_page = False  # one floorplan per page max
+
+                images_on_page = pdf_doc[page_idx].get_images(full=True)
+                for img_idx, img_info in enumerate(images_on_page):
+                    xref = img_info[0]
+                    try:
+                        base_image = pdf_doc.extract_image(xref)
+                        image_bytes = base_image["image"]
+                        pil_img = Image.open(BytesIO(image_bytes))
+                    except Exception as e:
+                        logger.warning(f"Job {job_id}: Failed to extract fitz image xref={xref} page {page_no}: {e}")
+                        continue
+
+                    # Skip small images (icons, logos, bullets)
+                    if pil_img.width < 150 or pil_img.height < 150:
+                        continue
+
+                    classification = classify_image(pil_img)
+
+                    if classification == "floorplan":
+                        # Only add floorplan if Docling didn't already find one on this page
+                        if not page_has_docling_fp and not fitz_found_floorplan_on_page:
+                            b64 = image_to_base64(pil_img)
+                            floorplan_candidates.append((page_no, pil_img, b64))
+                            fitz_found_floorplan_on_page = True
+                            logger.info(f"Job {job_id}: Fitz floorplan on page {page_no}")
+
+                    elif classification == "site_photo":
+                        # Add photos even on pages where Docling found a floorplan
+                        site_photos.append((page_no, pil_img))
+                        logger.info(f"Job {job_id}: Fitz photo on page {page_no} (img {img_idx})")
+
+                    elif classification == "diagram":
+                        diagrams.append((page_no, pil_img))
+                        logger.info(f"Job {job_id}: Fitz diagram on page {page_no} (img {img_idx})")
+
+            pdf_doc.close()
+        except Exception as e:
+            logger.warning(f"Job {job_id}: Fitz image extraction failed: {e}")
+
+        # --- Full-page fallback for pages with no floorplan from either source ---
+        all_fp_pages = {fp[0] for fp in floorplan_candidates}
+        for i, page_img in enumerate(pdf_pages):
+            page_no = i + 1
+            if page_no in all_fp_pages:
+                continue
+
+            if is_architectural_drawing(page_img) and has_architectural_text(page_img):
+                b64 = image_to_base64(page_img)
+                floorplan_candidates.append((page_no, page_img, b64))
+                logger.info(f"Job {job_id}: Full-page floorplan on page {page_no} (fallback)")
+
+        # --- Spec-table detection for pages without Docling tables ---
+        # Some pages have specification tables rendered as images (not
+        # structured PDF tables). Docling misses these. We detect them
+        # by rendering the full page and checking for grid structure,
+        # then send to LLM for extraction.
+        docling_table_pages = {pg for pg, _ in table_data}
+        for i, page_img in enumerate(pdf_pages):
+            page_no = i + 1
+            if page_no in docling_table_pages:
+                continue  # Docling already extracted tables from this page
+
+            # Check if the full-page render has table structure
+            try:
+                import numpy as np
+                import cv2
+                page_gray = np.array(page_img.convert("L"))
+
+                # Use the same detection logic as _has_table_structure
+                edges = cv2.Canny(page_gray, 50, 150)
+                h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+                horizontal = cv2.morphologyEx(edges, cv2.MORPH_OPEN, h_kernel)
+                v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
+                vertical = cv2.morphologyEx(edges, cv2.MORPH_OPEN, v_kernel)
+
+                h_lines = cv2.HoughLinesP(horizontal, 1, np.pi/180, threshold=30, minLineLength=50, maxLineGap=10)
+                v_lines = cv2.HoughLinesP(vertical, 1, np.pi/180, threshold=30, minLineLength=50, maxLineGap=10)
+                n_h = len(h_lines) if h_lines is not None else 0
+                n_v = len(v_lines) if v_lines is not None else 0
+                grid_score = min(n_h, n_v)
+
+                if grid_score >= 15:  # Slightly lower threshold for full-page (table is part of page)
+                    logger.info(f"Job {job_id}: Spec table detected on page {page_no} (grid_score={grid_score}), sending to LLM")
+                    # Send full page to LLM for table extraction
+                    page_b64 = image_to_base64(page_img)
+                    try:
+                        table_result = await run_llm_extraction(
+                            provider, TABLE_ANALYSIS_PROMPT, page_b64, max_tokens=4096
+                        )
+                        # Clean and store as markdown
+                        table_clean = re.sub(r"```(?:markdown)?\s*|\s*```", "", table_result).strip()
+                        if table_clean and len(table_clean) > 20:  # Sanity check
+                            table_data.append((page_no, table_clean))
+                            logger.info(f"Job {job_id}: LLM extracted spec table from page {page_no} ({len(table_clean)} chars)")
+
+                    except Exception as e:
+                        logger.warning(f"Job {job_id}: LLM table extraction failed for page {page_no}: {e}")
+
+            except ImportError:
+                pass  # cv2/numpy not available, skip spec-table detection
+            except Exception as e:
+                logger.warning(f"Job {job_id}: Spec-table detection failed for page {page_no}: {e}")
+
+        # FIX: Deduplicate floorplan_candidates - keep first per page
+        seen_pages = set()
+        unique_candidates = []
+        for candidate in floorplan_candidates:
+            if candidate[0] not in seen_pages:
+                seen_pages.add(candidate[0])
+                unique_candidates.append(candidate)
+            else:
+                logger.info(f"Job {job_id}: Dedup - skipping duplicate floorplan on page {candidate[0]}")
+        floorplan_candidates = unique_candidates
+
+        await job_manager.update_progress(
+            job_id,
+            floorplans_found=len(floorplan_candidates),
+            current_step=f"classification_complete_{len(floorplan_candidates)}_floorplans",
+        )
+
+        logger.info(
+            f"Job {job_id}: Classification complete - "
+            f"{len(floorplan_candidates)} floorplans, "
+            f"{len(table_data)} tables, "
+            f"{len(site_photos)} photos, "
+            f"{len(diagrams)} diagrams"
+        )
+
+        # ==================================================
+        # PHASE 3: Image Extraction (prepare for Claude)
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.IMAGE_EXTRACTION,
+            current_step="preparing_images_for_analysis",
+        )
+
+        # Build table context string for enriching Claude prompts
+        table_context = ""
+        if table_data:
+            table_context = "\n\n".join([
+                f"--- Table from Page {pg} ---\n{md}"
+                for pg, md in table_data
+            ])
+
+        # ==================================================
+        # PHASE 4: Claude Semantic Extraction
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.LLM_ANALYSIS,
+            current_step="starting_claude_analysis",
+        )
+
+        unit_extractions: List[Dict[str, Any]] = []
+
+        for i, (page_no, pil_img, b64) in enumerate(floorplan_candidates):
+            await job_manager.update_progress(
+                job_id,
+                current_page=page_no,
+                current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_candidates)}",
+            )
+
+            # Enrich prompt with table context
+            enriched_prompt = FLOORPLAN_PROMPT_RICH
+            if table_context:
+                enriched_prompt += (
+                    "\n\nADDITIONAL CONTEXT - Door/window schedules and "
+                    "other tables extracted from this document set. Use these "
+                    "to enrich your extraction with schedule data (hardware, "
+                    "materials, fire ratings, etc.):\n\n"
+                    + table_context
+                )
+
+            try:
+                result_str = await run_llm_extraction(
+                    provider, enriched_prompt, b64
+                )
+
+                # Clean markdown code fences
+                result_clean = re.sub(
+                    r"```(?:json)?\s*|\s*```", "", result_str
+                ).strip()
+
+                unit_data = json.loads(result_clean)
+                unit_extractions.append({
+                    "page_no": page_no,
+                    "data": unit_data,
+                    "success": True,
+                })
+
+                logger.info(
+                    f"Job {job_id}: Page {page_no} extracted - "
+                    f"{len(unit_data.get('rooms', []))} rooms, "
+                    f"{len(unit_data.get('doors', []))} doors"
+                )
+
+            except json.JSONDecodeError as e:
+                logger.warning(
+                    f"Job {job_id}: JSON parse failed for page {page_no}: {e}"
+                )
+                unit_extractions.append({
+                    "page_no": page_no,
+                    "error": f"JSON parse error: {str(e)}",
+                    "raw": result_str[:500] if result_str else "",
+                    "success": False,
+                })
+
+            except Exception as e:
+                logger.error(
+                    f"Job {job_id}: LLM extraction failed for page {page_no}: {e}"
+                )
+                unit_extractions.append({
+                    "page_no": page_no,
+                    "error": str(e),
+                    "success": False,
+                })
+
+        # ==================================================
+        # PHASE 5: Cross-Page Synthesis (Priority 5)
+        # ==================================================
+        synthesis_result = None
+
+        successful_extractions = [
+            ue for ue in unit_extractions if ue.get("success")
+        ]
+
+        if len(successful_extractions) > 1 or (
+            successful_extractions and table_data
+        ):
+            await job_manager.update_progress(
+                job_id,
+                phase=ProcessingPhase.SYNTHESIS,
+                current_step="cross_page_synthesis",
+            )
+
+            try:
+                # Build synthesis context
+                synthesis_context_parts = []
+
+                synthesis_context_parts.append(
+                    f"Total pages in document: {total_pages}"
+                )
+                synthesis_context_parts.append(
+                    f"Floorplans analyzed: {len(successful_extractions)}"
+                )
+
+                for ue in successful_extractions:
+                    synthesis_context_parts.append(
+                        f"\n--- Floorplan from Page {ue['page_no']} ---\n"
+                        + json.dumps(ue["data"], indent=2)
+                    )
+
+                if table_data:
+                    synthesis_context_parts.append(
+                        "\n--- TABLES/SCHEDULES ---"
+                    )
+                    for pg, md in table_data:
+                        synthesis_context_parts.append(
+                            f"\n--- Table from Page {pg} ---\n{md}"
+                        )
+
+                synthesis_context = "\n".join(synthesis_context_parts)
+
+                synthesis_str = await run_text_llm(
+                    provider, SYNTHESIS_PROMPT, synthesis_context
+                )
+
+                synthesis_clean = re.sub(
+                    r"```(?:json)?\s*|\s*```", "", synthesis_str
+                ).strip()
+
+                synthesis_result = json.loads(synthesis_clean)
+                logger.info(f"Job {job_id}: Cross-page synthesis complete")
+
+            except Exception as e:
+                logger.warning(
+                    f"Job {job_id}: Synthesis failed (non-fatal): {e}"
+                )
+                synthesis_result = {"error": str(e)}
+
+        # ==================================================
+        # PHASE 5.5: Upload Images to Supabase
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.UPLOADING,
+            current_step="uploading_images_to_storage",
+        )
+
+        floorplan_urls = {}  # Dict[int, str] - one floorplan per page
+        photo_urls = {}     # Dict[int, List[str]] - multiple photos per page
+        diagram_urls = {}   # Dict[int, List[str]] - multiple diagrams per page
+        table_urls = {}     # Dict[int, List[str]] - multiple tables per page
+
+        # Apply default storage path when tenant/project not provided
+        storage_tenant = tenant_name or DEFAULT_TENANT
+        storage_project = project_name or DEFAULT_PROJECT
+
+        if sb_client:
+            # Upload floorplans to Supabase Storage
+            for i, (page_no, img, _) in enumerate(floorplan_candidates):
+                url = await upload_image_to_storage(
+                    img, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_floorplan_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="floorplan"
+                )
+                if url:
+                    floorplan_urls[page_no] = url
+                    logger.info(f"Job {job_id}: Uploaded floorplan page {page_no} to Supabase")
+
+            # Upload site photos to Supabase Storage
+            for i, (page_no, img) in enumerate(site_photos):
+                url = await upload_image_to_storage(
+                    img, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_photo_page_{page_no}_idx{i}.png",
+                    page_no=page_no,
+                    image_type="site_photo"
+                )
+                if url:
+                    photo_urls.setdefault(page_no, []).append(url)
+                    logger.info(f"Job {job_id}: Uploaded photo {i} page {page_no} to Supabase")
+
+            # Upload diagrams to Supabase Storage
+            for i, (page_no, img) in enumerate(diagrams):
+                url = await upload_image_to_storage(
+                    img, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_diagram_page_{page_no}_idx{i}.png",
+                    page_no=page_no,
+                    image_type="diagram"
+                )
+                if url:
+                    diagram_urls.setdefault(page_no, []).append(url)
+                    logger.info(f"Job {job_id}: Uploaded diagram {i} page {page_no} to Supabase")
+
+            # Upload table markdown files to Supabase Storage
+            for tbl_idx, (pg, md_text) in enumerate(table_data):
+                tbl_url = await upload_table_to_storage(
+                    md_text, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_table_page_{pg}_{tbl_idx}.md",
+                    page_no=pg,
+                    table_type="table"
+                )
+                if tbl_url:
+                    table_urls.setdefault(pg, []).append(tbl_url)
+                    logger.info(f"Job {job_id}: Uploaded table markdown page {pg} to Supabase")
+
+        else:
+            # Fallback: Save locally when Supabase is unavailable
+            local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)
+            os.makedirs(local_output_dir, exist_ok=True)
+
+            for i, (page_no, img, _) in enumerate(floorplan_candidates):
+                local_path = os.path.join(local_output_dir, f'floorplan_page_{page_no}.png')
+                img.save(local_path, format='PNG')
+                floorplan_urls[page_no] = local_path
+                logger.info(f"Job {job_id}: Saved floorplan locally: {local_path}")
+
+            for i, (page_no, img) in enumerate(site_photos):
+                local_path = os.path.join(local_output_dir, f'photo_page_{page_no}_idx{i}.png')
+                img.save(local_path, format='PNG')
+                photo_urls.setdefault(page_no, []).append(local_path)
+                logger.info(f"Job {job_id}: Saved photo locally: {local_path}")
+
+            for i, (page_no, img) in enumerate(diagrams):
+                local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}_idx{i}.png')
+                img.save(local_path, format='PNG')
+                diagram_urls.setdefault(page_no, []).append(local_path)
+                logger.info(f"Job {job_id}: Saved diagram locally: {local_path}")
+
+            # Save table markdown locally
+            if table_data:
+                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+                os.makedirs(table_output_dir, exist_ok=True)
+                for tbl_idx, (pg, md_text) in enumerate(table_data):
+                    md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+                    with open(md_path, 'w') as md_file:
+                        md_file.write(md_text)
+                    table_urls.setdefault(pg, []).append(md_path)
+                    logger.info(f"Job {job_id}: Saved table markdown locally: {md_path}")
+
+        # ==================================================
+        # PHASE 6: Assemble Output & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.UPLOADING,
+            current_step="assembling_output",
+        )
+
+        result = assemble_hybrid_output(
+            unit_extractions=unit_extractions,
+            table_data=table_data,
+            footer_sample=footer_sample,
+            floorplan_candidates=floorplan_candidates,
+            site_photos=site_photos,
+            diagrams=diagrams,
+            pdf_pages=pdf_pages,
+            synthesis=synthesis_result,
+            sb_client=sb_client,
+            tenant_name=tenant_name,
+            project_name=project_name,
+            floorplan_urls=floorplan_urls,
+            photo_urls=photo_urls,
+            diagram_urls=diagram_urls,
+            table_urls=table_urls,
+        )
+
+        # Calculate confidence (Priority 6)
+        result["confidence"] = calculate_confidence(
+            units=result.get("units", []),
+            tables=result.get("tables", []),
+            synthesis=synthesis_result,
+            total_pages=total_pages,
+            floorplans_found=len(floorplan_candidates),
+        ).model_dump()
+
+        # Complete the job
+        await job_manager.complete_job(job_id, result)
+
+        logger.info(
+            f"Job {job_id}: Hybrid pipeline complete - "
+            f"{len(result.get('units', []))} units extracted, "
+            f"confidence={result['confidence']['overall']}"
+        )
+
+    except asyncio.CancelledError:
+        await job_manager.timeout_job(job_id)
+        raise
+
+    except Exception as e:
+        traceback.print_exc()
+        await job_manager.fail_job(job_id, str(e))
+
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+
+# ============================================================
+# Output Assembly
+# ============================================================
+
+def assemble_hybrid_output(
+    unit_extractions: List[Dict[str, Any]],
+    table_data: List[Tuple[int, str]],
+    footer_sample: Optional[Dict[str, Any]],
+    floorplan_candidates: List[Tuple[int, Image.Image, str]],
+    site_photos: List[Tuple[int, Image.Image]],
+    diagrams: List[Tuple[int, Image.Image]],
+    pdf_pages: list,
+    synthesis: Optional[Dict[str, Any]] = None,
+    sb_client=None,
+    tenant_name: str = "",
+    project_name: str = "",
+    floorplan_urls: Optional[Dict[int, str]] = None,
+    photo_urls: Optional[Dict[int, list]] = None,
+    diagram_urls: Optional[Dict[int, list]] = None,
+    table_urls: Optional[Dict[int, list]] = None,
+) -> Dict[str, Any]:
+    """Assemble hybrid pipeline output in both page-oriented and unit-oriented formats.
+
+    Produces BOTH formats:
+    - pages: page-oriented (for doc-parser native consumers)
+    - units: unit-oriented (for direct ParsedDocument compatibility with work-orders)
+    """
+    output: Dict[str, Any] = {
+        "engine": "hybrid",
+        "pages": {},
+        "units": [],
+        "tables": [],
+        "footer_sample": footer_sample,
+        "general_notes": [],
+        "synthesis": synthesis,
+    }
+
+    # --- Initialize page structure ---
+    for i, page_img in enumerate(pdf_pages):
+        page_no = i + 1
+        output["pages"][page_no] = {
+            "page_number": page_no,
+            "floorplans": [],
+            "tables": [],
+            "site_photos": [],
+            "diagrams": [],
+            "classification": "unknown",
+        }
+
+    # --- Map floorplan extractions to pages AND build units array ---
+    for extraction in unit_extractions:
+        page_no = extraction["page_no"]
+        data = extraction.get("data", {})
+
+        if not extraction.get("success", False):
+            # Record failed extraction in page data
+            if page_no in output["pages"]:
+                output["pages"][page_no]["floorplans"].append({
+                    "error": extraction.get("error", "unknown"),
+                })
+            continue
+
+        # Add to page-oriented output
+        if page_no in output["pages"]:
+            if floorplan_urls and page_no in floorplan_urls:
+                data["image_url"] = floorplan_urls[page_no]
+            output["pages"][page_no]["floorplans"].append(data)
+            output["pages"][page_no]["classification"] = "floorplan"
+
+        # Build unit-oriented output (ParsedDocument compatible)
+        unit = {
+            "unit_number": data.get("unit_number", f"page_{page_no}"),
+            "unit_type": data.get("unit_type", "unknown"),
+            "floor": data.get("floor", 0),
+            "bedrooms": data.get("bedrooms", 0),
+            "bathrooms": data.get("bathrooms", 0),
+            "half_baths": data.get("half_baths", 0),
+            "area_sf": data.get("total_area_sf", data.get("area_sf", 0)),
+            "rooms": data.get("rooms", []),
+            "doors": data.get("doors", []),
+            "windows": data.get("windows", []),
+            "fixtures": data.get("fixtures", []),
+            "upgrades": data.get("upgrades", []),
+            "general_notes": data.get("general_notes", []),
+            "source_page": page_no,
+        }
+        if floorplan_urls and page_no in floorplan_urls:
+            unit["image_url"] = floorplan_urls[page_no]
+        output["units"].append(unit)
+
+        # Collect general notes
+        for note in data.get("general_notes", []):
+            if note not in output["general_notes"]:
+                output["general_notes"].append(note)
+
+    # --- Add Docling tables to output ---
+    # Build a per-page URL iterator so each table gets its own URL
+    _table_url_iters = {}
+    if table_urls:
+        _table_url_iters = {pg: iter(urls) for pg, urls in table_urls.items()}
+
+    for page_no, md in table_data:
+        # Top-level tables array (always includes markdown)
+        tbl_entry_top = {"page_no": page_no, "markdown": md}
+        tbl_url = None
+        if page_no in _table_url_iters:
+            tbl_url = next(_table_url_iters[page_no], None)
+        if tbl_url:
+            tbl_entry_top["url"] = tbl_url
+        output["tables"].append(tbl_entry_top)
+
+        # Page-level tables array
+        if page_no in output["pages"]:
+            tbl_entry_page = {"markdown": md}
+            if tbl_url:
+                tbl_entry_page["url"] = tbl_url
+            output["pages"][page_no]["tables"].append(tbl_entry_page)
+            if output["pages"][page_no]["classification"] == "unknown":
+                output["pages"][page_no]["classification"] = "table"
+
+    # --- Mark site photo and diagram pages & attach URLs ---
+    # Collect unique page numbers that have photos
+    photo_page_nos = set(p[0] for p in site_photos)
+    for page_no in photo_page_nos:
+        if page_no in output["pages"]:
+            # Only override classification if not already a floorplan
+            if output["pages"][page_no]["classification"] not in ("floorplan",):
+                output["pages"][page_no]["classification"] = "site_photo"
+            if photo_urls and page_no in photo_urls:
+                output["pages"][page_no]["site_photos"].extend(photo_urls[page_no])
+
+    diagram_page_nos = set(p[0] for p in diagrams)
+    for page_no in diagram_page_nos:
+        if page_no in output["pages"]:
+            if output["pages"][page_no]["classification"] not in ("floorplan", "site_photo"):
+                output["pages"][page_no]["classification"] = "diagram"
+            if diagram_urls and page_no in diagram_urls:
+                output["pages"][page_no]["diagrams"].extend(diagram_urls[page_no])
+
+
+
+    # --- Build summary ---
+    output["summary"] = {
+        "units_count": len(output["units"]),
+        "pages_count": len(pdf_pages),
+        "floorplans_count": len(floorplan_candidates),
+        "tables_count": len(table_data),
+        "site_photos_count": len(site_photos),
+        "diagrams_count": len(diagrams),
+        "total_doors": sum(
+            len(u.get("doors", [])) for u in output["units"]
+        ),
+        "total_windows": sum(
+            len(u.get("windows", [])) for u in output["units"]
+        ),
+        "total_baseboard_ft": sum(
+            sum(
+                float(r.get("baseboard_length_ft") or 0)
+                for r in u.get("rooms", [])
+            )
+            for u in output["units"]
+        ),
+        "trades": list(set(
+            up.get("trade", "")
+            for u in output["units"]
+            for up in u.get("upgrades", [])
+            if up.get("trade")
+        )),
+        "has_footer": footer_sample is not None,
+        "has_synthesis": synthesis is not None and "error" not in (synthesis or {}),
+        "extraction_errors": sum(
+            1 for ue in unit_extractions if not ue.get("success")
+        ),
+    }
+
+    return output
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images#

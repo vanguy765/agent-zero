@@ -1,0 +1,45 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# import requests
+import json
+import time
+
+url = "http://localhost:5000/parse/hybrid"
+files = {'file': ('page_8.pdf', open('./page_8.pdf', 'rb'), 'application/pdf')}
+data = {
+    'tenant_name': 'test_tenant',
+    'project_name': '4c1a5fd2-75f0-4a69-b5ec-d620ba0960af'
+}
+
+print("Starting hybrid parse for page 8...")
+response = requests.post(url, files=files, data=data)
+res_json = response.json()
+print("Job submitted:", res_json)
+
+job_id = res_json.get("job_id")
+status = "queued"
+
+while status in ["queued", "processing"]:
+    time.sleep(2)
+    s_response = requests.get(f"http://localhost:5000/status/{job_id}")
+    s_json = s_response.json()
+    status = s_json.get("status")
+    prog = s_json.get("progress", {}).get("current_step", "")
+    print(f"Status: {status} ({prog})")
+
+print("Final status:", status)
+if status == "completed":
+    r_response = requests.get(f"http://localhost:5000/results/{job_id}")
+    print("Has image_url in output units?")
+    rj = r_response.json()
+    units = rj.get("result", {}).get("units", [])
+    for u in units:
+        print(f"Unit {u.get('unit_number')}: image_url={u.get('image_url')}")
+    
+    pages = rj.get("result", {}).get("pages", {})
+    for p, d in pages.items():
+        print(f"Page {p} classification: {d.get('classification')}, site_photos: {len(d.get('site_photos', []))}, diagrams: {len(d.get('diagrams', []))}")
+        
+    with open("./test_result.json", "w") as f:
+        json.dump(rj, f, indent=2)
+        
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

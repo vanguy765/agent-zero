@@ -1,0 +1,33 @@
+7:      -> LLM bounding-box detection on interesting pages
+35:    classify_image, image_to_base64,
+36:    detect_elements_cv2, crop_element, create_thumbnail
+194:def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+202:            bbox = el.get("bbox", [])
+203:            if len(bbox) != 4:
+205:            bbox = [max(0.0, min(1.0, float(v))) for v in bbox]
+206:            if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
+208:            if (bbox[2] - bbox[0]) < 0.02 or (bbox[3] - bbox[1]) < 0.02:
+210:            el["bbox"] = bbox
+214:        logger.warning(f"Failed to parse bbox response: {e}")
+324:        # PHASE 3: Docling-Based Classification & Table Collection
+356:            classification = classify_image(pil_img)
+370:        pages_needing_bbox: set = set()
+376:                pages_needing_bbox.add(page_no)
+392:                        pages_needing_bbox.add(page_no)
+400:            current_step=f"classified_{len(pages_needing_bbox)}_pages_for_bbox",
+404:            f"{len(table_data)} tables, {len(pages_needing_bbox)} pages for bbox"
+408:        # PHASE 4: Bounding Box Detection via LLM
+412:            current_step="detecting_bounding_boxes",
+415:        # page_elements: {page_no: [list of {type, bbox, label, confidence}]}
+418:        for page_no in sorted(pages_needing_bbox):
+428:                current_step=f"bbox_detection_page_{page_no}",
+435:                elements = parse_bbox_response(raw_response)
+451:                        "bbox": [0.0, 0.0, 1.0, 1.0],
+463:        # PHASE 5: Element Cropping & Upload
+472:        spec_table_pages: List[int] = []  # pages with spec_table bbox elements
+484:                bbox = el.get("bbox", [])
+486:                if len(bbox) != 4:
+489:                cropped = crop_element(page_img, bbox)
+605:        # 6b: LLM spec-table extraction for bbox-detected spec_table regions
+941:        "engine": "hybrid_page_render",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

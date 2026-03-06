@@ -1,0 +1,62 @@
+Job submitted: af1c8192-c52b-4515-a68b-654402132d5a
+[0s] status=processing step=? error=None
+[3s] status=processing step=? error=None
+[6s] status=processing step=? error=None
+[9s] status=processing step=? error=None
+[12s] status=processing step=? error=None
+[15s] status=processing step=? error=None
+[18s] status=processing step=? error=None
+[21s] status=processing step=? error=None
+[24s] status=processing step=? error=None
+[27s] status=processing step=? error=None
+[30s] status=processing step=? error=None
+[33s] status=processing step=? error=None
+[36s] status=processing step=? error=None
+[39s] status=processing step=? error=None
+[42s] status=processing step=? error=None
+[45s] status=processing step=? error=None
+[48s] status=processing step=? error=None
+[51s] status=processing step=? error=None
+[54s] status=processing step=? error=None
+[57s] status=processing step=? error=None
+[60s] status=processing step=? error=None
+[63s] status=processing step=? error=None
+[66s] status=processing step=? error=None
+[69s] status=processing step=? error=None
+[72s] status=processing step=? error=None
+[75s] status=processing step=? error=None
+[78s] status=processing step=? error=None
+[81s] status=processing step=? error=None
+[84s] status=processing step=? error=None
+[87s] status=processing step=? error=None
+[90s] status=processing step=? error=None
+[93s] status=completed step=? error=None
+
+FULL STATUS:
+{
+  "job_id": "af1c8192-c52b-4515-a68b-654402132d5a",
+  "status": "completed",
+  "engine": "hybrid",
+  "file_name": "page_8.pdf",
+  "progress": {
+    "current_phase": "complete",
+    "phases": [
+      "docling_conversion",
+      "classification",
+      "image_extraction",
+      "llm_analysis",
+      "synthesis",
+      "uploading"
+    ],
+    "current_page": 0,
+    "total_pages": 0,
+    "current_step": "initializing",
+    "floorplans_found": 0,
+    "tables_found": 0,
+    "percent_complete": 100.0
+  },
+  "error": null,
+  "created_at": "2026-03-06T02:48:30.826792",
+  "updated_at": "2026-03-06T02:50:08.954809"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

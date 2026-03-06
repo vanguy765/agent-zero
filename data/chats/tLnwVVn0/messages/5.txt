@@ -1,0 +1,301 @@
+import os
+import shutil
+import tempfile
+import base64
+import fitz  # PyMuPDF
+import pdfplumber
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, BackgroundTasks
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+from supabase import create_client, Client
+import litellm
+from litellm import completion
+from dotenv import load_dotenv
+import uuid
+import asyncio
+
+# Load .env file
+load_dotenv()
+
+# Import our custom prompts
+
+from prompts import FLOORPLAN_PROMPT, TABLE_PROMPT, PHOTO_PROMPT
+import numpy as np
+import pytesseract
+import json
+import re
+    
+
+app = FastAPI(title="Document Parser Service")
+
+# Allow CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Setup Templates
+templates = Jinja2Templates(directory="templates")
+
+# Supabase Configuration
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# OpenRouter / LLM Configuration
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+if OPENROUTER_API_KEY:
+    os.environ["OPENROUTER_API_KEY"] = OPENROUTER_API_KEY
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Serve the Benchmark UI"""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "online",
+        "service": "doc-parser",
+        "supabase_connected": supabase is not None,
+        "llm_provider": "openrouter" if OPENROUTER_API_KEY else "none"
+    }
+
+def encode_image_base64_from_pix(pix):
+    """Convert PyMuPDF pixmap to base64 string"""
+    img_data = pix.tobytes("png")
+    return base64.b64encode(img_data).decode("utf-8")
+
+def encode_image_base64_from_file(filepath: str):
+    """Convert local image file to base64 string"""
+    with open(filepath, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+async def run_llm_extraction(provider: str, prompt_template: str, image_base64: str, text_context: str = None):
+    """Run extraction using LiteLLM (OpenRouter)"""
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=400, detail="OPENROUTER_API_KEY not set")
+
+    model = f"openrouter/{provider}"
+    
+    content = [{"type": "text", "text": prompt_template}]
+    
+    if text_context:
+        content.append({"type": "text", "text": f"\\nExtracted Raw Text/Data Context:\\n{text_context}"})
+        
+    content.append({
+        "type": "image_url",
+        "image_url": {"url": f"data:image/png;base64,{image_base64}"}
+    })
+    
+    messages = [
+        {
+            "role": "user",
+            "content": content
+        }
+    ]
+
+    try:
+        # Anthropic/Gemini might struggle with response_format in certain litellm versions
+        kwargs = {
+            "model": model,
+            "messages": messages
+        }
+        if "openai" in provider.lower():
+            kwargs["response_format"] = {"type": "json_object"}
+            
+        response = completion(**kwargs)
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"LLM Error: {e}")
+        return {{"error": str(e)}}
+
+
+def is_black_and_white_pil(img_pil):
+    img = np.array(img_pil)
+    if len(img.shape) < 3:
+        return True
+    r, g, b = img[:,:,0], img[:,:,1], img[:,:,2]
+    diff = np.mean(np.abs(r.astype(int) - g.astype(int))) + np.mean(np.abs(g.astype(int) - b.astype(int)))
+    return diff < 2.0
+
+def has_sufficient_text_pil(img_pil, min_words=3):
+    text = pytesseract.image_to_string(img_pil)
+    word_count = len(text.split())
+    return word_count >= min_words
+
+def calculate_areas(raw_json):
+    CEILING_HEIGHT = 8.0
+    WINDOW_AREA = 12.0
+    INT_DOOR_AREA = 21.0
+    SLIDING_DOOR_AREA = 42.0
+    BIFOLD_DOOR_AREA = 35.0
+
+    kitchen_area = float(raw_json.get("kitchen_area", 0) or 0)
+    bathroom_area = float(raw_json.get("bathroom_area", 0) or 0)
+    kitchen_perimeter = float(raw_json.get("kitchen_perimeter", 0) or 0)
+    bathroom_perimeter = float(raw_json.get("bathroom_perimeter", 0) or 0)
+    total_wall_perimeter = float(raw_json.get("total_wall_perimeter", 0) or 0)
+    
+    windows = float(raw_json.get("window_count", 0) or 0)
+    int_doors = float(raw_json.get("interior_door_count", 0) or 0)
+    slid_doors = float(raw_json.get("sliding_door_count", 0) or 0)
+    bif_doors = float(raw_json.get("bifold_door_count", 0) or 0)
+
+    calc = {
+        "kitchen_ceiling_area": kitchen_area,
+        "bathroom_ceiling_area": bathroom_area,
+        "kitchen_wall_area": kitchen_perimeter * CEILING_HEIGHT,
+        "bathroom_wall_area": bathroom_perimeter * CEILING_HEIGHT,
+        "gross_unit_wall_area": total_wall_perimeter * CEILING_HEIGHT,
+    }
+
+    total_deductions_area = (windows * WINDOW_AREA) + (int_doors * INT_DOOR_AREA) + (slid_doors * SLIDING_DOOR_AREA) + (bif_doors * BIFOLD_DOOR_AREA)
+    calc["total_deductions_area"] = total_deductions_area
+    calc["net_remaining_wall_area"] = calc["gross_unit_wall_area"] - calc["kitchen_wall_area"] - calc["bathroom_wall_area"] - total_deductions_area
+
+    return {**raw_json, "calculations": calc}
+
+JOBS = {}
+
+def get_job_supabase_client(supabase_url, supabase_key):
+    if not supabase_url or not supabase_key:
+        return None
+    try:
+        from supabase import create_client
+        return create_client(supabase_url, supabase_key)
+    except Exception as e:
+        print(f"Failed to create Supabase client: {e}")
+        return None
+
+def compress_and_upload_to_supabase(sb_client, pil_img, bucket_path):
+    """Compresses a PIL image to JPEG in memory and uploads directly to Supabase Storage."""
+    from io import BytesIO
+    import base64
+    
+    if not sb_client:
+        # Fallback to local base64 if no supabase credentials
+        buffered = BytesIO()
+        pil_img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+        
+    try:
+        # Compress immediately in-memory
+        if pil_img.mode in ("RGBA", "P"):
+            pil_img = pil_img.convert("RGB")
+        
+        img_byte_arr = BytesIO()
+        pil_img.save(img_byte_arr, format='JPEG', optimize=True, quality=80)
+        img_bytes = img_byte_arr.getvalue()
+        
+        # Upload directly to Supabase Storage
+        res = sb_client.storage.from_("storage").upload(
+            bucket_path,
+            img_bytes,
+            {"content-type": "image/jpeg", "upsert": "true"}
+        )
+        
+        # Return the public URL or just the path itself
+        return bucket_path
+    except Exception as e:
+        print(f"Failed to upload {bucket_path} to Supabase: {e}")
+        return None
+
+async def process_docling_background(job_id: str, temp_path: str, provider: str, supabase_url: str, supabase_key: str, tenant_name: str, project_name: str):
+    import base64
+    from io import BytesIO
+    import json
+    
+    sb_client = get_job_supabase_client(supabase_url, supabase_key)
+    base_storage_path = f"tenants/{tenant_name}/project/{project_name}/originals/pdf/parsed" if tenant_name and project_name else ""
+    try:
+        JOBS[job_id]["status"] = "processing"
+        
+        # Docling Extraction with Image Generation Enabled
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+        from pdf2image import convert_from_path
+        
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.generate_picture_images = True
+        pipeline_options.generate_table_images = True
+        
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+            }
+        )
+        
+        # Run conversion in a thread to prevent blocking the async loop completely!
+        result_doc_wrapper = await asyncio.to_thread(converter.convert, temp_path)
+        result_doc = result_doc_wrapper.document
+        
+        # Helper to compress & stream (or fallback to base64)
+        def process_image(img, filename, page_no=None):
+            if not img: return None
+            if sb_client and base_storage_path:
+                bucket_path = f"{base_storage_path}/page_{page_no}/{filename}" if page_no else f"{base_storage_path}/{filename}"
+                return compress_and_upload_to_supabase(sb_client, img, bucket_path)
+            else:
+                # Fallback purely to base64 if no supabase connected
+                buffered = BytesIO()
+                img.save(buffered, format="PNG")
+                return base64.b64encode(buffered.getvalue()).decode("utf-8")
+                
+        # Helper to upload text/json
+        def upload_text(text_content, filename, page_no=None):
+            if sb_client and base_storage_path:
+                bucket_path = f"{base_storage_path}/page_{page_no}/{filename}" if page_no else f"{base_storage_path}/{filename}"
+                try:
+                    sb_client.storage.from_("storage").upload(
+                        bucket_path,
+                        text_content.encode('utf-8'),
+                        {"content-type": "text/plain", "upsert": "true"}
+                    )
+                    return bucket_path
+                except Exception as e:
+                    print(f"Failed to upload text {bucket_path}: {e}")
+            return text_content
+
+        # Generate full page images for all pages in PDF
+        full_page_images = {}
+        try:
+            pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+            for i, page_img in enumerate(pdf_pages):
+                full_page_images[i + 1] = process_image(page_img, "full_page.jpg", i + 1)
+        except Exception as e:
+            print(f"Warning: Failed to generate page images: {e}")
+
+        extracted_data = {
+            "pages": {},
+            "footer_sample": None
+        }
+        
+        # Initialize pages that have images even if they have no tables/pictures
+        for page_no, img_b64 in full_page_images.items():
+            extracted_data["pages"][page_no] = {
+                "full_page_image": img_b64,
+                "markdown_tables": [],
+                "table_images": [],
+                "floorplans": [],
+                "diagrams": [],
+                "site_photos": [],
+                "has_valid_floorplan": False
+            }
+        
+        def get_page_dict(page_no):
+            if page_no not in extracted_data["pages"]:
+                extracted_data["pages"][page_no] = {
+                    "full_page_image": full_page_images.get(page_no),
+                    "markdown_tables": [],
+                    "table_images": [],
+                    "floorplans": [],
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

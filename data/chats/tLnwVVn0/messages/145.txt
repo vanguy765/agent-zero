@@ -1,0 +1,6 @@
+13:FLOORPLAN_PROMPT_RICH = """You are an expert architectural document analyst specializing in residential renovation projects. Analyze this floorplan image and extract ALL construction-relevant data with maximum precision.
+113:SYNTHESIS_PROMPT = """You are an expert architectural document analyst. You have been given extraction results from multiple pages of an architectural document set. Your task is to SYNTHESIZE and CORRELATE data across pages to produce a unified, deduplicated result.
+197:TABLE_ANALYSIS_PROMPT = """Analyze this table/schedule from an architectural document. Determine the table type and extract structured data.
+230:FLOORPLAN_PROMPT = """Analyze this architectural floorplan image and extract the following information as JSON:
+257:BOUNDING_BOX_PROMPT = """You are an expert architectural document analyst. You are looking at a single rendered page from an architectural PDF document.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

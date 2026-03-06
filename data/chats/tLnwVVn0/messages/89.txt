@@ -1,0 +1,19 @@
+30:    DOCLING_CONVERSION = "docling_conversion"
+31:    CLASSIFICATION = "classification"
+32:    IMAGE_EXTRACTION = "image_extraction"
+33:    LLM_ANALYSIS = "llm_analysis"
+34:    SYNTHESIS = "synthesis"
+35:    UPLOADING = "uploading"
+67:            ProcessingPhase.DOCLING_CONVERSION: 0.15,
+68:            ProcessingPhase.CLASSIFICATION: 0.25,
+69:            ProcessingPhase.IMAGE_EXTRACTION: 0.40,
+70:            ProcessingPhase.LLM_ANALYSIS: 0.70,
+71:            ProcessingPhase.SYNTHESIS: 0.85,
+72:            ProcessingPhase.UPLOADING: 0.95,
+76:        # Add page-level granularity within LLM_ANALYSIS phase
+77:        if self.current_phase == ProcessingPhase.LLM_ANALYSIS and self.total_pages > 0:
+79:            phase_range = phase_weights[ProcessingPhase.SYNTHESIS] - phase_weights[ProcessingPhase.LLM_ANALYSIS]
+80:            base = phase_weights[ProcessingPhase.LLM_ANALYSIS] + (page_progress * phase_range)
+---
+11:def calculate_confidence(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

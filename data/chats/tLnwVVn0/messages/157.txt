@@ -1,0 +1,43 @@
+Page: 2550x1650
+
+--- PHASE 1: Photo Detection ---
+  Found 11 photos
+
+--- PHASE 2: Structural Zone Detection ---
+  Column split found at x=787 (valley=27, avg=133)
+  Column 'left' (x=0-787): 2 bands
+    Band 0: [39,90,780,1066] 741x976
+    Band 1: [39,1535,786,1623] 747x88
+  Column 'right' (x=787-2550): 3 bands
+    Band 1: [799,126,2528,1236] 1729x1110
+    Band 2: [787,1448,2528,1623] 1741x175
+
+--- PHASE 3: Zone Classification ---
+  table        conf=0.80 [39,90,780,1066] lines=498 grid=10 edge=0.080 white=0.59
+  diagram      conf=0.70 [39,1535,786,1623] lines=46 grid=1 edge=0.108 white=0.85
+  table        conf=0.90 [799,126,2528,1236] lines=1334 grid=15 edge=0.073 white=0.80
+  title_block  conf=0.85 [787,1448,2528,1623] lines=278 grid=6 edge=0.097 white=0.86
+
+=== TOTAL: 15 elements ===
+  Types: {'table': 2, 'photo': 11, 'title_block': 1, 'diagram': 1}
+  [ 0] table        conf=0.80 [39,90,780,1066]
+  [ 1] table        conf=0.90 [799,126,2528,1236]
+  [ 2] photo        conf=0.95 [44,763,217,1064]
+  [ 3] photo        conf=0.95 [322,763,447,1065]
+  [ 4] photo        conf=0.95 [480,763,549,1065]
+  [ 5] photo        conf=0.93 [577,764,805,1067]
+  [ 6] photo        conf=0.95 [845,764,1071,1066]
+  [ 7] photo        conf=0.95 [1102,764,1329,1066]
+  [ 8] photo        conf=0.95 [44,1102,290,1433]
+  [ 9] photo        conf=0.95 [321,1128,551,1433]
+  [10] photo        conf=0.95 [577,1128,805,1430]
+  [11] photo        conf=0.95 [845,1128,1071,1430]
+  [12] photo        conf=0.95 [1102,1128,1329,1430]
+  [13] title_block  conf=0.85 [787,1448,2528,1623]
+  [14] diagram      conf=0.70 [39,1535,786,1623]
+
+Visualization: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/original_page_1_detected.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+ModuleNotFoundError: No module named 'matplotlib'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

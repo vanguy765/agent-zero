@@ -1,0 +1,110 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# 169:@app.post("/parse/docling")
+538:@app.post("/parse/hybrid")
+611:@app.get("/status/{job_id}")
+628:@app.get("/results/{job_id}")
+683:@app.get("/health")
+741:@app.get("/jobs")
+768:@app.delete("/jobs/{job_id}")
+791:@app.get("/result/{job_id}")
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# {
+    "job_id": "1eab23e3-2c80-4e64-92a8-2bad8bf112da",
+    "status": "completed",
+    "result": {
+        "engine": "hybrid",
+        "pages": {
+            "1": {
+                "page_number": 1,
+                "floorplans": [
+                    {
+                        "unit_number": "201",
+                        "unit_type": "1BR",
+                        "floor": 2,
+                        "bedrooms": 1,
+                        "bathrooms": 1,
+                        "half_baths": 0,
+                        "total_area_sf": 480,
+                        "rooms": [
+                            {
+                                "name": "Living/Dining",
+                                "area_sf": 180,
+                                "length_ft": 15.67,
+                                "width_ft": 11.5,
+                                "ceiling_height_ft": 8.0,
+                                "baseboard_length_ft": 42.5,
+                                "baseboard_exclusions": [
+                                    "window opening",
+                                    "entry door",
+                                    "deck door"
+                                ],
+                                "baseboard_exclusion_reasoning": "Perimeter minus 3' entry door, 6' deck door, 5' window",
+                                "fixtures": [
+                                    "Type 2 LED light"
+                                ],
+                                "flooring_type": "carpet",
+                                "notes": "Requires touch up of walls and ceiling"
+                            },
+                            {
+                                "name": "Kitchen",
+                                "area_sf": 90,
+                                "length_ft": 9.92,
+                                "width_ft": 9.17,
+                                "ceiling_height_ft": 8.0,
+                                "baseboard_length_ft": 12.5,
+                                "baseboard_exclusions": [
+                                    "kitchen cabinets",
+                                    "doorway"
+                                ],
+                                "baseboard_exclusion_reasoning": "Perimeter minus cabinet runs and 3' doorway",
+                                "fixtures": [
+                                    "Range",
+                                    "Refrigerator",
+                                    "Hood Fan",
+                                    "Type 2 LED light"
+                                ],
+                                "flooring_type": "vinyl",
+                                "notes": "Cabinets and countertop to remain"
+                            },
+                            {
+                                "name": "Bedroom",
+                                "area_sf": 120,
+                                "length_ft": 11.5,
+                                "width_ft": 10.42,
+                                "ceiling_height_ft": 8.0,
+                                "baseboard_length_ft": 38,
+                                "baseboard_exclusions": [
+                                    "closet opening",
+                                    "door",
+                                    "window"
+                                ],
+                                "baseboard_exclusion_reasoning": "Perimeter minus 5' closet, 3' door, 5' window",
+                                "fixtures": [
+                                    "Type 2 LED light"
+                                ],
+                                "flooring_type": "carpet",
+                                "notes": "Walls and ceiling to remain"
+                            },
+                            {
+                                "name": "Bathroom",
+                                "area_sf": 50,
+                                "length_ft": 7.5,
+                                "width_ft": 6.67,
+                                "ceiling_height_ft": 8.0,
+                                "baseboard_length_ft": 12,
+                                "baseboard_exclusions": [
+                                    "vanity",
+                                    "bathtub",
+                                    "door"
+                                ],
+                                "baseboard_exclusion_reasoning": "Perimeter minus vanity, tub and 3' door",
+                                "fixtures": [
+                                    "Toilet",
+                                    "Vanity",
+                                    "Bathtub",
+                                    "Type 3 LED light",
+                                    "Bathroom ceiling fan"
+                                ],
+                                "flooring_type": "vinyl",
+                                "notes": "New TP holder and towel racks to be installed"
+                            }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

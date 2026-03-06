@@ -1,0 +1,42 @@
+output["general_notes"].append(note)
+
+    # --- Add Docling tables to output ---
+    for page_no, md in table_data:
+        output["tables"].append({"page_no": page_no, "markdown": md})
+        if page_no in output["pages"]:
+            output["pages"][page_no]["tables"].append(md)
+            if output["pages"][page_no]["classification"] == "unknown":
+                output["pages"][page_no]["classification"] = "table"
+
+    # --- Mark site photo and diagram pages & attach URLs ---
+    # Collect unique page numbers that have photos
+    photo_page_nos = set(p[0] for p in site_photos)
+    for page_no in photo_page_nos:
+        if page_no in output["pages"]:
+            # Only override classification if not already a floorplan
+            if output["pages"][page_no]["classification"] not in ("floorplan",):
+                output["pages"][page_no]["classification"] = "site_photo"
+            if photo_urls and page_no in photo_urls:
+                output["pages"][page_no]["site_photos"].extend(photo_urls[page_no])
+
+    diagram_page_nos = set(p[0] for p in diagrams)
+    for page_no in diagram_page_nos:
+        if page_no in output["pages"]:
+            if output["pages"][page_no]["classification"] not in ("floorplan", "site_photo"):
+                output["pages"][page_no]["classification"] = "diagram"
+            if diagram_urls and page_no in diagram_urls:
+                output["pages"][page_no]["diagrams"].extend(diagram_urls[page_no])
+
+    # Add table URLs to pages
+    for page_no, md_text in table_data:
+        if page_no in output["pages"]:
+            if "tables" not in output["pages"][page_no]:
+                output["pages"][page_no]["tables"] = []
+            table_entry = {"markdown": md_text}
+            if table_urls and page_no in table_urls:
+                table_entry["url"] = table_urls[page_no]
+            output["pages"][page_no]["tables"].append(table_entry)
+
+    # --- Build summary ---
+    output["summary"] = {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

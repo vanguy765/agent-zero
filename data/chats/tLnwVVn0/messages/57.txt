@@ -1,0 +1,43 @@
+Block 1 to remove:
+  L325: "        # FIX: Save table markdown to .md files locally"
+  L326: "        if table_data:"
+  L327: "            table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)"
+  L328: "            os.makedirs(table_output_dir, exist_ok=True)"
+  L329: "            for tbl_idx, (pg, md) in enumerate(table_data):"
+  L330: "                md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')"
+  L331: "                with open(md_path, 'w') as md_file:"
+  L332: "                    md_file.write(md)"
+  L333: "                logger.info(f"Job {job_id}: Saved table markdown: {md_path}")"
+  L334: ""
+
+Block 2 to remove:
+  L485: "                            table_data.append((page_no, table_clean))"
+  L486: "                            logger.info(f"Job {job_id}: LLM extracted spec table from page {page_no} ({len(table_clean)} chars)")"
+  L487: ""
+  L488: "                            # Save locally"
+  L489: "                            if table_data:"
+  L490: "                                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)"
+  L491: "                                os.makedirs(table_output_dir, exist_ok=True)"
+  L492: "                                md_path = os.path.join(table_output_dir, f'spec_table_page_{page_no}.md')"
+  L493: "                                with open(md_path, 'w') as md_file:"
+  L494: "                                    md_file.write(table_clean)"
+  L495: "                    except Exception as e:"
+  L496: "                        logger.warning(f"Job {job_id}: LLM table extraction failed for page {page_no}: {e}")"
+
+After block 1 removal: 979 lines (was 988)
+
+Found block 2 at L479: "                            # Save locally"
+  L477: "                            logger.info(f"Job {job_id}: LLM extracted spec table from page {page_no} ({len(table_clean)} chars)")"
+  L478: ""
+  L479: "                            # Save locally"
+  L480: "                            if table_data:"
+  L481: "                                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)"
+  L482: "                                os.makedirs(table_output_dir, exist_ok=True)"
+  L483: "                                md_path = os.path.join(table_output_dir, f'spec_table_page_{page_no}.md')"
+  L484: "                                with open(md_path, 'w') as md_file:"
+  L485: "                                    md_file.write(table_clean)"
+  L486: "                    except Exception as e:"
+After block 2 removal: 972 lines
+
+File updated successfully
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

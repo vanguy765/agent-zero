@@ -1,0 +1,51 @@
+9:      -> LLM analysis on floorplan crops -> Unit-oriented output
+10:      -> Discard full-size page images (only keep thumbnails + crops)
+31:    TABLE_ANALYSIS_PROMPT, BOUNDING_BOX_PROMPT
+36:    detect_elements_cv2, crop_element, create_thumbnail
+194:def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+202:            bbox = el.get("bbox", [])
+203:            if len(bbox) != 4:
+205:            bbox = [max(0.0, min(1.0, float(v))) for v in bbox]
+206:            if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
+208:            if (bbox[2] - bbox[0]) < 0.02 or (bbox[3] - bbox[1]) < 0.02:
+210:            el["bbox"] = bbox
+214:        logger.warning(f"Failed to parse bbox response: {e}")
+230:    """Execute the page-render hybrid pipeline.
+234:    2. Page Rendering & Thumbnails - render pages, create 400px thumbs
+237:    5. Element Cropping & Upload - crop elements, upload to Supabase
+239:    7. LLM Analysis - analyze floorplan crops for unit data
+286:            current_step="rendering_pages",
+294:            current_step=f"rendered_{total_pages}_pages",
+370:        pages_needing_bbox: set = set()
+376:                pages_needing_bbox.add(page_no)
+392:                        pages_needing_bbox.add(page_no)
+400:            current_step=f"classified_{len(pages_needing_bbox)}_pages_for_bbox",
+404:            f"{len(table_data)} tables, {len(pages_needing_bbox)} pages for bbox"
+412:            current_step="detecting_bounding_boxes",
+415:        # page_elements: {page_no: [list of {type, bbox, label, confidence}]}
+418:        for page_no in sorted(pages_needing_bbox):
+428:                current_step=f"bbox_detection_page_{page_no}",
+433:                    provider, BOUNDING_BOX_PROMPT, page_b64, max_tokens=4096
+435:                elements = parse_bbox_response(raw_response)
+451:                        "bbox": [0.0, 0.0, 1.0, 1.0],
+466:            job_id, current_step="cropping_and_uploading_elements",
+469:        floorplan_crops: List[Tuple[int, Image.Image, str]] = []  # (page_no, img, b64)
+470:        photo_crops: Dict[int, List[Image.Image]] = {}  # page_no -> [imgs]
+471:        diagram_crops: Dict[int, List[Image.Image]] = {}  # page_no -> [imgs]
+472:        spec_table_pages: List[int] = []  # pages with spec_table bbox elements
+484:                bbox = el.get("bbox", [])
+486:                if len(bbox) != 4:
+489:                cropped = crop_element(page_img, bbox)
+490:                if cropped is None:
+494:                    b64 = image_to_base64(cropped)
+495:                    floorplan_crops.append((page_no, cropped, b64))
+499:                            cropped, sb_client, storage_tenant, storage_project,
+510:                        cropped.save(local_path, format="PNG")
+514:                    photo_crops.setdefault(page_no, []).append(cropped)
+515:                    p_idx = len(photo_crops[page_no]) - 1
+519:                            cropped, sb_client, storage_tenant, storage_project,
+530:                        cropped.save(local_path, format="PNG")
+534:                    diagram_crops.setdefault(page_no, []).append(cropped)
+535:                    d_idx = len(diagram_crops[page_no]) - 1
+539:                            cropped, sb_client, storage_tenant, storage_project,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

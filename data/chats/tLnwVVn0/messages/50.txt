@@ -1,0 +1,77 @@
+async def process_hybrid(
+    job_id: str,
+    temp_path: str,
+    provider: str,
+    job_manager: JobManager,
+    sb_client=None,
+    tenant_name: str = "",
+    project_name: str = "",
+) -> None:
+    """Execute the hybrid pipeline: Docling decomposition -> Claude extraction.
+
+    This is the main background task for hybrid mode.
+    Wrapped in timeout enforcement by the caller.
+
+    Phases:
+    1. Docling Conversion - PDF to structured document
+    2. Classification - Identify floorplans, tables, photos
+    3. Image Extraction - Prepare floorplan images for Claude
+    4. LLM Analysis - Claude analyzes each floorplan with rich prompt
+    5. Synthesis - Cross-page correlation (Priority 5)
+    6. Upload - Store images and results
+    """
+    try:
+        # Transition to PROCESSING
+        await job_manager.start_processing(job_id)
+
+        # ==================================================
+        # PHASE 1: Docling Structural Decomposition
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.DOCLING_CONVERSION,
+            current_step="converting_pdf_with_docling",
+        )
+
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+        from pdf2image import convert_from_path
+
+        pipeline_options = PdfPipelineOptions()
+        pipeline_options.generate_picture_images = True
+        pipeline_options.generate_table_images = True
+
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: PdfFormatOption(
+                    pipeline_options=pipeline_options
+                )
+            }
+        )
+
+        result_doc_wrapper = await asyncio.to_thread(
+            converter.convert, temp_path
+        )
+        result_doc = result_doc_wrapper.document
+
+        # Generate full page images for reference
+        pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+        total_pages = len(pdf_pages)
+
+        await job_manager.update_progress(
+            job_id,
+            total_pages=total_pages,
+            current_step="docling_conversion_complete",
+        )
+
+        logger.info(f"Job {job_id}: Docling converted {total_pages} pages")
+
+        # ==================================================
+        # PHASE 2: Classification & Collection
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.CLASSIFICATION,
+            current_step="classifying_pages",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

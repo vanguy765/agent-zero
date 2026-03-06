@@ -1,0 +1,20 @@
+=== PHOTO DETECTION ===
+Found 10 photos:
+  Photo 0: (56,759) 239x311 fill=0.698 edges=0.0436 color_std=51.5
+  Photo 1: (317,759) 138x311 fill=0.756 edges=0.0641 color_std=61.8
+  Photo 2: (571,747) 240x325 fill=0.804 edges=0.0692 color_std=56.4
+  Photo 3: (838,760) 239x312 fill=0.883 edges=0.0989 color_std=63.8
+  Photo 4: (1097,760) 238x312 fill=0.852 edges=0.0933 color_std=64.2
+  Photo 5: (56,1125) 240x313 fill=0.799 edges=0.0922 color_std=60.1
+  Photo 6: (317,1121) 239x317 fill=0.834 edges=0.0816 color_std=60.3
+  Photo 7: (571,1121) 237x312 fill=0.835 edges=0.0828 color_std=54.2
+  Photo 8: (838,1123) 237x313 fill=0.849 edges=0.0494 color_std=62.7
+  Photo 9: (1095,1123) 237x310 fill=0.756 edges=0.0382 color_std=55.2
+
+=== LINE DRAWING / TABLE DETECTION ===
+Found 1 regions:
+  table 0: (0,0) 2550x1650 area=1.0 edges=0.0661 lines=2732 sat=10.7 grid=10.4
+
+Total elements: 11
+Visualization saved to cv2_comprehensive_v5.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

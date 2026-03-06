@@ -1,0 +1,22 @@
+CREATE TABLE public.document_images (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    document_id uuid,
+    image_url text NOT NULL,
+    page_number integer,
+    image_type text,
+    caption text,
+    metadata jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.document_images
+    ADD CONSTRAINT document_images_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: image_links
+-- -----------------------------------------------
+
+CREATE TABLE public.image_links (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    image_id uuid,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

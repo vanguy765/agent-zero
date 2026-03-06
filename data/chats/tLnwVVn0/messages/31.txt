@@ -1,0 +1,28 @@
+---------------------------------------------------------------------------
+ImportError                               Traceback (most recent call last)
+Cell In[1], line 8
+      6 import io
+      7 import numpy as np
+----> 8 import cv2
+      9 from detection import classify_image, is_architectural_drawing, has_architectural_text, _has_photo_characteristics, _has_table_structure
+     11 doc = fitz.open('/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/page_8.pdf')
+
+File /opt/venv/lib/python3.13/site-packages/cv2/__init__.py:181
+    176             if DEBUG: print("Extra Python code for", submodule, "is loaded")
+    178     if DEBUG: print('OpenCV loader: DONE')
+--> 181 bootstrap()
+
+File /opt/venv/lib/python3.13/site-packages/cv2/__init__.py:153, in bootstrap()
+    149 if DEBUG: print("Relink everything from native cv2 module to cv2 package")
+    151 py_module = sys.modules.pop("cv2")
+--> 153 native_module = importlib.import_module("cv2")
+    155 sys.modules["cv2"] = py_module
+    156 setattr(py_module, "_native", native_module)
+
+File /usr/lib/python3.13/importlib/__init__.py:88, in import_module(name, package)
+     86             break
+     87         level += 1
+---> 88 return _bootstrap._gcd_import(name[level:], package, level)
+
+ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

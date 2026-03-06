@@ -1,0 +1,4 @@
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# {"detail":"Not Found"}
+HTTP_CODE:404---
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}
+HTTP_CODE:200(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images#

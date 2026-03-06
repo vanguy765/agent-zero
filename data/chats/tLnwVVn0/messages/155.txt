@@ -1,0 +1,11 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 8
+      5 col_split_x = 1417  # The gap between left and right columns
+      7 # LEFT COLUMN: x=33 to 1417 (floorplan + photos)
+----> 8 left_ink = ink[:, 33:col_split_x]
+      9 left_h_proj = np.sum(left_ink, axis=1)
+     10 left_h_smooth = uniform_filter1d(left_h_proj, size=15)
+
+NameError: name 'ink' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

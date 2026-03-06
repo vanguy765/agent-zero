@@ -1,0 +1,57 @@
+# ============================================================
+# Image Processing Helpers
+# ============================================================
+
+async def upload_image_to_storage(
+    pil_image: Image.Image,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    image_type: str = "doc-parser_extraction",
+) -> Optional[str]:
+    """Upload image to Supabase Storage and return public URL."""
+    if not sb_client:
+        return None
+
+    try:
+        buffered = BytesIO()
+        pil_image.save(buffered, format="PNG")
+        image_bytes = buffered.getvalue()
+
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+
+        await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, image_bytes, {"content-type": "image/png", "upsert": "true"})
+        )
+
+        # Get public URL
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+
+        # Insert SQL record
+        await asyncio.to_thread(
+            lambda: sb_client.table("document_images").insert({
+                "document_id": project_name,  # The API routes pass document_id as project_name
+                "image_url": path,
+                "page_number": page_no,
+                "image_type": image_type,
+                "metadata": {
+                    "type": "png",
+                    "source": "doc-parser",
+                    "width": pil_image.width,
+                    "height": pil_image.height
+                }
+            }).execute()
+        )
+
+        return url_response
+
+    except Exception as e:
+        logger.warning(f"Image upload failed for {filename}: {e}")
+        return None
+
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

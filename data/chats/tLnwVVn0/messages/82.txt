@@ -1,0 +1,81 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# [
+    {
+        "name": "job_af1c8192-c52b-4515-a68b-654402132d5a_floorplan_page_1.png",
+        "id": "f4cc48f7-f5c8-4c48-9b43-99d06839e072",
+        "updated_at": "2026-03-06T02:50:08.485Z",
+        "created_at": "2026-03-06T02:50:08.485Z",
+        "last_accessed_at": "2026-03-06T02:50:08.485Z",
+        "metadata": {
+            "eTag": "\"f1940fc04de1cb0f13d2d01050a3163f\"",
+            "size": 491373,
+            "mimetype": "image/png",
+            "cacheControl": "no-cache",
+            "lastModified": "2026-03-06T02:50:08.474Z",
+            "contentLength": 491373,
+            "httpStatusCode": 200
+        }
+    },
+    {
+        "name": "job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx0.png",
+        "id": "6bca0a7e-db1d-4e54-bc99-e99705ff7fd0",
+        "updated_at": "2026-03-06T02:50:08.578Z",
+        "created_at": "2026-03-06T02:50:08.578Z",
+        "last_accessed_at": "2026-03-06T02:50:08.578Z",
+        "metadata": {
+            "eTag": "\"b68f3cb3cff0b264c7ceb13741901ce5\"",
+            "size": 82967,
+            "mimetype": "image/png",
+            "cacheControl": "no-cache",
+            "lastModified": "2026-03-06T02:50:08.570Z",
+            "contentLength": 82967,
+            "httpStatusCode": 200
+        }
+    },
+    {
+        "name": "job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx1.png",
+        "id": "c9f19882-7c9c-415f-82b1-545aff6082da",
+        "updated_at": "2026-03-06T02:50:08.624Z",
+        "created_at": "2026-03-06T02:50:08.624Z",
+        "last_accessed_at": "2026-03-06T02:50:08.624Z",
+        "metadata": {
+            "eTag": "\"bd313078d475ec258d48a511b7c1d258\"",
+            "size": 60542,
+            "mimetype": "image/png",
+            "cacheControl": "no-cache",
+            "lastModified": "2026-03-06T02:50:08.618Z",
+            "contentLength": 60542,
+            "httpStatusCode": 200
+        }
+    },
+    {
+        "name": "job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx2.png",
+        "id": "20626a17-96bf-4ab2-bfc4-2d9f4c9a58ed",
+        "updated_at": "2026-03-06T02:50:08.744Z",
+        "created_at": "2026-03-06T02:50:08.744Z",
+        "last_accessed_at": "2026-03-06T02:50:08.744Z",
+        "metadata": {
+            "eTag": "\"d866e83f64193c2124f46e7d55e3fbed\"",
+            "size": 229172,
+            "mimetype": "image/png",
+            "cacheControl": "no-cache",
+            "lastModified": "2026-03-06T02:50:08.702Z",
+            "contentLength": 229172,
+            "httpStatusCode": 200
+        }
+    },
+    {
+        "name": "job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx3.png",
+        "id": "98b4ac77-ab6f-4524-a659-b85921a2831a",
+        "updated_at": "2026-03-06T02:50:08.789Z",
+        "created_at": "2026-03-06T02:50:08.789Z",
+        "last_accessed_at": "2026-03-06T02:50:08.789Z",
+        "metadata": {
+            "eTag": "\"d7ea203ec612ce21546f9b2eb0cc42b4\"",
+            "size": 82472,
+            "mimetype": "image/png",
+            "cacheControl": "no-cache",
+            "lastModified": "2026-03-06T02:50:08.778Z",
+            "contentLength": 82472,
+            "httpStatusCode": 200
+        }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images#

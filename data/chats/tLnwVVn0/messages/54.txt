@@ -1,0 +1,13 @@
+Total lines: 957
+L181: DEFAULT_TENANT = "default"
+L185: async def upload_table_to_storage(
+L322:             table_data.append((page_no, md_text))
+L327:             table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+L485:                             table_data.append((page_no, table_clean))
+L490:                                 table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+L682:         # PHASE 5.5: Upload Images to Supabase
+L690:         floorplan_urls = {}
+L695:         local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)
+L713:         if sb_client and tenant_name and project_name:
+L748:         # PHASE 6: Assemble Output & Upload
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

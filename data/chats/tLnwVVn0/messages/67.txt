@@ -1,0 +1,27 @@
+=== PAGE 1 ===
+Keys: ['page_number', 'floorplans', 'tables', 'site_photos', 'diagrams', 'classification']
+  Floorplan 0: unit=201, image_url=NOT SET
+    Keys: []
+  Photos count: 0
+  Diagrams count: 0
+  Tables count: 1
+    Table 0 type: str, preview: {
+  "table_type": "finish_schedule",
+  "entries": [
+    {
+      "mark": "1.0",
+      "description": "FINISHES",
+      "specifications": {
+        "cei
+
+=== TOP-LEVEL KEYS ===
+  engine: hybrid
+  pages: dict len=1
+  units: list len=1
+  tables: list len=1
+  footer_sample: dict len=2
+  general_notes: list len=5
+  synthesis: dict len=4
+  summary: dict len=13
+  confidence: dict len=9
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

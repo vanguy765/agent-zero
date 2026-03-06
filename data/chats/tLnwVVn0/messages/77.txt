@@ -1,0 +1,44 @@
+=== SUMMARY ===
+{
+  "units_count": 1,
+  "pages_count": 1,
+  "floorplans_count": 1,
+  "tables_count": 1,
+  "site_photos_count": 7,
+  "diagrams_count": 0,
+  "total_doors": 4,
+  "total_windows": 2,
+  "total_baseboard_ft": 109.0,
+  "trades": [
+    "carpentry",
+    "plumbing",
+    "painting"
+  ],
+  "has_footer": true,
+  "has_synthesis": true,
+  "extraction_errors": 0
+}
+
+=== PAGE DATA ===
+Page 1: classification=floorplan
+  floorplans: 1
+    unit=201, image_url=http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_floorplan_page_1.png
+  site_photos: 7
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+    photo: http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-
+  diagrams: 0
+  tables: 1
+    table: url=http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_table_page_1_0.md, md_preview={
+  "table_type": "finish_schedule",
+  "entries": [
+    {
+  
+
+=== UNITS ===
+  Unit 201: doors=4, windows=2, image_url=http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_floorplan_page_1.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,83 @@
+=== TABLES ===
+[
+  {
+    "page_no": 1,
+    "markdown": "{\n  \"table_type\": \"finish_schedule\",\n  \"entries\": [\n    {\n      \"mark\": \"1.0\",\n      \"description\": \"FINISHES\",\n      \"specifications\": {\n        \"ceiling\": \"touch up all rooms\",\n        \"walls\": \"touch up all rooms\",\n        \"floors\": \"remain\"\n      }\n    },\n    {\n      \"mark\": \"2.0\",\n      \"description\": \"DOORS\",\n      \"specifications\": {\n        \"entry\": \"paint\",\n        \"entry_hardware\": \"repair\",\n        \"interior\": \"replace\",\n        \"interior_hardware\": \"replace\",\n        \"bifold_w_hardware\": \"new sliders\"\n      }\n    },\n    {\n      \"mark\": \"3.0\",\n      \"description\": \"LIGHT FIXTURES\",\n      \"specifications\": {\n        \"type1\": \"12\\\" LED disc\",\n        \"type2\": \"18\\\" LED disc\",\n        \"type3\": \"24\\\" LED linear over vanity\"\n      }\n    },\n    {\n      \"mark\": \"4.0\",\n      \"description\": \"KITCHEN PLUMBING FIXTURES\",\n      \"specifications\": {\n        \"sink\": \"ok keep\",\n        \"faucet\": \"ok keep\"\n      }\n    },\n    {\n      \"mark\": \"5.0\",\n      \"description\": \"BATHROOM PLUMBING FIXTURES\",\n      \"specifications\": {\n        \"lavatory\": \"replace\",\n        \"faucet\": \"replace\",\n        \"toilet\": \"replace\",\n        \"bathtub\": \"repair - install hand held shower, 2 grab bars\",\n        \"accessories\": \"new TP holder, 2 towel racks\",\n        \"ceiling_fan\": \"replace\"\n      }\n    }\n  ],\n  \"notes\": [\n    \"Entry hardware includes closer, deadbolt, peep hole, passage set (lever), door stop\",\n    \"Interior door hardware includes, privacy lever set, door stop\",\n    \"Tub includes surround, diverter, drain, hand-held shower, horizontal and diagonal grab bars\",\n    \"Medicine cabinet and mirror, towel racks (2), TP holder, robe hook\"\n  ]\n}"
+  }
+]
+
+=== SUMMARY ===
+{
+  "units_count": 1,
+  "pages_count": 1,
+  "floorplans_count": 1,
+  "tables_count": 1,
+  "site_photos_count": 7,
+  "diagrams_count": 0,
+  "total_doors": 4,
+  "total_windows": 2,
+  "total_baseboard_ft": 110.0,
+  "trades": [
+    "carpentry",
+    "electrical",
+    "plumbing",
+    "painting"
+  ],
+  "has_footer": true,
+  "has_synthesis": true,
+  "extraction_errors": 0
+}
+
+=== SYNTHESIS ===
+{
+  "units": [
+    {
+      "unit_number": "201",
+      "unit_type": "1BR",
+      "source_pages": [
+        1
+      ],
+      "merged_data": {
+        "rooms": [
+          {
+            "name": "Living/Dining",
+            "area_sf": 168,
+            "baseboard_length_ft": 44,
+            "fixtures": [
+              "18\" LED disc light"
+            ],
+            "flooring_type": "remain"
+          },
+          {
+            "name": "Bedroom",
+            "area_sf": 120,
+            "baseboard_length_ft": 38,
+            "fixtures": [
+              "18\" LED disc light"
+            ],
+            "flooring_type": "remain"
+          },
+          {
+            "name": "Kitchen",
+            "area_sf": 80,
+            "baseboard_length_ft": 16,
+            "fixtures": [
+              "Range",
+              "Refrigerator",
+              "Sink",
+              "18\" LED disc light"
+            ],
+            "flooring_type": "remain"
+          },
+          {
+            "name": "Bathroom",
+  
+
+=== IMAGE URLS IN FLOORPLANS ===
+  Unit 201: image_url=MISSING
+Traceback (most recent call last):
+  File "<string>", line 29, in <module>
+    print(f'  Table: url={tbl.get("url", tbl.get("markdown_url", "MISSING"))}')
+                          ^^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

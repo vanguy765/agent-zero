@@ -1,0 +1,102 @@
+diagram_urls = {}
+        table_urls = {}
+
+        # Apply default storage path when tenant/project not provided
+        storage_tenant = tenant_name or DEFAULT_TENANT
+        storage_project = project_name or DEFAULT_PROJECT
+
+        if sb_client:
+            # Upload floorplans to Supabase Storage
+            for i, (page_no, img, _) in enumerate(floorplan_candidates):
+                url = await upload_image_to_storage(
+                    img, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_floorplan_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="floorplan"
+                )
+                if url:
+                    floorplan_urls[page_no] = url
+                    logger.info(f"Job {job_id}: Uploaded floorplan page {page_no} to Supabase")
+
+            # Upload site photos to Supabase Storage
+            for i, (page_no, img) in enumerate(site_photos):
+                url = await upload_image_to_storage(
+                    img, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_photo_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="site_photo"
+                )
+                if url:
+                    photo_urls[page_no] = url
+                    logger.info(f"Job {job_id}: Uploaded photo page {page_no} to Supabase")
+
+            # Upload diagrams to Supabase Storage
+            for i, (page_no, img) in enumerate(diagrams):
+                url = await upload_image_to_storage(
+                    img, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_diagram_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="diagram"
+                )
+                if url:
+                    diagram_urls[page_no] = url
+                    logger.info(f"Job {job_id}: Uploaded diagram page {page_no} to Supabase")
+
+            # Upload table markdown files to Supabase Storage
+            for tbl_idx, (pg, md_text) in enumerate(table_data):
+                tbl_url = await upload_table_to_storage(
+                    md_text, sb_client, storage_tenant, storage_project,
+                    f"job_{job_id}_table_page_{pg}_{tbl_idx}.md",
+                    page_no=pg,
+                    table_type="table"
+                )
+                if tbl_url:
+                    table_urls[pg] = tbl_url
+                    logger.info(f"Job {job_id}: Uploaded table markdown page {pg} to Supabase")
+
+        else:
+            # Fallback: Save locally when Supabase is unavailable
+            local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)
+            os.makedirs(local_output_dir, exist_ok=True)
+
+            for i, (page_no, img, _) in enumerate(floorplan_candidates):
+                local_path = os.path.join(local_output_dir, f'floorplan_page_{page_no}.png')
+                img.save(local_path, format='PNG')
+                logger.info(f"Job {job_id}: Saved floorplan locally: {local_path}")
+
+            for i, (page_no, img) in enumerate(site_photos):
+                local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')
+                img.save(local_path, format='PNG')
+                logger.info(f"Job {job_id}: Saved photo locally: {local_path}")
+
+            for i, (page_no, img) in enumerate(diagrams):
+                local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}.png')
+                img.save(local_path, format='PNG')
+                logger.info(f"Job {job_id}: Saved diagram locally: {local_path}")
+
+            # Save table markdown locally
+            if table_data:
+                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+                os.makedirs(table_output_dir, exist_ok=True)
+                for tbl_idx, (pg, md_text) in enumerate(table_data):
+                    md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+                    with open(md_path, 'w') as md_file:
+                        md_file.write(md_text)
+                    logger.info(f"Job {job_id}: Saved table markdown locally: {md_path}")
+
+        # ==================================================
+        # PHASE 6: Assemble Output & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.UPLOADING,
+            current_step="assembling_output",
+        )
+
+        result = assemble_hybrid_output(
+            unit_extractions=unit_extractions,
+            table_data=table_data,
+            footer_sample=footer_sample,
+            floorplan_candidates=floorplan_candidates,
+            site_photos=site_photos,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

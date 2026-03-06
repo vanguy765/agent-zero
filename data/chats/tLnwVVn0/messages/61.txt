@@ -1,0 +1,7 @@
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# {"detail":"Not Found"}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,104 @@
+=== DOCLING CLASSIFICATION (L295-330) ===
+L 295:             if not pic.image:
+L 296:                 continue
+L 297:
+L 298:             try:
+L 299:                 pil_img = pic.image.pil_image
+L 300:             except AttributeError:
+L 301:                 continue
+L 302:
+L 303:             page_no = pic.prov[0].page_no if pic.prov else 1
+L 304:
+L 305:             await job_manager.update_progress(
+L 306:                 job_id,
+L 307:                 current_page=page_no,
+L 308:                 current_step=f"classifying_image_page_{page_no}",
+L 309:             )
+L 310:
+L 311:             classification = classify_image(pil_img)
+L 312:
+L 313:             if classification == "floorplan":
+L 314:                 b64 = image_to_base64(pil_img)
+L 315:                 floorplan_candidates.append((page_no, pil_img, b64))
+L 316:             elif classification == "site_photo":
+L 317:                 site_photos.append((page_no, pil_img))
+L 318:             elif classification == "diagram":
+L 319:                 diagrams.append((page_no, pil_img))
+L 320:             # tables and title_blocks already handled by Docling
+L 321:
+L 322:         # --- Check full page images and PyMuPDF embedded images for floorplans ---
+L 323:         docling_fp_pages = {fp[0] for fp in floorplan_candidates}
+L 324:
+L 325:         # 1. Try PyMuPDF (fitz) to extract embedded CAD/architectural image layers
+L 326:         import fitz
+L 327:         try:
+L 328:             pdf_doc = fitz.open(temp_path)
+L 329:             for page_idx in range(len(pdf_doc)):
+L 330:                 page_no = page_idx + 1
+
+
+=== FITZ LOOP (L325-360) ===
+L 325:         # 1. Try PyMuPDF (fitz) to extract embedded CAD/architectural image layers
+L 326:         import fitz
+L 327:         try:
+L 328:             pdf_doc = fitz.open(temp_path)
+L 329:             for page_idx in range(len(pdf_doc)):
+L 330:                 page_no = page_idx + 1
+L 331:
+L 332:                 images_on_page = pdf_doc[page_idx].get_images(full=True)
+L 333:                 for img_idx, img_info in enumerate(images_on_page):
+L 334:                     xref = img_info[0]
+L 335:                     base_image = pdf_doc.extract_image(xref)
+L 336:                     image_bytes = base_image["image"]
+L 337:
+L 338:                     try:
+L 339:                         from io import BytesIO
+L 340:                         pil_img = Image.open(BytesIO(image_bytes))
+L 341:                         # Only check reasonably large images to avoid icons/logos
+L 342:                         if pil_img.width > 200 and pil_img.height > 200:
+L 343:                             classification = classify_image(pil_img)
+L 344:                             if classification == "floorplan":
+L 345:                                 b64 = image_to_base64(pil_img)
+L 346:                                 floorplan_candidates.append((page_no, pil_img, b64))
+L 347:                                 logger.info(f"Job {job_id}: Fitz cropped floorplan detected on page {page_no}")
+L 348:                             elif classification == "site_photo":
+L 349:                                 site_photos.append((page_no, pil_img))
+L 350:                             elif classification == "diagram":
+L 351:                                 diagrams.append((page_no, pil_img))
+L 352:                     except Exception as e:
+L 353:                         logger.warning(f"Job {job_id}: Failed to process fitz image on page {page_no}: {e}")
+L 354:         except Exception as e:
+L 355:             logger.warning(f"Job {job_id}: Fitz image extraction failed: {e}")
+L 356:
+L 357:         # 2. Fallback to full page if no floorplans found
+L 358:         docling_fp_pages = {fp[0] for fp in floorplan_candidates}
+L 359:         for i, page_img in enumerate(pdf_pages):
+L 360:             page_no = i + 1
+
+
+=== FALLBACK FULL PAGE (L357-380) ===
+L 357:         # 2. Fallback to full page if no floorplans found
+L 358:         docling_fp_pages = {fp[0] for fp in floorplan_candidates}
+L 359:         for i, page_img in enumerate(pdf_pages):
+L 360:             page_no = i + 1
+L 361:             if page_no in docling_fp_pages:
+L 362:                 continue  # Already found via Docling pictures or Fitz
+L 363:
+L 364:             if is_architectural_drawing(page_img) and has_architectural_text(page_img):
+L 365:                 b64 = image_to_base64(page_img)
+L 366:                 floorplan_candidates.append((page_no, page_img, b64))
+L 367:                 logger.info(f"Job {job_id}: Full-page floorplan detected on page {page_no} (fallback)")
+L 368:
+L 369:         await job_manager.update_progress(
+L 370:             job_id,
+L 371:             floorplans_found=len(floorplan_candidates),
+L 372:             current_step=f"classification_complete_{len(floorplan_candidates)}_floorplans",
+L 373:         )
+L 374:
+L 375:         logger.info(
+L 376:             f"Job {job_id}: Classification complete - "
+L 377:             f"{len(floorplan_candidates)} floorplans, "
+L 378:             f"{len(table_data)} tables, "
+L 379:             f"{len(site_photos)} photos, "
+L 380:             f"{len(diagrams)} diagrams"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

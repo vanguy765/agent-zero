@@ -1,0 +1,165 @@
+# ==================================================
+        # PHASE 4: Bounding Box Detection via LLM
+        # ==================================================
+        await job_manager.update_progress(
+            job_id, phase=ProcessingPhase.LLM_ANALYSIS,
+            current_step="detecting_bounding_boxes",
+        )
+
+        # page_elements: {page_no: [list of {type, bbox, label, confidence}]}
+        page_elements: Dict[int, List[Dict[str, Any]]] = {}
+
+        for page_no in sorted(pages_needing_bbox):
+            idx = page_no - 1
+            if idx >= len(pdf_pages):
+                continue
+
+            page_img = pdf_pages[idx]
+            page_b64 = image_to_base64(page_img)
+
+            await job_manager.update_progress(
+                job_id, current_page=page_no,
+                current_step=f"bbox_detection_page_{page_no}",
+            )
+
+            try:
+                raw_response = await run_llm_extraction(
+                    provider, BOUNDING_BOX_PROMPT, page_b64, max_tokens=4096
+                )
+                elements = parse_bbox_response(raw_response)
+                if elements:
+                    page_elements[page_no] = elements
+                    logger.info(
+                        f"Job {job_id}: Page {page_no} - "
+                        f"{len(elements)} elements detected: "
+                        f"{[e.get('type') for e in elements]}"
+                    )
+                else:
+                    logger.info(f"Job {job_id}: Page {page_no} - no elements detected")
+            except Exception as e:
+                logger.warning(f"Job {job_id}: Bbox detection failed page {page_no}: {e}")
+                # Fallback: if this was a known floorplan page, treat whole page as floorplan
+                if page_no in docling_floorplan_pages:
+                    page_elements[page_no] = [{
+                        "type": "floorplan",
+                        "bbox": [0.0, 0.0, 1.0, 1.0],
+                        "label": "full_page_fallback",
+                        "confidence": 0.5
+                    }]
+
+        logger.info(
+            f"Job {job_id}: Bbox detection complete. "
+            f"{sum(len(v) for v in page_elements.values())} total elements "
+            f"across {len(page_elements)} pages"
+        )
+
+        # ==================================================
+        # PHASE 5: Element Cropping & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id, current_step="cropping_and_uploading_elements",
+        )
+
+        floorplan_crops: List[Tuple[int, Image.Image, str]] = []  # (page_no, img, b64)
+        photo_crops: Dict[int, List[Image.Image]] = {}  # page_no -> [imgs]
+        diagram_crops: Dict[int, List[Image.Image]] = {}  # page_no -> [imgs]
+        spec_table_pages: List[int] = []  # pages with spec_table bbox elements
+
+        floorplan_urls: Dict[int, str] = {}
+        photo_urls: Dict[int, List[str]] = {}
+        diagram_urls: Dict[int, List[str]] = {}
+
+        for page_no, elements in page_elements.items():
+            idx = page_no - 1
+            page_img = pdf_pages[idx]
+
+            for el_idx, el in enumerate(elements):
+                el_type = el.get("type", "unknown")
+                bbox = el.get("bbox", [])
+
+                if len(bbox) != 4:
+                    continue
+
+                cropped = crop_element(page_img, bbox)
+                if cropped is None:
+                    continue
+
+                if el_type == "floorplan":
+                    b64 = image_to_base64(cropped)
+                    floorplan_crops.append((page_no, cropped, b64))
+                    fname = f"job_{job_id}_floorplan_page_{page_no}.png"
+                    if sb_client:
+                        url = await upload_image_to_storage(
+                            cropped, sb_client, storage_tenant, storage_project,
+                            fname, page_no=page_no, image_type="floorplan"
+                        )
+                        if url:
+                            floorplan_urls[page_no] = url
+                    else:
+                        local_dir = os.path.join(
+                            os.path.dirname(temp_path), "parsed_images", job_id
+                        )
+                        os.makedirs(local_dir, exist_ok=True)
+                        local_path = os.path.join(local_dir, fname)
+                        cropped.save(local_path, format="PNG")
+                        floorplan_urls[page_no] = local_path
+
+                elif el_type == "photo":
+                    photo_crops.setdefault(page_no, []).append(cropped)
+                    p_idx = len(photo_crops[page_no]) - 1
+                    fname = f"job_{job_id}_photo_{p_idx}_page_{page_no}.png"
+                    if sb_client:
+                        url = await upload_image_to_storage(
+                            cropped, sb_client, storage_tenant, storage_project,
+                            fname, page_no=page_no, image_type="site_photo"
+                        )
+                        if url:
+                            photo_urls.setdefault(page_no, []).append(url)
+                    else:
+                        local_dir = os.path.join(
+                            os.path.dirname(temp_path), "parsed_images", job_id
+                        )
+                        os.makedirs(local_dir, exist_ok=True)
+                        local_path = os.path.join(local_dir, fname)
+                        cropped.save(local_path, format="PNG")
+                        photo_urls.setdefault(page_no, []).append(local_path)
+
+                elif el_type == "diagram":
+                    diagram_crops.setdefault(page_no, []).append(cropped)
+                    d_idx = len(diagram_crops[page_no]) - 1
+                    fname = f"job_{job_id}_diagram_{d_idx}_page_{page_no}.png"
+                    if sb_client:
+                        url = await upload_image_to_storage(
+                            cropped, sb_client, storage_tenant, storage_project,
+                            fname, page_no=page_no, image_type="diagram"
+                        )
+                        if url:
+                            diagram_urls.setdefault(page_no, []).append(url)
+                    else:
+                        local_dir = os.path.join(
+                            os.path.dirname(temp_path), "parsed_images", job_id
+                        )
+                        os.makedirs(local_dir, exist_ok=True)
+                        local_path = os.path.join(local_dir, fname)
+                        cropped.save(local_path, format="PNG")
+                        diagram_urls.setdefault(page_no, []).append(local_path)
+
+                elif el_type in ("table", "spec_table"):
+                    spec_table_pages.append(page_no)
+
+        total_photos = sum(len(v) for v in photo_crops.values())
+        total_diagrams = sum(len(v) for v in diagram_crops.values())
+        logger.info(
+            f"Job {job_id}: Cropped {len(floorplan_crops)} floorplans, "
+            f"{total_photos} photos, {total_diagrams} diagrams, "
+            f"{len(spec_table_pages)} spec_table regions"
+        )
+
+        # ==================================================
+        # PHASE 6: Table Extraction & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id, current_step="extracting_tables",
+        )
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

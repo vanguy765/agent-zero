@@ -1,0 +1,77 @@
+f"Job {job_id}: Synthesis failed (non-fatal): {e}"
+                )
+                synthesis_result = {"error": str(e)}
+
+        # ==================================================
+        # PHASE 5.5: Upload Images to Supabase
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.UPLOADING,
+            current_step="uploading_images_to_storage",
+        )
+
+        floorplan_urls = {}
+        photo_urls = {}
+        diagram_urls = {}
+
+        # FIX: Save images locally regardless of Supabase availability
+        local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)
+        os.makedirs(local_output_dir, exist_ok=True)
+
+        for i, (page_no, img, _) in enumerate(floorplan_candidates):
+            local_path = os.path.join(local_output_dir, f'floorplan_page_{page_no}.png')
+            img.save(local_path, format='PNG')
+            logger.info(f"Job {job_id}: Saved floorplan locally: {local_path}")
+
+        for i, (page_no, img) in enumerate(site_photos):
+            local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')
+            img.save(local_path, format='PNG')
+            logger.info(f"Job {job_id}: Saved photo locally: {local_path}")
+
+        for i, (page_no, img) in enumerate(diagrams):
+            local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}.png')
+            img.save(local_path, format='PNG')
+            logger.info(f"Job {job_id}: Saved diagram locally: {local_path}")
+
+        if sb_client and tenant_name and project_name:
+            # Upload floorplans
+            for i, (page_no, img, _) in enumerate(floorplan_candidates):
+                url = await upload_image_to_storage(
+                    img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_floorplan_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="floorplan"
+                )
+                if url:
+                    floorplan_urls[page_no] = url
+
+            # Upload site photos
+            for i, (page_no, img) in enumerate(site_photos):
+                url = await upload_image_to_storage(
+                    img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_photo_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="site_photo"
+                )
+                if url:
+                    photo_urls[page_no] = url
+
+            # Upload diagrams
+            for i, (page_no, img) in enumerate(diagrams):
+                url = await upload_image_to_storage(
+                    img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_diagram_page_{page_no}.png",
+                    page_no=page_no,
+                    image_type="diagram"
+                )
+                if url:
+                    diagram_urls[page_no] = url
+
+        # ==================================================
+        # PHASE 6: Assemble Output & Upload
+        # ==================================================
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.UPLOADING,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

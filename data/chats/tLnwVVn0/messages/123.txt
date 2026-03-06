@@ -1,0 +1,9 @@
+BOUNDING_BOX_PROMPT = """You are an expert architectural document analyst. You are looking at a single rendered page from an architectural PDF document.
+
+Your task is to identify ALL distinct visual elements on this page and provide their bounding box coordinates for cropping.
+
+For each element, provide:
+- **type**: one of "floorplan", "photo", "table", "diagram", "title_block", "legend", "notes_block"
+---
+257:BOUNDING_BOX_PROMPT = """You are an expert architectural document analyst. You are looking at a single rendered page from an architectural PDF document.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,20 @@
+Photo regions found: 14
+  Photo 0: pos=(1734,185) size=158x72 area=0.0027
+  Photo 1: pos=(1556,573) size=88x96 area=0.0020
+  Photo 2: pos=(55,758) size=241x313 area=0.0179
+  Photo 3: pos=(316,758) size=140x313 area=0.0104
+  Photo 4: pos=(472,758) size=83x313 area=0.0062
+  Photo 5: pos=(570,746) size=242x327 area=0.0188
+  Photo 6: pos=(837,759) size=241x314 area=0.0180
+  Photo 7: pos=(1096,759) size=240x314 area=0.0179
+  Photo 8: pos=(55,1124) size=242x315 area=0.0181
+  Photo 9: pos=(316,1120) size=241x319 area=0.0183
+  Photo 10: pos=(570,1120) size=239x314 area=0.0178
+  Photo 11: pos=(837,1122) size=239x315 area=0.0179
+  Photo 12: pos=(1094,1122) size=239x312 area=0.0177
+  Photo 13: pos=(1734,1136) size=120x102 area=0.0029
+
+Drawing/table regions found: 0
+
+Visualization saved to cv2_all_elements_v4.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

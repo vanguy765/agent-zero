@@ -1,0 +1,11 @@
+[94s] Status: processing | Step: cross_page_synthesis | Error: none
+[96s] Status: processing | Step: cross_page_synthesis | Error: none
+[98s] Status: processing | Step: cross_page_synthesis | Error: none
+[100s] Status: processing | Step: cross_page_synthesis | Error: none
+[102s] Status: processing | Step: cross_page_synthesis | Error: none
+[104s] Status: processing | Step: cross_page_synthesis | Error: none
+[106s] Status: processing | Step: cross_page_synthesis | Error: none
+[108s] Status: processing | Step: uploading_images_to_storage | Error: none
+[110s] Status: completed | Step: initializing | Error: none
+Result keys: ['engine', 'pages', 'units', 'tables', 'footer_sample', 'general_notes', 'synthesis', 'summary', 'confidence']
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

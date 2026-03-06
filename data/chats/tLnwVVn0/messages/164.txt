@@ -1,0 +1,153 @@
+"""Hybrid engine pipeline for doc-parser service.
+
+Page-Render Architecture:
+  PDF -> Docling (structural decomposition for tables/text - saves tokens)
+      -> Render each page as full-size image
+      -> Generate 400px thumbnails -> upload to Supabase
+      -> LLM bounding-box detection on interesting pages
+      -> Crop individual elements (floorplans, photos, diagrams)
+      -> LLM analysis on floorplan crops -> Unit-oriented output
+      -> Discard full-size page images (only keep thumbnails + crops)
+"""
+import os
+import re
+import json
+import base64
+import asyncio
+import logging
+import traceback
+from io import BytesIO
+from typing import Dict, Any, List, Tuple, Optional
+from datetime import datetime
+
+from PIL import Image
+
+from models import (
+    JobRecord, JobStatus, ProcessingPhase, UnitExtraction,
+    HybridOutput, ResultSummary, ConfidenceScore
+)
+from prompts import (
+    FLOORPLAN_PROMPT_RICH, SYNTHESIS_PROMPT,
+    TABLE_ANALYSIS_PROMPT, BOUNDING_BOX_PROMPT
+)
+from detection import (
+    is_architectural_drawing, has_architectural_text,
+    classify_image, image_to_base64,
+    detect_elements_cv2, crop_element, create_thumbnail
+)
+from confidence import calculate_confidence
+from job_manager import JobManager, PROCESSING_TIMEOUT_SECONDS
+
+logger = logging.getLogger(__name__)
+
+FOOTER_KEYWORDS = [
+    "project no", "drawn by", "checked by", "scale",
+    "sheet no", "date", "revision", "architect",
+    "drawing no", "approved", "issued for",
+]
+
+DEFAULT_TENANT = "default"
+DEFAULT_PROJECT = "unassigned"
+
+
+# ============================================================
+# LLM Extraction Helpers
+# ============================================================
+
+async def run_llm_extraction(
+    provider: str,
+    prompt: str,
+    image_b64: str,
+    max_tokens: int = 4096,
+) -> str:
+    """Send image + prompt to LLM provider and return response text."""
+    try:
+        import litellm
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {
+                    "url": f"data:image/png;base64,{image_b64}"
+                }},
+            ],
+        }]
+        response = await asyncio.to_thread(
+            litellm.completion,
+            model=provider,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=0.1,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"LLM extraction failed: {e}")
+        raise
+
+
+async def run_text_llm(
+    provider: str,
+    prompt: str,
+    context: str,
+    max_tokens: int = 4096,
+) -> str:
+    """Send text-only prompt to LLM."""
+    try:
+        import litellm
+        messages = [{
+            "role": "user",
+            "content": f"{prompt}\n\n--- DATA ---\n\n{context}",
+        }]
+---
+26:    JobRecord, JobStatus, ProcessingPhase, UnitExtraction,
+53:# ============================================================
+55:# ============================================================
+57:async def run_llm_extraction(
+88:async def run_text_llm(
+114:# ============================================================
+116:# ============================================================
+118:async def upload_image_to_storage(
+162:async def upload_table_to_storage(
+190:# ============================================================
+192:# ============================================================
+194:def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+217:# ============================================================
+219:# ============================================================
+221:async def process_hybrid(
+232:    Phases:
+248:        # ==================================================
+249:        # PHASE 1: Docling Structural Decomposition
+250:        # ==================================================
+252:            job_id, phase=ProcessingPhase.DOCLING_CONVERSION,
+281:        # ==================================================
+282:        # PHASE 2: Page Rendering & Thumbnail Generation
+283:        # ==================================================
+285:            job_id, phase=ProcessingPhase.CLASSIFICATION,
+323:        # ==================================================
+324:        # PHASE 3: Docling-Based Classification & Table Collection
+325:        # ==================================================
+407:        # ==================================================
+408:        # PHASE 4: Bounding Box Detection via LLM
+409:        # ==================================================
+411:            job_id, phase=ProcessingPhase.LLM_ANALYSIS,
+462:        # ==================================================
+463:        # PHASE 5: Element Cropping & Upload
+464:        # ==================================================
+564:        # ==================================================
+565:        # PHASE 6: Table Extraction & Upload
+566:        # ==================================================
+715:        # ==================================================
+716:        # PHASE 7: LLM Floorplan Analysis
+717:        # ==================================================
+719:            job_id, phase=ProcessingPhase.LLM_ANALYSIS,
+782:        # ==================================================
+783:        # PHASE 8: Cross-Page Synthesis
+784:        # ==================================================
+787:                job_id, phase=ProcessingPhase.SYNTHESIS,
+807:        # ==================================================
+808:        # PHASE 9: Assembly & Cleanup
+809:        # ==================================================
+847:# ============================================================
+849:# ============================================================
+851:def assemble_hybrid_output(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

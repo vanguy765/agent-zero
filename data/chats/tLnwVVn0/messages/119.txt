@@ -1,0 +1,181 @@
+=== SUMMARY ===
+{
+  "total_pages": 1,
+  "units_found": 0,
+  "floorplans_found": 1,
+  "tables_found": 0,
+  "photos_found": 9,
+  "diagrams_found": 0,
+  "thumbnails_count": 1,
+  "pages_with_elements": 1
+}
+
+=== CONFIDENCE ===
+{
+  "overall": 0.0,
+  "room_dimensions": false,
+  "door_specifications": false,
+  "window_specifications": false,
+  "fixture_completeness": false,
+  "cross_page_synthesis": false,
+  "baseboard_data": false,
+  "unit_identification": false,
+  "per_page": {
+    "note": "No units extracted"
+  }
+}
+
+=== UNITS ===
+[]
+
+=== ELEMENTS DETECTED ===
+{
+  "type": "floorplan",
+  "bbox": [
+    0.02,
+    0.02,
+    0.45,
+    0.4
+  ],
+  "label": "Building floor plan showing multiple units",
+  "confidence": 0.95
+}
+{
+  "type": "floorplan",
+  "bbox": [
+    0.46,
+    0.02,
+    0.85,
+    0.4
+  ],
+  "label": "Detailed floor plan of Unit 201 with dimensions",
+  "confidence": 0.98
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.03,
+    0.41,
+    0.15,
+    0.57
+  ],
+  "label": "Entry area photo",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.16,
+    0.41,
+    0.28,
+    0.57
+  ],
+  "label": "Hall storage photo",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.29,
+    0.41,
+    0.41,
+    0.57
+  ],
+  "label": "Kitchen photo 1",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.42,
+    0.41,
+    0.54,
+    0.57
+  ],
+  "label": "Kitchen photo 2",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.55,
+    0.41,
+    0.67,
+    0.57
+  ],
+  "label": "Kitchen photo 3",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.03,
+    0.58,
+    0.15,
+    0.77
+  ],
+  "label": "Living room photo",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.16,
+    0.58,
+    0.28,
+    0.77
+  ],
+  "label": "Hall/storage area photo",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.29,
+    0.58,
+    0.41,
+    0.77
+  ],
+  "label": "Bathroom photo",
+  "confidence": 0.95
+}
+{
+  "type": "photo",
+  "bbox": [
+    0.42,
+    0.58,
+    0.54,
+    0.77
+  ],
+  "label": "Bedroom photo",
+  "confidence": 0.95
+}
+{
+  "type": "table",
+  "bbox": [
+    0.86,
+    0.02,
+    0.98,
+    0.77
+  ],
+  "label": "Unit upgrade specifications table",
+  "confidence": 0.98
+}
+{
+  "type": "title_block",
+  "bbox": [
+    0.02,
+    0.78,
+    0.98,
+    0.98
+  ],
+  "label": "Drawing title block with project information",
+  "confidence": 0.98
+}
+
+=== TABLE COUNT ===
+0
+
+=== PHOTO COUNT ===
+9
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

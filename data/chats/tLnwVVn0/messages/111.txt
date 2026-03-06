@@ -1,0 +1,27 @@
+{
+    "job_id": "d5834b99-8af1-4bab-b5a4-5c720e72ab4b",
+    "status": "processing",
+    "engine": "hybrid",
+    "file_name": "page_8.pdf",
+    "progress": {
+        "current_phase": "llm_analysis",
+        "phases": [
+            "docling_conversion",
+            "classification",
+            "image_extraction",
+            "llm_analysis",
+            "synthesis",
+            "uploading"
+        ],
+        "current_page": 1,
+        "total_pages": 1,
+        "current_step": "analyzing_floorplan_1_of_2",
+        "floorplans_found": 1,
+        "tables_found": 0,
+        "percent_complete": 85.0
+    },
+    "error": null,
+    "created_at": "2026-03-06T04:46:36.019194",
+    "updated_at": "2026-03-06T04:47:20.614772"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

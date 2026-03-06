@@ -1,0 +1,19 @@
+async def fail_job(self, job_id: str, error: str) -> None:
+        """Mark job as failed with error message."""
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.FAILED,
+            error=error,
+        )
+        logger.error(f"Job failed: {job_id} - {error}")
+
+    async def timeout_job(self, job_id: str) -> None:
+        """Mark job as timed out."""
+        await self._store.update_job(
+            job_id,
+            status=JobStatus.TIMEOUT,
+            error=f"Processing exceeded {PROCESSING_TIMEOUT_SECONDS}s timeout",
+        )
+        logger.warning(f"Job timed out: {job_id}")
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,14 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# [
+    {
+        "id": "project-documents",
+        "name": "project-documents",
+        "owner": "",
+        "public": false,
+        "type": "STANDARD",
+        "file_size_limit": 52428800,
+        "allowed_mime_types": null,
+        "created_at": "2026-03-05T20:53:24.417Z",
+        "updated_at": "2026-03-05T20:53:24.417Z"
+    }
+]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

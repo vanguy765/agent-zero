@@ -1,0 +1,11 @@
+129:async def upload_image_to_storage(
+150:            lambda: sb_client.storage
+152:            .upload(path, image_bytes, {"content-type": "image/png", "upsert": "true"})
+156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+160:            lambda: sb_client.table("document_images").insert({
+177:        logger.warning(f"Image upload failed for {filename}: {e}")
+650:            current_step="uploading_images_to_storage",
+679:                url = await upload_image_to_storage(
+690:                url = await upload_image_to_storage(
+701:                url = await upload_image_to_storage(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

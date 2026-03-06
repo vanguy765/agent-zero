@@ -1,0 +1,15 @@
+Page size: 2550x1650
+
+Photos detected: 11
+  Photo 0: [63, 1130, 290, 1433] sat_ratio=0.827 area=68781
+  Photo 1: [1102, 1128, 1329, 1430] sat_ratio=0.519 area=68554
+  Photo 2: [845, 1128, 1071, 1430] sat_ratio=0.57 area=68252
+  Photo 3: [577, 1128, 805, 1430] sat_ratio=0.821 area=68856
+  Photo 4: [321, 1128, 551, 1433] sat_ratio=0.731 area=70150
+  Photo 5: [1102, 764, 1329, 1066] sat_ratio=0.712 area=68554
+  Photo 6: [845, 764, 1071, 1066] sat_ratio=0.783 area=68252
+  Photo 7: [577, 764, 805, 1067] sat_ratio=0.331 area=69084
+  Photo 8: [479, 763, 549, 1065] sat_ratio=0.628 area=21140
+  Photo 9: [322, 763, 447, 1065] sat_ratio=0.735 area=37750
+  Photo 10: [62, 763, 223, 1064] sat_ratio=0.509 area=48461
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

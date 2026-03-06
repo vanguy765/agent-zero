@@ -1,0 +1,16 @@
+Analyzing 12 images from page 8
+Img |  xref |         Size |           Class | Photo? | Arch? | Table? | Notes
+----------------------------------------------------------------------------------------------------
+  0 |  1601 |  2550x1650  |           table |  False | False |   True | std=29.8 spread=0.3
+  1 |  1602 |   642x555   |           table |  False |  True |   True | std=87.5 spread=0.0
+  2 |  1603 |   235x308   |      site_photo |   True |  True |   True | std=62.9 spread=31.5
+  3 |  1604 |   235x306   |      site_photo |   True | False |   True | std=53.9 spread=15.8
+  4 |  1605 |   508x727   |      site_photo |   True |  True |   True | std=94.2 spread=15.2
+  5 |  1606 |   233x310   |      site_photo |   True |  True |   True | std=56.1 spread=28.7
+  6 |  1607 |    97x160   |      site_photo |   True | False |   True | std=51.8 spread=25.1 SMALL
+  7 |  1608 |   235x306   |      site_photo |   True |  True |   True | std=51.3 spread=29.5
+  8 |  1609 |    51x72    |           table |  False | False |   True | std=92.8 spread=0.0 SMALL
+  9 |  1610 |   275x252   |           table |  False |  True |   True | std=83.1 spread=0.0
+ 10 |  1611 |   234x308   |      site_photo |   True |  True |   True | std=61.6 spread=31.4
+ 11 |  1612 |   234x306   |      site_photo |   True | False |   True | std=60.6 spread=35.4
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,42 @@
+=== FILE SIZES ===
+-rw-r--r-- 1 root root  8736 Mar  4 04:01 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/confidence.py
+-rw-r--r-- 1 root root 14419 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection.py
+-rw-r--r-- 1 root root 28488 Mar  6 00:48 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+-rw-r--r-- 1 root root 19938 Mar  4 03:55 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/job_manager.py
+-rw-r--r-- 1 root root  9672 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/models.py
+-rwxrwxrwx 1 root root  4533 Feb 26 04:33 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/process_document.py
+-rwxrwxrwx 1 root root  9654 Mar  3 04:06 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+-rwxrwxrwx 1 root root 25000 Mar  6 00:15 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+\n=== BACKUP FILES ===
+total 32
+drwxr-xr-x 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Mar  6 01:06 ..
+-rwxr-xr-x 1 root root  2774 Mar  3 04:06 filter_floorplans.py
+-rwxr-xr-x 1 root root  2444 Mar  3 04:06 prompts.py
+-rwxr-xr-x 1 root root   157 Mar  3 04:06 requirements.txt
+-rwxr-xr-x 1 root root 24496 Mar  3 04:06 server.py
+\n=== OTHER PY FILES ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/benchmark_vision.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/compare_methods.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/confidence.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/decode_docling_images.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/filter_floorplans.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/job_manager.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/models.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/old_server.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/patch_server_script.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/preparse.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/process_document.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/prompts.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/server.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_cv.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/slice_surya.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_api.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_fitz.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_post.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_env.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_uploads.py
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

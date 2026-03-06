@@ -1,0 +1,68 @@
+=== REGION CLASSIFICATION TEST ===
+
+upper_left (floorplan?):
+  edge_ratio: 0.1025
+  n_lines: 503
+  n_diagonal: 20
+  n_orthogonal: 483
+  diagonal_ratio: 0.04
+  n_h_lines: 4
+  spacing_regularity: 0.313
+  mean_sat: 1.1
+  aspect: 0.91
+  type: diagram
+  confidence: 0.6
+
+upper_mid (location plan?):
+  edge_ratio: 0.0872
+  n_lines: 250
+  n_diagonal: 51
+  n_orthogonal: 199
+  diagonal_ratio: 0.204
+  n_h_lines: 7
+  spacing_regularity: 0.0
+  mean_sat: 0.8
+  aspect: 0.81
+  type: floorplan
+  confidence: 0.704
+
+upper_right (spec table?):
+  edge_ratio: 0.0746
+  n_lines: 863
+  n_diagonal: 29
+  n_orthogonal: 834
+  diagonal_ratio: 0.034
+  n_h_lines: 11
+  spacing_regularity: 0.512
+  mean_sat: 0.5
+  aspect: 0.9
+  type: table
+  confidence: 0.5121303966463555
+
+bottom_strip (title block?):
+  edge_ratio: 0.0849
+  n_lines: 351
+  n_diagonal: 0
+  n_orthogonal: 351
+  diagonal_ratio: 0.0
+  n_h_lines: 3
+  spacing_regularity: 0
+  mean_sat: 2.0
+  aspect: 12.17
+  type: title_block
+  confidence: 0.85
+
+=== SAVING 10 PHOTO CROPS ===
+  photo_0: (56,759) 239x311 fill=0.698 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_0.png
+  photo_1: (317,759) 138x311 fill=0.756 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_1.png
+  photo_2: (571,747) 240x325 fill=0.804 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_2.png
+  photo_3: (838,760) 239x312 fill=0.883 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_3.png
+  photo_4: (1097,760) 238x312 fill=0.852 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_4.png
+  photo_5: (56,1125) 240x313 fill=0.799 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_5.png
+  photo_6: (317,1121) 239x317 fill=0.834 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_6.png
+  photo_7: (571,1121) 237x312 fill=0.835 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_7.png
+  photo_8: (838,1123) 237x313 fill=0.849 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_8.png
+  photo_9: (1095,1123) 237x310 fill=0.756 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops/photo_9.png
+
+Done!
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

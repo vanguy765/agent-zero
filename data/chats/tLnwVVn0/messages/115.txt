@@ -1,0 +1,17 @@
+except Exception as e:
+                logger.error(f"Job {job_id}: LLM analysis failed page {page_no}: {e}")
+
+        await job_manager.update_progress(
+            job_id, units_found=len(unit_extractions),
+            current_step=f"extracted_{len(unit_extractions)}_units",
+        )
+
+        # ==================================================
+        # PHASE 8: Cross-Page Synthesis
+        # ==================================================
+        if len(unit_extractions) > 1 and len(floorplan_crops) > 1:
+            await job_manager.update_progress(
+                job_id, phase=ProcessingPhase.SYNTHESIS,
+                current_step="cross_page_synthesis",
+            )
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

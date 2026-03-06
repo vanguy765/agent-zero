@@ -1,0 +1,13 @@
+Original URL: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0960af/doc-parser/job_0349dc0e-dacb-4886-8172-e28759b2a9b2_floorplan_page_1.png
+
+Public endpoint: HTTP 400
+Response: {"statusCode":"404","error":"Bucket not found","message":"Bucket not found"}
+
+Auth URL: http://host.docker.internal:54321/storage/v1/object/authenticated/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0960af/doc-parser/job_0349dc0e-dacb-4886-8172-e28759b2a9b2_floorplan_page_1.png
+Auth endpoint: HTTP 200
+Content-Type: image/png
+Size: 374052 bytes
+
+Buckets: 200
+  project-documents: public=False
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

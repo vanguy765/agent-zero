@@ -1,0 +1,15 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 14
+     11 h, w = img_gray.shape
+     13 # Use the photo regions from previous detection
+---> 14 photos = detect_photos_cv2(img_rgb, img_hsv, h, w, min_dim=120, min_fill=0.25)
+     16 # ============================================================
+     17 # IMPROVED LINE DRAWING / TABLE DETECTION v2
+     18 # Strategy: Use projection profiles to find vertical/horizontal gaps
+     19 # that separate major page regions
+     20 # ============================================================
+     22 def detect_non_photo_regions(img_gray, img_hsv, h, w, photo_regions):
+
+NameError: name 'detect_photos_cv2' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

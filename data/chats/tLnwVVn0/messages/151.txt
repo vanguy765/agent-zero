@@ -1,0 +1,12 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 4
+      1 # ============================================================
+      2 # STEP 2: Create a mask of photo regions to EXCLUDE from structural analysis
+      3 # ============================================================
+----> 4 photo_mask = np.zeros((h, w), dtype=np.uint8)
+      5 for p in photo_regions:
+      6     bx = p['pixel_bbox']
+
+NameError: name 'np' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

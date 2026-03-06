@@ -1,0 +1,27 @@
+{
+    "job_id": "1c1e84e5-41cc-4876-9752-2fbdb3a2e4e1",
+    "status": "completed",
+    "engine": "hybrid",
+    "file_name": "page_8.pdf",
+    "progress": {
+        "current_phase": "complete",
+        "phases": [
+            "docling_conversion",
+            "classification",
+            "image_extraction",
+            "llm_analysis",
+            "synthesis",
+            "uploading"
+        ],
+        "current_page": 0,
+        "total_pages": 0,
+        "current_step": "initializing",
+        "floorplans_found": 0,
+        "tables_found": 0,
+        "percent_complete": 100.0
+    },
+    "error": null,
+    "created_at": "2026-03-06T04:54:27.387299",
+    "updated_at": "2026-03-06T04:55:55.812680"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

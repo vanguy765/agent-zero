@@ -1,0 +1,140 @@
+def assemble_hybrid_output(
+    unit_extractions: List[Dict[str, Any]],
+    table_data: List[Tuple[int, str]],
+    footer_sample: Optional[Dict[str, Any]],
+    floorplan_candidates: List[Tuple[int, Image.Image, str]],
+    site_photos: List[Tuple[int, Image.Image]],
+    diagrams: List[Tuple[int, Image.Image]],
+    pdf_pages: list,
+    synthesis: Optional[Dict[str, Any]] = None,
+    sb_client=None,
+    tenant_name: str = "",
+    project_name: str = "",
+    floorplan_urls: Optional[Dict[int, str]] = None,
+    photo_urls: Optional[Dict[int, str]] = None,
+    diagram_urls: Optional[Dict[int, str]] = None,
+    table_urls: Optional[Dict[int, str]] = None,
+) -> Dict[str, Any]:
+    """Assemble hybrid pipeline output in both page-oriented and unit-oriented formats.
+
+    Produces BOTH formats:
+    - pages: page-oriented (for doc-parser native consumers)
+    - units: unit-oriented (for direct ParsedDocument compatibility with work-orders)
+    """
+    output: Dict[str, Any] = {
+        "engine": "hybrid",
+        "pages": {},
+        "units": [],
+        "tables": [],
+        "footer_sample": footer_sample,
+        "general_notes": [],
+        "synthesis": synthesis,
+    }
+
+    # --- Initialize page structure ---
+    for i, page_img in enumerate(pdf_pages):
+        page_no = i + 1
+        output["pages"][page_no] = {
+            "page_number": page_no,
+            "floorplans": [],
+            "tables": [],
+            "site_photos": [],
+            "diagrams": [],
+            "classification": "unknown",
+        }
+
+    # --- Map floorplan extractions to pages AND build units array ---
+    for extraction in unit_extractions:
+        page_no = extraction["page_no"]
+        data = extraction.get("data", {})
+
+        if not extraction.get("success", False):
+            # Record failed extraction in page data
+            if page_no in output["pages"]:
+                output["pages"][page_no]["floorplans"].append({
+                    "error": extraction.get("error", "unknown"),
+                })
+            continue
+
+        # Add to page-oriented output
+        if page_no in output["pages"]:
+            if floorplan_urls and page_no in floorplan_urls:
+                data["image_url"] = floorplan_urls[page_no]
+            output["pages"][page_no]["floorplans"].append(data)
+            output["pages"][page_no]["classification"] = "floorplan"
+
+        # Build unit-oriented output (ParsedDocument compatible)
+        unit = {
+            "unit_number": data.get("unit_number", f"page_{page_no}"),
+            "unit_type": data.get("unit_type", "unknown"),
+            "floor": data.get("floor", 0),
+            "bedrooms": data.get("bedrooms", 0),
+            "bathrooms": data.get("bathrooms", 0),
+            "half_baths": data.get("half_baths", 0),
+            "area_sf": data.get("total_area_sf", data.get("area_sf", 0)),
+            "rooms": data.get("rooms", []),
+            "doors": data.get("doors", []),
+            "windows": data.get("windows", []),
+            "fixtures": data.get("fixtures", []),
+            "upgrades": data.get("upgrades", []),
+            "general_notes": data.get("general_notes", []),
+            "source_page": page_no,
+        }
+        if floorplan_urls and page_no in floorplan_urls:
+            unit["image_url"] = floorplan_urls[page_no]
+        output["units"].append(unit)
+
+        # Collect general notes
+        for note in data.get("general_notes", []):
+            if note not in output["general_notes"]:
+                output["general_notes"].append(note)
+
+    # --- Add Docling tables to output ---
+    for page_no, md in table_data:
+        output["tables"].append({"page_no": page_no, "markdown": md})
+        if page_no in output["pages"]:
+            output["pages"][page_no]["tables"].append(md)
+            if output["pages"][page_no]["classification"] == "unknown":
+                output["pages"][page_no]["classification"] = "table"
+
+    # --- Mark site photo and diagram pages ---
+    for page_no, _ in site_photos:
+        if page_no in output["pages"]:
+            output["pages"][page_no]["classification"] = "site_photo"
+            if photo_urls and page_no in photo_urls:
+                output["pages"][page_no]["site_photos"].append(photo_urls[page_no])
+
+    for page_no, _ in diagrams:
+        if page_no in output["pages"]:
+            output["pages"][page_no]["classification"] = "diagram"
+            if diagram_urls and page_no in diagram_urls:
+                output["pages"][page_no]["diagrams"].append(diagram_urls[page_no])
+
+    # Add table URLs to pages
+    for page_no, md_text in table_data:
+        if page_no in output["pages"]:
+            if "tables" not in output["pages"][page_no]:
+                output["pages"][page_no]["tables"] = []
+            table_entry = {"markdown": md_text}
+            if table_urls and page_no in table_urls:
+                table_entry["url"] = table_urls[page_no]
+            output["pages"][page_no]["tables"].append(table_entry)
+
+    # --- Build summary ---
+    output["summary"] = {
+        "units_count": len(output["units"]),
+        "pages_count": len(pdf_pages),
+        "floorplans_count": len(floorplan_candidates),
+        "tables_count": len(table_data),
+        "site_photos_count": len(site_photos),
+        "diagrams_count": len(diagrams),
+        "total_doors": sum(
+            len(u.get("doors", [])) for u in output["units"]
+        ),
+        "total_windows": sum(
+            len(u.get("windows", [])) for u in output["units"]
+        ),
+        "total_baseboard_ft": sum(
+            sum(
+                float(r.get("baseboard_length_ft") or 0)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

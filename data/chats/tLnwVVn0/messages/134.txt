@@ -1,0 +1,11 @@
+Page size: 2550x1650
+Non-white pixel ratio: 0.247
+Connected components found: 20
+
+Significant regions after filtering: 3
+  Region 0: pos=(34,32) size=2494x1592 area=1310791 norm_bbox=[np.float64(0.0133), np.float64(0.0194), np.float64(0.9914), np.float64(0.9842)]
+  Region 1: pos=(320,1126) size=230x306 area=70380 norm_bbox=[np.float64(0.1255), np.float64(0.6824), np.float64(0.2157), np.float64(0.8679)]
+  Region 2: pos=(1100,1126) size=229x304 area=69614 norm_bbox=[np.float64(0.4314), np.float64(0.6824), np.float64(0.5212), np.float64(0.8667)]
+
+Visualization saved to cv2_regions_v1.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

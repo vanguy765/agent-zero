@@ -1,0 +1,26 @@
+Looking for upload function boundary...
+Double blank at line 124: prev="" prevprev="raise"
+upload_image_to_storage starts at line 129
+Double blank at line 180: prev="" prevprev="return None"
+Line 140:         return None
+Line 177: "        logger.warning(f"Image upload failed for {filename}: {e}")"
+Line 178:         return None
+Line 178: "        return None"
+Line 179: ""
+Line 180: ""
+Line 181: "# ============================================================"
+Line 182: "# Hybrid Pipeline Processor"
+Line 183: "# ============================================================"
+Line 184: ""
+Line 185: "async def process_hybrid("
+Line 186: "    job_id: str,"
+Line 187: "    temp_path: str,"
+Line 188: "    provider: str,"
+Line 189: "    job_manager: JobManager,"
+Line 190: "    sb_client=None,"
+Line 191: "    tenant_name: str = "","
+Line 192: "    project_name: str = "","
+Line 193: ") -> None:"
+Line 194: "    """Execute the hybrid pipeline: Docling decomposition -> Claude extraction."
+Line 195: ""
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,7 @@
+Total pages: 29
+Page 1: 2550x1650 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/test_page_1.png
+Page 2: 2550x1650 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/test_page_2.png
+Page 3: 2550x1650 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/test_page_3.png
+Page 8: 2550x1650 -> /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/test_page_8.png
+Done rendering test pages
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

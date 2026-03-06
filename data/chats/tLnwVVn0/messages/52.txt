@@ -1,0 +1,19 @@
+Total lines: 921
+L129: upload_image_to_storage
+L185: process_hybrid
+L290: table_output_dir: "table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)"
+L291: table_output_dir: "os.makedirs(table_output_dir, exist_ok=True)"
+L293: table_output_dir: "md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')"
+L453: table_output_dir: "table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)"
+L454: table_output_dir: "os.makedirs(table_output_dir, exist_ok=True)"
+L455: table_output_dir: "md_path = os.path.join(table_output_dir, f'spec_table_page_{page_no}.md')"
+L645: PHASE 5.5
+L653: floorplan_urls init
+L658: local_output_dir: "local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)"
+L659: local_output_dir: "os.makedirs(local_output_dir, exist_ok=True)"
+L662: local_output_dir: "local_path = os.path.join(local_output_dir, f'floorplan_page_{page_no}.png')"
+L667: local_output_dir: "local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')"
+L672: local_output_dir: "local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}.png')"
+L676: sb_client gate: "if sb_client and tenant_name and project_name:"
+L711: PHASE 6
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

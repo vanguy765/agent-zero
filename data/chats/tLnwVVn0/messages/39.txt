@@ -1,0 +1,14 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/nocodb/docker-compose.yml
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 290:            table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+291:            os.makedirs(table_output_dir, exist_ok=True)
+293:                md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+453:                                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+454:                                os.makedirs(table_output_dir, exist_ok=True)
+455:                                md_path = os.path.join(table_output_dir, f'spec_table_page_{page_no}.md')
+658:        local_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_images', job_id)
+659:        os.makedirs(local_output_dir, exist_ok=True)
+662:            local_path = os.path.join(local_output_dir, f'floorplan_page_{page_no}.png')
+667:            local_path = os.path.join(local_output_dir, f'photo_page_{page_no}.png')
+672:            local_path = os.path.join(local_output_dir, f'diagram_page_{page_no}.png')
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,21 @@
+30:    FLOORPLAN_PROMPT_RICH, SYNTHESIS_PROMPT,
+239:    7. LLM Analysis - analyze floorplan crops for unit data
+469:        floorplan_crops: List[Tuple[int, Image.Image, str]] = []  # (page_no, img, b64)
+495:                    floorplan_crops.append((page_no, cropped, b64))
+559:            f"Job {job_id}: Cropped {len(floorplan_crops)} floorplans, "
+716:        # PHASE 7: LLM Floorplan Analysis
+723:        unit_extractions: List[Dict[str, Any]] = []
+733:        for fp_idx, (page_no, fp_img, fp_b64) in enumerate(floorplan_crops):
+736:                current_step=f"analyzing_floorplan_{fp_idx + 1}_of_{len(floorplan_crops)}",
+739:            prompt_with_tables = FLOORPLAN_PROMPT_RICH + table_context
+757:                    unit_extractions.append(unit)
+764:                unit_extractions.append({
+775:            current_step=f"extracted_{len(unit_extractions)}_units",
+785:        if len(unit_extractions) > 1 and len(floorplan_crops) > 1:
+791:                synthesis_context = json.dumps(unit_extractions, indent=2)
+798:                    unit_extractions = synthesized
+800:                    unit_extractions = synthesized["units"]
+801:                logger.info(f"Job {job_id}: Synthesis complete, {len(unit_extractions)} units")
+816:            unit_extractions=unit_extractions,
+853:    unit_extractions: List[Dict[str, Any]],
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

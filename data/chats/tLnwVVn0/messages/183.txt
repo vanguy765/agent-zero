@@ -1,0 +1,72 @@
+image_type: str = "doc-parser_extraction",
+) -> Optional[str]:
+    """Upload image to Supabase Storage and return public URL."""
+    if not sb_client:
+        return None
+    try:
+        buffered = BytesIO()
+        pil_image.save(buffered, format="PNG")
+        image_bytes = buffered.getvalue()
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+        await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, image_bytes, {"content-type": "image/png", "upsert": "true"})
+        )
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+        try:
+            await asyncio.to_thread(
+                lambda: sb_client.table("document_images").insert({
+                    "document_id": project_name if project_name else None,
+                    "image_url": path,
+                    "page_number": page_no,
+                    "image_type": image_type,
+                    "metadata": {
+                        "type": "png", "source": "doc-parser",
+                        "width": pil_image.width, "height": pil_image.height
+                    }
+                }).execute()
+            )
+        except Exception as db_err:
+            logger.warning(f"DB record insert failed for {filename}: {db_err}")
+        return url_response
+    except Exception as e:
+        logger.warning(f"Image upload failed for {filename}: {e}")
+        return None
+
+
+async def upload_table_to_storage(
+    markdown_content: str,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    table_type: str = "table",
+) -> Optional[str]:
+    """Upload table markdown to Supabase Storage."""
+    if not sb_client:
+        return None
+    try:
+        content_bytes = markdown_content.encode("utf-8")
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+        await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, content_bytes, {"content-type": "text/markdown", "upsert": "true"})
+        )
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+        logger.info(f"Table markdown uploaded: {path}")
+        return url_response
+    except Exception as e:
+        logger.warning(f"Table upload failed for {filename}: {e}")
+        return None
+
+
+# ============================================================
+# Bounding Box Parsing Helper
+# ============================================================
+
+def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+    """Parse LLM bounding box response into element list."""
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

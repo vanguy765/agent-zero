@@ -1,0 +1,21 @@
+def create_thumbnail(
+    pil_image: Image.Image,
+    max_width: int = 400,
+) -> Image.Image:
+    """Create a thumbnail of a page image for phone display.
+
+    Args:
+        pil_image: Full-size page image
+        max_width: Maximum width in pixels (default 400)
+
+    Returns:
+        Resized PIL Image maintaining aspect ratio
+    """
+    w, h = pil_image.size
+    if w <= max_width:
+        return pil_image.copy()
+
+    ratio = max_width / w
+    new_h = int(h * ratio)
+    return pil_image.resize((max_width, new_h), Image.LANCZOS)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,20 @@
+169:    table_type: str = "table",
+357:            if classification == "floorplan":
+415:        # page_elements: {page_no: [list of {type, bbox, label, confidence}]}
+450:                        "type": "floorplan",
+472:        spec_table_pages: List[int] = []  # pages with spec_table bbox elements
+483:                el_type = el.get("type", "unknown")
+493:                if el_type == "floorplan":
+500:                            fname, page_no=page_no, image_type="floorplan"
+513:                elif el_type == "photo":
+533:                elif el_type == "diagram":
+540:                            fname, page_no=page_no, image_type="diagram"
+553:                elif el_type == "spec_table":
+554:                    spec_table_pages.append(page_no)
+561:            f"{len(spec_table_pages)} spec_table regions"
+605:        # 6b: LLM spec-table extraction for bbox-detected spec_table regions
+606:        for page_no in spec_table_pages:
+628:                        fname, page_no=page_no, table_type="spec_table"
+644:                    "source": "llm_spec_table",
+655:            if page_no in spec_table_pages:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,286 @@
+import cv2
+import numpy as np
+from PIL import Image
+from collections import Counter
+import sys
+
+def detect_all_elements(image_path):
+    pil_img = Image.open(image_path)
+    img_rgb = np.array(pil_img.convert('RGB'))
+    img_gray = np.array(pil_img.convert('L'))
+    h, w = img_gray.shape
+    page_area = h * w
+    hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+    sat_channel = hsv[:, :, 1]
+    print(f"Page: {w}x{h}")
+
+    elements = []
+
+    # ================================================================
+    # PHASE 1: Detect PHOTOS via HSV saturation
+    # ================================================================
+    sat_thresh = 30
+    sat_mask = (sat_channel > sat_thresh).astype(np.uint8) * 255
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 20))
+    sat_closed = cv2.morphologyEx(sat_mask, cv2.MORPH_CLOSE, close_k)
+    sep_h = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 1))
+    sep_v = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 10))
+    sat_sep = cv2.erode(sat_closed, sep_h, iterations=1)
+    sat_sep = cv2.erode(sat_sep, sep_v, iterations=1)
+    sat_restored = cv2.dilate(sat_sep, sep_h, iterations=1)
+    sat_restored = cv2.dilate(sat_restored, sep_v, iterations=1)
+    contours, _ = cv2.findContours(sat_restored, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    photo_boxes = []
+    for cnt in contours:
+        x, y, cw, ch = cv2.boundingRect(cnt)
+        area = cw * ch
+        if area < page_area * 0.002 or area > page_area * 0.15:
+            continue
+        if max(cw, ch) / max(min(cw, ch), 1) > 6:
+            continue
+        sr = np.count_nonzero(sat_channel[y:y+ch, x:x+cw] > sat_thresh) / max(area, 1)
+        if sr < 0.15:
+            continue
+        photo_boxes.append([x, y, x+cw, y+ch, sr])
+
+    # Smart merge: only merge overlapping or very close boxes
+    merged_flag = True
+    while merged_flag:
+        merged_flag = False
+        new_boxes = []
+        used = set()
+        for i in range(len(photo_boxes)):
+            if i in used:
+                continue
+            bx = photo_boxes[i][:]
+            for j in range(i+1, len(photo_boxes)):
+                if j in used:
+                    continue
+                bj = photo_boxes[j]
+                gap_x = max(0, max(bx[0], bj[0]) - min(bx[2], bj[2]))
+                gap_y = max(0, max(bx[1], bj[1]) - min(bx[3], bj[3]))
+                overlap_y = min(bx[3], bj[3]) - max(bx[1], bj[1])
+                overlap_x = min(bx[2], bj[2]) - max(bx[0], bj[0])
+                bx_h = bx[3] - bx[1]; bj_h = bj[3] - bj[1]
+                bx_w = bx[2] - bx[0]; bj_w = bj[2] - bj[0]
+                min_h = min(bx_h, bj_h); min_w = min(bx_w, bj_w)
+                should_merge = False
+                if overlap_y > min_h * 0.5 and gap_x < 25:
+                    should_merge = True
+                if overlap_x > min_w * 0.5 and gap_y < 25:
+                    should_merge = True
+                if gap_x <= 0 and gap_y <= 0:
+                    should_merge = True
+                if should_merge:
+                    bx = [min(bx[0],bj[0]), min(bx[1],bj[1]),
+                          max(bx[2],bj[2]), max(bx[3],bj[3]), max(bx[4],bj[4])]
+                    used.add(j); merged_flag = True
+            new_boxes.append(bx); used.add(i)
+        photo_boxes = new_boxes
+
+    photo_boxes = [bx for bx in photo_boxes if (bx[2]-bx[0]) > 80 and (bx[3]-bx[1]) > 80]
+    photo_boxes.sort(key=lambda b: (b[1], b[0]))
+
+    for bx in photo_boxes:
+        cw_p, ch_p = bx[2]-bx[0], bx[3]-bx[1]
+        sr = np.count_nonzero(sat_channel[bx[1]:bx[3], bx[0]:bx[2]] > sat_thresh) / max(cw_p*ch_p, 1)
+        elements.append({
+            "type": "photo",
+            "pixel_bbox": [int(bx[0]), int(bx[1]), int(bx[2]), int(bx[3])],
+            "confidence": round(min(0.95, 0.6 + sr), 3),
+        })
+
+    has_photos = len(photo_boxes) > 0
+    print(f"Photos detected: {len(photo_boxes)}")
+    for i, bx in enumerate(photo_boxes):
+        print(f"  Photo {i}: [{bx[0]},{bx[1]},{bx[2]},{bx[3]}] size={bx[2]-bx[0]}x{bx[3]-bx[1]}")
+
+    if has_photos:
+        photo_top = min(bx[1] for bx in photo_boxes)
+        photo_bottom = max(bx[3] for bx in photo_boxes)
+        photo_left = min(bx[0] for bx in photo_boxes)
+        photo_right = max(bx[2] for bx in photo_boxes)
+        print(f"Photo zone: [{photo_left},{photo_top},{photo_right},{photo_bottom}]")
+    else:
+        photo_top = photo_bottom = photo_left = photo_right = 0
+
+    # ================================================================
+    # PHASE 2: Detect major DIVIDING LINES
+    # ================================================================
+    _, binary = cv2.threshold(img_gray, 180, 255, cv2.THRESH_BINARY_INV)
+
+    # Horizontal lines spanning > 40% of page width
+    h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (int(w * 0.4), 1))
+    h_lines_mask = cv2.morphologyEx(binary, cv2.MORPH_OPEN, h_kernel)
+    h_proj = np.sum(h_lines_mask, axis=1)
+    h_line_ys = []
+    in_line = False; line_start = 0
+    for y_pos in range(h):
+        if h_proj[y_pos] > w * 0.3:
+            if not in_line: line_start = y_pos; in_line = True
+        else:
+            if in_line: h_line_ys.append((line_start + y_pos) // 2); in_line = False
+
+    # Vertical lines spanning > 40% of page height
+    v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, int(h * 0.4)))
+    v_lines_mask = cv2.morphologyEx(binary, cv2.MORPH_OPEN, v_kernel)
+    v_proj = np.sum(v_lines_mask, axis=0)
+    v_line_xs = []
+    in_line = False
+    for x_pos in range(w):
+        if v_proj[x_pos] > h * 0.3:
+            if not in_line: line_start = x_pos; in_line = True
+        else:
+            if in_line: v_line_xs.append((line_start + x_pos) // 2); in_line = False
+
+    print(f"Major H-lines at Y: {h_line_ys}")
+    print(f"Major V-lines at X: {v_line_xs}")
+
+    # ================================================================
+    # PHASE 3: Page structure from lines + content analysis
+    # ================================================================
+    border_left = min(v_line_xs) if v_line_xs else 30
+    border_right = max(v_line_xs) if v_line_xs else w - 30
+    border_top = min(h_line_ys) if h_line_ys else 30
+    border_bottom = max(h_line_ys) if h_line_ys else h - 30
+
+    # --- Vertical divider detection with content validation ---
+    v_divider = None
+    if has_photos:
+        # When photos exist, divider must be right of all photos
+        v_candidates = [vx for vx in v_line_xs
+                        if vx > photo_right + 20
+                        and vx < border_right - 100
+                        and vx > border_left + 100]
+        if v_candidates:
+            v_divider = min(v_candidates)
+    else:
+        # No photos: need to validate that right side has tabular content
+        # Check candidates in the middle 30-70% of page width
+        v_candidates = [vx for vx in v_line_xs
+                        if w * 0.3 < vx < w * 0.75
+                        and vx > border_left + 100
+                        and vx < border_right - 100]
+        for vc in sorted(v_candidates):
+            # Check text density to the RIGHT of this line
+            # Table zones have dense, regular horizontal text
+            right_zone = binary[border_top:border_bottom, vc+10:border_right-10]
+            if right_zone.size == 0:
+                continue
+            right_density = np.count_nonzero(right_zone) / right_zone.size
+            # Check text density to the LEFT
+            left_zone = binary[border_top:border_bottom, border_left+10:vc-10]
+            left_density = np.count_nonzero(left_zone) / left_zone.size if left_zone.size > 0 else 0
+            print(f"  V-candidate x={vc}: left_density={left_density:.4f}, right_density={right_density:.4f}")
+            # A real table divider has significantly different content on each side
+            # Table text is denser than architectural line drawings
+            # Also check for horizontal line density (tables have many h-lines)
+            right_h_lines = h_lines_mask[border_top:border_bottom, vc+10:border_right-10]
+            right_h_density = np.count_nonzero(right_h_lines) / max(right_h_lines.size, 1)
+            print(f"    right_h_line_density={right_h_density:.4f}")
+            # Table should have: higher text density AND horizontal lines (grid)
+            if right_density > 0.04 and right_h_density > 0.005:
+                v_divider = vc
+                break
+
+    # --- Horizontal divider for title block ---
+    h_divider_bottom = None
+    h_title_candidates = [hy for hy in h_line_ys
+                          if hy > h * 0.8 and hy < border_bottom - 10 and hy > border_top + 100]
+    if h_title_candidates:
+        h_title_candidates.sort()
+        h_divider_bottom = h_title_candidates[0]
+
+    # --- Horizontal divider between floorplan and photos ---
+    h_divider_photos = None
+    if has_photos:
+        h_photo_candidates = [hy for hy in h_line_ys if abs(hy - photo_top) < 60]
+        if h_photo_candidates:
+            h_divider_photos = min(h_photo_candidates, key=lambda hy: abs(hy - photo_top))
+
+    print(f"Page borders: L={border_left} R={border_right} T={border_top} B={border_bottom}")
+    print(f"V-divider (content|table): x={v_divider}")
+    print(f"H-divider (content|title): y={h_divider_bottom}")
+    print(f"H-divider (floorplan|photos): y={h_divider_photos}")
+
+    # ================================================================
+    # PHASE 4: Create structural element bounding boxes
+    # ================================================================
+    content_left = border_left + 2
+    content_right = border_right - 2
+    content_top = border_top + 2
+    content_bottom = border_bottom - 2
+
+    # Determine floorplan boundaries
+    if has_photos:
+        fp_right = v_divider if v_divider else (photo_right + 50)
+        fp_bottom = h_divider_photos if h_divider_photos else (photo_top - 10)
+    else:
+        # No photos: floorplan extends to divider or full width
+        fp_right = v_divider if v_divider else content_right
+        fp_bottom = h_divider_bottom if h_divider_bottom else content_bottom
+
+    if fp_bottom > content_top + 100 and fp_right > content_left + 100:
+        elements.append({
+            "type": "floorplan",
+            "pixel_bbox": [int(content_left), int(content_top), int(fp_right), int(fp_bottom)],
+            "confidence": 0.85,
+            "info": "layout-derived",
+        })
+        print(f"Floorplan: [{content_left},{content_top},{fp_right},{fp_bottom}]")
+
+    # Spec table: right column
+    if v_divider:
+        tbl_bottom = h_divider_bottom if h_divider_bottom else content_bottom
+        elements.append({
+            "type": "table",
+            "pixel_bbox": [int(v_divider), int(content_top), int(content_right), int(tbl_bottom)],
+            "confidence": 0.85,
+            "info": "layout-derived",
+        })
+        print(f"Table: [{v_divider},{content_top},{content_right},{tbl_bottom}]")
+
+    # Title block
+    if h_divider_bottom and h_divider_bottom < content_bottom - 20:
+        elements.append({
+            "type": "title_block",
+            "pixel_bbox": [int(content_left), int(h_divider_bottom), int(content_right), int(content_bottom)],
+            "confidence": 0.85,
+            "info": "layout-derived",
+        })
+        print(f"Title block: [{content_left},{h_divider_bottom},{content_right},{content_bottom}]")
+
+    # Sort and summarize
+    elements.sort(key=lambda e: (e["pixel_bbox"][1], e["pixel_bbox"][0]))
+    counts = Counter(e["type"] for e in elements)
+    print(f"\n=== TOTAL: {len(elements)} elements ===")
+    print(f"  Types: {dict(counts)}")
+    for i, el in enumerate(elements):
+        bx = el["pixel_bbox"]
+        extra = el.get("info", "")
+        print(f"  [{i:2d}] {el["type"]:12s} conf={el["confidence"]:.2f} [{bx[0]},{bx[1]},{bx[2]},{bx[3]}] {extra}")
+
+    # Visualize
+    colors = {
+        "floorplan": (0,200,0), "photo": (255,50,50), "table": (50,50,255),
+        "title_block": (255,165,0), "diagram": (180,0,180), "unknown": (128,128,128),
+    }
+    vis = img_rgb.copy()
+    for i, el in enumerate(elements):
+        bx = el["pixel_bbox"]
+        c = colors.get(el["type"], (128,128,128))
+        cv2.rectangle(vis, (bx[0],bx[1]), (bx[2],bx[3]), c, 4)
+        label = f"{i}:{el["type"]}"
+        (tw,th_t),_ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+        cv2.rectangle(vis, (bx[0],bx[1]-th_t-12), (bx[0]+tw+12,bx[1]), c, -1)
+        cv2.putText(vis, label, (bx[0]+6,bx[1]-6), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+
+    out_path = image_path.replace(".png", "_detected.png")
+    cv2.imwrite(out_path, cv2.cvtColor(vis, cv2.COLOR_RGB2BGR))
+    print(f"\nVisualization: {out_path}")
+    return elements
+
+if __name__ == "__main__":
+    img = sys.argv[1] if len(sys.argv) > 1 else "voicelog-scaffold/doc-parser/verify_images/original_page_1.png"
+    detect_all_elements(img)(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

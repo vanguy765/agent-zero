@@ -1,0 +1,30 @@
+=== THUMBNAILS ===
+  Count: 0
+
+=== PAGE 1 DETAILS ===
+  Page 1:
+    thumbnail_url: NONE
+    classification: floorplan
+    floorplans: 1
+    site_photos: 7
+    tables: 1
+    diagrams: 0
+
+=== UNIT IMAGE URLs ===
+  Unit 201: image_url=http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_a73366d9-65c1-4b21-b15c-246149bebaa4_floorplan_page_1.png
+
+=== SUMMARY ===
+  units_count: 1
+  pages_count: 1
+  floorplans_count: 1
+  tables_count: 1
+  site_photos_count: 7
+  diagrams_count: 0
+  total_doors: 4
+  total_windows: 2
+  total_baseboard_ft: 110.0
+  trades: ['plumbing', 'electrical', 'painting', 'carpentry']
+  has_footer: True
+  has_synthesis: True
+  extraction_errors: 0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

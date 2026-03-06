@@ -1,0 +1,222 @@
+Pages: 1
+
+=== Page 1 ===
+Text length: 2653
+Images on page: 12
+
+Text content (first 2000 chars):
+? ?
+It: . :ttt . --+ It
+LIVING
+q,
+w
+01 I AUGUST 2024
+NO.
+I
+DATE
+' 11 f
+ff T
+,.11
+11.---©
+=>'"-:Q
+II ----II • ---@
+• M:::- ·lt:;j ii
+• ,P-- ·1::::H::::. :1p. t=. :::1f: . ==='" •
+H • --@
+ntsc!:)1
+HALUSTORAGE
+CLIENT REVIEW
+REVISIONS
+I
+11
+N
+BATHROOM
+6308
+-
+3140
+[21'] v I!
+[10'-6"]
+1 1
+--
+--
+
+k
+'t,-,
+5
+
+2859
+[9'-6"]
+bedroom
+II 81(')
+O"l
+	 
+C')
+11
+living/dining
+II
+UNIT 201
+TYPE D
+1 BED
+480SF
+kitchen
+•=
+C')
+0
+'
+
+:!.
+2255
+
+2972
+L
+
+[9'-11"]
+'I
+'l
+[7'-6"]
+8674
+[28'-11"]
+KITCHEN
+BEDROOM
+CONSULTANT
+SCALE
+1:100
+sp/p
+BY
+·)
+ I LO
+CX)
+_,
+N
+
+SCH'EYK HOUSING SOCIETY UNIT TURNOVER PROJECT
+JP Unit 201
+ENTRY
+KITCHEN
+BATHRM
+LIVING
+BDRM 1
+1.0
+FINISHES
+Ceiling
+touch up all rooms
+Walls
+touch up all rooms
+Floors
+remain
+remain
+remain
+remain
+remain
+2.0
+DOORS
+Entry
+paint
+Entry Hardware *1
+repair
+Interior
+replace
+replace
+Interior Hardware *2
+replace
+replace
+Bifold w hardware
+new sliders
+remove
+Entry and Hall
+3.0
+LIGHT FIXTURES *5
+Type 1
+Type2
+Type 3
+Type2
+Type 1
+Reolace all pluq cover plates and switches to rocker switches with decora cover olates.
+4.0
+KITCHEN PLUMBING FIXTURES
+Sink
+ok keep
+Faucet
+ok keep
+5.0
+BATHROOM PLUMBING FIXTURES
+Lavatory
+replace
+Faucet
+replace
+Toilet
+replace
+STRGE
+remain
+reolace
+Typce 1
+Bathub *3
+repair - install hand held shower. 2 grab bars
+1795
+Bathroom accessories *4
+new TP holder, 2 towel racks
+[6']
+Bathroom ceilinq fan
+replace
+6.0
+MILLWORK
+Countertop
+keep
+Cabinets
+keep
+Shelving
+Vanity
+install existina
+7.0
+APPLIANCES
+Range
+keep
+Fridge
+keep
+Hood Fan
+keep
+8.0
+HEATING - see unit plan for lengths
+repair
+repair
+9.0
+CLOSET - shelvinQ and rod reolace both
+replace
+10.0
+WINDOW COVERINGS
+Install
+Install
+Patio doors
+curtain rods
+NOTES
+1
+Entry hardware includes closer, deadbolt, peep hole, passage set ( lever), door stop
+2
+Interior door hardware includes, privacy lever set, door stop
+3
+Tub includes surro
+
+Image 0: xref=1601, size=2550x1650, bpc=8, colorspace=DeviceRGB
+
+Image 1: xref=1602, size=642x555, bpc=8, colorspace=Indexed
+
+Image 2: xref=1603, size=235x308, bpc=8, colorspace=DeviceRGB
+
+Image 3: xref=1604, size=235x306, bpc=8, colorspace=DeviceRGB
+
+Image 4: xref=1605, size=508x727, bpc=8, colorspace=DeviceRGB
+
+Image 5: xref=1606, size=233x310, bpc=8, colorspace=DeviceRGB
+
+Image 6: xref=1607, size=97x160, bpc=8, colorspace=DeviceRGB
+
+Image 7: xref=1608, size=235x306, bpc=8, colorspace=DeviceRGB
+
+Image 8: xref=1609, size=51x72, bpc=8, colorspace=Indexed
+
+Image 9: xref=1610, size=275x252, bpc=8, colorspace=Indexed
+
+Image 10: xref=1611, size=234x308, bpc=8, colorspace=DeviceRGB
+
+Image 11: xref=1612, size=234x306, bpc=8, colorspace=DeviceRGB
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

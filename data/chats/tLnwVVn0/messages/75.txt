@@ -1,0 +1,19 @@
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# total 152
+drwxr-xr-x 1 root root  4096 Mar  6 02:44 .
+drwxrwxrwx 1 root root  4096 Mar  6 02:38 ..
+-rw-r--r-- 1 root root 14419 Mar  6 02:18 detection_backup_20260306_021815.py
+-rw-r--r-- 1 root root 28488 Mar  6 00:48 hybrid_backup_20260306_014441.py
+-rw-r--r-- 1 root root 31045 Mar  6 02:18 hybrid_backup_20260306_021849.py
+-rw-r--r-- 1 root root 35217 Mar  6 02:19 hybrid_backup_20260306_023229.py
+-rw-r--r-- 1 root root 37825 Mar  6 02:44 hybrid_backup_20260306_034300.py
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# > > > > Attempt 1:
+HTTP 200
+Attempt 2:
+HTTP 200
+Attempt 3:
+HTTP 200
+Attempt 4:
+HTTP 200
+Attempt 5:
+HTTP 200
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

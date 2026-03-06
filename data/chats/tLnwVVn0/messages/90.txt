@@ -1,0 +1,31 @@
+"""Confidence scoring for doc-parser extraction results.
+
+Priority 6: Transparency over hidden gaps.
+Calculates completeness metrics so users can decide whether
+to re-run with a different engine if confidence is insufficient.
+"""
+from typing import Dict, Any, List, Optional
+from models import ConfidenceScore, UnitExtraction
+
+
+def calculate_confidence(
+    units: List[Dict[str, Any]],
+    tables: List[Dict[str, Any]],
+    synthesis: Optional[Dict[str, Any]] = None,
+    total_pages: int = 0,
+    floorplans_found: int = 0,
+) -> ConfidenceScore:
+    """Calculate confidence score for extraction results.
+
+    Evaluates completeness across multiple dimensions:
+    - Room dimensions (area, length, width)
+    - Door specifications (type, size, hardware)
+    - Window specifications (type, size)
+    - Fixture completeness
+    - Baseboard data
+    - Unit identification
+    - Cross-page synthesis
+
+    Args:
+        units: List of unit extraction dicts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

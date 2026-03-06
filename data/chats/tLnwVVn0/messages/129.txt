@@ -1,0 +1,59 @@
+=== SUMMARY ===
+{
+  "total_pages": 1,
+  "units_found": 1,
+  "floorplans_found": 1,
+  "tables_found": 1,
+  "photos_found": 10,
+  "diagrams_found": 0,
+  "thumbnails_count": 1,
+  "pages_with_elements": 1
+}
+
+=== UNITS FOUND ===
+Count: 1
+  - 201: 1BR, 4 rooms, 5 doors, 2 windows
+
+=== TABLES ===
+Count: 1
+  - page 1: source=llm_spec_table, url=yes
+
+=== PAGES ===
+  Page 1:
+    thumbnail: yes
+    floorplan: yes
+    photos: 10
+    tables: 1
+    diagrams: 0
+    elements: 14
+
+=== CONFIDENCE ===
+{
+  "overall": 0.95,
+  "room_dimensions": true,
+  "door_specifications": true,
+  "window_specifications": true,
+  "fixture_completeness": true,
+  "cross_page_synthesis": false,
+  "baseboard_data": true,
+  "unit_identification": true,
+  "per_page": {
+    "page_1": {
+      "fields_populated": 5,
+      "fields_total": 6,
+      "completeness": 0.83,
+      "rooms_count": 4,
+      "doors_count": 5,
+      "windows_count": 2,
+      "fixtures_count": 7,
+      "has_dimensions": true,
+      "has_baseboard": true
+    },
+    "coverage": {
+      "total_pages": 1,
+      "floorplans_detected": 1,
+      "coverage_ratio": 1.0
+    }
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

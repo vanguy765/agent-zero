@@ -1,0 +1,46 @@
+L 216:             phase=ProcessingPhase.DOCLING_CONVERSION,
+L 217:             current_step="converting_pdf_with_docling",
+L 218:         )
+L 219:
+L 220:         from docling.document_converter import DocumentConverter, PdfFormatOption
+L 221:         from docling.datamodel.base_models import InputFormat
+L 222:         from docling.datamodel.pipeline_options import PdfPipelineOptions
+L 223:         from pdf2image import convert_from_path
+L 224:
+L 225:         pipeline_options = PdfPipelineOptions()
+L 226:         pipeline_options.generate_picture_images = True
+L 227:         pipeline_options.generate_table_images = True
+L 228:
+L 229:         converter = DocumentConverter(
+L 230:             format_options={
+L 231:                 InputFormat.PDF: PdfFormatOption(
+L 232:                     pipeline_options=pipeline_options
+L 233:                 )
+L 234:             }
+L 235:         )
+L 236:
+L 237:         result_doc_wrapper = await asyncio.to_thread(
+L 238:             converter.convert, temp_path
+L 239:         )
+L 240:         result_doc = result_doc_wrapper.document
+L 241:
+L 242:         # Generate full page images for reference
+L 243:         pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+L 244:         total_pages = len(pdf_pages)
+L 245:
+L 246:         await job_manager.update_progress(
+L 247:             job_id,
+L 248:             total_pages=total_pages,
+L 249:             current_step="docling_conversion_complete",
+L 250:         )
+L 251:
+L 252:         logger.info(f"Job {job_id}: Docling converted {total_pages} pages")
+L 253:
+L 254:         # ==================================================
+L 255:         # PHASE 2: Classification & Collection
+L 256:         # ==================================================
+L 257:         await job_manager.update_progress(
+L 258:             job_id,
+L 259:             phase=ProcessingPhase.CLASSIFICATION,
+L 260:             current_step="classifying_pages",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

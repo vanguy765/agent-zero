@@ -1,0 +1,19 @@
+Downloading 14 items via authenticated endpoint...
+
+  ✅ thumbnail: 95.0KB (image/png)
+  ✅ floorplan: 365.3KB (image/png)
+  ✅ photo_00: 42.5KB (image/png)
+  ✅ photo_01: 50.4KB (image/png)
+  ✅ photo_02: 30.5KB (image/png)
+  ✅ photo_03: 53.6KB (image/png)
+  ✅ photo_04: 115.6KB (image/png)
+  ✅ photo_05: 111.3KB (image/png)
+  ✅ photo_06: 110.9KB (image/png)
+  ✅ photo_07: 103.4KB (image/png)
+  ✅ photo_08: 89.5KB (image/png)
+  ✅ photo_09: 77.1KB (image/png)
+  ✅ photo_10: 111.8KB (image/png)
+  ✅ table_0: 1.7KB (text/markdown)
+
+Files saved to: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/crops_cv2
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

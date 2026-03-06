@@ -1,0 +1,157 @@
+=== IMAGE UPLOAD SECTION (L535-600) ===
+L 535:
+L 536:         # ==================================================
+L 537:         # PHASE 5.5: Upload Images to Supabase
+L 538:         # ==================================================
+L 539:         await job_manager.update_progress(
+L 540:             job_id,
+L 541:             phase=ProcessingPhase.UPLOADING,
+L 542:             current_step="uploading_images_to_storage",
+L 543:         )
+L 544:
+L 545:         floorplan_urls = {}
+L 546:         photo_urls = {}
+L 547:         diagram_urls = {}
+L 548:
+L 549:         if sb_client and tenant_name and project_name:
+L 550:             # Upload floorplans
+L 551:             for i, (page_no, img, _) in enumerate(floorplan_candidates):
+L 552:                 url = await upload_image_to_storage(
+L 553:                     img, sb_client, tenant_name, project_name,
+L 554:                     f"job_{job_id}_floorplan_page_{page_no}.png",
+L 555:                     page_no=page_no,
+L 556:                     image_type="floorplan"
+L 557:                 )
+L 558:                 if url:
+L 559:                     floorplan_urls[page_no] = url
+L 560:
+L 561:             # Upload site photos
+L 562:             for i, (page_no, img) in enumerate(site_photos):
+L 563:                 url = await upload_image_to_storage(
+L 564:                     img, sb_client, tenant_name, project_name,
+L 565:                     f"job_{job_id}_photo_page_{page_no}.png",
+L 566:                     page_no=page_no,
+L 567:                     image_type="site_photo"
+L 568:                 )
+L 569:                 if url:
+L 570:                     photo_urls[page_no] = url
+L 571:
+L 572:             # Upload diagrams
+L 573:             for i, (page_no, img) in enumerate(diagrams):
+L 574:                 url = await upload_image_to_storage(
+L 575:                     img, sb_client, tenant_name, project_name,
+L 576:                     f"job_{job_id}_diagram_page_{page_no}.png",
+L 577:                     page_no=page_no,
+L 578:                     image_type="diagram"
+L 579:                 )
+L 580:                 if url:
+L 581:                     diagram_urls[page_no] = url
+L 582:
+L 583:         # ==================================================
+L 584:         # PHASE 6: Assemble Output & Upload
+L 585:         # ==================================================
+L 586:         await job_manager.update_progress(
+L 587:             job_id,
+L 588:             phase=ProcessingPhase.UPLOADING,
+L 589:             current_step="assembling_output",
+L 590:         )
+L 591:
+L 592:         result = assemble_hybrid_output(
+L 593:             unit_extractions=unit_extractions,
+L 594:             table_data=table_data,
+L 595:             footer_sample=footer_sample,
+L 596:             floorplan_candidates=floorplan_candidates,
+L 597:             site_photos=site_photos,
+L 598:             diagrams=diagrams,
+L 599:             pdf_pages=pdf_pages,
+L 600:             synthesis=synthesis_result,
+
+
+=== FUNCTION SIGNATURE process_hybrid (L185-215) ===
+L 185: async def process_hybrid(
+L 186:     job_id: str,
+L 187:     temp_path: str,
+L 188:     provider: str,
+L 189:     job_manager: JobManager,
+L 190:     sb_client=None,
+L 191:     tenant_name: str = "",
+L 192:     project_name: str = "",
+L 193: ) -> None:
+L 194:     """Execute the hybrid pipeline: Docling decomposition -> Claude extraction.
+L 195:
+L 196:     This is the main background task for hybrid mode.
+L 197:     Wrapped in timeout enforcement by the caller.
+L 198:
+L 199:     Phases:
+L 200:     1. Docling Conversion - PDF to structured document
+L 201:     2. Classification - Identify floorplans, tables, photos
+L 202:     3. Image Extraction - Prepare floorplan images for Claude
+L 203:     4. LLM Analysis - Claude analyzes each floorplan with rich prompt
+L 204:     5. Synthesis - Cross-page correlation (Priority 5)
+L 205:     6. Upload - Store images and results
+L 206:     """
+L 207:     try:
+L 208:         # Transition to PROCESSING
+L 209:         await job_manager.start_processing(job_id)
+L 210:
+L 211:         # ==================================================
+L 212:         # PHASE 1: Docling Structural Decomposition
+L 213:         # ==================================================
+L 214:         await job_manager.update_progress(
+L 215:             job_id,
+
+
+=== upload_image_to_storage (L129-180) ===
+L 129: async def upload_image_to_storage(
+L 130:     pil_image: Image.Image,
+L 131:     sb_client,
+L 132:     tenant_name: str,
+L 133:     project_name: str,
+L 134:     filename: str,
+L 135:     page_no: int = 1,
+L 136:     image_type: str = "doc-parser_extraction",
+L 137: ) -> Optional[str]:
+L 138:     """Upload image to Supabase Storage and return public URL."""
+L 139:     if not sb_client:
+L 140:         return None
+L 141:
+L 142:     try:
+L 143:         buffered = BytesIO()
+L 144:         pil_image.save(buffered, format="PNG")
+L 145:         image_bytes = buffered.getvalue()
+L 146:
+L 147:         path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+L 148:
+L 149:         await asyncio.to_thread(
+L 150:             lambda: sb_client.storage
+L 151:             .from_("project-documents")
+L 152:             .upload(path, image_bytes, {"content-type": "image/png", "upsert": "true"})
+L 153:         )
+L 154:
+L 155:         # Get public URL
+L 156:         url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+L 157:
+L 158:         # Insert SQL record
+L 159:         await asyncio.to_thread(
+L 160:             lambda: sb_client.table("document_images").insert({
+L 161:                 "document_id": project_name,  # The API routes pass document_id as project_name
+L 162:                 "image_url": path,
+L 163:                 "page_number": page_no,
+L 164:                 "image_type": image_type,
+L 165:                 "metadata": {
+L 166:                     "type": "png",
+L 167:                     "source": "doc-parser",
+L 168:                     "width": pil_image.width,
+L 169:                     "height": pil_image.height
+L 170:                 }
+L 171:             }).execute()
+L 172:         )
+L 173:
+L 174:         return url_response
+L 175:
+L 176:     except Exception as e:
+L 177:         logger.warning(f"Image upload failed for {filename}: {e}")
+L 178:         return None
+L 179:
+L 180:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

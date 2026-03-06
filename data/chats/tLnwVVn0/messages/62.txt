@@ -1,0 +1,25 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# {
+    "detail": "Not Found"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# -rw-r--r-- 1 root root 14419 Mar  6 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection_backup_20260306_021815.py
+-rw-r--r-- 1 root root 14419 Mar  6 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/detection_backup_20260306_021815.py
+-rw-r--r-- 1 root root 28488 Mar  6 00:48 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid_backup_20260306_014441.py
+-rw-r--r-- 1 root root 28488 Mar  6 00:48 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid_backup_20260306_014441.py
+-rw-r--r-- 1 root root 31045 Mar  6 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid_backup_20260306_021849.py
+-rw-r--r-- 1 root root 31045 Mar  6 02:18 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid_backup_20260306_021849.py
+-rw-r--r-- 1 root root 35217 Mar  6 02:19 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid_backup_20260306_023229.py
+-rw-r--r-- 1 root root 35217 Mar  6 02:19 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid_backup_20260306_023229.py
+
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_pre_p1_p7:
+total 32
+drwxr-xr-x 1 root root  4096 Mar  3 04:06 .
+drwxrwxrwx 1 root root  4096 Mar  6 02:32 ..
+-rwxr-xr-x 1 root root  2774 Mar  3 04:06 filter_floorplans.py
+-rwxr-xr-x 1 root root  2444 Mar  3 04:06 prompts.py
+-rwxr-xr-x 1 root root   157 Mar  3 04:06 requirements.txt
+-rwxr-xr-x 1 root root 24496 Mar  3 04:06 server.py
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# Moved backup files
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# detection_backup_20260306_021815.py  hybrid_backup_20260306_021849.py
+hybrid_backup_20260306_014441.py     hybrid_backup_20260306_023229.py
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

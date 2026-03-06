@@ -1,0 +1,19 @@
+=== FLOORPLAN URLs ===
+  http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_a73366d9-65c1-4b21-b15c-246149bebaa4_floorplan_page_1.png
+
+=== PHOTO URLs (from pages) ===
+  Page 1: 7 photos
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+    http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-
+
+=== TABLE URLs ===
+  Page 1: url=http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_a73366d9-65c1-4b21-b15c-246149bebaa4_table_page_1_0.md
+
+=== THUMBNAILS raw ===
+  {}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

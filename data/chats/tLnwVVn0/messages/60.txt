@@ -1,0 +1,23 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# Syntax OK
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 678:        table_urls = {}
+730:                    table_urls[pg] = tbl_url
+787:            table_urls=table_urls,
+844:    table_urls: Optional[Dict[int, str]] = None,
+947:            if table_urls and page_no in table_urls:
+948:                table_entry["url"] = table_urls[page_no]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 181:DEFAULT_TENANT = "default"
+182:DEFAULT_PROJECT = "unassigned"
+681:        storage_tenant = tenant_name or DEFAULT_TENANT
+682:        storage_project = project_name or DEFAULT_PROJECT
+688:                    img, sb_client, storage_tenant, storage_project,
+700:                    img, sb_client, storage_tenant, storage_project,
+712:                    img, sb_client, storage_tenant, storage_project,
+724:                    md_text, sb_client, storage_tenant, storage_project,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 185:async def upload_table_to_storage(
+723:                tbl_url = await upload_table_to_storage(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 755:                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

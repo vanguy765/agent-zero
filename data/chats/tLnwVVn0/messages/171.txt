@@ -1,0 +1,14 @@
+Phase 4 block: chars 15187 to 17484
+--- Current Phase 4 ---
+# ==================================================
+        # PHASE 4: Bounding Box Detection via LLM
+        # ==================================================
+        await job_manager.update_pro
+...
+            f"Job {job_id}: Bbox detection complete. "
+            f"{sum(len(v) for v in page_elements.values())} total elements "
+            f"across {len(page_elements)} pages"
+        )
+
+        
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

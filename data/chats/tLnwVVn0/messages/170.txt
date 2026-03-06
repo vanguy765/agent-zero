@@ -1,0 +1,37 @@
+626 detection.py
+
+def image_to_base64(pil_image: Image.Image, format: str = "PNG") -> str:
+    """Convert PIL Image to base64 string."""
+    import base64
+    buffered = BytesIO()
+    pil_image.save(buffered, format=format)
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+
+# ============================================================
+# CV2-Based Bounding Box Detection (Alternative to LLM)
+# ============================================================
+
+def detect_elements_cv2(
+    pil_image: Image.Image,
+    min_area_ratio: float = 0.01,
+    max_area_ratio: float = 0.85,
+) -> List[dict]:
+    """Detect distinct visual elements on a page using CV2 contour detection.
+
+    This is an alternative to LLM-based bounding box detection.
+--- END BEFORE ---
+        logger.warning(f"CV2 bounding box detection failed: {e}")
+        return []
+
+
+def crop_element(
+    pil_image: Image.Image,
+    bbox: List[float],
+    padding_pct: float = 0.01,
+) -> Image.Image:
+    """Crop an element from a page image using normalized bounding box.
+
+    Args:
+        pil_image: Full-page rendered image
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

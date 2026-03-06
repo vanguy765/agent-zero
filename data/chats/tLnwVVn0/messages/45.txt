@@ -1,0 +1,37 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# version: '3.8'
+
+services:
+  doc-parser:
+    build: .
+    volumes:
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    env_file:
+      - .env
+    environment:
+      - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    # Run uvicorn server with reload for development
+    command: uvicorn server:app --host 0.0.0.0 --port 5000 --reload
+    ports:
+      - "5000:5000"
+    networks:
+      - agent-zero-network
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  agent-zero-network:
+    external: true
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# OPENROUTER_API_KEY=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
+DEFAULT_LLM_PROVIDER=openrouter/anthropic/claude-3.5-sonnet(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,41 @@
+=== PAGE 1 ===
+Classification: floorplan
+Site photos: 0
+Diagrams: 0
+Tables: 0
+Floorplans: 1
+
+  Unit: 201 (1BR)
+  Floor: 2
+  Bedrooms: 1, Bathrooms: 1
+  Total area: 480 sf
+  Rooms (4):
+    - Living/Dining: 180 sf, flooring=carpet
+    - Kitchen: 90 sf, flooring=vinyl
+    - Bedroom: 120 sf, flooring=carpet
+    - Bathroom: 50 sf, flooring=vinyl
+  Doors (4):
+    - Unit Entry (exterior): 36x80in, solid-core
+    - Deck (exterior): 72x80in, glass
+    - Bedroom (interior): 36x80in, hollow-core
+    - Bathroom (interior): 36x80in, hollow-core
+  Windows (2):
+    - Living Room - Front (sliding): 60x60in
+    - Bedroom - Front (sliding): 60x60in
+  Fixtures (6):
+    - Range in Kitchen: Electric range - to remain
+    - Refrigerator in Kitchen: To remain
+    - Hood Fan in Kitchen: To remain
+    - Toilet in Bathroom: To be replaced
+    - Vanity in Bathroom: Install existing
+    - Bathtub in Bathroom: Repair - install hand held shower, 2 grab bars
+  Upgrades (5):
+    - Touch up walls and ceiling (painting) @ All rooms
+    - Replace interior door hardware (carpentry) @ All interior doors
+    - Install bathroom accessories (carpentry) @ Bathroom
+    - Replace toilet (plumbing) @ Bathroom
+    - Install window coverings (carpentry) @ All windows
+
+=== UNITS ARRAY (1) ===
+  Unit 201: keys=['unit_number', 'unit_type', 'floor', 'bedrooms', 'bathrooms', 'half_baths', 'area_sf', 'rooms', 'doors', 'windows', 'fixtures', 'upgrades', 'general_notes', 'source_page']
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

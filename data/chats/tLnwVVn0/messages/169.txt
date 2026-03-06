@@ -1,0 +1,89 @@
+# ==================================================
+        # PHASE 3: Docling-Based Classification & Table Collection
+        # ==================================================
+        await job_manager.update_progress(
+            job_id, current_step="classifying_with_docling",
+        )
+
+        table_data: List[Tuple[int, str]] = []
+        footer_sample: Optional[Dict[str, Any]] = None
+        docling_floorplan_pages: set = set()
+        docling_content_pages: set = set()
+
+        # Collect tables from Docling
+        for table in result_doc.tables:
+            md_text = table.export_to_markdown()
+            page_no = table.prov[0].page_no if table.prov else 1
+            is_footer = sum(1 for kw in FOOTER_KEYWORDS if kw in md_text.lower()) >= 3
+            if is_footer:
+                if not footer_sample:
+                    footer_sample = {"markdown": md_text, "page_no": page_no}
+                continue
+            table_data.append((page_no, md_text))
+
+        # Classify Docling pictures to identify interesting pages
+        for pic in result_doc.pictures:
+            if not pic.image:
+                continue
+            try:
+                pil_img = pic.image.pil_image
+            except AttributeError:
+                continue
+            page_no = pic.prov[0].page_no if pic.prov else 1
+            docling_content_pages.add(page_no)
+            classification = classify_image(pil_img)
+            if classification == "floorplan":
+                docling_floorplan_pages.add(page_no)
+
+        # Full-page heuristic for pages Docling missed
+        for i, page_img in enumerate(pdf_pages):
+            page_no = i + 1
+            if page_no not in docling_content_pages:
+                if is_architectural_drawing(page_img) and has_architectural_text(page_img):
+                    docling_floorplan_pages.add(page_no)
+                    docling_content_pages.add(page_no)
+                    logger.info(f"Job {job_id}: Page {page_no} floorplan via heuristic")
+
+        # Determine pages needing bounding box detection
+        pages_needing_bbox: set = set()
+        docling_table_pages = {pg for pg, _ in table_data}
+
+        for i in range(total_pages):
+            page_no = i + 1
+            if page_no in docling_content_pages:
+                pages_needing_bbox.add(page_no)
+            elif page_no not in docling_table_pages:
+                # Check for image-based tables via grid detection
+                try:
+                    import numpy as np
+                    import cv2
+                    pg_arr = np.array(pdf_pages[i].convert("L"))
+                    edges = cv2.Canny(pg_arr, 50, 150)
+                    hk = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 1))
+                    hz = cv2.morphologyEx(edges, cv2.MORPH_OPEN, hk)
+                    vk = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 40))
+                    vt = cv2.morphologyEx(edges, cv2.MORPH_OPEN, vk)
+                    hl = cv2.HoughLinesP(hz, 1, np.pi/180, 30, minLineLength=50, maxLineGap=10)
+                    vl = cv2.HoughLinesP(vt, 1, np.pi/180, 30, minLineLength=50, maxLineGap=10)
+                    gs = min(len(hl) if hl is not None else 0, len(vl) if vl is not None else 0)
+                    if gs >= 15:
+                        pages_needing_bbox.add(page_no)
+                        logger.info(f"Job {job_id}: Page {page_no} grid detected (score={gs})")
+                except Exception:
+                    pass
+
+        await job_manager.update_progress(
+            job_id, tables_found=len(table_data),
+            floorplans_found=len(docling_floorplan_pages),
+            current_step=f"classified_{len(pages_needing_bbox)}_pages_for_bbox",
+        )
+        logger.info(
+            f"Job {job_id}: {len(docling_floorplan_pages)} floorplan pages, "
+            f"{len(table_data)} tables, {len(pages_needing_bbox)} pages for bbox"
+        )
+
+        # ==================================================
+        # PHASE 4: Bounding Box Detection via LLM
+        # ==================================================
+        await job_manager.update_progress(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

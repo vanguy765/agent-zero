@@ -1,0 +1,25 @@
+Page: 2550x1650
+Photos: 1
+Structural candidates: 5
+  [0] [39,35,2515,1615] size=2476x1580
+  [1] [1445,126,2417,1237] size=972x1111
+  [2] [738,122,1415,748] size=677x626
+  [3] [39,1488,914,1615] size=875x127
+  [4] [1556,1061,2295,1160] size=739x99
+  -> table conf=0.82 lines=2650 grid=11 edge=0.067
+  -> table conf=0.86 lines=239 grid=13 edge=0.079
+  -> floorplan conf=0.89 lines=820 grid=4 edge=0.077
+  -> diagram conf=0.70 lines=92 grid=0 edge=0.151
+  -> diagram conf=0.70 lines=57 grid=6 edge=0.080
+
+=== TOTAL: 6 elements ===
+  Types: {'table': 2, 'floorplan': 1, 'photo': 1, 'diagram': 2}
+  [ 0] table        conf=0.82 [39,35,2515,1615] lines=2650 grid=11 edge=0.067
+  [ 1] table        conf=0.86 [738,122,1415,748] lines=239 grid=13 edge=0.079
+  [ 2] floorplan    conf=0.89 [1445,126,2417,1237] lines=820 grid=4 edge=0.077
+  [ 3] photo        conf=0.95 [44,763,1329,1433]
+  [ 4] diagram      conf=0.70 [1556,1061,2295,1160] lines=92 grid=0 edge=0.151
+  [ 5] diagram      conf=0.70 [39,1488,914,1615] lines=57 grid=6 edge=0.080
+
+Visualization: voicelog-scaffold/doc-parser/verify_images/original_page_1_detected.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

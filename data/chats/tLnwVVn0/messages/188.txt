@@ -1,0 +1,13 @@
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+Cell In[1], line 14
+      9     resp = requests.post(f'{BASE}/parse', files={'file': ('page_8.pdf', f, 'application/pdf')},
+     10                         data={'engine': 'hybrid', 'tenant_name': 'test_tenant',
+     11                               'project_name': '4c1a5fd2-75f0-4a69-b5ec-d620ba0960af'})
+     13 job = resp.json()
+---> 14 job_id = job['job_id']
+     15 print(f'Job submitted: {job_id}')
+     17 # Poll for completion
+
+KeyError: 'job_id'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

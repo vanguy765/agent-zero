@@ -1,0 +1,10 @@
+INFO:     Started server process [1477]
+INFO:     Waiting for application startup.
+2026-03-06 01:48:28,306 [INFO] job_manager: Using in-memory job store
+2026-03-06 01:48:28,306 [INFO] job_manager: Job cleanup loop started (interval=10min)
+2026-03-06 01:48:28,306 [INFO] server: Doc-parser started (store=memory, provider=anthropic/claude-3.5-sonnet)
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

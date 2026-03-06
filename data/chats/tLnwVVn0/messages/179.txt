@@ -1,0 +1,18 @@
+Downloading 14 items with auth...
+  ⚠️ thumbnail: HTTP 400, 0.1KB → thumbnail.png
+  ⚠️ floorplan: HTTP 400, 0.1KB → floorplan.png
+  ⚠️ photo_00: HTTP 400, 0.1KB → photo_00.png
+  ⚠️ photo_01: HTTP 400, 0.1KB → photo_01.png
+  ⚠️ photo_02: HTTP 400, 0.1KB → photo_02.png
+  ⚠️ photo_03: HTTP 400, 0.1KB → photo_03.png
+  ⚠️ photo_04: HTTP 400, 0.1KB → photo_04.png
+  ⚠️ photo_05: HTTP 400, 0.1KB → photo_05.png
+  ⚠️ photo_06: HTTP 400, 0.1KB → photo_06.png
+  ⚠️ photo_07: HTTP 400, 0.1KB → photo_07.png
+  ⚠️ photo_08: HTTP 400, 0.1KB → photo_08.png
+  ⚠️ photo_09: HTTP 400, 0.1KB → photo_09.png
+  ⚠️ photo_10: HTTP 400, 0.1KB → photo_10.png
+  ⚠️ table_0: HTTP 400, 0.1KB → table_0.md
+
+Done.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

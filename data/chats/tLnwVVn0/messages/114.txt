@@ -1,0 +1,22 @@
+async def update_progress(
+        self,
+        job_id: str,
+        phase: Optional[ProcessingPhase] = None,
+        current_page: Optional[int] = None,
+        total_pages: Optional[int] = None,
+        current_step: Optional[str] = None,
+        floorplans_found: Optional[int] = None,
+        tables_found: Optional[int] = None,
+    ) -> None:
+        """Update job progress with granular tracking.
+
+        Priority 3: Provides real-time progress visibility.
+        """
+        job = await self._store.get_job(job_id)
+        if not job:
+            return
+
+        progress = job.progress
+        if phase is not None:
+            progress.current_phase = phase
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

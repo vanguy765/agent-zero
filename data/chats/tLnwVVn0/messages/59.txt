@@ -1,0 +1,64 @@
+--- Call site ---
+L772:         result = assemble_hybrid_output(
+L773:             unit_extractions=unit_extractions,
+L774:             table_data=table_data,
+L775:             footer_sample=footer_sample,
+L776:             floorplan_candidates=floorplan_candidates,
+L777:             site_photos=site_photos,
+L778:             diagrams=diagrams,
+L779:             pdf_pages=pdf_pages,
+L780:             synthesis=synthesis_result,
+L781:             sb_client=sb_client,
+L782:             tenant_name=tenant_name,
+L783:             project_name=project_name,
+L784:             floorplan_urls=floorplan_urls,
+L785:             photo_urls=photo_urls,
+L786:             diagram_urls=diagram_urls,
+L787:         )
+L788:
+L789:         # Calculate confidence (Priority 6)
+L790:         result["confidence"] = calculate_confidence(
+L791:             units=result.get("units", []),
+
+--- Function signature ---
+L828: def assemble_hybrid_output(
+L829:     unit_extractions: List[Dict[str, Any]],
+L830:     table_data: List[Tuple[int, str]],
+L831:     footer_sample: Optional[Dict[str, Any]],
+L832:     floorplan_candidates: List[Tuple[int, Image.Image, str]],
+L833:     site_photos: List[Tuple[int, Image.Image]],
+L834:     diagrams: List[Tuple[int, Image.Image]],
+L835:     pdf_pages: list,
+L836:     synthesis: Optional[Dict[str, Any]] = None,
+L837:     sb_client=None,
+L838:     tenant_name: str = "",
+L839:     project_name: str = "",
+L840:     floorplan_urls: Optional[Dict[int, str]] = None,
+L841:     photo_urls: Optional[Dict[int, str]] = None,
+L842:     diagram_urls: Optional[Dict[int, str]] = None,
+L843: ) -> Dict[str, Any]:
+L844:     """Assemble hybrid pipeline output in both page-oriented and unit-oriented formats.
+L845:
+L846:     Produces BOTH formats:
+L847:     - pages: page-oriented (for doc-parser native consumers)
+
+--- Pages output section ---
+L928:         if page_no in output["pages"]:
+L929:             output["pages"][page_no]["classification"] = "site_photo"
+L930:             if photo_urls and page_no in photo_urls:
+L931:                 output["pages"][page_no]["site_photos"].append(photo_urls[page_no])
+L932:
+L933:     for page_no, _ in diagrams:
+L934:         if page_no in output["pages"]:
+L935:             output["pages"][page_no]["classification"] = "diagram"
+L936:             if diagram_urls and page_no in diagram_urls:
+L937:                 output["pages"][page_no]["diagrams"].append(diagram_urls[page_no])
+L938:
+L939:     # --- Build summary ---
+L940:     output["summary"] = {
+L941:         "units_count": len(output["units"]),
+L942:         "pages_count": len(pdf_pages),
+L943:         "floorplans_count": len(floorplan_candidates),
+L944:         "tables_count": len(table_data),
+L945:         "site_photos_count": len(site_photos),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

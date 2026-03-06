@@ -1,0 +1,43 @@
+# Doc-parser service dependencies
+# Priority 1-7 implementation (merged)
+
+# Core framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Data models
+pydantic>=2.5.0
+
+# Document processing
+docling>=2.0.0
+pdf2image>=1.16.3
+Pillow>=10.0.0
+pdfplumber
+pymupdf
+
+# OCR & image analysis
+pytesseract>=0.3.10
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+
+# LLM integration
+litellm>=1.0.0
+
+# Storage
+supabase>=2.0.0
+
+# Data & templating
+pandas
+openpyxl
+jinja2
+
+# Utilities
+requests
+python-dotenv
+
+# System dependencies (install via apt):
+# - tesseract-ocr
+# - poppler-utils (for pdf2image)
+# - libgl1-mesa-glx (for opencv)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,44 @@
+=== Functions ===
+57:async def run_llm_extraction(
+88:async def run_text_llm(
+118:async def upload_image_to_storage(
+162:async def upload_table_to_storage(
+194:def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+221:async def process_hybrid(
+847:def assemble_hybrid_output(
+
+=== Key Variables ===
+31:    TABLE_ANALYSIS_PROMPT, BOUNDING_BOX_PROMPT
+36:    detect_elements_cv2, crop_element, create_thumbnail
+299:        thumbnail_urls: Dict[int, str] = {}
+303:            thumb = create_thumbnail(page_img, max_width=400)
+311:                    thumbnail_urls[page_no] = url
+319:                thumbnail_urls[page_no] = local_path
+321:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+370:        pages_needing_bbox: set = set()
+376:                pages_needing_bbox.add(page_no)
+392:                        pages_needing_bbox.add(page_no)
+400:            current_step=f"classified_{len(pages_needing_bbox)}_pages_for_bbox",
+404:            f"{len(table_data)} tables, {len(pages_needing_bbox)} pages for bbox"
+415:        # page_elements: {page_no: [list of {type, bbox, label, confidence}]}
+416:        page_elements: Dict[int, List[Dict[str, Any]]] = {}
+418:        for page_no in sorted(pages_needing_bbox):
+433:                    provider, BOUNDING_BOX_PROMPT, page_b64, max_tokens=4096
+437:                    page_elements[page_no] = elements
+449:                    page_elements[page_no] = [{
+458:            f"{sum(len(v) for v in page_elements.values())} total elements "
+459:            f"across {len(page_elements)} pages"
+474:        floorplan_urls: Dict[int, str] = {}
+475:        photo_urls: Dict[int, List[str]] = {}
+476:        diagram_urls: Dict[int, List[str]] = {}
+478:        for page_no, elements in page_elements.items():
+489:                cropped = crop_element(page_img, bbox)
+503:                            floorplan_urls[page_no] = url
+511:                        floorplan_urls[page_no] = local_path
+523:                            photo_urls.setdefault(page_no, []).append(url)
+531:                        photo_urls.setdefault(page_no, []).append(local_path)
+543:                            diagram_urls.setdefault(page_no, []).append(url)
+
+=== Line count ===
+942 hybrid.py
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

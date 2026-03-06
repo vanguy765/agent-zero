@@ -1,0 +1,202 @@
+---fallback---
+{
+    "job_id": "e6b37512-4ba4-4536-b689-e6114527982c",
+    "status": "completed",
+    "result": {
+        "engine": "hybrid",
+        "pages": {
+            "1": {
+                "page_number": 1,
+                "floorplans": [
+                    {
+                        "unit_number": "201",
+                        "unit_type": "1BR",
+                        "floor": 2,
+                        "bedrooms": 1,
+                        "bathrooms": 1,
+                        "half_baths": 0,
+                        "total_area_sf": 480,
+                        "rooms": [
+                            {
+                                "name": "Living/Dining",
+                                "area_sf": 168,
+                                "length_ft": 14,
+                                "width_ft": 12,
+                                "ceiling_height_ft": 8,
+                                "baseboard_length_ft": 44,
+                                "baseboard_exclusions": [
+                                    "doorway",
+                                    "window"
+                                ],
+                                "baseboard_exclusion_reasoning": "Subtract 3' for entry door, 5' for window",
+                                "fixtures": [
+                                    "18\" LED disc light"
+                                ],
+                                "flooring_type": "remain",
+                                "notes": "Touch up walls and ceiling"
+                            },
+                            {
+                                "name": "Bedroom",
+                                "area_sf": 120,
+                                "length_ft": 12,
+                                "width_ft": 10,
+                                "ceiling_height_ft": 8,
+                                "baseboard_length_ft": 38,
+                                "baseboard_exclusions": [
+                                    "closet opening",
+                                    "window"
+                                ],
+                                "baseboard_exclusion_reasoning": "Subtract 6' for closet, 4' for window",
+                                "fixtures": [
+                                    "18\" LED disc light"
+                                ],
+                                "flooring_type": "remain",
+                                "notes": "Touch up walls and ceiling"
+                            },
+                            {
+                                "name": "Kitchen",
+                                "area_sf": 80,
+                                "length_ft": 10,
+                                "width_ft": 8,
+                                "ceiling_height_ft": 8,
+                                "baseboard_length_ft": 16,
+                                "baseboard_exclusions": [
+                                    "kitchen cabinets",
+                                    "doorway"
+                                ],
+                                "baseboard_exclusion_reasoning": "Subtract 20' for cabinets, 3' for door",
+                                "fixtures": [
+                                    "Range",
+                                    "Refrigerator",
+                                    "Sink",
+                                    "18\" LED disc light"
+                                ],
+                                "flooring_type": "remain",
+                                "notes": "Keep existing appliances and sink"
+                            },
+                            {
+                                "name": "Bathroom",
+                                "area_sf": 50,
+                                "length_ft": 8,
+                                "width_ft": 6.25,
+                                "ceiling_height_ft": 8,
+                                "baseboard_length_ft": 12,
+                                "baseboard_exclusions": [
+                                    "vanity",
+                                    "bathtub",
+                                    "doorway"
+                                ],
+                                "baseboard_exclusion_reasoning": "Subtract 3' for vanity, 5' for tub, 3' for door",
+                                "fixtures": [
+                                    "Toilet",
+                                    "Vanity",
+                                    "Bathtub",
+                                    "24\" LED linear light",
+                                    "Ceiling fan"
+                                ],
+                                "flooring_type": "remain",
+                                "notes": "Replace all fixtures except tub (repair)"
+                            }
+                        ],
+                        "doors": [
+                            {
+                                "location": "Unit Entry",
+                                "room": "Living Room",
+                                "type": "exterior",
+                                "width_in": 36,
+                                "height_in": 80,
+                                "hardware": "lever, deadbolt, closer, peephole",
+                                "action": "swing",
+                                "swing_direction": "in",
+                                "material": "solid-core",
+                                "notes": "Paint door, repair hardware"
+                            },
+                            {
+                                "location": "Bedroom",
+                                "room": "Bedroom",
+                                "type": "interior",
+                                "width_in": 32,
+                                "height_in": 80,
+                                "hardware": "lever",
+                                "action": "swing",
+                                "swing_direction": "in",
+                                "material": "hollow-core",
+                                "notes": "Replace door and hardware"
+                            },
+                            {
+                                "location": "Bathroom",
+                                "room": "Bathroom",
+                                "type": "interior",
+                                "width_in": 32,
+                                "height_in": 80,
+                                "hardware": "privacy lever",
+                                "action": "swing",
+                                "swing_direction": "in",
+                                "material": "hollow-core",
+                                "notes": "Replace door and hardware"
+                            },
+                            {
+                                "location": "Bedroom Closet",
+                                "room": "Bedroom",
+                                "type": "sliding",
+                                "width_in": 72,
+                                "height_in": 80,
+                                "hardware": "pull",
+                                "action": "slide",
+                                "swing_direction": "none",
+                                "material": "hollow-core",
+                                "notes": "Replace bifold with new sliders"
+                            }
+                        ],
+                        "windows": [
+                            {
+                                "location": "Living Room - South Wall",
+                                "room": "Living Room",
+                                "type": "sliding",
+                                "width_in": 60,
+                                "height_in": 60,
+                                "sill_height_in": 30,
+                                "count": 1,
+                                "glazing": "double",
+                                "operable": true,
+                                "notes": "Install window coverings"
+                            },
+                            {
+                                "location": "Bedroom - South Wall",
+                                "room": "Bedroom",
+                                "type": "sliding",
+                                "width_in": 48,
+                                "height_in": 60,
+                                "sill_height_in": 30,
+                                "count": 1,
+                                "glazing": "double",
+                                "operable": true,
+                                "notes": "Install window coverings"
+                            }
+                        ],
+                        "fixtures": [
+                            {
+                                "name": "Toilet",
+                                "room": "Bathroom",
+                                "type": "plumbing",
+                                "specifications": "Replace",
+                                "count": 1
+                            },
+                            {
+                                "name": "Vanity Sink",
+                                "room": "Bathroom",
+                                "type": "plumbing",
+                                "specifications": "Replace lavatory and faucet",
+                                "count": 1
+                            },
+                            {
+                                "name": "Bathtub",
+                                "room": "Bathroom",
+                                "type": "plumbing",
+                                "specifications": "Repair - install hand held shower, 2 grab bars",
+                                "count": 1
+                            },
+                            {
+                                "name": "Range",
+                                "room": "Kitchen",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

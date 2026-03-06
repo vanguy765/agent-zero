@@ -1,0 +1,11 @@
+=== ALL UPLOADED URLS ===
+FLOORPLAN (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_floorplan_page_1.png
+PHOTO 0 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx0.png
+PHOTO 1 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx1.png
+PHOTO 2 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx2.png
+PHOTO 3 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx3.png
+PHOTO 4 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx4.png
+PHOTO 5 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx5.png
+PHOTO 6 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_photo_page_1_idx6.png
+TABLE 0 (page 1): http://host.docker.internal:54321/storage/v1/object/public/project-documents/default/unassigned/doc-parser/job_af1c8192-c52b-4515-a68b-654402132d5a_table_page_1_0.md
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

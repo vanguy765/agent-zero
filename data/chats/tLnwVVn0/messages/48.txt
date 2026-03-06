@@ -1,0 +1,19 @@
+document_images count: */0
+
+Migration references:
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql:-- Table: document_images
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql:CREATE TABLE public.document_images (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql:ALTER TABLE ONLY public.document_images
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql:    ADD CONSTRAINT document_images_pkey PRIMARY KEY (id);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000008_foreign_keys.sql:ALTER TABLE ONLY public.document_images
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000008_foreign_keys.sql:    ADD CONSTRAINT document_images_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.project_documents(id) ON DELETE CASCADE;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000008_foreign_keys.sql:    ADD CONSTRAINT image_links_image_id_fkey FOREIGN KEY (image_id) REFERENCES public.document_images(id) ON DELETE CASCADE;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000009_indexes.sql:CREATE INDEX idx_document_images_document_id ON public.document_images USING btree (document_id);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000012_rls_policies.sql:ALTER TABLE public.document_images ENABLE ROW LEVEL SECURITY;
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000012_rls_policies.sql:  ON public.document_images FOR SELECT
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000012_rls_policies.sql:    WHERE project_documents.id = document_images.document_id
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000012_rls_policies.sql:  ON public.document_images FOR INSERT
+/a0/usr/projects/t
+
+test_tenant storage: [{'name': '.emptyFolderPlaceholder', 'id': '702edc55-d6a4-494f-9f33-d86e9c2794f9', 'updated_at': '2026-03-06T00:53:14.483Z', 'created_at': '2026-03-06T00:53:14.483Z', 'last_accessed_at': '2026-03-06T00:53:14.483Z', 'metadata': {'eTag': '"d41d8cd98f00b204e9800998ecf8427e"', 'size': 0, 'mimetype': 'application/octet-stream', 'cacheControl': 'max-age=3600', 'lastModified': '2026-03-06T00:53:14.477Z', 'contentLength': 0, 'httpStatusCode': 200}}, {'name': '4c1a5fd2-75f0-4a69-b5ec-d620ba0960af', 'id': None, 'updated_at': None, 'created_at': None, 'last_accessed_at': None, 'metadata': None}]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

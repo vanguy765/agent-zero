@@ -1,0 +1,10 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 2
+      1 # Phase 1-4 of process_hybrid
+----> 2 lines.append('# ============================================================')
+      3 lines.append('# Hybrid Pipeline Processor')
+      4 lines.append('# ============================================================')
+
+NameError: name 'lines' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

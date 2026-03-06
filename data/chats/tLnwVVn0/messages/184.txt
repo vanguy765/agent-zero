@@ -1,0 +1,18 @@
+<>:3: SyntaxWarning: invalid escape sequence '\|'
+<ipython-input-1-1cdfbd99c032>:3: SyntaxWarning: invalid escape sequence '\|'
+  result = subprocess.run(['grep', '-rn', 'create_signed_url\|signed_url\|get_public_url',
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_cv2_integration/hybrid_backup_20260306_060347.py:140:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_cv2_integration/hybrid_backup_20260306_060347.py:182:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_page_render/hybrid_backup_20260306_042532.py:156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_page_render/hybrid_backup_20260306_042532.py:211:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_page_render/hybrid_old_working_20260306_043701.py:156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_page_render/hybrid_old_working_20260306_043701.py:211:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_storage_fix/hybrid_backup_20260306_014441.py:156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_storage_fix/hybrid_backup_20260306_021849.py:156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_storage_fix/hybrid_backup_20260306_023229.py:156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_storage_fix/hybrid_backup_20260306_034300.py:156:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/backups_storage_fix/hybrid_backup_20260306_034300.py:211:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py:140:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py:182:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

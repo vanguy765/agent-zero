@@ -1,0 +1,32 @@
+=== SUMMARY ===
+{
+  "units_count": 1,
+  "pages_count": 1,
+  "floorplans_count": 1,
+  "tables_count": 0,
+  "site_photos_count": 0,
+  "diagrams_count": 0,
+  "total_doors": 4,
+  "total_windows": 2,
+  "total_baseboard_ft": 105.0,
+  "trades": [
+    "carpentry",
+    "painting",
+    "plumbing"
+  ],
+  "has_footer": true,
+  "has_synthesis": false,
+  "extraction_errors": 0
+}
+
+=== PAGES (1) ===
+
+Page 1:
+  classification: floorplan
+  floorplans: 1
+  tables: 0
+  site_photos: 0
+  diagrams: 0
+
+=== TOP-LEVEL TABLES (0) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

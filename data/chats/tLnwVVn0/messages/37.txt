@@ -1,0 +1,21 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 28:import tempfile
+148:# Helper: Save upload to temp file
+151:async def save_upload_to_temp(file: UploadFile) -> str:
+152:    """Save uploaded file to a temporary path."""
+153:    suffix = os.path.splitext(file.filename or "upload.pdf")[1]
+154:    fd, temp_path = tempfile.mkstemp(suffix=suffix)
+162:    return temp_path
+184:    temp_path = await save_upload_to_temp(file)
+194:        temp_path,
+212:    temp_path: str,
+232:                job_id, temp_path, provider,
+244:        if os.path.exists(temp_path):
+246:                os.remove(temp_path)
+253:    temp_path: str,
+289:        converter.convert, temp_path
+292:    pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+552:    temp_path = await save_upload_to_temp(file)
+563:        temp_path,
+580:    temp_path: str,
+591:                temp_path=temp_path,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

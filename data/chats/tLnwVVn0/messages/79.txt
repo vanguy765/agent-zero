@@ -1,0 +1,58 @@
+---------------------------------------------------------------------------
+HTTPError                                 Traceback (most recent call last)
+Cell In[1], line 21
+     19     if url:
+     20         fname = f'floorplan_page_{pk}.png'
+---> 21         urllib.request.urlretrieve(url, os.path.join(outdir, fname))
+     22         print(f'Downloaded: {fname}')
+     24 for i, sp in enumerate(pv.get('site_photos', [])):
+
+File /usr/lib/python3.13/urllib/request.py:214, in urlretrieve(url, filename, reporthook, data)
+    197 """
+    198 Retrieve a URL into a temporary location on disk.
+    199
+   (...)    210 data file as well as the resulting HTTPMessage object.
+    211 """
+    212 url_type, path = _splittype(url)
+--> 214 with contextlib.closing(urlopen(url, data)) as fp:
+    215     headers = fp.info()
+    217     # Just return the local path and the "headers" for file://
+    218     # URLs. No sense in performing a copy unless requested.
+
+File /usr/lib/python3.13/urllib/request.py:189, in urlopen(url, data, timeout, context)
+    187 else:
+    188     opener = _opener
+--> 189 return opener.open(url, data, timeout)
+
+File /usr/lib/python3.13/urllib/request.py:495, in OpenerDirector.open(self, fullurl, data, timeout)
+    493 for processor in self.process_response.get(protocol, []):
+    494     meth = getattr(processor, meth_name)
+--> 495     response = meth(req, response)
+    497 return response
+
+File /usr/lib/python3.13/urllib/request.py:604, in HTTPErrorProcessor.http_response(self, request, response)
+    601 # According to RFC 2616, "2xx" code indicates that the client's
+    602 # request was successfully received, understood, and accepted.
+    603 if not (200 <= code < 300):
+--> 604     response = self.parent.error(
+    605         'http', request, response, code, msg, hdrs)
+    607 return response
+
+File /usr/lib/python3.13/urllib/request.py:533, in OpenerDirector.error(self, proto, *args)
+    531 if http_err:
+    532     args = (dict, 'default', 'http_error_default') + orig_args
+--> 533     return self._call_chain(*args)
+
+File /usr/lib/python3.13/urllib/request.py:466, in OpenerDirector._call_chain(self, chain, kind, meth_name, *args)
+    464 for handler in handlers:
+    465     func = getattr(handler, meth_name)
+--> 466     result = func(*args)
+    467     if result is not None:
+    468         return result
+
+File /usr/lib/python3.13/urllib/request.py:613, in HTTPDefaultErrorHandler.http_error_default(self, req, fp, code, msg, hdrs)
+    612 def http_error_default(self, req, fp, code, msg, hdrs):
+--> 613     raise HTTPError(req.full_url, code, msg, hdrs, fp)
+
+HTTPError: HTTP Error 400: Bad Request
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

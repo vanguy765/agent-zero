@@ -1,0 +1,21 @@
+=== DETECTED 17 ELEMENTS ===
+  [ 0] table        conf=0.95 bbox=[np.int32(31), np.int32(32), np.int32(2532), np.int32(1628)] | table (2501x1596px) lines=2613 grid=171
+  [ 1] floorplan    conf=0.88 bbox=[np.int32(1443), np.int32(124), np.int32(2421), np.int32(1241)] | floorplan (978x1117px) lines=787 grid=8
+  [ 2] photo        conf=0.95 bbox=[44, 763, 217, 1064] | photo (173x301px)
+  [ 3] photo        conf=0.95 bbox=[322, 763, 447, 1065] | photo (125x302px)
+  [ 4] photo        conf=0.95 bbox=[480, 763, 549, 1065] | photo (69x302px)
+  [ 5] photo        conf=0.93 bbox=[577, 764, 805, 1067] | photo (228x303px)
+  [ 6] photo        conf=0.95 bbox=[845, 764, 1071, 1066] | photo (226x302px)
+  [ 7] photo        conf=0.95 bbox=[1102, 764, 1329, 1066] | photo (227x302px)
+  [ 8] photo        conf=0.95 bbox=[44, 1102, 290, 1433] | photo (246x331px)
+  [ 9] floorplan    conf=0.83 bbox=[np.int32(569), np.int32(1119), np.int32(812), np.int32(1437)] | floorplan (243x318px) lines=22 grid=4
+  [10] floorplan    conf=0.84 bbox=[np.int32(313), np.int32(1120), np.int32(558), np.int32(1440)] | floorplan (245x320px) lines=30 grid=4
+  [11] diagram      conf=0.70 bbox=[np.int32(836), np.int32(1120), np.int32(1079), np.int32(1438)] | diagram (243x318px) lines=15 grid=4
+  [12] diagram      conf=0.70 bbox=[np.int32(1093), np.int32(1120), np.int32(1337), np.int32(1438)] | diagram (244x318px) lines=14 grid=4
+  [13] photo        conf=0.95 bbox=[321, 1128, 551, 1433] | photo (230x305px)
+  [14] photo        conf=0.95 bbox=[577, 1128, 805, 1430] | photo (228x302px)
+  [15] photo        conf=0.95 bbox=[845, 1128, 1071, 1430] | photo (226x302px)
+  [16] photo        conf=0.95 bbox=[1102, 1128, 1329, 1430] | photo (227x302px)
+
+Summary: {'table': 1, 'floorplan': 3, 'photo': 11, 'diagram': 2}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

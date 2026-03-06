@@ -1,0 +1,14 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 9
+      1 # ============================================================
+      2 # IMPROVED STRUCTURAL DETECTION
+      3 # Strategy: Use projection profiles to find natural page divisions,
+   (...)      7 # First, let's look at the non-photo content distribution
+      8 # Create edge map excluding photos
+----> 9 img_no_photos = img_gray.copy()
+     10 img_no_photos[photo_mask > 0] = 255
+     12 blurred = cv2.GaussianBlur(img_no_photos, (3, 3), 0)
+
+NameError: name 'img_gray' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,22 @@
+class ProcessingPhase(str, Enum):
+    """Granular processing phases for progress tracking."""
+    QUEUED = "queued"
+    DOCLING_CONVERSION = "docling_conversion"
+    CLASSIFICATION = "classification"
+    IMAGE_EXTRACTION = "image_extraction"
+    LLM_ANALYSIS = "llm_analysis"
+    SYNTHESIS = "synthesis"
+    UPLOADING = "uploading"
+    COMPLETE = "complete"
+
+
+class EngineType(str, Enum):
+    """Available parsing engine modes."""
+    DOCLING = "docling"
+    HYBRID = "hybrid"
+
+
+# ============================================================
+# Job Tracking Models
+# ============================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

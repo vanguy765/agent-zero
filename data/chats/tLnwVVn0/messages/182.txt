@@ -1,0 +1,63 @@
+{
+  "table_type": "finish_schedule",
+  "entries": [
+    {
+      "mark": "1.0",
+      "description": "FINISHES",
+      "specifications": {
+        "ceiling": "touch up all rooms",
+        "walls": "touch up all rooms",
+        "floors": "remain"
+      }
+    },
+    {
+      "mark": "2.0",
+      "description": "DOORS",
+      "specifications": {
+        "entry": "paint",
+        "entry_hardware": "repair",
+        "interior": "replace",
+        "interior_hardware": "replace",
+        "bifold_hardware": "new sliders"
+      }
+    },
+    {
+      "mark": "3.0",
+      "description": "LIGHT FIXTURES",
+      "specifications": {
+        "type1": "12\" LED disc",
+        "type2": "12\" LED disc",
+        "type3": "24\" LED light over vanity"
+      }
+    },
+    {
+      "mark": "4.0",
+      "description": "KITCHEN PLUMBING FIXTURES",
+      "specifications": {
+        "sink": "ok keep",
+        "faucet": "ok keep"
+      }
+    },
+    {
+      "mark": "5.0",
+      "description": "BATHROOM PLUMBING FIXTURES",
+      "specifications": {
+        "lavatory": "replace",
+        "faucet": "replace",
+        "toilet": "replace",
+        "bathtub": "repair - install hand held shower, 2 grab bars",
+        "accessories": "new TP holder, 2 towel racks",
+        "ceiling_fan": "replace"
+      }
+    }
+  ],
+  "notes": [
+    "Entry hardware includes closer, deadbolt, peep hole, passage set (lever), door stop",
+    "Interior door hardware includes, privacy lever set, door stop",
+    "Tub includes surround, diverter, drain, hand-held shower, horizontal and diagonal grab bars",
+    "Medicine cabinet and mirror, towel racks (2), TP holder, robe hook",
+    "Type 1 - 12\" LED disc",
+    "Type 2 - 12\" LED disc",
+    "Type 3 - 24\" LED light over vanity"
+  ]
+}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

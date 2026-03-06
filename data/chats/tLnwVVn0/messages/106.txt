@@ -1,0 +1,28 @@
+Job ID: 0c514045-b2fd-4e84-9fdc-1705ea5c5219
+{
+    "job_id": "0c514045-b2fd-4e84-9fdc-1705ea5c5219",
+    "status": "processing",
+    "engine": "hybrid",
+    "file_name": "page_8.pdf",
+    "progress": {
+        "current_phase": "docling_conversion",
+        "phases": [
+            "docling_conversion",
+            "classification",
+            "image_extraction",
+            "llm_analysis",
+            "synthesis",
+            "uploading"
+        ],
+        "current_page": 0,
+        "total_pages": 0,
+        "current_step": "converting_pdf_with_docling",
+        "floorplans_found": 0,
+        "tables_found": 0,
+        "percent_complete": 15.0
+    },
+    "error": null,
+    "created_at": "2026-03-06T04:44:06.697372",
+    "updated_at": "2026-03-06T04:44:06.699735"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

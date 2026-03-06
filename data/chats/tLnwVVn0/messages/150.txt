@@ -1,0 +1,12 @@
+Photos after merge: 10
+  Photo 0: [44, 763, 217, 1064] size=173x301 sat=0.473
+  Photo 1: [322, 763, 447, 1065] size=125x302 sat=0.735
+  Photo 2: [577, 764, 805, 1067] size=228x303 sat=0.331
+  Photo 3: [845, 764, 1071, 1066] size=226x302 sat=0.783
+  Photo 4: [1102, 764, 1329, 1066] size=227x302 sat=0.712
+  Photo 5: [44, 1102, 290, 1433] size=246x331 sat=0.704
+  Photo 6: [321, 1128, 551, 1433] size=230x305 sat=0.731
+  Photo 7: [577, 1128, 805, 1430] size=228x302 sat=0.821
+  Photo 8: [845, 1128, 1071, 1430] size=226x302 sat=0.57
+  Photo 9: [1102, 1128, 1329, 1430] size=227x302 sat=0.519
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

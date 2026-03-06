@@ -1,0 +1,22 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# -rw-r--r-- 1 root root 1431739 Mar  6 05:27 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_all_elements_v4.png
+-rw-r--r-- 1 root root 1430177 Mar  6 05:29 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_comprehensive_v5.png
+-rw-r--r-- 1 root root 1429864 Mar  6 05:26 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_photos_v2.png
+-rw-r--r-- 1 root root 1426175 Mar  6 05:25 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_regions_v1.png
+-rw-r--r-- 1 root root    7795 Mar  6 05:26 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_sat_mask.png
+-rw-r--r-- 1 root root 1405777 Mar  6 05:26 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_saturation_v3.png
+-rw-r--r-- 1 root root 1420653 Mar  6 05:30 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_v5_improved.png
+-rw-r--r-- 1 root root   15297 Mar  6 05:26 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_variance_heatmap.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# total 652
+drwxr-xr-x 1 root root  4096 Mar  6 05:32 .
+drwxr-xr-x 1 root root  4096 Mar  6 05:34 ..
+-rw-r--r-- 1 root root 45882 Mar  6 05:32 photo_0.png
+-rw-r--r-- 1 root root 39691 Mar  6 05:32 photo_1.png
+-rw-r--r-- 1 root root 35830 Mar  6 05:32 photo_2.png
+-rw-r--r-- 1 root root 83948 Mar  6 05:32 photo_3.png
+-rw-r--r-- 1 root root 81017 Mar  6 05:32 photo_4.png
+-rw-r--r-- 1 root root 80813 Mar  6 05:32 photo_5.png
+-rw-r--r-- 1 root root 81376 Mar  6 05:32 photo_6.png
+-rw-r--r-- 1 root root 76510 Mar  6 05:32 photo_7.png
+-rw-r--r-- 1 root root 66255 Mar  6 05:32 photo_8.png
+-rw-r--r-- 1 root root 59108 Mar  6 05:32 photo_9.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images#

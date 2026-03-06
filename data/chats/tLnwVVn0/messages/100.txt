@@ -1,0 +1,22 @@
+"""Hybrid engine pipeline for doc-parser service.
+
+Priority 7: Docling structural decomposition -> Claude semantic extraction.
+Uses Docling for what it does best (OCR, table extraction, image classification)
+and Claude for what it does best (semantic understanding of architectural drawings).
+
+Pipeline:
+  PDF -> Docling (structural decomposition) -> Classified pages
+       -> Claude (only floorplan images + table context) -> Unit-oriented output
+"""
+import os
+import re
+import json
+import base64
+import asyncio
+import logging
+import traceback
+from io import BytesIO
+from typing import Dict, Any, List, Tuple, Optional
+from datetime import datetime
+---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

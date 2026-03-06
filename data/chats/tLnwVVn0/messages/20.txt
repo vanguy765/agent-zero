@@ -1,0 +1,238 @@
+{
+  "job_id": "1eab23e3-2c80-4e64-92a8-2bad8bf112da",
+  "status": "completed",
+  "result": {
+    "engine": "hybrid",
+    "pages": {
+      "1": {
+        "page_number": 1,
+        "floorplans": [
+          {
+            "unit_number": "201",
+            "unit_type": "1BR",
+            "floor": 2,
+            "bedrooms": 1,
+            "bathrooms": 1,
+            "half_baths": 0,
+            "total_area_sf": 480,
+            "rooms": [
+              {
+                "name": "Living/Dining",
+                "area_sf": 180,
+                "length_ft": 15.67,
+                "width_ft": 11.5,
+                "ceiling_height_ft": 8.0,
+                "baseboard_length_ft": 42.5,
+                "baseboard_exclusions": [
+                  "window opening",
+                  "entry door",
+                  "deck door"
+                ],
+                "baseboard_exclusion_reasoning": "Perimeter minus 3' entry door, 6' deck door, 5' window",
+                "fixtures": [
+                  "Type 2 LED light"
+                ],
+                "flooring_type": "carpet",
+                "notes": "Requires touch up of walls and ceiling"
+              },
+              {
+                "name": "Kitchen",
+                "area_sf": 90,
+                "length_ft": 9.92,
+                "width_ft": 9.17,
+                "ceiling_height_ft": 8.0,
+                "baseboard_length_ft": 12.5,
+                "baseboard_exclusions": [
+                  "kitchen cabinets",
+                  "doorway"
+                ],
+                "baseboard_exclusion_reasoning": "Perimeter minus cabinet runs and 3' doorway",
+                "fixtures": [
+                  "Range",
+                  "Refrigerator",
+                  "Hood Fan",
+                  "Type 2 LED light"
+                ],
+                "flooring_type": "vinyl",
+                "notes": "Cabinets and countertop to remain"
+              },
+              {
+                "name": "Bedroom",
+                "area_sf": 120,
+                "length_ft": 11.5,
+                "width_ft": 10.42,
+                "ceiling_height_ft": 8.0,
+                "baseboard_length_ft": 38,
+                "baseboard_exclusions": [
+                  "closet opening",
+                  "door",
+                  "window"
+                ],
+                "baseboard_exclusion_reasoning": "Perimeter minus 5' closet, 3' door, 5' window",
+                "fixtures": [
+                  "Type 2 LED light"
+                ],
+                "flooring_type": "carpet",
+                "notes": "Walls and ceiling to remain"
+              },
+              {
+                "name": "Bathroom",
+                "area_sf": 50,
+                "length_ft": 7.5,
+                "width_ft": 6.67,
+                "ceiling_height_ft": 8.0,
+                "baseboard_length_ft": 12,
+                "baseboard_exclusions": [
+                  "vanity",
+                  "bathtub",
+                  "door"
+                ],
+                "baseboard_exclusion_reasoning": "Perimeter minus vanity, tub and 3' door",
+                "fixtures": [
+                  "Toilet",
+                  "Vanity",
+                  "Bathtub",
+                  "Type 3 LED light",
+                  "Bathroom ceiling fan"
+                ],
+                "flooring_type": "vinyl",
+                "notes": "New TP holder and towel racks to be installed"
+              }
+            ],
+            "doors": [
+              {
+                "location": "Unit Entry",
+                "room": "Living/Dining",
+                "type": "exterior",
+                "width_in": 36,
+                "height_in": 80,
+                "hardware": "lever, deadbolt",
+                "action": "swing",
+                "swing_direction": "in",
+                "material": "solid-core",
+                "notes": "Requires paint, repair hardware"
+              },
+              {
+                "location": "Deck",
+                "room": "Living/Dining",
+                "type": "exterior",
+                "width_in": 72,
+                "height_in": 80,
+                "hardware": "slider",
+                "action": "slide",
+                "swing_direction": "n/a",
+                "material": "glass",
+                "notes": "New slider to be installed"
+              },
+              {
+                "location": "Bedroom",
+                "room": "Bedroom",
+                "type": "interior",
+                "width_in": 36,
+                "height_in": 80,
+                "hardware": "lever",
+                "action": "swing",
+                "swing_direction": "in",
+                "material": "hollow-core",
+                "notes": "Replace hardware"
+              },
+              {
+                "location": "Bathroom",
+                "room": "Bathroom",
+                "type": "interior",
+                "width_in": 36,
+                "height_in": 80,
+                "hardware": "lever",
+                "action": "swing",
+                "swing_direction": "in",
+                "material": "hollow-core",
+                "notes": "Replace hardware"
+              }
+            ],
+            "windows": [
+              {
+                "location": "Living Room - Front",
+                "room": "Living/Dining",
+                "type": "sliding",
+                "width_in": 60,
+                "height_in": 60,
+                "sill_height_in": 30,
+                "count": 1,
+                "glazing": "double",
+                "operable": true,
+                "notes": "Install roller shade"
+              },
+              {
+                "location": "Bedroom - Front",
+                "room": "Bedroom",
+                "type": "sliding",
+                "width_in": 60,
+                "height_in": 60,
+                "sill_height_in": 30,
+                "count": 1,
+                "glazing": "double",
+                "operable": true,
+                "notes": "Install roller shade"
+              }
+            ],
+            "fixtures": [
+              {
+                "name": "Range",
+                "room": "Kitchen",
+                "type": "appliance",
+                "specifications": "Electric range - to remain",
+                "count": 1
+              },
+              {
+                "name": "Refrigerator",
+                "room": "Kitchen",
+                "type": "appliance",
+                "specifications": "To remain",
+                "count": 1
+              },
+              {
+                "name": "Hood Fan",
+                "room": "Kitchen",
+                "type": "appliance",
+                "specifications": "To remain",
+                "count": 1
+              },
+              {
+                "name": "Toilet",
+                "room": "Bathroom",
+                "type": "plumbing",
+                "specifications": "To be replaced",
+                "count": 1
+              },
+              {
+                "name": "Vanity",
+                "room": "Bathroom",
+                "type": "plumbing",
+                "specifications": "Install existing",
+                "count": 1
+              },
+              {
+                "name": "Bathtub",
+                "room": "Bathroom",
+                "type": "plumbing",
+                "specifications": "Repair - install hand held shower, 2 grab bars",
+                "count": 1
+              }
+            ],
+            "upgrades": [
+              {
+                "description": "Touch up walls and ceiling",
+                "trade": "painting",
+                "location": "All rooms",
+                "specifications": "Match existing finish"
+              },
+              {
+                "description": "Replace interior door hardware",
+                "trade": "carpentry",
+                "location": "All interior doors",
+                "specifications": "Privacy lever set, door stop"
+              },
+              {
+                "description": "Install bathroom accessories",
+                "trade"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

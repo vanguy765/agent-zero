@@ -1,0 +1,52 @@
+Submitting page_8.pdf for hybrid parse...
+Response: {
+  "job_id": "0349dc0e-dacb-4886-8172-e28759b2a9b2",
+  "status": "queued",
+  "engine": "hybrid",
+  "file": "page_8.pdf"
+}
+
+Job ID: 0349dc0e-dacb-4886-8172-e28759b2a9b2
+Polling status...
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: converting_pdf_with_docling
+  Status: processing | Step: rendered_1_pages
+  Status: processing | Step: extracting_tables
+  Status: processing | Step: extracting_tables
+  Status: processing | Step: extracting_tables
+  Status: processing | Step: extracting_tables
+  Status: processing | Step: extracting_tables
+  Status: processing | Step: extracting_tables
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: processing | Step: analyzing_floorplan_1_of_1
+  Status: completed | Step: initializing
+
+Final status: completed
+Full result saved to /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/test_result_cv2.json
+
+=== RESULTS SUMMARY ===
+Units found: 1
+  Unit 201: 1BR, rooms=?, doors=[{'location': 'Unit Entry', 'room': 'Living/Dining', 'type': 'exterior', 'width_in': 36, 'height_in': 80, 'hardware': 'lever, deadbolt, closer, peephole', 'action': 'swing', 'swing_direction': 'in', 'material': 'solid-core', 'notes': 'Paint door, repair hardware'}, {'location': 'Bedroom', 'room': 'Bedroom', 'type': 'interior', 'width_in': 32, 'height_in': 80, 'hardware': 'lever', 'action': 'swing', 'swing_direction': 'in', 'material': 'hollow-core', 'notes': 'Replace door and hardware'}, {'location': 'Bathroom', 'room': 'Bathroom', 'type': 'interior', 'width_in': 32, 'height_in': 80, 'hardware': 'lever', 'action': 'swing', 'swing_direction': 'in', 'material': 'hollow-core', 'notes': 'Replace door and hardware'}, {'location': 'Deck', 'room': 'Living/Dining', 'type': 'exterior', 'width_in': 72, 'height_in': 80, 'hardware': 'handle', 'action': 'slide', 'swing_direction': 'none', 'material': 'glass', 'notes': ''}], windows=[{'location': 'Living Room - South Wall', 'room': 'Living/Dining', 'type': 'sliding', 'width_in': 60, 'height_in': 60, 'sill_height_in': 30, 'count': 1, 'glazing': 'double', 'operable': True, 'notes': ''}, {'location': 'Bedroom - South Wall', 'room': 'Bedroom', 'type': 'sliding', 'width_in': 60, 'height_in': 60, 'sill_height_in': 30, 'count': 1, 'glazing': 'double', 'operable': True, 'notes': ''}]
+    image_url: http://host.docker.internal:54321/storage/v1/object/public/project-documents/tes...
+
+Pages: 1
+  Page 1: class=?, photos=11, diagrams=0, tables=1
+    thumbnail: http://host.docker.internal:54321/storage/v1/object/public/project-documents/tes...
+    photo_urls: 11 items
+    table_urls: 1 items
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

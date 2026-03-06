@@ -1,0 +1,66 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 185:async def process_hybrid(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#             if is_footer:
+                if not footer_sample:
+                    footer_sample = {"markdown": md_text, "page_no": page_no}
+                continue
+
+            table_data.append((page_no, md_text))
+
+
+        # FIX: Save table markdown to .md files locally
+        if table_data:
+            table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+            os.makedirs(table_output_dir, exist_ok=True)
+            for tbl_idx, (pg, md) in enumerate(table_data):
+                md_path = os.path.join(table_output_dir, f'table_page_{pg}_{tbl_idx}.md')
+                with open(md_path, 'w') as md_file:
+                    md_file.write(md)
+                logger.info(f"Job {job_id}: Saved table markdown: {md_path}")
+
+        await job_manager.update_progress(
+            job_id,
+            tables_found=len(table_data),
+            current_step=f"found_{len(table_data)}_tables",
+        )
+
+        # --- Classify pictures using improved heuristic (Priority 2) ---
+        for pic in result_doc.pictures:
+            if not pic.image:
+                continue
+
+            try:
+                pil_img = pic.image.pil_image
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#                     page_b64 = image_to_base64(page_img)
+                    try:
+                        table_result = await run_llm_extraction(
+                            provider, TABLE_ANALYSIS_PROMPT, page_b64, max_tokens=4096
+                        )
+                        # Clean and store as markdown
+                        table_clean = re.sub(r"```(?:markdown)?\s*|\s*```", "", table_result).strip()
+                        if table_clean and len(table_clean) > 20:  # Sanity check
+                            table_data.append((page_no, table_clean))
+                            logger.info(f"Job {job_id}: LLM extracted spec table from page {page_no} ({len(table_clean)} chars)")
+
+                            # Save locally
+                            if table_data:
+                                table_output_dir = os.path.join(os.path.dirname(temp_path), 'parsed_tables', job_id)
+                                os.makedirs(table_output_dir, exist_ok=True)
+                                md_path = os.path.join(table_output_dir, f'spec_table_page_{page_no}.md')
+                                with open(md_path, 'w') as md_file:
+                                    md_file.write(table_clean)
+                    except Exception as e:
+                        logger.warning(f"Job {job_id}: LLM table extraction failed for page {page_no}: {e}")
+
+            except ImportError:
+                pass  # cv2/numpy not available, skip spec-table detection
+            except Exception as e:
+                logger.warning(f"Job {job_id}: Spec-table detection failed for page {page_no}: {e}")
+
+        # FIX: Deduplicate floorplan_candidates - keep first per page
+        seen_pages = set()
+        unique_candidates = []
+        for candidate in floorplan_candidates:
+            if candidate[0] not in seen_pages:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

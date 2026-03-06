@@ -1,0 +1,38 @@
+Starting hybrid parse for page 8 via Docker container...
+Job submitted: {
+  "job_id": "1eab23e3-2c80-4e64-92a8-2bad8bf112da",
+  "status": "queued",
+  "engine": "hybrid",
+  "file": "page_8.pdf"
+}
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: converting_pdf_with_docling | Progress: 15.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: processing | Step: analyzing_floorplan_1_of_1 | Progress: 85.0%
+Status: completed | Step: initializing | Progress: 100.0%
+
+Final status: completed
+Full result saved to test_result_docker.json
+
+=== RESULTS SUMMARY ===
+Total units found: 1
+  Unit 201: ? rooms, ? doors, ? windows
+    image_url: NONE
+
+Pages processed: 1
+  Page 1: classification=floorplan, photos=0, diagrams=0, tables=0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

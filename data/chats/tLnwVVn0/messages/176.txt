@@ -1,0 +1,28 @@
+=== Page 1 ===
+  classification: None
+  thumbnail_url: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+  floorplan_url: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+  site_photos: 11
+    [0] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [1] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [2] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [3] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [4] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [5] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [6] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [7] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [8] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [9] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+    [10] http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+  tables: 1
+    [0] {"markdown": "{\n  \"table_type\": \"finish_schedule\",\n  \"entries\": [\n    {\n      \"mark\": \"1.0\",\n      \"description\": \"FINISHES\",\n
+
+=== Units (1) ===
+  Unit 201:
+    bedrooms: 1
+    doors: 4
+    windows: 2
+    image_url: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75
+
+=== Metadata ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,9 @@
+681:        table_urls = {}     # Dict[int, List[str]] - multiple tables per page
+733:                    table_urls.setdefault(pg, []).append(tbl_url)
+767:                    table_urls.setdefault(pg, []).append(md_path)
+794:            table_urls=table_urls,
+851:    table_urls: Optional[Dict[int, list]] = None,
+954:    # Add table URLs to pages
+960:            if table_urls and page_no in table_urls:
+961:                table_entry["url"] = table_urls[page_no]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

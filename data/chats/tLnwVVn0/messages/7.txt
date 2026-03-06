@@ -1,0 +1,39 @@
+File length: 28488 chars
+Lines: 793
+
+Fitz section: chars 10285-12083
+--- FITZ SECTION ---
+# 1. Try PyMuPDF (fitz) to extract embedded CAD/architectural image layers
+        import fitz
+        try:
+            pdf_doc = fitz.open(temp_path)
+            for page_idx in range(len(pdf_doc)):
+                page_no = page_idx + 1
+                    
+                images_on_page = pdf_doc[page_idx].get_images(full=True)
+                for img_idx, img_info in enumerate(images_on_page):
+                    xref = img_info[0]
+                    base_image = pdf_doc.extract_image(xref)
+                    image_bytes = base_image["image"]
+                    
+                    try:
+                        from io import BytesIO
+                        pil_img = Image.open(BytesIO(image_bytes))
+                        # Only check reasonably large images to avoid icons/logos
+                        if pil_img.width > 200 and pil_img.height > 200:
+                            classification = classify_image(pil_img)
+                            if classification == "floorplan":
+                                b64 = image_to_base64(pil_img)
+                                floorplan_candidates.append((page_no, pil_img, b64))
+                                logger.info(f"Job {job_id}: Fitz cropped floorplan detected on page {page_no}")
+                            elif classification == "site_photo":
+                                site_photos.append((page_no, pil_img))
+                            elif classification == "diagram":
+                                diagrams.append((page_no, pil_img))
+                    except Exception as e:
+                        logger.warning(f"Job {job_id}: Failed to process fitz image on page {page_no}: {e}")
+        except Exception as e:
+            logger.warning(f"Job {job_id}: Fitz image extraction failed: {e}")
+
+        
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

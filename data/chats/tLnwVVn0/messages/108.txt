@@ -1,0 +1,11 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# 149:            error TEXT,
+201:            error=row.get("error"),
+239:            logger.error(f"Failed to download result for {job_id}: {e}")
+305:                error=row.get("error"),
+341:                    logger.error(f"Cleanup error: {e}")
+438:    async def fail_job(self, job_id: str, error: str) -> None:
+439:        """Mark job as failed with error message."""
+443:            error=error,
+445:        logger.error(f"Job failed: {job_id} - {error}")
+452:            error=f"Processing exceeded {PROCESSING_TIMEOUT_SECONDS}s timeout",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

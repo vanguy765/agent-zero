@@ -1,0 +1,41 @@
+Page: 2550x1650
+Photos detected: 10
+  Photo 0: [307,714,448,1066] size=141x352
+  Photo 1: [45,764,223,1065] size=178x301
+  Photo 2: [578,765,806,1068] size=228x303
+  Photo 3: [846,765,1072,1067] size=226x302
+  Photo 4: [1103,765,1330,1067] size=227x302
+  Photo 5: [322,1129,552,1434] size=230x305
+  Photo 6: [578,1129,806,1431] size=228x302
+  Photo 7: [846,1129,1072,1431] size=226x302
+  Photo 8: [1103,1129,1330,1431] size=227x302
+  Photo 9: [45,1131,291,1434] size=246x303
+Photo zone: [45,714,1330,1434]
+Major H-lines at Y: [40, 471, 838, 1230, 1453, 1463, 1502, 1540, 1579, 1618]
+Major V-lines at X: [44, 1431, 1451, 2411, 2517, 2522]
+Page borders: L=44 R=2522 T=40 B=1618
+V-divider (content|table): x=1431
+H-divider (content|title): y=1453
+H-divider (floorplan|photos): y=None
+Floorplan: [46,42,1431,704]
+Table: [1431,42,2520,1453]
+Title block: [46,1453,2520,1616]
+
+=== TOTAL: 13 elements ===
+  Types: {'floorplan': 1, 'table': 1, 'photo': 10, 'title_block': 1}
+  [ 0] floorplan    conf=0.85 [46,42,1431,704] layout-derived
+  [ 1] table        conf=0.85 [1431,42,2520,1453] layout-derived
+  [ 2] photo        conf=0.95 [307,714,448,1066]
+  [ 3] photo        conf=0.95 [45,764,223,1065]
+  [ 4] photo        conf=0.93 [578,765,806,1068]
+  [ 5] photo        conf=0.95 [846,765,1072,1067]
+  [ 6] photo        conf=0.95 [1103,765,1330,1067]
+  [ 7] photo        conf=0.95 [322,1129,552,1434]
+  [ 8] photo        conf=0.95 [578,1129,806,1431]
+  [ 9] photo        conf=0.95 [846,1129,1072,1431]
+  [10] photo        conf=0.95 [1103,1129,1330,1431]
+  [11] photo        conf=0.95 [45,1131,291,1434]
+  [12] title_block  conf=0.85 [46,1453,2520,1616] layout-derived
+
+Visualization: voicelog-scaffold/doc-parser/verify_images/original_page_1_detected.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

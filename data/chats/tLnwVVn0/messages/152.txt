@@ -1,0 +1,20 @@
+Page size: 2550x1650
+Photos detected: 10
+Structural regions found: 1
+  Region 0: [10, 11, 2550, 1650] size=2540x1639
+
+=== ALL ELEMENTS DETECTED: 11 ===
+  [0] table        bbox=[10, 11, 2550, 1650] conf=0.80 | table (2540x1639px) score=176
+  [1] photo        bbox=[44, 763, 217, 1064] conf=0.95 | photo (173x301px) sat=0.473
+  [2] photo        bbox=[322, 763, 447, 1065] conf=0.95 | photo (125x302px) sat=0.735
+  [3] photo        bbox=[577, 764, 805, 1067] conf=0.93 | photo (228x303px) sat=0.331
+  [4] photo        bbox=[845, 764, 1071, 1066] conf=0.95 | photo (226x302px) sat=0.783
+  [5] photo        bbox=[1102, 764, 1329, 1066] conf=0.95 | photo (227x302px) sat=0.712
+  [6] photo        bbox=[44, 1102, 290, 1433] conf=0.95 | photo (246x331px) sat=0.704
+  [7] photo        bbox=[321, 1128, 551, 1433] conf=0.95 | photo (230x305px) sat=0.731
+  [8] photo        bbox=[577, 1128, 805, 1430] conf=0.95 | photo (228x302px) sat=0.821
+  [9] photo        bbox=[845, 1128, 1071, 1430] conf=0.95 | photo (226x302px) sat=0.57
+  [10] photo        bbox=[1102, 1128, 1329, 1430] conf=0.95 | photo (227x302px) sat=0.519
+
+Visualization saved to: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images/cv2_final_detection.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

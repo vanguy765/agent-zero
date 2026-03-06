@@ -1,0 +1,70 @@
+=== Page 1 raw LLM response ===
+{
+  "unit_number": "JP Unit 201",
+  "unit_type": "Studio",
+  "floor": 2,
+  "bedrooms": 0,
+  "bathrooms": 1,
+  "half_baths": 0,
+  "total_area_sf": 350.0,
+
+  "rooms": [
+    {
+      "name": "Living Room",
+      "area_sf": 180.0,
+      "length_ft": 15.0,
+      "width_ft": 12.0,
+      "ceiling_height_ft": 8.0,
+      "baseboard_length_ft": 42.0,
+      "baseboard_exclusions": ["doorway", "closet opening"],
+      "baseboard_exclusion_reasoning": "Perimeter 54ft - 6ft for entry door and closet opening = 42ft total baseboard",
+      "fixtures": ["Type 2 Light Fixture"],
+      "flooring_type": "remain",
+      "notes": "Walls and ceiling require touch up"
+    },
+    {
+      "name": "Kitchen",
+      "area_sf": 80.0,
+      "length_ft": 8.0,
+      "width_ft": 10.0,
+      "ceiling_height_ft": 8.0,
+      "baseboard_length_ft": 16.0,
+      "baseboard_exclusions": ["kitchen cabinets"],
+      "baseboard_exclusion_reasoning": "Perimeter 36ft - 20ft for cabinets = 16ft total baseboard",
+      "fixtures": ["Sink", "Type 2 Light Fixture"],
+      "flooring_type": "remain",
+      "notes": "Sink and faucet to remain"
+    },
+    {
+      "name": "Bathroom",
+      "area_sf": 50.0,
+      "length_ft": 8.0,
+      "width_ft": 6.25,
+      "ceiling_height_ft": 8.0,
+      "baseboard_length_ft": 12.0,
+      "baseboard_exclusions": ["bathtub", "vanity", "toilet"],
+      "baseboard_exclusion_reasoning": "Perimeter 28.5ft - 16.5ft for fixtures = 12ft total baseboard",
+      "fixtures": ["Toilet", "Lavatory", "Bathtub", "Type 3 Light Fixture"],
+      "flooring_type": "remain",
+      "notes": "All plumbing fixtures to be replaced"
+    }
+  ],
+
+  "doors": [
+    {
+      "location": "Unit Entry",
+      "room": "Entry",
+      "type": "exterior",
+      "width_in": 36.0,
+      "height_in": 80.0,
+      "hardware": "repair",
+      "action": "swing",
+      "swing_direction": "in",
+      "material": "solid-core",
+      "notes": "Paint door, repair hardware"
+    },
+    {
+      "location": "Bathroom Entry",
+      "room":
+...
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

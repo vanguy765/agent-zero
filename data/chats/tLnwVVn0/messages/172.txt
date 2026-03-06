@@ -1,0 +1,10 @@
+=== Import check ===
+31:    TABLE_ANALYSIS_PROMPT, BOUNDING_BOX_PROMPT
+(should be empty)
+=== Phase 4 header ===
+408:        # PHASE 4: CV2-Based Element Detection
+=== CV2 detection usage ===
+36:    detect_elements_cv2, crop_element, create_thumbnail
+431:                elements = detect_elements_cv2(page_img)
+=== Docker check ===
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

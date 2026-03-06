@@ -1,0 +1,21 @@
+-rw-r--r-- 1 root root  491373 Mar  6 04:01 floorplan_page_1.png
+-rw-r--r-- 1 root root 1985631 Mar  6 04:01 original_page_1.png
+-rw-r--r-- 1 root root   82967 Mar  6 04:01 photo_0_page_1.png
+-rw-r--r-- 1 root root   60542 Mar  6 04:01 photo_1_page_1.png
+-rw-r--r-- 1 root root  229172 Mar  6 04:01 photo_2_page_1.png
+-rw-r--r-- 1 root root   82472 Mar  6 04:01 photo_3_page_1.png
+-rw-r--r-- 1 root root   78343 Mar  6 04:01 photo_4_page_1.png
+-rw-r--r-- 1 root root   86112 Mar  6 04:01 photo_5_page_1.png
+-rw-r--r-- 1 root root   68127 Mar  6 04:01 photo_6_page_1.png
+-rw-r--r-- 1 root root    1751 Mar  6 04:01 table_page_1_0.md
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images# > > > floorplan_page_1.png: 491373 bytes
+original_page_1.png: 1985631 bytes
+photo_0_page_1.png: 82967 bytes
+photo_1_page_1.png: 60542 bytes
+photo_2_page_1.png: 229172 bytes
+photo_3_page_1.png: 82472 bytes
+photo_4_page_1.png: 78343 bytes
+photo_5_page_1.png: 86112 bytes
+photo_6_page_1.png: 68127 bytes
+table_page_1_0.md: 1751 bytes
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/verify_images#

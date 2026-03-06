@@ -1,0 +1,57 @@
+BOUNDING_BOX_PROMPT = """You are an expert architectural document analyst. You are looking at a single rendered page from an architectural PDF document.
+
+Your task is to identify ALL distinct visual elements on this page and provide their bounding box coordinates for cropping.
+
+For each element, provide:
+- **type**: one of "floorplan", "photo", "table", "diagram", "title_block", "legend", "notes_block"
+- **bbox**: bounding box as [x_min, y_min, x_max, y_max] in NORMALIZED coordinates (0.0 to 1.0, where 0,0 is top-left and 1,1 is bottom-right)
+- **label**: brief description of what the element shows
+- **confidence**: your confidence in the classification (0.0 to 1.0)
+
+Element type definitions:
+- **floorplan**: Architectural floor plan drawing showing room layouts, walls, doors, windows. Has dimension lines, room labels, door swing arcs.
+- **photo**: Real-world photograph of a building, room, site, or construction area. Has photographic qualities (shadows, textures, perspective).
+- **table**: Structured data in rows and columns. Includes schedules (door schedule, finish schedule, etc.).
+- **diagram**: Technical drawing that is NOT a floorplan - electrical diagrams, plumbing schematics, detail sections, elevation views.
+- **title_block**: Standard architectural title block with project info, sheet number, firm name, dates.
+- **legend**: Symbol legend or key explaining drawing symbols.
+- **notes_block**: Block of text containing general notes, code references, or specifications.
+
+IMPORTANT INSTRUCTIONS:
+1. Identify EACH photo individually - if there are 7 photos on a page, return 7 separate bounding boxes, not one box around all of them.
+2. Be precise with bounding boxes - crop tightly around each element with minimal whitespace.
+3. If elements overlap or are very close together, still identify them separately.
+4. Include ALL elements, even small ones like legends or note blocks.
+5. For composite pages (e.g., a floorplan with photos and a table), identify each component separately.
+6. The bounding box coordinates must be normalized: x_min/x_max are fractions of page width, y_min/y_max are fractions of page height.
+
+Return a JSON object:
+```json
+{
+  "page_description": "Brief description of what this page contains overall",
+  "elements": [
+    {
+      "type": "floorplan",
+      "bbox": [0.05, 0.05, 0.65, 0.70],
+      "label": "Unit 201 - 1BR floor plan",
+      "confidence": 0.95
+    },
+    {
+      "type": "photo",
+      "bbox": [0.68, 0.05, 0.85, 0.25],
+      "label": "Kitchen view showing cabinets and countertop",
+      "confidence": 0.90
+    },
+    {
+      "type": "table",
+      "bbox": [0.05, 0.72, 0.95, 0.95],
+      "label": "Finish schedule for Unit 201",
+      "confidence": 0.88
+    }
+  ]
+}
+```
+
+Return ONLY the JSON object, no markdown formatting, no explanation text.
+"""
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

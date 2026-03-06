@@ -1,0 +1,10 @@
+URLs to verify: 6
+  thumbnail: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0
+  floorplan: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0
+  photo_0: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0
+  photo_1: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0
+  photo_2: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0
+  table_0: http://host.docker.internal:54321/storage/v1/object/public/project-documents/test_tenant/4c1a5fd2-75f0-4a69-b5ec-d620ba0
+
+Service key found: no (0 chars)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
