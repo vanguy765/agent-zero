@@ -1,0 +1,46 @@
+======================================================================
+CHECK 6: Step progress records have duration_minutes for timesheet app
+======================================================================
+
+All step progress for WO 94b06dee-80e2-4c...:
+Phase Step  Step Name                                Status         Actual   Est.
+----------------------------------------------------------------------------------
+    1    2  Remove Cover & Device                    pending             -      -
+    1    3  Document & Disconnect Wiring             pending             -      -
+    1    4  Inspect Box & Wiring                     pending             -      -
+    1    5  Prepare for Installation                 pending             -      -
+    2    1  Prepare & Wire the Receptacle            pending             -      -
+    2    2  Secure Device in Box                     pending             -      -
+    2    3  Install Cover Plate                      pending             -      -
+    2    4  Energize & Test                          pending             -      -
+    2    5  Commission & Document                    pending             -      -
+    1    1  Isolate & Verify Zero Energy             completed         25m      -
+
+  Total steps:              10
+  Completed with duration:  1
+  Pending:                  9
+  ✅ duration_minutes field populated for completed steps
+  ✅ Timesheet app can query: SELECT duration_minutes, started_at, completed_at
+     FROM work_order_step_progress WHERE status='completed'
+
+======================================================================
+VERIFICATION SUMMARY
+======================================================================
+
+  ✅ CHECK 1: System templates have sop_id
+       3/9 linked (ELC, PLB, PNT)
+  ✅ CHECK 2: Company templates inherit sop_id
+       3/9 linked, matching system
+  ✅ CHECK 3: Project template lazy-copy includes sop_id
+       freeze_project_templates() has COALESCE
+  ✅ CHECK 4: GET /templates/:id/sop resolves steps
+       15 sections, 10 steps for ELC-SOP-001
+  ✅ CHECK 5: Create WO → initialize steps → update progress
+       10 steps initialized, 1 completed
+  ✅ CHECK 6: Step progress has duration_minutes
+       25 min recorded for timesheet app
+
+======================================================================
+🎉 ALL 6 CHECKS PASSED — SOP ↔ Work Order Bridge VERIFIED
+======================================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

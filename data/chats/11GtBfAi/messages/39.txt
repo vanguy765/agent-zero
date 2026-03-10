@@ -1,0 +1,355 @@
+=== work_order_step_progress DDL ===
+--   1D. work_order_step_progress — step-level completion tracking for unit WOs
+--   1E. sop_ref_docs — trade-level reference documents
+--   1F. Add ref_doc_id to sops
+--   1G. Add sop_step_id to sop_recommended_videos
+--   1H. Update freeze_project_templates() to preserve sop_id
+--   1I. RLS policies for all new tables
+--   1J. Updated_at triggers for all new tables
+-- Date: 2026-03-10
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. sop_sections — structured sections parsed from SOP markdown files
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_sections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,
+    section_type TEXT NOT NULL CHECK (section_type IN (
+        'purpose', 'scope', 'references', 'personnel', 'safety',
+        'tools', 'pre_work', 'procedure', 'videos', 'testing',
+        'cleanup', 'troubleshooting', 'quality', 'revision_history'
+    )),
+    title TEXT NOT NULL,
+    content_md TEXT,
+    content_plain TEXT,
+    is_ref_pointer BOOLEAN DEFAULT false,
+    ref_section TEXT,
+    phase_name TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number)
+);
+
+COMMENT ON TABLE public.sop_sections IS 'Structured sections parsed from SOP markdown files';
+CREATE INDEX idx_sop_sections_sop ON public.sop_sections(sop_id);
+CREATE INDEX idx_sop_sections_type ON public.sop_sections(section_type);
+
+-- =============================================================================
+-- 1B. sop_steps — individual trackable steps
+--     Each row = one trackable unit of work = one RAG chunk
+--     This is the table that work_order_step_progress references
+--
+-- 1D. work_order_step_progress — step-level completion tracking
+--     The bridge table where field workers record completion of each SOP step
+--     within a unit work order. The separate timesheet app reads this data.
+
+=== RLS helper functions ===
+supabase/migrations/20260217000007_functions.sql:7:CREATE FUNCTION public.current_user_organization_id() RETURNS uuid
+supabase/migrations/20260217000012_rls_policies.sql:27:  USING (id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:34:  USING (organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:41:  USING (organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:50:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:57:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:64:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:71:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:81:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:88:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:95:    AND units.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:103:  USING (organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:113:    AND work_orders.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:124:    AND work_orders.organization_id = current_user_organization_id()
+supabase/migrations/20260217000012_rls_policies.sql:132:  USING (organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:140:  USING (scope = 'company' AND organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:144:  USING (scope = 'company' AND organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:148:  USING (scope = 'project' AND organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:152:  USING (scope = 'project' AND organization_id = current_user_organization_id());
+supabase/migrations/20260217000012_rls_policies.sql:159:  USING (organization_id = current_user_organization_id());
+
+=== agent_prompt_and_db_code.md ===
+# Agent Prompt & Database Insertion Strategy
+
+This guide provides the specific System Prompt to parse user intent into the JSON structure, and the TypeScript code to apply that update to the database.
+
+## 1. The Agent System Prompt
+
+This prompt is designed to be sent to an LLM (e.g., GPT-4 or generic model) along with the user's transcription. It establishes the "Contractor Taxonomy" as the ground truth but allows for flexible attributes.
+
+**System Prompt:**
+
+```text
+You are an expert Construction Scope Agent. Your goal is to parse a General Contractor's voice transcription into specific "JSON Overrides" for a project's floorplan.
+
+### Context
+- **Taxonomy**: You understand standard residential construction subjects (walls, cabinets, flooring).
+- **Goal**: The user is describing changes to a standard unit layout (e.g., "Plan A Studio"). You must output a JSON object representing the *difference* (override) from the standard.
+
+### Input Data
+- **Project Structure**: (Injected dynamically)
+  {
+    "floorplans": { "Plan_A_Studio": { "base_type": "Studio" } }
+  }
+
+### Rules
+1. **Identify the Floorplan**: Match the user's description to one of the defined floorplans (e.g., "Plan_A_Studio").
+2. **Identify the Room**: Match the room name (e.g., "Kitchenette", "Main_Living_Sleeping"). If the user uses a synonym (e.g., "Kitchen"), map it to the correct key.
+3. **Identify the Subject & Attributes**: Extract the specific subject. This can be an existing subject (e.g., "cabinets") or a NEW subject (e.g., "chandelier").
+4. **Structure**: Output a `modifications` object keyed by subject.
+   - Core Measure: `{ "measure": "unit_type", "quantity": number_value }`
+   - Attributes: `{ "attributes": { "material": "string", "color": "string", ... } }` (Optional, for non-numeric traits)
+
+### Output Format
+Return ONLY the JSON object. Do not explain.
+
+Example User Input:
+"For the Plan A Studio, in the Kitchenette, let's just do 12 feet of cabinets, shaker style white. And add a chandelier."
+
+Example Output:
+{
+  "floorplan": "Plan_A_Studio",
+  "overrides": [
+    {
+      "room_name": "Kitchenette",
+      "modifications": {
+        "cabinets": {
+            "measure": "length_ft",
+            "quantity": 12,
+            "attributes": { "style": "shaker", "finish": "white" }
+        },
+        "chandelier": {
+            "measure": "count",
+            "quantity": 1
+        }
+      }
+    }
+  ]
+}
+```
+
+## 2. Database Insertion Code (TypeScript)
+
+This function handles the logic of merging the new override into the existing JSONB structure.
+
+**Key Logic**:
+- **New Subjects**: Validated by the `...newOverride.modifications` spread. If "chandelier" is in the new object, it gets added.
+- **Attributes**: The interface uses `any` or a flexible Record to allow arbitrary attributes (material, brand, color).
+
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+// Define the shape of the Agent's output
+interface ModificationValue {
+  measure?: string;
+  quantity?: number;
+  attributes?: Record<string, string | number | boolean>;
+  [key: string]: any; // Allow future flexibility
+}
+
+interface AgentOutput {
+  floorplan: string;
+  overrides: {
+    room_name: string;
+    modifications: Record<string, ModificationValue>;
+  }[];
+}
+
+interface ProjectDefinition {
+  floorplans: Record<string, {
+    base_type: string;
+    overrides?: {
+      room_name: string;
+      modifications: Record<string, ModificationValue>;
+    }[];
+  }>;
+}
+
+/**
+ * Applies an override parsed by the Agent to the database.
+ */
+export async function applyProjectOverride(
+  projectId: string,
+  agentOutput: AgentOutput,
+  supabase: ReturnType<typeof createClient>
+) {
+  // 1. Fetch current definition
+  const { data, error } = await supabase
+    .from('project_definitions')
+    .select('definition')
+    .eq('project_id', projectId)
+    .single();
+
+  if (error || !data) throw new Error('Project not found');
+
+  const currentDef = data.definition as ProjectDefinition;
+  const targetPlan = currentDef.floorplans[agentOutput.floorplan];
+
+  if (!targetPlan) throw new Error(`Floorplan ${agentOutput.floorplan} not found in project`);
+
+  // 2. Initialize overrides array if missing
+  if (!targetPlan.overrides) {
+    targetPlan.overrides = [];
+  }
+
+  // 3. Merge Logic
+  for (const newOverride of agentOutput.overrides) {
+    // Check if we already have an override for this room
+    const existingRoomOverride = targetPlan.overrides.find(
+      (o) => o.room_name === newOverride.room_name
+    );
+
+    if (existingRoomOverride) {
+      // Merge modifications:
+      // 1. Spreading newOverride.modifications adds ANY NEW KEYS (New Subjects).
+      // 2. It also overwrites existing keys with new data.
+      existingRoomOverride.modifications = {
+        ...existingRoomOverride.modifications,
+        ...newOverride.modifications,
+      };
+    } else {
+      // Add new room override entirely
+      targetPlan.overrides.push(newOverride);
+    }
+  }
+
+  // 4. Save back to DB
+  const { error: updateError } = await supabase
+    .from('project_definitions')
+    .update({ definition: currentDef })
+    .eq('project_id', projectId);
+
+  if (updateError) throw updateError;
+
+  return { success: true, updatedPlan: targetPlan };
+}
+```
+
+### Verification
+1.  **New Subject Insertion**: `...newOverride.modifications` ensures that if the Agent sends `{ "chandelier": {...} }` and it wasn't there before, it is now part of the object.
+2.  **Attribute Handling**: The `attributes` key in the JSON allows storing "tile", "hardwood", "red", "matte" without forcing them into a `measure` field. The `ModificationValue` interface supports this structure.
+
+=== transcription_example_and_db_design.md ===
+# Transcription to JSON & Database Design Guide
+
+## 1. Transcription Example & Overrides
+
+### Scenario
+A General Contractor (GC) is walking a specific unit type ("Plan A Studio") in a new project. They realize this specific project uses a different kitchen layout than their standard "Studio" template.
+
+### User Transcription
+> "Okay, I'm looking at the Plan A Studio units here at Serenity Lane. We're basing this on our standard Studio layout, but there are a few changes. In the Kitchenette, we aren't doing the usual 20 linear feet of cabinets. It's much smaller here, let's just do 12 feet of upper and lower cabinets. Also, for the Living Room area, we're upgrading to engineered hardwood instead of the standard carpet, call it 250 square feet."
+
+### Resulting JSON Structure
+The Agent parses this intent into an **override** on the standard `Studio` floorplan.
+
+```json
+{
+  "project_definitions": {
+    "floorplans": {
+      "Plan_A_Studio": {
+        "base_type": "Studio",
+        "overrides": [
+          {
+            "room_name": "Kitchenette",
+            "modifications": {
+              "cabinets": { "measure": "length_ft", "default": 12 }
+            }
+          },
+          {
+             "room_name": "Main_Living_Sleeping",
+             // Maps to "Living_Room" type in the base definition
+             "modifications": {
+                "flooring": { "name": "hardwood", "measure": "area_sqft", "default": 250 }
+                // "hardwood" might replace a generic "flooring" key or be a specific attribute
+             }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+## 2. Database Design Recommendation: Hybrid Approach
+
+For storing this data, a **Hybrid Relational + JSONB** approach is recommended.
+
+### Why not pure Columns?
+The "Project Definitions" (floorplans, rooms, specific subject overrides) are highly hierarchical and variable. Normalizing this into tables (`project_floorplans`, `floorplan_rooms`, `room_subjects`, `subject_overrides`) creates a schema that is:
+1.  **Rigid**: Hard to change if you want to add a new hierarchy level.
+2.  **Complex to Query**: Reassembling a single unit's full spec requires 4+ joins.
+3.  **Slow to Write**: Saving a project requires dozens of inserts.
+
+### Why not pure JSON?
+You still need to query high-level data efficiently (e.g., "Find all projects in Austin").
+
+### Recommended Schema
+
+#### 1. `projects` Table (Relational)
+High-level searchable fields.
+*   `id` (UUID, PK)
+*   `name` (Text)
+*   `address` (Text)
+*   `status` (Enum: 'bidding', 'active', 'archived')
+*   `created_at` (Timestamp)
+
+#### 2. `project_definitions` Table (JSONB)
+Stores the deep flexible configuration.
+*   `project_id` (FK)
+*   `taxonomy_version` (String) - To know which master taxonomy this follows.
+*   `floorplan_definitions` (JSONB) - The content of `"project_definitions"` from your JSON.
+    *   *Benefit*: You can query specific properties inside JSONB if needed (e.g., "Find projects using 'Plan_A_Studio'"), but mostly you load this blob to process logic.
+
+#### 3. `units` Table (Relational + JSONB)
+The inventory list.
+*   `id` (UUID, PK)
+*   `project_id` (FK)
+*   `unit_number` (String)
+*   `floor_level` (Int)
+*   `floorplan_key` (String) - Links to a key in `project_definitions`.
+*   `specific_notes` (JSONB) - For unit-specific one-off overrides (e.g., "Unit 102 has a broken window").
+
+### Summary
+*   **Columns**: Use for Identity, Relationships (FKs), and Sorting/Filtering (Status, Date, Address).
+*   **JSONB**: Use for the **Payload** (The complex definitions of trades, areas, and measurements). This matches the document-oriented nature of the LLM output.
+
+## 3. Hierarchy of Flexibility
+
+The JSONB design allows for scope changes at three distinct levels, providing immense power without schema migrations.
+
+### Level 1: Global Taxonomy (The Dictionary)
+*   **Where**: `contractor_taxonomy.json`
+*   **Scope**: All Projects.
+*   **Usage**: Defining what a "Bedroom" *usually* contains.
+*   **Change**: "We now want all standard bedrooms to track 'crown molding'." -> *Update the taxonomy area_type.*
+
+### Level 2: Project Floorplan (The Template)
+*   **Where**: `project_definitions.floorplans` (in DB or JSON)
+*   **Scope**: All Units in the Project with that floorplan.
+*   **Usage**: "In this specific building, all Studio apartments have Smart Thermostats."
+*   **Example**:
+    ```json
+    "Plan_A_Studio": {
+       "overrides": [
+          { "room_name": "Main_Living", "modifications": { "thermostat": { "action": "install_new", "type": "smart" } } }
+       ]
+    }
+    ```
+*   **Impact**: Instantly applies to Unit 101, 102, 103, 104, and 105.
+
+### Level 3: Unit Specific (The Exception)
+*   **Where**: `residential_units[i].specific_overrides`
+*   **Scope**: Single Unit Only.
+*   **Usage**: "Unit 105 has a broken door hinge we need to fix, but the others are fine."
+*   **Impact**: Only Unit 105 gets a work order for a door repair.
+
+### Adding New Fields (Schema Evolution)
+Because we are using JSONB, you can add arbitrary fields to any node at any time to capture new requirements.
+
+**Example**: Tracking Budget Codes
+You can simply start injecting `"budget_code": "GL-123"` into your modification objects.
+*   **Old**: `{ "stove": { "action": "replace" } }`
+*   **New**: `{ "stove": { "action": "replace", "budget_code": "CAPEX-2026" } }`
+
+The database does not need a migration column. The Agent just parses it, and the Frontend displays it if present.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

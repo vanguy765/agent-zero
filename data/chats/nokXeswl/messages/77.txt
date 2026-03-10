@@ -1,0 +1,144 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === BLOCK 1: Project template resolution with parent fallback (lines 430-470) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# });
+
+// GET PROJECT TEMPLATES (with parent definition resolution for lazy-copy)
+workOrdersRoute.get('/templates/project/:projectId', async (c) => {
+    const supabase = getScopedClient(c);
+    const projectId = c.req.param('projectId');
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('scope', 'project')
+        .eq('project_id', projectId)
+        .eq('is_active', true)
+        .order('trade_name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+    // For unfrozen templates with null definition, resolve from parent
+    const resolved = await Promise.all(
+        (data || []).map(async (template: any) => {
+            if (template.definition === null && template.parent_template_id) {
+                const { data: parent } = await supabase
+                    .from('work_order_templates')
+                    .select('definition')
+                    .eq('id', template.parent_template_id)
+                    .single();
+                return { ...template, definition: parent?.definition || null, _inherited: true };
+            }
+            return { ...template, _inherited: false };
+        })
+    );
+
+    return c.json(resolved);
+});
+
+// ASSIGN SYSTEM TEMPLATE TO COMPANY (hard copy)
+workOrdersRoute.post('/templates/assign-to-company', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === BLOCK 2: Copy from app-scope to company (lines 495-530) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#         .eq('trade_name', appTemplate.trade_name)
+        .eq('is_active', true)
+        .maybeSingle();
+
+    if (existing) {
+        return c.json({ error: `Template "${appTemplate.trade_name}" is already assigned to this company` }, 409);
+    }
+
+    // Create company copy
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .insert({
+            organization_id,
+            trade_name: appTemplate.trade_name,
+            version: 1,
+            is_active: true,
+            definition: appTemplate.definition,
+            scope: 'company',
+            copied_from_template_id: app_template_id,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+
+// ASSIGN COMPANY TEMPLATE TO PROJECT (lazy reference)
+workOrdersRoute.post('/templates/assign-to-project', async (c) => {
+    const supabase = getScopedClient(c);
+    const body = await c.req.json();
+    const { company_template_id, project_id, organization_id } = body;
+
+    if (!company_template_id || !project_id || !organization_id) {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === BLOCK 3: Project template creation - lazy ref or frozen copy (lines 540-600) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#         .single();
+
+    if (fetchError || !companyTemplate) {
+        return c.json({ error: 'Company template not found' }, 404);
+    }
+
+    // Check if already assigned to this project
+    const { data: existing } = await supabase
+        .from('work_order_templates')
+        .select('id')
+        .eq('scope', 'project')
+        .eq('project_id', project_id)
+        .eq('trade_name', companyTemplate.trade_name)
+        .eq('is_active', true)
+        .maybeSingle();
+
+    if (existing) {
+        return c.json({ error: `Template "${companyTemplate.trade_name}" is already assigned to this project` }, 409);
+    }
+
+    // Check project status — if active, freeze immediately
+    const { data: project } = await supabase
+        .from('wo_projects')
+        .select('status')
+        .eq('id', project_id)
+        .single();
+
+    const shouldFreeze = project?.status === 'active';
+
+    // Create project template (lazy ref or frozen copy)
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .insert({
+            organization_id,
+            trade_name: companyTemplate.trade_name,
+            version: 1,
+            is_active: true,
+            definition: shouldFreeze ? companyTemplate.definition : null,  // null = lazy ref
+            scope: 'project',
+            project_id,
+            parent_template_id: company_template_id,
+            copied_from_template_id: company_template_id,
+            is_frozen: shouldFreeze,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+
+// UNASSIGN TEMPLATE FROM PROJECT (with work order check)
+workOrdersRoute.delete('/templates/:id/unassign', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    // Check if any work orders reference this template
+    const { data: workOrders, error: woError } = await supabase
+        .from('work_orders')
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

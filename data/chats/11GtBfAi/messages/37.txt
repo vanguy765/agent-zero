@@ -1,0 +1,122 @@
+
+// ============================================================================
+// STEP PROGRESS ENDPOINTS
+// ============================================================================
+
+// GET STEP PROGRESS for a work order
+workOrdersRoute.get('/work-orders/:id/step-progress', async (c) => {
+    const supabase = getScopedClient(c);
+    const woId = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('work_order_step_progress')
+        .select(`
+            *,
+            sop_step:sop_steps (
+                id, phase_name, phase_number, step_number, step_name,
+                tasks_summary, detail_md, est_duration_minutes
+            )
+        `)
+        .eq('work_order_id', woId)
+        .order('created_at');
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data || []);
+});
+
+// INITIALIZE STEPS from SOP for a work order
+workOrdersRoute.post('/work-orders/:id/initialize-steps', async (c) => {
+    const supabase = getScopedClient(c);
+    const woId = c.req.param('id');
+
+    const { data: wo, error: woErr } = await supabase
+        .from('work_orders')
+        .select('id, template_id, organization_id, work_order_templates!inner(sop_id, parent_template_id)')
+        .eq('id', woId)
+        .single();
+
+    if (woErr || !wo) return c.json({ error: 'Work order not found' }, 404);
+
+    let sopId = (wo as any).work_order_templates?.sop_id;
+    if (!sopId && (wo as any).work_order_templates?.parent_template_id) {
+        const { data: parent } = await supabase
+            .from('work_order_templates')
+            .select('sop_id')
+            .eq('id', (wo as any).work_order_templates.parent_template_id)
+            .single();
+        sopId = parent?.sop_id;
+    }
+
+    if (!sopId) return c.json({ error: 'No SOP linked to this work order template' }, 400);
+
+    const { data: steps, error: stepsErr } = await supabase
+        .from('sop_steps')
+        .select('id')
+        .eq('sop_id', sopId)
+        .order('phase_number')
+        .order('step_number');
+
+    if (stepsErr || !steps?.length) return c.json({ error: 'No SOP steps found' }, 400);
+
+    const { count } = await supabase
+        .from('work_order_step_progress')
+        .select('id', { count: 'exact', head: true })
+        .eq('work_order_id', woId);
+
+    if (count && count > 0) return c.json({ error: 'Steps already initialized', count }, 409);
+
+    const records = steps.map(step => ({
+        work_order_id: woId,
+        sop_step_id: step.id,
+        status: 'pending',
+        organization_id: wo.organization_id,
+    }));
+
+    const { data: created, error: insertErr } = await supabase
+        .from('work_order_step_progress')
+        .insert(records)
+        .select();
+
+    if (insertErr) return c.json({ error: insertErr.message }, 500);
+    return c.json({ initialized: created?.length || 0 }, 201);
+});
+
+// UPDATE STEP PROGRESS
+workOrdersRoute.patch('/work-orders/step-progress/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const allowedFields = [
+        'status', 'completed_by', 'started_at', 'completed_at',
+        'duration_minutes', 'notes', 'photo_urls', 'override_detail', 'is_override'
+    ];
+
+    const updates: Record<string, any> = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) updates[field] = body[field];
+    }
+
+    if (updates.status === 'in_progress' && !updates.started_at) {
+        updates.started_at = new Date().toISOString();
+    }
+    if (updates.status === 'completed' && !updates.completed_at) {
+        updates.completed_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+        .from('work_order_step_progress')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+
+
+// ============================================================================
+// WORK ORDERS ENDPOINTS
+// ============================================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

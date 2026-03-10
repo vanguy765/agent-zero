@@ -1,0 +1,36 @@
+=== WorkOrderDetail.tsx lines 140-173 ===
+
+                                                                <div class="flex-1">
+                                                                    <span class={`text-sm font-medium ${(isDone || isNA) ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                                                                        {step.label || 'Unnamed Step'}
+                                                                    </span>
+                                                                </div>
+
+                                                                <button
+                                                                    class={`text-xs px-2 py-1 rounded-md border font-medium uppercase tracking-wider ${isNA ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-100'
+                                                                        }`}
+                                                                    onClick={() => toggleNA(task.id, stepIdx(), isNA)}
+                                                                    title="Toggle Not Applicable"
+                                                                >
+                                                                    N/A
+                                                                </button>
+                                                            </li>
+                                                        );
+                                                    }}
+                                                </For>
+                                            </ul>
+                                        </div>
+                                    );
+                                }}
+                            </For>
+                        </Show>
+                    </div>
+
+                </Show>
+            </Show>
+        </div>
+    );
+};
+
+export default WorkOrderDetail;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

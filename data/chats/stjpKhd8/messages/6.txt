@@ -1,0 +1,34 @@
+248 /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260310000001_sop_wo_bridge.sql
+---
+-- =============================================================================
+-- Migration: SOP ↔ Work Order Bridge
+-- Description:
+--   1A. sop_sections — unified hierarchical SOP structure (replaces flat checklists/steps)
+--   1B. sop_steps — individual trackable steps (one row = one checklist item = one RAG chunk)
+--   1C. sop_dependencies — directed graph of SOP relationships
+--   1D. work_order_step_progress — step-level completion tracking for unit WOs
+--   1E. sop_ref_docs — trade-level reference documents
+--   1F. Add ref_doc_id to sops
+--   1G. Add sop_step_id to sop_recommended_videos
+--   1H. Update freeze_project_templates() to preserve sop_id
+--   1I. RLS policies for all new tables
+--   1J. Updated_at triggers for all new tables
+-- Date: 2026-03-10
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. sop_sections — structured sections parsed from SOP markdown files
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_sections (
+...
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_wo_step_progress_updated_at
+    BEFORE UPDATE ON public.work_order_step_progress
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- =============================================================================
+-- Notify PostgREST to reload schema cache
+-- =============================================================================
+NOTIFY pgrst, 'reload schema';
+(venv) root@d2d162d983f0:/a0/usr/workdir#

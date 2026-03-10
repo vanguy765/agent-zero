@@ -1,0 +1,232 @@
+-- Migration: SOP Library Management System
+-- Creates tables for indexing SOPs, caching executive checklists, detailed steps, and recommended videos
+-- SOPs are stored as .md files in Supabase Storage: apps/voicelog/sops/
+
+-- =============================================================================
+-- 1. Master SOP Index
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_number TEXT NOT NULL UNIQUE,          -- e.g. PLB-SOP-001
+    trade_code TEXT NOT NULL,                  -- e.g. PLB, ELC, HVC
+    trade_name TEXT NOT NULL,                  -- e.g. Plumbing, Electrical
+    task_name TEXT NOT NULL,                   -- e.g. Sink Replacement
+    revision TEXT NOT NULL DEFAULT '1.0',
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'planned', 'in_review', 'deprecated', 'retired')),
+    estimated_duration TEXT,                   -- e.g. '2-4 hours'
+    storage_path TEXT,                         -- path in Supabase Storage bucket
+    file_hash TEXT,                            -- MD5 hash for change detection
+    description TEXT,                          -- brief description for search
+    prerequisites TEXT[] DEFAULT '{}',         -- array of SOP numbers
+    sub_procedures TEXT[] DEFAULT '{}',        -- array of SOP numbers
+    tags TEXT[] DEFAULT '{}',                  -- searchable tags
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID REFERENCES auth.users(id),
+    updated_by UUID REFERENCES auth.users(id)
+);
+
+COMMENT ON TABLE sops IS 'Master index of all Standard Operating Procedures in the library';
+COMMENT ON COLUMN sops.storage_path IS 'Path to .md file in Supabase Storage bucket apps/voicelog/sops/';
+COMMENT ON COLUMN sops.file_hash IS 'MD5 hash of the .md file content for change detection during sync';
+
+-- =============================================================================
+-- 2. Executive Checklists (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_executive_checklists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- e.g. 8, 9
+    phase_name TEXT NOT NULL,                  -- e.g. 'Removal of Existing Sink'
+    step_number INTEGER NOT NULL,              -- 1-5
+    step_name TEXT NOT NULL,                   -- e.g. 'Isolate Services'
+    tasks TEXT NOT NULL,                       -- brief task description
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number, step_number)
+);
+
+COMMENT ON TABLE sop_executive_checklists IS 'Cached executive checklist items parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 3. Detailed Steps (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_detailed_steps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- e.g. 8, 9
+    phase_name TEXT NOT NULL,                  -- e.g. 'Installation of New Sink'
+    step_number INTEGER NOT NULL,              -- matches executive checklist step
+    step_name TEXT NOT NULL,                   -- must match executive checklist step_name
+    content TEXT NOT NULL,                     -- full markdown content of the step
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number, step_number)
+);
+
+COMMENT ON TABLE sop_detailed_steps IS 'Cached detailed step content parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 4. Recommended Videos (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_recommended_videos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- section of the video reference
+    phase_name TEXT NOT NULL,                  -- e.g. 'Removal of Existing Sink'
+    step_reference TEXT NOT NULL,              -- e.g. 'Steps 1-3: Service Isolation'
+    video_title TEXT NOT NULL,
+    video_url TEXT NOT NULL,
+    duration TEXT,                             -- e.g. '10:14'
+    source TEXT,                               -- e.g. 'This Old House'
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE sop_recommended_videos IS 'Cached recommended video links parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 5. SOP Sync Log (tracks parse/sync operations)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_sync_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID REFERENCES sops(id) ON DELETE SET NULL,
+    sop_number TEXT,
+    action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'parsed', 'uploaded', 'deleted', 'agent_requested')),
+    details JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE sop_sync_log IS 'Audit log for SOP library sync operations';
+
+-- =============================================================================
+-- 6. Indexes for fast retrieval
+-- =============================================================================
+CREATE INDEX IF NOT EXISTS idx_sops_trade_code ON sops(trade_code);
+CREATE INDEX IF NOT EXISTS idx_sops_status ON sops(status);
+CREATE INDEX IF NOT EXISTS idx_sops_sop_number ON sops(sop_number);
+CREATE INDEX IF NOT EXISTS idx_sops_tags ON sops USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_sop_exec_checklists_sop_id ON sop_executive_checklists(sop_id);
+CREATE INDEX IF NOT EXISTS idx_sop_detailed_steps_sop_id ON sop_detailed_steps(sop_id);
+CREATE INDEX IF NOT EXISTS idx_sop_videos_sop_id ON sop_recommended_videos(sop_id);
+CREATE INDEX IF NOT EXISTS idx_sop_sync_log_sop_id ON sop_sync_log(sop_id);
+
+-- =============================================================================
+-- 7. Updated_at trigger
+-- =============================================================================
+CREATE OR REPLACE FUNCTION update_sop_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$ BEGIN
+    CREATE TRIGGER trg_sops_updated_at
+        BEFORE UPDATE ON sops
+        FOR EACH ROW EXECUTE FUNCTION update_sop_updated_at();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TRIGGER trg_sop_exec_checklists_updated_at
+        BEFORE UPDATE ON sop_executive_checklists
+        FOR EACH ROW EXECUTE FUNCTION update_sop_updated_at();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TRIGGER trg_sop_detailed_steps_updated_at
+        BEFORE UPDATE ON sop_detailed_steps
+        FOR EACH ROW EXECUTE FUNCTION update_sop_updated_at();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TRIGGER trg_sop_videos_updated_at
+        BEFORE UPDATE ON sop_recommended_videos
+        FOR EACH ROW EXECUTE FUNCTION update_sop_updated_at();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 8. RLS Policies
+-- =============================================================================
+ALTER TABLE sops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sop_executive_checklists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sop_detailed_steps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sop_recommended_videos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sop_sync_log ENABLE ROW LEVEL SECURITY;
+
+-- SOPs can be read by anyone in the org, or if org is null (global SOPs)
+CREATE POLICY sops_select ON sops FOR SELECT USING (
+    organization_id IS NULL
+    OR organization_id = current_user_organization_id()
+);
+
+CREATE POLICY sops_insert ON sops FOR INSERT WITH CHECK (
+    organization_id IS NULL
+    OR organization_id = current_user_organization_id()
+);
+
+CREATE POLICY sops_update ON sops FOR UPDATE USING (
+    organization_id IS NULL
+    OR organization_id = current_user_organization_id()
+);
+
+-- Child tables: accessible if parent SOP is accessible
+CREATE POLICY sop_exec_select ON sop_executive_checklists FOR SELECT USING (
+    EXISTS (SELECT 1 FROM sops WHERE sops.id = sop_executive_checklists.sop_id
+            AND (sops.organization_id IS NULL OR sops.organization_id = current_user_organization_id()))
+);
+
+CREATE POLICY sop_steps_select ON sop_detailed_steps FOR SELECT USING (
+    EXISTS (SELECT 1 FROM sops WHERE sops.id = sop_detailed_steps.sop_id
+            AND (sops.organization_id IS NULL OR sops.organization_id = current_user_organization_id()))
+);
+
+CREATE POLICY sop_videos_select ON sop_recommended_videos FOR SELECT USING (
+    EXISTS (SELECT 1 FROM sops WHERE sops.id = sop_recommended_videos.sop_id
+            AND (sops.organization_id IS NULL OR sops.organization_id = current_user_organization_id()))
+);
+
+CREATE POLICY sop_sync_select ON sop_sync_log FOR SELECT USING (true);
+CREATE POLICY sop_sync_insert ON sop_sync_log FOR INSERT WITH CHECK (true);
+
+-- Service role bypass for all tables (for the management script)
+-- (service_role already bypasses RLS by default in Supabase)
+
+-- =============================================================================
+-- 9. Convenience view: full SOP with counts
+-- =============================================================================
+CREATE OR REPLACE VIEW v_sop_library AS
+SELECT
+    s.id,
+    s.sop_number,
+    s.trade_code,
+    s.trade_name,
+    s.task_name,
+    s.revision,
+    s.status,
+    s.estimated_duration,
+    s.storage_path,
+    s.description,
+    s.prerequisites,
+    s.sub_procedures,
+    s.tags,
+    s.organization_id,
+    s.created_at,
+    s.updated_at,
+    (SELECT COUNT(*) FROM sop_executive_checklists ec WHERE ec.sop_id = s.id) AS checklist_count,
+    (SELECT COUNT(*) FROM sop_detailed_steps ds WHERE ds.sop_id = s.id) AS step_count,
+    (SELECT COUNT(*) FROM sop_recommended_videos rv WHERE rv.sop_id = s.id) AS video_count
+FROM sops s;
+
+COMMENT ON VIEW v_sop_library IS 'SOP library overview with cached content counts';
+(venv) root@d2d162d983f0:/a0/usr/workdir#

@@ -1,0 +1,24 @@
+schemaname |           tablename
+------------+--------------------------------
+ public     | agent_memories
+ public     | bom_action_requests
+ public     | document_images
+ public     | entity_creation_log
+ public     | image_links
+ public     | metric_definitions
+ public     | organization_trades
+ public     | organizations
+ public     | pending_reviews
+ public     | portal_table_config
+ public     | project_documents
+ public     | project_outcomes
+ public     | rooms
+ public     | sop_detailed_steps
+ public     | sop_executive_checklists
+ public     | sop_recommended_videos
+ public     | sop_sync_log
+ public     | sops
+ public     | template_libraries
+ public     | trade_outcome_assignments
+ public     | trades
+--More--

@@ -1,0 +1,17 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 280:    const scope = c.req.query('scope'); // optional: 'system' | 'company' | 'project'
+389:    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id'];
+440:        .eq('scope', 'project')
+449:    // For unfrozen templates with null definition, resolve from parent
+452:            if (template.definition === null && template.parent_template_id) {
+456:                    .eq('id', template.parent_template_id)
+458:                return { ...template, definition: parent?.definition || null, _inherited: true };
+460:            return { ...template, _inherited: false };
+513:            copied_from_template_id: app_template_id,
+550:        .eq('scope', 'project')
+569:    // Create project template (lazy ref or frozen copy)
+578:            scope: 'project',
+580:            parent_template_id: company_template_id,
+581:            copied_from_template_id: company_template_id,
+582:            is_frozen: shouldFreeze,
+621:        .eq('scope', 'project');
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

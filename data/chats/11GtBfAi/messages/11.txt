@@ -1,0 +1,29 @@
+Trades: 10
+  APL   Appliances
+  CRP   Carpentry
+  ELC   Electrical
+  FLR   Flooring
+  GEN   General
+  HVC   HVAC
+  MLW   Millwork
+  PLB   Plumbing
+  PNT   Painting
+  WNC   Window Coverings
+---------------------------------------------------------------------------
+APIError                                  Traceback (most recent call last)
+Cell In[1], line 17
+     14     print(f"  {t['code']:5s} {t['name']}")
+     16 # Check WO templates
+---> 17 templates = client.table('work_order_templates').select('id, name, scope, trade_name, sop_id, trade_id, copied_from_template_id').order('scope,trade_name,name').execute()
+     18 print(f"\nWO Templates: {len(templates.data)}")
+     19 for t in templates.data:
+
+File /opt/venv/lib/python3.13/site-packages/postgrest/_sync/request_builder.py:53, in SyncQueryRequestBuilder.execute(self)
+     51     else:
+     52         json_obj = model_validate_json(APIErrorFromJSON, r.content)
+---> 53         raise APIError(dict(json_obj))
+     54 except ValidationError as e:
+     55     raise APIError(generate_default_error_message(r))
+
+APIError: {'message': 'column work_order_templates.name does not exist', 'code': '42703', 'hint': None, 'details': None}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

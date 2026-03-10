@@ -1,0 +1,11 @@
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[1], line 5
+      2 with open('/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/sop/PNT/REF_PNT_Codes_Standards.md') as f:
+      3     ref_content = f.read()
+----> 5 ref_parser = REFDocParser(ref_content)
+      6 ref_result = ref_parser.parse()
+      7 print('--- REF Doc Parser ---')
+
+NameError: name 'REFDocParser' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

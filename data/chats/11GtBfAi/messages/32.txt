@@ -1,0 +1,48 @@
+=== docs/timesheet/ ===
+total 108
+drwxrwxrwx 1 root root  4096 Mar  9 01:18 .
+drwxrwxrwx 1 root root  4096 Mar  7 04:33 ..
+-rwxrwxrwx 1 root root  5649 Feb 17 02:18 agent_prompt_and_db_code.md
+-rwxrwxrwx 1 root root  3495 Feb 17 02:18 bom_and_site_management_guide.md
+-rwxrwxrwx 1 root root 11998 Feb 17 02:18 contractor_taxonomy.json
+-rwxrwxrwx 1 root root  3059 Feb 17 02:18 db_performance_and_splitting_guide.md
+-rwxrwxrwx 1 root root  2588 Feb 17 02:18 developer_learnings.md
+-rwxrwxrwx 1 root root  3480 Feb 17 02:18 earned_value_and_stages.md
+-rwxrwxrwx 1 root root  3545 Feb 17 02:18 hybrid_architecture_spec.md
+-rwxrwxrwx 1 root root  3118 Feb 17 02:18 hybrid_validation_plan.md
+-rwxrwxrwx 1 root root  2867 Feb 17 02:18 manual_admin.md
+-rwxrwxrwx 1 root root  1843 Feb 17 02:18 manual_user.md
+-rwxrwxrwx 1 root root  2006 Feb 17 02:18 next.md
+-rwxrwxrwx 1 root root  4398 Feb 17 02:18 nocodb_setup_guide.md
+-rwxrwxrwx 1 root root  2572 Feb 17 02:18 product_catalog_db_design.md
+-rwxrwxrwx 1 root root  2050 Feb 17 02:18 schema_design.md
+-rwxrwxrwx 1 root root  4279 Feb 17 02:18 schema.sql
+-rwxrwxrwx 1 root root  3122 Feb 17 02:18 site_specific_example.json
+-rwxrwxrwx 1 root root  3144 Feb 17 02:18 timesheet_agent_and_contracts.md
+-rwxrwxrwx 1 root root  2904 Feb 17 02:18 timesheet_integration_guide.md
+-rwxrwxrwx 1 root root  5455 Feb 17 02:18 transcription_example_and_db_design.md
+-rwxrwxrwx 1 root root  5733 Feb 17 02:18 writable_view_pattern.md
+
+=== apps/site-companion/ structure ===
+apps/site-companion
+apps/site-companion/index.html
+apps/site-companion/node_modules
+apps/site-companion/package.json
+apps/site-companion/README.md
+apps/site-companion/src
+apps/site-companion/src/App.tsx
+apps/site-companion/src/index.css
+apps/site-companion/src/index.tsx
+apps/site-companion/src/lib
+apps/site-companion/src/lib/supabase.ts
+apps/site-companion/src/pages
+apps/site-companion/src/pages/UnitDetail.tsx
+apps/site-companion/src/pages/UnitList.tsx
+apps/site-companion/src/pages/VoiceTest.tsx
+apps/site-companion/vite.config.ts
+
+=== Timesheet schema SQL ===
+128 docs/timesheet/schema.sql
+
+=== Timesheet-related migrations ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

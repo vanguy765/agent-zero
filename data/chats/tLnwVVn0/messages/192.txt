@@ -1,0 +1,200 @@
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "work_order_templates"
+NOTICE:  truncate cascades to table "units"
+NOTICE:  truncate cascades to table "project_documents"
+NOTICE:  truncate cascades to table "type_orders"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "document_images"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "type_order_compositions"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "image_links"
+NOTICE:  ivfflat index created with little data
+DETAIL:  This will cause low recall.
+HINT:  Drop the index until the table has more data.
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "document_images"
+NOTICE:  truncate cascades to table "image_links"
+NOTICE:  truncate cascades to table "image_links"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "rooms"
+NOTICE:  truncate cascades to table "template_libraries"
+NOTICE:  truncate cascades to table "wo_projects"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "work_order_templates"
+NOTICE:  truncate cascades to table "units"
+NOTICE:  truncate cascades to table "portal_table_config"
+NOTICE:  truncate cascades to table "pending_reviews"
+NOTICE:  truncate cascades to table "entity_creation_log"
+NOTICE:  truncate cascades to table "sops"
+NOTICE:  truncate cascades to table "trades"
+NOTICE:  truncate cascades to table "project_outcomes"
+NOTICE:  truncate cascades to table "organization_trades"
+NOTICE:  truncate cascades to table "type_orders"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "project_documents"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "sop_executive_checklists"
+NOTICE:  truncate cascades to table "sop_detailed_steps"
+NOTICE:  truncate cascades to table "sop_recommended_videos"
+NOTICE:  truncate cascades to table "sop_sync_log"
+NOTICE:  truncate cascades to table "trade_outcome_assignments"
+NOTICE:  truncate cascades to table "type_order_compositions"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "document_images"
+NOTICE:  truncate cascades to table "image_links"
+NOTICE:  truncate cascades to table "work_order_templates"
+NOTICE:  truncate cascades to table "sop_executive_checklists"
+NOTICE:  truncate cascades to table "sop_detailed_steps"
+NOTICE:  truncate cascades to table "sop_recommended_videos"
+NOTICE:  truncate cascades to table "sop_sync_log"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "work_order_templates"
+NOTICE:  truncate cascades to table "sops"
+NOTICE:  truncate cascades to table "organization_trades"
+NOTICE:  truncate cascades to table "trade_outcome_assignments"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "sop_executive_checklists"
+NOTICE:  truncate cascades to table "sop_detailed_steps"
+NOTICE:  truncate cascades to table "sop_recommended_videos"
+NOTICE:  truncate cascades to table "sop_sync_log"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "wo_projects"
+NOTICE:  truncate cascades to table "work_order_templates"
+NOTICE:  truncate cascades to table "sops"
+NOTICE:  truncate cascades to table "trade_outcome_assignments"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "units"
+NOTICE:  truncate cascades to table "project_documents"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "sop_executive_checklists"
+NOTICE:  truncate cascades to table "sop_detailed_steps"
+NOTICE:  truncate cascades to table "sop_recommended_videos"
+NOTICE:  truncate cascades to table "sop_sync_log"
+NOTICE:  truncate cascades to table "type_orders"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "document_images"
+NOTICE:  truncate cascades to table "type_order_compositions"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "image_links"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "units"
+NOTICE:  truncate cascades to table "type_order_compositions"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "wo_projects"
+NOTICE:  truncate cascades to table "work_order_templates"
+NOTICE:  truncate cascades to table "work_orders"
+NOTICE:  truncate cascades to table "units"
+NOTICE:  truncate cascades to table "project_documents"
+NOTICE:  truncate cascades to table "user_template_prefs"
+NOTICE:  truncate cascades to table "type_orders"
+NOTICE:  truncate cascades to table "type_order_default_work_orders"
+NOTICE:  truncate cascades to table "bom_action_requests"
+NOTICE:  truncate cascades to table "work_order_tasks"
+NOTICE:  truncate cascades to table "work_order_notes"
+NOTICE:  truncate cascades to table "unit_rooms"
+NOTICE:  truncate cascades to table "unit_documents"
+NOTICE:  truncate cascades to table "document_images"
+NOTICE:  truncate cascades to table "type_order_compositions"
+NOTICE:  truncate cascades to table "unit_room_measurements"
+NOTICE:  truncate cascades to table "unit_room_calculations"
+NOTICE:  truncate cascades to table "image_links"
+DO
+           tablename            | row_count
+--------------------------------+-----------
+ agent_memories                 |         0
+ bom_action_requests            |         0
+ document_images                |         0
+ entity_creation_log            |         0
+ image_links                    |         0
+ metric_definitions             |         0
+ organization_trades            |         0
+ organizations                  |         0
+ pending_reviews                |         0
+ portal_table_config            |         0
+ project_documents              |         0
+ project_outcomes               |         0
+ rooms                          |         0
+ sop_detailed_steps             |         0
+ sop_executive_checklists       |         0
+ sop_recommended_videos         |         0
+ sop_sync_log                   |         0
+ sops                           |         0
+ template_libraries             |         0
+ trade_outcome_assignments      |         0
+ trades                         |         0
+ type_order_compositions        |         0
+ type_order_default_work_orders |         0
+ type_orders                    |         0
+ unit_documents                 |         0
+ unit_room_calculations         |         0
+ unit_room_measurements         |         0
+ unit_rooms                     |         0
+ units                          |         0
+ user_template_prefs            |         0
+ wo_projects                    |         0
+ work_order_notes               |         0
+ work_order_tasks               |         0
+ work_order_templates           |         0
+ work_orders                    |         0
+(35 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

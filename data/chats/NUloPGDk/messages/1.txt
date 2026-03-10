@@ -1,0 +1,351 @@
+=== Migration: sop_wo_bridge ===
+-- =============================================================================
+-- Migration: SOP ↔ Work Order Bridge
+-- Description:
+--   1A. sop_sections — unified hierarchical SOP structure (replaces flat checklists/steps)
+--   1B. sop_steps — individual trackable steps (one row = one checklist item = one RAG chunk)
+--   1C. sop_dependencies — directed graph of SOP relationships
+--   1D. work_order_step_progress — step-level completion tracking for unit WOs
+--   1E. sop_ref_docs — trade-level reference documents
+--   1F. Add ref_doc_id to sops
+--   1G. Add sop_step_id to sop_recommended_videos
+--   1H. Update freeze_project_templates() to preserve sop_id
+--   1I. RLS policies for all new tables
+--   1J. Updated_at triggers for all new tables
+-- Date: 2026-03-10
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. sop_sections — structured sections parsed from SOP markdown files
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_sections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,
+    section_type TEXT NOT NULL CHECK (section_type IN (
+        'purpose', 'scope', 'references', 'personnel', 'safety',
+        'tools', 'pre_work', 'procedure', 'videos', 'testing',
+        'cleanup', 'troubleshooting', 'quality', 'revision_history'
+    )),
+    title TEXT NOT NULL,
+    content_md TEXT,
+    content_plain TEXT,
+    is_ref_pointer BOOLEAN DEFAULT false,
+    ref_section TEXT,
+    phase_name TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number)
+);
+
+COMMENT ON TABLE public.sop_sections IS 'Structured sections parsed from SOP markdown files';
+CREATE INDEX idx_sop_sections_sop ON public.sop_sections(sop_id);
+CREATE INDEX idx_sop_sections_type ON public.sop_sections(section_type);
+
+-- =============================================================================
+-- 1B. sop_steps — individual trackable steps
+--     Each row = one trackable unit of work = one RAG chunk
+--     This is the table that work_order_step_progress references
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_steps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_id UUID NOT NULL REFERENCES public.sop_sections(id) ON DELETE CASCADE,
+    phase_name TEXT NOT NULL,
+    phase_number INTEGER NOT NULL,
+    step_number INTEGER NOT NULL,
+    step_name TEXT NOT NULL,
+    tasks_summary TEXT,
+    detail_md TEXT,
+    detail_plain TEXT,
+    est_duration_minutes INTEGER,
+    requires_photo BOOLEAN DEFAULT false,
+    requires_measurement BOOLEAN DEFAULT false,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, phase_number, step_number)
+);
+
+COMMENT ON TABLE public.sop_steps IS 'Individual trackable steps parsed from SOP procedure phases. One row = one checklist item = one RAG chunk.';
+CREATE INDEX idx_sop_steps_sop ON public.sop_steps(sop_id);
+CREATE INDEX idx_sop_steps_section ON public.sop_steps(section_id);
+CREATE INDEX idx_sop_steps_phase ON public.sop_steps(sop_id, phase_number);
+
+-- =============================================================================
+-- 1C. sop_dependencies — directed graph of SOP relationships
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_dependencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    from_sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    to_sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    link_type TEXT NOT NULL CHECK (link_type IN (
+        'prerequisite', 'sub_procedure', 'cross_reference', 'optional'
+    )),
+    condition_note TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(from_sop_id, to_sop_id, link_type)
+);
+
+COMMENT ON TABLE public.sop_dependencies IS 'Directed graph of SOP relationships';
+CREATE INDEX idx_sop_deps_from ON public.sop_dependencies(from_sop_id);
+CREATE INDEX idx_sop_deps_to ON public.sop_dependencies(to_sop_id);
+
+-- =============================================================================
+-- 1D. work_order_step_progress — step-level completion tracking
+--     The bridge table where field workers record completion of each SOP step
+--     within a unit work order. The separate timesheet app reads this data.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.work_order_step_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_order_id UUID NOT NULL REFERENCES public.work_orders(id) ON DELETE CASCADE,
+    sop_step_id UUID NOT NULL REFERENCES public.sop_steps(id) ON DELETE RESTRICT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN (
+        'pending', 'in_progress', 'completed', 'skipped', 'blocked'
+    )),
+    completed_by UUID REFERENCES auth.users(id),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    duration_minutes INTEGER,
+    notes TEXT,
+    photo_urls TEXT[] DEFAULT '{}',
+    override_detail TEXT,
+    is_override BOOLEAN DEFAULT false,
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(work_order_id, sop_step_id)
+);
+
+COMMENT ON TABLE public.work_order_step_progress IS 'Step-level completion tracking for unit work orders. Duration feeds timesheet app.';
+CREATE INDEX idx_wo_step_progress_wo ON public.work_order_step_progress(work_order_id);
+CREATE INDEX idx_wo_step_progress_step ON public.work_order_step_progress(sop_step_id);
+CREATE INDEX idx_wo_step_progress_user ON public.work_order_step_progress(completed_by);
+CREATE INDEX idx_wo_step_progress_status ON public.work_order_step_progress(status);
+CREATE INDEX idx_wo_step_progress_org ON public.work_order_step_progress(organization_id);
+
+-- =============================================================================
+-- 1E. sop_ref_docs — trade-level reference documents that SOPs link to
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_ref_docs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    doc_id TEXT NOT NULL UNIQUE,
+    trade_code TEXT NOT NULL,
+    trade_name TEXT NOT NULL,
+    trade_id UUID REFERENCES public.trades(id) ON DELETE SET NULL,
+    revision TEXT NOT NULL DEFAULT '1.0',
+    content_md TEXT,
+    storage_path TEXT,
+    file_hash TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.sop_ref_docs IS 'Trade-level reference documents that SOPs link to via pointers';
+
+-- =============================================================================
+-- 1F. Add ref_doc_id to sops table
+-- =============================================================================
+ALTER TABLE public.sops
+    ADD COLUMN IF NOT EXISTS ref_doc_id UUID REFERENCES public.sop_ref_docs(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1G. Add sop_step_id to sop_recommended_videos
+-- =============================================================================
+ALTER TABLE public.sop_recommended_videos
+    ADD COLUMN IF NOT EXISTS sop_step_id UUID REFERENCES public.sop_steps(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1H. Update freeze_project_templates() trigger
+--     Ensure sop_id is preserved when freezing project templates
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.freeze_project_templates()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only fire when status changes TO 'active'
+  IF NEW.status = 'active' AND (OLD.status IS DISTINCT FROM 'active') THEN
+    UPDATE public.work_order_templates pt
+    SET
+      definition = ct.definition,
+      sop_id = COALESCE(pt.sop_id, ct.sop_id),
+      is_frozen = true,
+      updated_at = now()
+    FROM public.work_order_templates ct
+    WHERE pt.project_id = NEW.id
+      AND pt.scope = 'project'
+      AND pt.parent_template_id = ct.id
+      AND pt.is_frozen = false
+      AND pt.definition IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Note: The trigger trg_freeze_project_templates on wo_projects already exists
+-- from migration 20260222000002. CREATE OR REPLACE FUNCTION above updates it
+-- in-place — no need to drop/recreate the trigger binding.
+
+-- =============================================================================
+-- 1I. RLS Policies
+-- =============================================================================
+
+-- sop_sections
+ALTER TABLE public.sop_sections ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_sections_select" ON public.sop_sections FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_sections_sysadmin" ON public.sop_sections FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_steps
+ALTER TABLE public.sop_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_steps_select" ON public.sop_steps FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_steps_sysadmin" ON public.sop_steps FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_dependencies
+ALTER TABLE public.sop_dependencies ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_deps_select" ON public.sop_dependencies FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_deps_sysadmin" ON public.sop_dependencies FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_ref_docs
+ALTER TABLE public.sop_ref_docs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_ref_docs_select" ON public.sop_ref_docs FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_ref_docs_sysadmin" ON public.sop_ref_docs FOR ALL
+    USING (public.is_sysadmin());
+
+-- work_order_step_progress
+ALTER TABLE public.work_order_step_progress ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "wo_step_progress_tenant" ON public.work_order_step_progress FOR ALL
+    USING (organization_id = public.current_user_organization_id());
+CREATE POLICY "wo_step_progress_sysadmin" ON public.work_order_step_progress FOR ALL
+    USING (public.is_sysadmin());
+
+-- =============================================================================
+-- 1J. Updated_at triggers
+-- =============================================================================
+CREATE TRIGGER update_sop_sections_updated_at
+    BEFORE UPDATE ON public.sop_sections
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_sop_steps_updated_at
+    BEFORE UPDATE ON public.sop_steps
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_sop_ref_docs_updated_at
+    BEFORE UPDATE ON public.sop_ref_docs
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_wo_step_progress_updated_at
+    BEFORE UPDATE ON public.work_order_step_progress
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- =============================================================================
+-- Notify PostgREST to reload schema cache
+-- =============================================================================
+NOTIFY pgrst, 'reload schema';
+\n=== Migration: sop_library ===
+-- Migration: SOP Library Management System
+-- Creates tables for indexing SOPs, caching executive checklists, detailed steps, and recommended videos
+-- SOPs are stored as .md files in Supabase Storage: apps/voicelog/sops/
+
+-- =============================================================================
+-- 1. Master SOP Index
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_number TEXT NOT NULL UNIQUE,          -- e.g. PLB-SOP-001
+    trade_code TEXT NOT NULL,                  -- e.g. PLB, ELC, HVC
+    trade_name TEXT NOT NULL,                  -- e.g. Plumbing, Electrical
+    task_name TEXT NOT NULL,                   -- e.g. Sink Replacement
+    revision TEXT NOT NULL DEFAULT '1.0',
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'planned', 'in_review', 'deprecated', 'retired')),
+    estimated_duration TEXT,                   -- e.g. '2-4 hours'
+    storage_path TEXT,                         -- path in Supabase Storage bucket
+    file_hash TEXT,                            -- MD5 hash for change detection
+    description TEXT,                          -- brief description for search
+    prerequisites TEXT[] DEFAULT '{}',         -- array of SOP numbers
+    sub_procedures TEXT[] DEFAULT '{}',        -- array of SOP numbers
+    tags TEXT[] DEFAULT '{}',                  -- searchable tags
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID REFERENCES auth.users(id),
+    updated_by UUID REFERENCES auth.users(id)
+);
+
+COMMENT ON TABLE sops IS 'Master index of all Standard Operating Procedures in the library';
+COMMENT ON COLUMN sops.storage_path IS 'Path to .md file in Supabase Storage bucket apps/voicelog/sops/';
+COMMENT ON COLUMN sops.file_hash IS 'MD5 hash of the .md file content for change detection during sync';
+
+-- =============================================================================
+-- 2. Executive Checklists (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_executive_checklists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- e.g. 8, 9
+    phase_name TEXT NOT NULL,                  -- e.g. 'Removal of Existing Sink'
+    step_number INTEGER NOT NULL,              -- 1-5
+    step_name TEXT NOT NULL,                   -- e.g. 'Isolate Services'
+    tasks TEXT NOT NULL,                       -- brief task description
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number, step_number)
+);
+
+COMMENT ON TABLE sop_executive_checklists IS 'Cached executive checklist items parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 3. Detailed Steps (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_detailed_steps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- e.g. 8, 9
+    phase_name TEXT NOT NULL,                  -- e.g. 'Installation of New Sink'
+    step_number INTEGER NOT NULL,              -- matches executive checklist step
+    step_name TEXT NOT NULL,                   -- must match executive checklist step_name
+    content TEXT NOT NULL,                     -- full markdown content of the step
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number, step_number)
+);
+
+COMMENT ON TABLE sop_detailed_steps IS 'Cached detailed step content parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 4. Recommended Videos (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_recommended_videos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- section of the video reference
+    phase_name TEXT NOT NULL,                  -- e.g. 'Removal of Existing Sink'
+    step_reference TEXT NOT NULL,              -- e.g. 'Steps 1-3: Service Isolation'
+    video_title TEXT NOT NULL,
+    video_url TEXT NOT NULL,
+    duration TEXT,                             -- e.g. '10:14'
+    source TEXT,                               -- e.g. 'This Old House'
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE sop_recommended_videos IS 'Cached recommended video links parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 5. SOP Sync Log (tracks parse/sync operations)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_sync_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID REFERENCES sops(id) ON DELETE SET NULL,
+    sop_number TEXT,
+    action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'parsed', 'uploaded', 'deleted', 'agent_requested')),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,95 @@
+## 2. Scope
+
+This SOP covers:
+- Disconnection and removal of the existing sink, faucet, and drain assembly
+- Preparation of the countertop or mounting surface
+- Installation of the new sink, faucet, supply lines, and drain assembly
+- Leak testing and final inspection
+
+This SOP does **not** cover:
+- Countertop fabrication or modification beyond standard sink cutout adjustments
+- Relocation of supply or drain rough-in (see SOP PLB-SOP-010)
+- Garbage disposal installation (see SOP PLB-SOP-005)
+- Dishwasher connection (see SOP PLB-SOP-006)
+
+---
+
+## 3. References & Codes
+
+- International Plumbing Code (IPC) — current edition
+- Uniform Plumbing Code (UPC) — current edition (where applicable)
+- Local jurisdiction amendments
+\n=== ELC Scope ===
+## 2. Scope
+
+This SOP covers:
+- De-energizing the circuit and verifying zero-energy state
+- Removal of the existing receptacle, cover plate, and wiring connections
+- Installation of the replacement receptacle with proper wiring terminations
+- Testing for correct wiring, grounding, and GFCI protection
+- Cover plate installation and final commissioning
+
+This SOP does **not** cover:
+- New circuit installation or home run wiring (see ELC-SOP-005: New Branch Circuit Installation)
+- Electrical panel upgrades or breaker replacement (see ELC-SOP-010: Panel & Breaker Service)
+- Whole-room rewiring or knob-and-tube replacement (see ELC-SOP-015: Legacy Wiring Remediation)
+- Dedicated 240V circuit installation for appliances (see ELC-SOP-020: Dedicated Appliance Circuit)
+- Smart outlet / home automation integration (see ELC-SOP-025: Smart Device Installation)
+- Outdoor / wet-location receptacle installation requiring new weatherproof boxes (see ELC-SOP-030: Exterior Receptacle Installation)
+
+---
+
+## 3. References & Codes
+
+\n=== AGENT_GUIDE.md ===
+# SOP Library Manager — Agent Guide
+
+> **For Agent Zero agents** — How to use this skill to find, retrieve, create, and manage SOPs.
+
+---
+
+## Quick Reference
+
+| Action | Command | When to Use |
+|---|---|---|
+| **Find an SOP** | `search "<keyword>"` | User asks about a procedure |
+| **List all SOPs** | `list` | User wants to see available procedures |
+| **Get full SOP** | `show <SOP_NUMBER>` | User needs detailed procedure steps |
+| **Check + auto-request** | `check "<trade>" "<task>"` | Before starting work — verify SOP exists |
+| **Upload new SOP** | `upload <file_path>` | After creating a new SOP document |
+| **Re-sync database** | `sync --all` | After manual edits to SOP files |
+
+---
+
+## Setup
+
+### Load the Skill
+
+Before using this skill, load it to get full instructions:
+
+```json
+{
+    "tool_name": "skills_tool:load",
+    "tool_args": {
+        "skill_name": "sop_library_manager"
+    }
+}
+```
+
+### Working Directory
+
+All commands run from:
+```
+/a0/usr/projects/timesheet_app/voicelog-scaffold
+```
+
+### Script Location
+
+```
+skills/sop_library_manager/scripts/sop_manager.py
+```
+
+---
+
+## Workflow 1: Search for an SOP
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

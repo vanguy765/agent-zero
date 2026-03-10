@@ -1,0 +1,203 @@
+=== API index.ts (route registration pattern) ===
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+console.log('[API] DOC_PARSER_URL is:', process.env.DOC_PARSER_URL);
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+import { tradesRoute } from './routes/trades';
+import { projectOutcomesRoute } from './routes/project-outcomes';
+import { typeOrdersRoute } from './routes/type-orders';
+import { bomActionRequestsRoute } from './routes/bom-action-requests';
+
+import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+import { docParserRoutes } from './routes/doc-parser-routes';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+app.route('/work-orders/trades', tradesRoute);
+app.route('/work-orders/project-outcomes', projectOutcomesRoute);
+app.route('/work-orders/type-orders', typeOrdersRoute);
+app.route('/work-orders/bom-action-requests', bomActionRequestsRoute);
+
+app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+// Doc-Parser Integration (P1-P7)
+app.route('/doc-parser', docParserRoutes);
+
+// A2A Protocol (Agent-to-Agent)
+app.route('', a2aRoute);       // /.well-known/agent.json
+app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+
+// The OpenAPI Documentation JSON
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Construction Voice Platform API',
+    description: 'API for Web Dashboard, Site Companion, and Flutter Mobile App'
+  },
+});
+
+// The Swagger UI (Visual Documentation)
+app.get('/ui', swaggerUI({ url: '/doc' }));
+
+const port = 3000;
+console.log(`Server is running on port ${port}`);
+console.log(`Swagger UI available at http://localhost:${port}/ui`);
+
+serve({
+  fetch: app.fetch,
+  port
+});
+
+export type AppType = typeof app;
+
+=== Supabase config ===
+export const SUPABASE_URL = "http://127.0.0.1:54321";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+export const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
+
+export const API_PORT = 3000;
+export const API_URL = `http://localhost:${API_PORT}`;
+
+export const WEB_DASHBOARD_PORT = 3001;
+export const WEB_DASHBOARD_URL = `http://localhost:${WEB_DASHBOARD_PORT}`;
+
+export const MATERIAL_ADMIN_PORT = 3002;
+export const MATERIAL_ADMIN_URL = `http://localhost:${MATERIAL_ADMIN_PORT}`;
+
+export const MOBILE_APP_PORT = 3003;
+export const MOBILE_APP_URL = `http://localhost:${MOBILE_APP_PORT}`;
+
+export const TENANT_PORTAL_PORT = 3005;
+export const TENANT_PORTAL_URL = `http://localhost:${TENANT_PORTAL_PORT}`;
+
+export const CORS_ORIGINS = [
+  WEB_DASHBOARD_URL,
+  MATERIAL_ADMIN_URL,
+  MOBILE_APP_URL,
+  TENANT_PORTAL_URL
+];
+
+=== Existing migration list ===
+-rw-r--r-- 1 root root  3433 Feb 22 04:56 20260217000007_functions.sql
+-rw-r--r-- 1 root root  5186 Feb 18 05:23 20260217000008_foreign_keys.sql
+-rw-r--r-- 1 root root  4159 Feb 18 05:23 20260217000009_indexes.sql
+-rw-r--r-- 1 root root 15938 Feb 18 05:23 20260217000010_views.sql
+-rw-r--r-- 1 root root  1884 Feb 18 05:23 20260217000011_triggers.sql
+-rw-r--r-- 1 root root 11118 Feb 18 05:23 20260217000012_rls_policies.sql
+-rw-r--r-- 1 root root  3356 Feb 19 04:44 20260219000001_tenant_portal_config.sql
+-rw-r--r-- 1 root root  5531 Feb 19 05:37 20260219000002_placeholder_recovery.sql
+-rwxrwxrwx 1 root root  1505 Feb 22 05:18 20260222000001_template_rls_manager_admin.sql
+-rwxrwxrwx 1 root root  4055 Feb 22 06:07 20260222000002_project_lifecycle_template_inheritance.sql
+-rwxrwxrwx 1 root root  1333 Feb 22 20:28 20260222000003_user_template_prefs.sql
+-rwxrwxrwx 1 root root  2492 Feb 23 02:39 20260222000004_storage_buckets.sql
+-rwxrwxrwx 1 root root  1377 Feb 23 04:35 20260222000005_tenant_onboarding.sql
+-rw-r--r-- 1 root root   526 Feb 23 22:36 20260223000001_org_industry_description.sql
+-rw-r--r-- 1 root root  3138 Feb 23 23:09 20260223000002_sysadmin_rls_policies.sql
+-rw-r--r-- 1 root root 10951 Mar  1 01:53 20260228000001_sop_library.sql
+-rw-r--r-- 1 root root 26941 Mar  4 22:09 20260304000001_schema_evolution_phase1.sql
+-rw-r--r-- 1 root root 14847 Mar  5 18:18 20260304000002_schema_evolution_seed.sql
+-rw-r--r-- 1 root root 11791 Mar 10 01:11 20260310000001_sop_wo_bridge.sql
+drwxrwxrwx 1 root root  4096 Feb 18 05:17 early-work
+
+=== RLS pattern from bridge migration ===
+--   1I. RLS policies for all new tables
+--   1J. Updated_at triggers for all new tables
+-- Date: 2026-03-10
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. sop_sections — structured sections parsed from SOP markdown files
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_sections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,
+    section_type TEXT NOT NULL CHECK (section_type IN (
+        'purpose', 'scope', 'references', 'personnel', 'safety',
+        'tools', 'pre_work', 'procedure', 'videos', 'testing',
+        'cleanup', 'troubleshooting', 'quality', 'revision_history'
+--
+-- 1I. RLS Policies
+-- =============================================================================
+
+-- sop_sections
+ALTER TABLE public.sop_sections ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_sections_select" ON public.sop_sections FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_sections_sysadmin" ON public.sop_sections FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_steps
+ALTER TABLE public.sop_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_steps_select" ON public.sop_steps FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_steps_sysadmin" ON public.sop_steps FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_dependencies
+ALTER TABLE public.sop_dependencies ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_deps_select" ON public.sop_dependencies FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_deps_sysadmin" ON public.sop_dependencies FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_ref_docs
+ALTER TABLE public.sop_ref_docs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_ref_docs_select" ON public.sop_ref_docs FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_ref_docs_sysadmin" ON public.sop_ref_docs FOR ALL
+    USING (public.is_sysadmin());
+
+-- work_order_step_progress
+ALTER TABLE public.work_order_step_progress ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "wo_step_progress_tenant" ON public.work_order_step_progress FOR ALL
+    USING (organization_id = public.current_user_organization_id());
+CREATE POLICY "wo_step_progress_sysadmin" ON public.work_order_step_progress FOR ALL
+    USING (public.is_sysadmin());
+
+-- =============================================================================
+-- 1J. Updated_at triggers
+-- =============================================================================
+CREATE TRIGGER update_sop_sections_updated_at
+    BEFORE UPDATE ON public.sop_sections
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

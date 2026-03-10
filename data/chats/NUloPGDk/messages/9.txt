@@ -1,0 +1,62 @@
+=== TemplateDetail.tsx imports (first 15 lines) ===
+import type { Component } from 'solid-js';
+import { createResource, For, Show } from 'solid-js';
+import { useParams, A } from '@solidjs/router';
+import type { WorkOrderTemplate } from '../lib/api';
+import { api } from '../lib/api';
+
+const TemplateDetail: Component = () => {
+    const params = useParams();
+    const [template] = createResource<WorkOrderTemplate>(() =>
+        params.id ? api.getTemplate(params.id) : Promise.reject('No template ID')
+    );
+
+    const getScopeBadgeClass = (scope: string) => {
+        const classes: Record<string, string> = {
+            'system': 'badge bg-blue-100 text-blue-700',
+=== WorkOrderDetail.tsx lines 155-173 (end of file) ===
+                                                            </li>
+                                                        );
+                                                    }}
+                                                </For>
+                                            </ul>
+                                        </div>
+                                    );
+                                }}
+                            </For>
+                        </Show>
+                    </div>
+
+                </Show>
+            </Show>
+        </div>
+    );
+};
+
+export default WorkOrderDetail;
+=== api.ts lines 148-158 (end of WorkOrderTemplate) ===
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+}
+
+export interface WorkOrder {
+  id: string;
+  organization_id: string;
+  unit_id: string;
+  template_id: string;
+=== api.ts lines 735-746 (end of class) ===
+  /** Check doc-parser service health */
+  async getDocParserHealth(): Promise<{
+    status: string;
+    version: string;
+    engines: string[];
+  }> {
+    return this.docParserRequest('/doc-parser/health');
+  }
+
+}
+
+export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,156 @@
+1121 apps/api/src/routes/work-orders.ts
+\n=== First 50 lines ===
+import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+import {
+    buildDraftRooms,
+    buildDraftTemplate,
+    findSimilarTemplate,
+    logEntityCreation,
+} from '../services/placeholderGenerator';
+import {
+    createReviewsBatch,
+    type CreateReviewInput,
+} from '../services/reviewService';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+if (process.env.REQUIRE_AUTH === 'true') {
+    workOrdersRoute.use('*', authMiddleware);
+}
+// workOrdersRoute.use('*', authMiddleware);
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// UNITS ENDPOINTS
+// ============================================================================
+
+\n=== Lines around 380-400 (PATCH endpoint) ===
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .insert(result.data)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// UPDATE TEMPLATE
+workOrdersRoute.patch('/templates/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    // Allow updating trade_name, definition, version, is_active, scope, etc.
+    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id'];
+    const updateData: Record<string, any> = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) {
+            updateData[field] = body[field];
+        }
+    }
+
+    if (Object.keys(updateData).length === 0) {
+        return c.json({ error: 'No valid fields to update' }, 400);
+    }
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// DELETE TEMPLATE (soft delete: sets is_active = false)
+workOrdersRoute.delete('/templates/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+\n=== Last 50 lines ===
+// NOTES ENDPOINTS
+// ============================================================================
+
+// ADD NOTE
+workOrdersRoute.post('/work-orders/:id/notes', async (c) => {
+    const supabase = getScopedClient(c);
+    const user = (c as any).get('user') || { id: 'test-user' }; // Fallback for testing
+    const workOrderId = c.req.param('id');
+    const body = await c.req.json();
+
+    const result = CreateNoteRequestSchema.safeParse(body);
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
+    const { data, error } = await supabase
+        .from('work_order_notes')
+        .insert({
+            work_order_id: workOrderId,
+            author_id: user.id,
+            content: result.data.content
+        })
+        .select()
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data, 201);
+});
+
+// GET NOTES
+workOrdersRoute.get('/work-orders/:id/notes', async (c) => {
+    const supabase = getScopedClient(c);
+    const workOrderId = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('work_order_notes')
+        .select(`
+            *,
+            author:author_id(email)
+        `)
+        .eq('work_order_id', workOrderId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,52 @@
+389:    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id', 'sop_id'];
+680:workOrdersRoute.get('/sops', async (c) => {
+686:        .from('sops')
+687:        .select('id, sop_number, trade_code, trade_name, task_name, revision, status, estimated_duration, trade_id')
+690:        .order('sop_number');
+701:workOrdersRoute.get('/sops/:id', async (c) => {
+705:    const [sopRes, sectionsRes, stepsRes, depsRes] = await Promise.all([
+706:        supabase.from('sops').select('*').eq('id', id).single(),
+707:        supabase.from('sop_sections').select('*').eq('sop_id', id).order('section_number'),
+708:        supabase.from('sop_steps').select('*').eq('sop_id', id).order('phase_number').order('step_number'),
+709:        supabase.from('sop_dependencies').select('*, to_sop:sops!to_sop_id(sop_number, task_name)').eq('from_sop_id', id),
+712:    if (sopRes.error) return c.json({ error: sopRes.error.message }, 404);
+715:        ...sopRes.data,
+723:workOrdersRoute.get('/templates/:id/sop', async (c) => {
+729:        .select('id, sop_id, parent_template_id, scope')
+735:    let sopId = template.sop_id;
+736:    if (!sopId && template.parent_template_id) {
+739:            .select('sop_id')
+742:        sopId = parent?.sop_id;
+745:    if (!sopId) return c.json({ sop: null, steps: [], sections: [] });
+747:    const [sopRes, sectionsRes, stepsRes] = await Promise.all([
+748:        supabase.from('sops').select('*').eq('id', sopId).single(),
+749:        supabase.from('sop_sections').select('*').eq('sop_id', sopId).order('section_number'),
+750:        supabase.from('sop_steps').select('*').eq('sop_id', sopId).order('phase_number').order('step_number'),
+754:        sop: sopRes.data,
+757:        _inherited: sopId !== template.sop_id,
+766:workOrdersRoute.get('/work-orders/:id/step-progress', async (c) => {
+771:        .from('work_order_step_progress')
+774:            sop_step:sop_steps (
+793:        .select('id, template_id, organization_id, work_order_templates!inner(sop_id, parent_template_id)')
+===CHECK SOP ROUTE===
+389:    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id', 'sop_id'];
+680:workOrdersRoute.get('/sops', async (c) => {
+686:        .from('sops')
+687:        .select('id, sop_number, trade_code, trade_name, task_name, revision, status, estimated_duration, trade_id')
+690:        .order('sop_number');
+701:workOrdersRoute.get('/sops/:id', async (c) => {
+705:    const [sopRes, sectionsRes, stepsRes, depsRes] = await Promise.all([
+706:        supabase.from('sops').select('*').eq('id', id).single(),
+707:        supabase.from('sop_sections').select('*').eq('sop_id', id).order('section_number'),
+708:        supabase.from('sop_steps').select('*').eq('sop_id', id).order('phase_number').order('step_number'),
+709:        supabase.from('sop_dependencies').select('*, to_sop:sops!to_sop_id(sop_number, task_name)').eq('from_sop_id', id),
+712:    if (sopRes.error) return c.json({ error: sopRes.error.message }, 404);
+715:        ...sopRes.data,
+723:workOrdersRoute.get('/templates/:id/sop', async (c) => {
+729:        .select('id, sop_id, parent_template_id, scope')
+735:    let sopId = template.sop_id;
+736:    if (!sopId && template.parent_template_id) {
+739:            .select('sop_id')
+742:        sopId = parent?.sop_id;
+745:    if (!sopId) return c.json({ sop: null, steps: [], sections: [] });
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

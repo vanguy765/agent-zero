@@ -1,0 +1,143 @@
+apps/work-orders/src/lib/api.ts:131:  is_frozen?: boolean;
+apps/work-orders/src/lib/api.ts:145:  parent_template_id?: string;
+apps/work-orders/src/lib/api.ts:151:  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+apps/work-orders/src/lib/api.ts.bak:58:  is_frozen?: boolean;
+apps/work-orders/src/lib/api.ts.bak:72:  parent_template_id?: string;
+apps/work-orders/src/lib/api.ts.bak:78:  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+apps/work-orders/src/pages/ProjectTemplates.tsx:130:                    When this project is activated, templates will be frozen as independent copies.
+apps/work-orders/src/pages/ProjectTemplates.tsx:134:            {/* Info banner for active projects with frozen templates */}
+apps/work-orders/src/pages/ProjectTemplates.tsx:137:                    <strong>Active Project:</strong> Templates are frozen copies. Edits will only affect this project.
+apps/work-orders/src/pages/ProjectTemplates.tsx:234:                                            <Show when={template.is_frozen}>
+apps/work-orders/src/pages/ProjectTemplates.tsx:237:                                            <Show when={template._inherited}>
+apps/work-orders/src/pages/ProjectTemplates.tsx:251:                                        <Show when={template.is_frozen}>
+apps/work-orders/src/pages/TemplateDetail.tsx:102:                            <Show when={template()!.parent_template_id}>
+apps/work-orders/src/pages/TemplateDetail.tsx:106:                                        href={`/templates/${template()!.parent_template_id}`}
+apps/work-orders/src/pages/TemplateDetail.tsx:109:                                        {template()!.parent_template_id?.slice(0, 8)}...
+apps/work-orders/src/pages/TemplateEditor.tsx:57:    const isFrozen = () => existingTemplate()?.is_frozen === true;
+apps/work-orders/src/pages/TemplateEditor.tsx:302:                    <strong>Frozen Template:</strong> This template has been frozen for an active project.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Schema evolution: SOP-related tables ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 356:    matched_sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+403:    ADD COLUMN IF NOT EXISTS sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+417:-- 1K. ALTER sops — add new columns
+419:ALTER TABLE public.sops
+440:-- Step 1: Drop ALL scope-related constraints FIRST (before updating data)
+447:-- Step 2: Update data
+450:-- Step 3: Re-add constraints with new scope values
+497:-- Trade name + code sync trigger for sops
+508:DROP TRIGGER IF EXISTS trg_sync_trade_name_code_sops ON public.sops;
+509:CREATE TRIGGER trg_sync_trade_name_code_sops
+510:    BEFORE INSERT OR UPDATE OF trade_id ON public.sops
+516:-- were created in their respective sections above.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === SOP library migration ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -- Migration: SOP Library Management System
+-- Creates tables for indexing SOPs, caching executive checklists, detailed steps, and recommended videos
+-- SOPs are stored as .md files in Supabase Storage: apps/voicelog/sops/
+
+-- =============================================================================
+-- 1. Master SOP Index
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sops (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_number TEXT NOT NULL UNIQUE,          -- e.g. PLB-SOP-001
+    trade_code TEXT NOT NULL,                  -- e.g. PLB, ELC, HVC
+    trade_name TEXT NOT NULL,                  -- e.g. Plumbing, Electrical
+    task_name TEXT NOT NULL,                   -- e.g. Sink Replacement
+    revision TEXT NOT NULL DEFAULT '1.0',
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'planned', 'in_review', 'deprecated', 'retired')),
+    estimated_duration TEXT,                   -- e.g. '2-4 hours'
+    storage_path TEXT,                         -- path in Supabase Storage bucket
+    file_hash TEXT,                            -- MD5 hash for change detection
+    description TEXT,                          -- brief description for search
+    prerequisites TEXT[] DEFAULT '{}',         -- array of SOP numbers
+    sub_procedures TEXT[] DEFAULT '{}',        -- array of SOP numbers
+    tags TEXT[] DEFAULT '{}',                  -- searchable tags
+    organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID REFERENCES auth.users(id),
+    updated_by UUID REFERENCES auth.users(id)
+);
+
+COMMENT ON TABLE sops IS 'Master index of all Standard Operating Procedures in the library';
+COMMENT ON COLUMN sops.storage_path IS 'Path to .md file in Supabase Storage bucket apps/voicelog/sops/';
+COMMENT ON COLUMN sops.file_hash IS 'MD5 hash of the .md file content for change detection during sync';
+
+-- =============================================================================
+-- 2. Executive Checklists (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_executive_checklists (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- e.g. 8, 9
+    phase_name TEXT NOT NULL,                  -- e.g. 'Removal of Existing Sink'
+    step_number INTEGER NOT NULL,              -- 1-5
+    step_name TEXT NOT NULL,                   -- e.g. 'Isolate Services'
+    tasks TEXT NOT NULL,                       -- brief task description
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number, step_number)
+);
+
+COMMENT ON TABLE sop_executive_checklists IS 'Cached executive checklist items parsed from SOP .md files for fast retrieval';
+
+-- =============================================================================
+-- 3. Detailed Steps (cached from SOP .md files)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS sop_detailed_steps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,           -- e.g. 8, 9
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Frontend API types for templates ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 35:export interface TemplateLibrary {
+36-  id: string;
+37-  name: string;
+--
+40:  scope: 'system' | 'company';
+41-  organization_id?: string;
+42-  icon?: string;
+--
+60:  scope: 'system' | 'company';
+61-  organization_id?: string;
+62-  parent_trade_id?: string;
+--
+72:  scope: 'system' | 'company';
+73-  organization_id?: string;
+74-  icon?: string;
+--
+90:  scope: 'system' | 'company' | 'project';
+91-  organization_id?: string;
+92-  project_id?: string;
+--
+120:export interface WorkOrderTemplate {
+121-  id: string;
+122:  scope: 'system' | 'company' | 'project';  // NEW: Template scope
+123-  organization_id?: string;  // Now optional for app-level templates
+124-  project_id?: string;  // NEW: For project-level templates
+--
+131:  is_frozen?: boolean;
+132-  definition: {
+133-    sections: Record<string, {
+--
+145:  parent_template_id?: string;
+146:  copied_from_template_id?: string;
+147-  created_by?: string;
+148-  updated_by?: string;
+--
+341:  async getTemplates(scope?: 'system' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+342:    const query = scope ? `?scope=${scope}` : '';
+343-    return this.request<WorkOrderTemplate[]>(`/templates${query}`);
+344-  }
+--
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Full file list of work-orders frontend pages ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# CompanyTemplates.tsx  ProjectDocuments.tsx.bak	Templates.tsx
+Dashboard.tsx	      ProjectOutcomes.tsx	Trades.tsx
+LoginPage.tsx	      Projects.tsx		TypeOrders.tsx
+NewProject.tsx	      ProjectTemplates.tsx	Units.tsx
+ProjectDetail.tsx     TemplateDetail.tsx	WorkOrderDetail.tsx
+ProjectDocuments.tsx  TemplateEditor.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

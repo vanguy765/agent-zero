@@ -1,0 +1,69 @@
+✅ Module imported successfully
+
+--- Section Type Classification ---
+  ✅ "Purpose" -> "purpose" (expected "purpose")
+  ✅ "Scope" -> "scope" (expected "scope")
+  ✅ "References & Codes" -> "references" (expected "references")
+  ✅ "Personnel & Qualifications" -> "personnel" (expected "personnel")
+  ✅ "Safety Requirements" -> "safety" (expected "safety")
+  ✅ "Tools & Equipment" -> "tools" (expected "tools")
+  ✅ "Pre-Work Assessment" -> "pre_work" (expected "pre_work")
+  ✅ "Procedure — Surface Preparation" -> "procedure" (expected "procedure")
+  ✅ "Procedure — Priming" -> "procedure" (expected "procedure")
+  ✅ "Procedure — Painting" -> "procedure" (expected "procedure")
+  ✅ "Recommended Videos" -> "videos" (expected "videos")
+  ✅ "Testing & Commissioning" -> "testing" (expected "testing")
+  ✅ "Cleanup & Closeout" -> "cleanup" (expected "cleanup")
+  ✅ "Troubleshooting" -> "troubleshooting" (expected "troubleshooting")
+  ✅ "Quality Standards" -> "quality" (expected "quality")
+  ✅ "Revision History" -> "revision_history" (expected "revision_history")
+
+Classification: ALL PASS
+
+--- PNT SOP: parse_to_sections_and_steps ---
+Sections: 16
+  § 1 [purpose         ] Purpose
+  § 2 [scope           ] Scope
+  § 3 [references      ] References & Codes [REF]
+  § 4 [personnel       ] Personnel & Qualifications [REF]
+  § 5 [safety          ] Safety Requirements
+  § 6 [tools           ] Tools & Equipment
+  § 7 [pre_work        ] Pre-Work Assessment
+  § 8 [procedure       ] Procedure — Surface Preparation (phase: Surface Preparation)
+  § 9 [procedure       ] Procedure — Priming (phase: Priming)
+  §10 [procedure       ] Procedure — Painting (phase: Painting)
+  §11 [videos          ] Recommended Videos
+  §12 [testing         ] Testing & Commissioning
+  §13 [cleanup         ] Cleanup & Closeout [REF]
+  §14 [troubleshooting ] Troubleshooting
+  §15 [quality         ] Quality Standards
+  §16 [revision_history] Revision History
+
+Steps: 18
+  Phase 1, Step 1: Clear & Protect the Space | tasks: Move or cover furniture; lay drop cloths; remove outlet and ...
+  Phase 1, Step 2: Inspect & Clean Surfaces | tasks: Check for defects, grease, and contamination; wipe down wall...
+  Phase 1, Step 3: Patch Holes & Cracks | tasks: Apply spackling or joint compound to all defects; allow to d...
+  Phase 1, Step 4: Sand & Feather Repairs | tasks: Sand all patches flush; feather edges smooth; scuff-sand glo...
+  Phase 1, Step 5: Caulk Gaps at Trim | tasks: Apply paintable latex caulk to gaps between wall and trim; t...
+  Phase 1, Step 6: Mask Edges & Trim | tasks: Apply painter's tape to trim, outlets, ceiling edge (if not ...
+  Phase 1, Step 7: Final Surface Wipe-Down | tasks: Remove sanding dust with damp cloth or tack cloth; allow to ...
+  Phase 2, Step 1: Select & Mix Primer | tasks: Identify correct primer type for substrate; stir or shake th...
+  Phase 2, Step 2: Cut In Primer at Edges | tasks: Brush primer at ceiling, corners, and trim edges (3–4" band)
+  Phase 2, Step 3: Roll Primer on Field | tasks: Roll primer onto main wall field; maintain wet edge
+  Phase 2, Step 4: Dry & Inspect | tasks: Allow full dry time; inspect for bleed-through; apply second...
+  Phase 3, Step 1: Select & Mix Paint | tasks: Confirm color and sheen; box multiple cans; stir thoroughly
+  Phase 3, Step 2: Cut In First Coat | tasks: Brush first coat at ceiling, corners, and trim edges
+  Phase 3, Step 3: Roll First Coat on Field | tasks: Roll first coat onto wall field; maintain wet edge; full cov...
+  Phase 3, Step 4: Dry & Inspect First Coat | tasks: Allow full recoat time; inspect coverage and check for defec...
+  Phase 3, Step 5: Cut In Second Coat | tasks: Brush second coat at edges; blend into rolled area before dr...
+  Phase 3, Step 6: Roll Second Coat on Field | tasks: Roll second coat for uniform finish; feather final strokes
+  Phase 3, Step 7: Remove Tape & Final Inspection | tasks: Pull tape before full cure; inspect finish; touch up as need...
+
+--- PNT SOP: Scope Dependencies ---
+Dependencies found: 5
+  -> PNT-SOP-004: Trim & Baseboard Painting
+  -> PNT-SOP-003: Cabinet Repainting
+  -> PNT-SOP-002: Exterior Siding Painting
+  -> DRW-SOP-001: Drywall Patch Repair
+  -> DRW-SOP-004: Water Damage Repair
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

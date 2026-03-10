@@ -1,0 +1,34 @@
+# SOP ↔ Work Order Integration — Complete ✅
+
+All 4 files have been surgically edited with Python-based precision. Here's the summary:
+
+## File 1: `apps/api/src/routes/work-orders.ts` (1121 → 1324 lines)
+- **1A** ✅ Added `'sop_id'` to PATCH `allowedFields` (line 389)
+- **1B** ✅ Inserted 6 new endpoints before WORK ORDERS ENDPOINTS section:
+  - `GET /sops` — List SOPs with optional trade filter
+  - `GET /sops/:id` — SOP detail with sections, steps, dependencies
+  - `GET /templates/:id/sop` — Template-linked SOP with parent resolution
+  - `GET /work-orders/:id/step-progress` — Step progress for a work order
+  - `POST /work-orders/:id/initialize-steps` — Initialize steps from SOP
+  - `PATCH /work-orders/step-progress/:id` — Update step progress
+
+## File 2: `apps/work-orders/src/lib/api.ts` (746 → 833 lines)
+- **2A** ✅ Added `sop_id?: string` to `WorkOrderTemplate` interface
+- **2B** ✅ Added 4 new interfaces: `SopSummary`, `SopSection`, `SopStep`, `StepProgress`
+- **2C** ✅ Added 6 new `ApiClient` methods: `getSops`, `getSop`, `getTemplateSop`, `getStepProgress`, `initializeSteps`, `updateStepProgress`
+
+## File 3: `apps/work-orders/src/pages/TemplateDetail.tsx` (219 → 242 lines)
+- **3C** ✅ Added `<Show when={sop_id}>` block with `<SopLink>` in template detail grid
+- **3B** ✅ Added `SopLink` component (fetches SOP and displays number, task name, revision)
+
+## File 4: `apps/work-orders/src/pages/WorkOrderDetail.tsx` (173 → 246 lines)
+- **4C** ✅ Added `<StepProgressPanel workOrderId={wo()!.id} />` after task checklist
+- **4B** ✅ Added `StepProgressPanel` component with:
+  - Initialize steps button (when no progress exists)
+  - Step list with status dropdowns (pending/in_progress/completed/skipped/blocked)
+  - Color-coded step cards (green=completed, yellow=in_progress, white=pending)
+
+### Constraints Honored
+- ✅ No new files created — only existing files edited
+- ✅ WO template inheritance chain NOT modified
+- ✅ Existing code patterns followed exactly

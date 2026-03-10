@@ -1,0 +1,182 @@
+========== apps/api/src/routes/voice.ts ==========
+
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+
+// ----------------------------------------------------------------------------
+// REFERENCE IMPLEMENTATION: VOICE PROCESSING
+// ----------------------------------------------------------------------------
+// This file serves as a reference for how to handle:
+// 1. File Uploads (Blob)
+// 2. Mocking AI Latency
+// 3. Database Insertion
+// ----------------------------------------------------------------------------
+
+export const voiceRoute = new OpenAPIHono();
+
+// We need SERVICE ROLE to bypass RLS if the mobile app is unauthenticated (for the test).
+// In production, you would use the User's JWT.
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+voiceRoute.post('/', async (c) => {
+    console.log('[Voice] Received Request');
+
+    // 1. Parse Body (Multipart)
+    // --------------------------------------------------------
+    const body = await c.req.parseBody();
+    const audioFile = body['audio'];
+    // We expect a user_id to assign the task to, otherwise we can't notify the dashboard
+    const targetUserId = body['user_id'] as string;
+
+    if (!audioFile || !(audioFile instanceof Blob)) {
+        return c.json({ error: 'No audio file provided' }, 400);
+    }
+    
+    console.log(`[Voice] Processing Audio: ${audioFile.size} bytes`);
+
+    // 2. Simulate AI Processing (The "Brain")
+    // --------------------------------------------------------
+    await new Promise(r => setTimeout(r, 1500)); // 1.5s latency
+
+    // Mock Result
+    const extractedTask = `Voice Entry at ${new Date().toLocaleTimeString()}`;
+    console.log('[Voice] AI Extracted:', extractedTask);
+
+    // 3. Database Interaction
+    // --------------------------------------------------------
+    // BROADCAST STRATEGY (Test Mode):
+    // Insert this task for EVERY user in the system so that whoever is looking at the dashboard sees it.
+    
+    const { data: users, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (userError || !users.users.length) {
+        console.error('[Voice] No users found to assign task to.');
+        return c.json({ message: "Voice processed but no users found." });
+    }
+
+    const tasksToInsert = users.users.map(u => ({
+        task: extractedTask,
+        is_completed: false,
+        user_id: u.id
+    }));
+
+    const { error: insertError } = await supabaseAdmin
+        .from('testrepo_todos')
+        .insert(tasksToInsert);
+
+    if (insertError) {
+        console.error('[Voice] DB Error:', insertError);
+        return c.json({ error: insertError.message }, 500);
+    }
+    
+    console.log(`[Voice] Broadcasted task to ${tasksToInsert.length} users.`);
+    
+    return c.json({
+        success: true,
+        message: `Voice processed and broadcasted to ${tasksToInsert.length} users`,
+        transcription: extractedTask
+    });
+});
+
+========== step_progress from SOP/WO bridge migration ==========
+--   1D. work_order_step_progress — step-level completion tracking for unit WOs
+--   1E. sop_ref_docs — trade-level reference documents
+--   1F. Add ref_doc_id to sops
+--   1G. Add sop_step_id to sop_recommended_videos
+--   1H. Update freeze_project_templates() to preserve sop_id
+--   1I. RLS policies for all new tables
+--   1J. Updated_at triggers for all new tables
+-- Date: 2026-03-10
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. sop_sections — structured sections parsed from SOP markdown files
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_sections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,
+    section_type TEXT NOT NULL CHECK (section_type IN (
+        'purpose', 'scope', 'references', 'personnel', 'safety',
+        'tools', 'pre_work', 'procedure', 'videos', 'testing',
+        'cleanup', 'troubleshooting', 'quality', 'revision_history'
+    )),
+    title TEXT NOT NULL,
+    content_md TEXT,
+    content_plain TEXT,
+    is_ref_pointer BOOLEAN DEFAULT false,
+    ref_section TEXT,
+    phase_name TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number)
+);
+
+COMMENT ON TABLE public.sop_sections IS 'Structured sections parsed from SOP markdown files';
+CREATE INDEX idx_sop_sections_sop ON public.sop_sections(sop_id);
+CREATE INDEX idx_sop_sections_type ON public.sop_sections(section_type);
+
+-- =============================================================================
+-- 1B. sop_steps — individual trackable steps
+--     Each row = one trackable unit of work = one RAG chunk
+--     This is the table that work_order_step_progress references
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_steps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_id UUID NOT NULL REFERENCES public.sop_sections(id) ON DELETE CASCADE,
+    phase_name TEXT NOT NULL,
+    phase_number INTEGER NOT NULL,
+    step_number INTEGER NOT NULL,
+    step_name TEXT NOT NULL,
+    tasks_summary TEXT,
+    detail_md TEXT,
+    detail_plain TEXT,
+    est_duration_minutes INTEGER,
+    requires_photo BOOLEAN DEFAULT false,
+    requires_measurement BOOLEAN DEFAULT false,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, phase_number, step_number)
+);
+
+COMMENT ON TABLE public.sop_steps IS 'Individual trackable steps parsed from SOP procedure phases. One row = one checklist item = one RAG chunk.';
+CREATE INDEX idx_sop_steps_sop ON public.sop_steps(sop_id);
+CREATE INDEX idx_sop_steps_section ON public.sop_steps(section_id);
+CREATE INDEX idx_sop_steps_phase ON public.sop_steps(sop_id, phase_number);
+
+-- =============================================================================
+-- 1C. sop_dependencies — directed graph of SOP relationships
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_dependencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    from_sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    to_sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    link_type TEXT NOT NULL CHECK (link_type IN (
+        'prerequisite', 'sub_procedure', 'cross_reference', 'optional'
+    )),
+    condition_note TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(from_sop_id, to_sop_id, link_type)
+
+========== apps/api/src/routes/work-orders.ts (timesheet/step_progress sections) ==========
+687:        .select('id, sop_number, trade_code, trade_name, task_name, revision, status, estimated_duration, trade_id')
+762:// STEP PROGRESS ENDPOINTS
+765:// GET STEP PROGRESS for a work order
+766:workOrdersRoute.get('/work-orders/:id/step-progress', async (c) => {
+771:        .from('work_order_step_progress')
+776:                tasks_summary, detail_md, est_duration_minutes
+786:// INITIALIZE STEPS from SOP for a work order
+787:workOrdersRoute.post('/work-orders/:id/initialize-steps', async (c) => {
+821:        .from('work_order_step_progress')
+835:        .from('work_order_step_progress')
+843:// UPDATE STEP PROGRESS
+844:workOrdersRoute.patch('/work-orders/step-progress/:id', async (c) => {
+851:        'duration_minutes', 'notes', 'photo_urls', 'override_detail', 'is_override'
+867:        .from('work_order_step_progress')
+
+========== work-orders.ts full file length ==========
+1324 apps/api/src/routes/work-orders.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

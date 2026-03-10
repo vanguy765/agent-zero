@@ -1,0 +1,19 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/dbTables.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/platform_analysis.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/system_flexibility.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/ui_review_schema_evolution.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/LESSONS_LEARNED.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Phase_2D_FRONTEND_SESSION_PROMPT.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Phase_2D_PROGRESS.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Phase_2D_Template_Hierarchy_IMPLEMENTATION.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Phase_3_SESSION_PROMPT.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/QUICK_START_Phase_2D.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Schema_Evolution_UI_Implementation_Prompt.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Template_Hierarchy_Design.md
+---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/dbTables.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/general/system_flexibility.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Phase_2D_Template_Hierarchy_IMPLEMENTATION.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Schema_Evolution_UI_Implementation_Prompt.md
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Template_Hierarchy_Design.md
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

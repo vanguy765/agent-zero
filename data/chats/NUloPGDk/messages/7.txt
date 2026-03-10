@@ -1,0 +1,35 @@
+=== Lines 385-395 (allowedFields) ===
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    // Allow updating trade_name, definition, version, is_active, scope, etc.
+    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id'];
+    const updateData: Record<string, any> = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) {
+            updateData[field] = body[field];
+        }
+    }
+=== Lines 665-685 (insertion point for SOP endpoints) ===
+        }, {
+            onConflict: 'user_id,template_id',
+        });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json({ success: true });
+});
+
+// ============================================================================
+// WORK ORDERS ENDPOINTS
+// ============================================================================
+
+// LIST ALL WORK ORDERS (with optional filters)
+workOrdersRoute.get('/work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const unitId = c.req.query('unit_id');
+    const status = c.req.query('status');
+    const trade = c.req.query('trade');
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

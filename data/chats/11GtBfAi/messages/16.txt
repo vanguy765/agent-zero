@@ -1,0 +1,127 @@
+def main():
+    parser = argparse.ArgumentParser(description="SOP Library Manager")
+    sub = parser.add_subparsers(dest="command")
+
+    # upload
+    p_upload = sub.add_parser("upload", help="Upload SOP .md file to storage and sync DB")
+    p_upload.add_argument("file", help="Path to .md file")
+
+    # sync
+    p_sync = sub.add_parser("sync", help="Re-sync DB from storage")
+    p_sync.add_argument("--all", action="store_true", help="Sync all SOPs")
+    p_sync.add_argument("sop_number", nargs="?", help="Specific SOP number to sync")
+
+    # sync-new (new schema)
+    p_sync_new = sub.add_parser("sync-new", help="Sync to new schema (sop_sections + sop_steps)")
+    p_sync_new.add_argument("--all", action="store_true", help="Sync all SOPs")
+    p_sync_new.add_argument("sop_number", nargs="?", help="Specific SOP number to sync")
+
+    # upload-ref
+    p_ref = sub.add_parser("upload-ref", help="Upload REF doc to sop_ref_docs")
+    p_ref.add_argument("file", help="Path to REF .md file")
+
+    # sync-deps
+    p_deps = sub.add_parser("sync-deps", help="Extract and sync SOP dependencies")
+    p_deps.add_argument("--all", action="store_true", help="Sync all SOPs")
+    p_deps.add_argument("sop_number", nargs="?", help="Specific SOP number")
+
+    # search
+    p_search = sub.add_parser("search", help="Search SOPs")
+    p_search.add_argument("query", help="Search query")
+
+    # list
+    sub.add_parser("list", help="List all SOPs")
+
+    # show
+    p_show = sub.add_parser("show", help="Show SOP details")
+    p_show.add_argument("sop_number", help="SOP number")
+
+    # request
+    p_req = sub.add_parser("request", help="Request agent to create SOP")
+    p_req.add_argument("trade", help="Trade name")
+    p_req.add_argument("task", help="Task name")
+
+    # check
+    p_check = sub.add_parser("check", help="Check if SOP exists, request if not")
+    p_check.add_argument("trade", help="Trade name")
+    p_check.add_argument("task", help="Task name")
+
+    args = parser.parse_args()
+    mgr = SOPLibraryManager()
+
+    if args.command == "upload":
+        result = mgr.upload_sop(args.file)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "sync":
+        if args.all:
+            results = mgr.sync_all()
+            for r in results:
+                print(json.dumps(r, indent=2, default=str))
+        elif args.sop_number:
+            result = mgr.sync_one(args.sop_number)
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print("Specify --all or a specific SOP number")
+
+    elif args.command == "sync-new":
+        if args.all:
+            results = mgr.sync_new_schema_all()
+            for r in results:
+                print(json.dumps(r, indent=2, default=str))
+        elif args.sop_number:
+            result = mgr.sync_new_schema_one(args.sop_number)
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print("Specify --all or a specific SOP number")
+
+    elif args.command == "upload-ref":
+        result = mgr.upload_ref_doc(args.file)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "sync-deps":
+        if args.all:
+            results = mgr.sync_dependencies_all()
+            for r in results:
+                print(json.dumps(r, indent=2, default=str))
+        elif args.sop_number:
+            result = mgr.sync_dependencies_one(args.sop_number)
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print("Specify --all or a specific SOP number")
+
+    elif args.command == "search":
+        results = mgr.search(args.query)
+        for r in results:
+            print(f"  {r['sop_number']:15s} {r['trade_name']:15s} {r['task_name']:30s} [{r['status']}]")
+        if not results:
+            print("  No SOPs found.")
+
+    elif args.command == "list":
+        results = mgr.list_all()
+        print(f"{'SOP Number':15s} {'Trade':10s} {'Task':30s} {'Rev':5s} {'Status':10s}")
+        print("-" * 75)
+        for r in results:
+            print(f"{r['sop_number']:15s} {r['trade_code']:10s} {r['task_name']:30s} {r['revision']:5s} {r['status']:10s}")
+        if not results:
+            print("  Library is empty.")
+
+    elif args.command == "show":
+        result = mgr.show(args.sop_number)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "request":
+        result = mgr.check_and_request(args.trade, args.task)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "check":
+        result = mgr.check_and_request(args.trade, args.task)
+        print(json.dumps(result, indent=2, default=str))
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

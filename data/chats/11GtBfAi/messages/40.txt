@@ -1,0 +1,318 @@
+=== step_progress DDL ===
+-- 1D. work_order_step_progress — step-level completion tracking
+--     The bridge table where field workers record completion of each SOP step
+--     within a unit work order. The separate timesheet app reads this data.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.work_order_step_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_order_id UUID NOT NULL REFERENCES public.work_orders(id) ON DELETE CASCADE,
+    sop_step_id UUID NOT NULL REFERENCES public.sop_steps(id) ON DELETE RESTRICT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN (
+        'pending', 'in_progress', 'completed', 'skipped', 'blocked'
+    )),
+    completed_by UUID REFERENCES auth.users(id),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    duration_minutes INTEGER,
+    notes TEXT,
+    photo_urls TEXT[] DEFAULT '{}',
+    override_detail TEXT,
+    is_override BOOLEAN DEFAULT false,
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(work_order_id, sop_step_id)
+);
+
+COMMENT ON TABLE public.work_order_step_progress IS 'Step-level completion tracking for unit work orders. Duration feeds timesheet app.';
+CREATE INDEX idx_wo_step_progress_wo ON public.work_order_step_progress(work_order_id);
+CREATE INDEX idx_wo_step_progress_step ON public.work_order_step_progress(sop_step_id);
+CREATE INDEX idx_wo_step_progress_user ON public.work_order_step_progress(completed_by);
+CREATE INDEX idx_wo_step_progress_status ON public.work_order_step_progress(status);
+CREATE INDEX idx_wo_step_progress_org ON public.work_order_step_progress(organization_id);
+
+-- =============================================================================
+-- 1E. sop_ref_docs — trade-level reference documents that SOPs link to
+
+=== UnitList.tsx ===
+
+import { createSignal, createResource, For, Show } from 'solid-js';
+import { supabase } from '../lib/supabase';
+import { A } from '@solidjs/router';
+import type { Unit } from '@repo/schemas';
+
+const fetchUnits = async () => {
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .order('unit_number', { ascending: true });
+
+    if (error) throw error;
+    return data as Unit[];
+};
+
+export default function UnitList() {
+    const [units] = createResource(fetchUnits);
+
+    return (
+        <div class="p-4">
+            <h1 class="text-2xl font-bold mb-4">Renovation Units</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <For each={units()} fallback={<p>Loading units...</p>}>
+                    {(unit) => (
+                        <A href={`/units/${unit.id}`} class="block p-4 border rounded shadow hover:bg-gray-50 transition">
+                            <h2 class="text-xl font-semibold">Unit {unit.unit_number}</h2>
+                            <Show when={unit.unit_type}>
+                                <p class="text-gray-600">Type: {unit.unit_type}</p>
+                            </Show>
+                            <div class="mt-2 text-blue-600">View Scope →</div>
+                        </A>
+                    )}
+                </For>
+            </div>
+        </div>
+    );
+}
+
+=== UnitDetail.tsx ===
+
+import { createSignal, createResource, For, Show, createMemo } from 'solid-js';
+import { supabase } from '../lib/supabase';
+import { useParams, A } from '@solidjs/router';
+import type { Unit, UnitScopeItem } from '@repo/schemas';
+
+const fetchUnit = async (id: string) => {
+    const { data, error } = await supabase.from('units').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data as Unit;
+};
+
+const fetchScope = async (id: string) => {
+    const { data, error } = await supabase
+        .from('unit_scope_items')
+        .select('*')
+        .eq('unit_id', id)
+        .order('zone', { ascending: true });
+
+    if (error) throw error;
+    return data as UnitScopeItem[];
+};
+
+export default function UnitDetail() {
+    const params = useParams();
+    const [unit] = createResource(() => params.id, fetchUnit);
+    const [scope, { mutate }] = createResource(() => params.id, fetchScope);
+    const [selectedTrade, setSelectedTrade] = createSignal<string>('All');
+
+    // Derived trades list
+    const trades = createMemo(() => {
+        const s = scope();
+        if (!s) return ['All'];
+        const t = new Set(s.map(i => i.trade || 'General'));
+        return ['All', ...Array.from(t).sort()];
+    });
+
+    // Filtered items
+    const filteredItems = createMemo(() => {
+        const s = scope();
+        const trade = selectedTrade();
+        if (!s) return [];
+        if (trade === 'All') return s;
+        return s.filter(i => (i.trade || 'General') === trade);
+    });
+
+    const updateStatus = async (itemId: string, newStatus: string) => {
+        // Optimistic update
+        mutate((prev) => prev?.map(i => i.id === itemId ? { ...i, status: newStatus as any } : i));
+
+        const { error } = await supabase
+            .from('unit_scope_items')
+            .update({ status: newStatus })
+            .eq('id', itemId);
+
+        if (error) {
+            console.error('Failed to update status', error);
+            // Revert on error could be implemented here
+        }
+    };
+
+    const StatusBadge = (props: { status: string }) => {
+        const colors = {
+            pending: 'bg-gray-100 text-gray-800',
+            in_progress: 'bg-blue-100 text-blue-800',
+            completed: 'bg-green-100 text-green-800',
+            verified: 'bg-purple-100 text-purple-800'
+        };
+        const color = colors[props.status as keyof typeof colors] || colors.pending;
+        return <span class={`px-2 py-1 rounded text-xs font-medium uppercase ${color}`}>{props.status.replace('_', ' ')}</span>;
+    };
+
+    return (
+        <div class="p-4 max-w-4xl mx-auto">
+            <A href="/units" class="text-blue-600 mb-4 inline-block">← Back to Units</A>
+
+            <Show when={unit()}>
+                <div class="mb-6 border-b pb-4">
+                    <h1 class="text-3xl font-bold">Unit {unit()?.unit_number}</h1>
+                    <p class="text-gray-600">Type: {unit()?.unit_type}</p>
+                    <Show when={unit()?.floor_plan_image}>
+                        <div class="mt-4">
+                            <h2 class="text-lg font-semibold mb-2">Floor Plan</h2>
+                            <img
+                                src={unit()?.floor_plan_image!}
+                                alt={`Floor Plan for Unit ${unit()?.unit_number}`}
+                                class="max-w-full h-auto rounded border shadow-sm max-h-[400px]"
+                            />
+                        </div>
+                    </Show>
+                </div>
+            </Show>
+
+            {/* Controls */}
+            <div class="flex flex-wrap gap-4 mb-6 items-center bg-gray-50 p-3 rounded">
+                <label class="font-semibold">Filter by Trade:</label>
+                <select
+                    class="border p-2 rounded"
+                    value={selectedTrade()}
+                    onInput={(e) => setSelectedTrade(e.currentTarget.value)}
+                >
+                    <For each={trades()}>
+                        {(trade) => <option value={trade}>{trade}</option>}
+                    </For>
+                </select>
+            </div>
+
+            {/* Scope Table */}
+            <div class="space-y-4">
+                <For each={filteredItems()} fallback={<div class="text-gray-500 italic">No items found.</div>}>
+                    {(item) => (
+                        <div class="border rounded p-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white shadow-sm">
+                            <div class="flex-1">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">{item.zone} • {item.trade}</span>
+                                <h3 class="font-semibold text-lg">{item.item}</h3>
+                                <p class="text-gray-700">{item.action}</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <select
+                                    class="border p-1 rounded text-sm bg-white"
+                                    value={item.status}
+                                    onChange={(e) => updateStatus(item.id, e.currentTarget.value)}
+                                >
+                                    <option value="pending">Pending</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="verified">Verified</option>
+                                </select>
+                                <StatusBadge status={item.status} />
+                            </div>
+                        </div>
+                    )}
+                </For>
+            </div>
+        </div>
+    );
+}
+
+=== SOP_WO_INTEGRATION_PROMPT.md (first 100 lines for style) ===
+# SOP ↔ Work Order Integration — Implementation Prompt
+
+> **Date**: 2026-03-09
+> **Project**: voicelog-scaffold (Hennessy / Team Projects)
+> **Codebase**: `/a0/usr/projects/timesheet_app/voicelog-scaffold`
+> **Stack**: SolidJS frontend, Hono API, Supabase (PostgreSQL), pnpm monorepo
+
+---
+
+## Executive Summary
+
+This prompt implements the bridge between the existing SOP library system and the existing Work Order (WO) template inheritance hierarchy. The goal is to let each WO template reference an SOP, expose SOP steps through the WO API, and track step-level completion/duration at the unit work order level — feeding a separate timesheet application.
+
+The design principle is **surgical integration**: we add to existing files rather than creating parallel structures. The existing WO inheritance chain (system → company → project → unit) stays untouched. SOP linkage rides along automatically through the existing copy/freeze mechanisms.
+
+---
+
+## Context: What Already Exists
+
+### WO Template Inheritance (DO NOT MODIFY)
+
+The three-tier template hierarchy is fully implemented:
+
+```
+System WO Template (scope='system', org=NULL, project=NULL)
+  └── copied to → Company WO Template (scope='company', org=X, project=NULL)
+      └── lazy-ref → Project WO Template (scope='project', org=X, project=Y)
+          └── (frozen when project activates)
+```
+
+**Key files** (read these first to understand the patterns):
+
+| File | Lines | Role |
+|---|---|---|
+| `supabase/migrations/20260222000002_project_lifecycle_template_inheritance.sql` | 95 | `is_frozen`, NULL definition lazy-copy, `freeze_project_templates()` trigger |
+| `apps/api/src/routes/work-orders.ts` | 1121 | 3 inheritance endpoints: `assign-to-company`, `assign-to-project`, `GET project/:projectId` with parent resolution |
+| `apps/api/src/routes/onboard.ts` | 415 | `copyTemplatesToOrg()` — copies system→company templates during onboarding |
+| `apps/work-orders/src/lib/api.ts` | 746 | `WorkOrderTemplate` interface, `getTemplates(scope?)` method |
+| `apps/work-orders/src/pages/ProjectTemplates.tsx` | 274 | Frozen/inherited badges |
+| `apps/work-orders/src/pages/TemplateDetail.tsx` | 219 | Parent/copied-from links |
+| `apps/work-orders/src/pages/TemplateEditor.tsx` | 531 | Frozen template warning |
+
+**Key columns on `work_order_templates`** (already exist, some unused):
+```sql
+scope                   TEXT  -- 'system' | 'company' | 'project'
+parent_template_id      UUID  -- company→project link (lazy-copy parent)
+copied_from_template_id UUID  -- tracks origin
+source_template_id      UUID  -- added in phase1, UNUSED
+sop_id                  UUID  -- FK → sops, added in phase1, UNUSED ← WE WILL USE THIS
+trade_id                UUID  -- FK → trades, added in phase1
+inheritance_depth       INT   -- added in phase1, UNUSED
+is_frozen               BOOLEAN -- set when project activates
+definition              JSONB -- NULL = lazy-copy from parent
+```
+
+### SOP Library (EXISTS but disconnected from WO flow)
+
+**Migration**: `supabase/migrations/20260228000001_sop_library.sql`
+
+Existing tables:
+```sql
+sops                      -- master index (sop_number, trade_code, trade_name, task_name, status, etc.)
+sop_executive_checklists  -- cached checklist items (sop_id, phase_name, step_number, step_name, tasks)
+sop_detailed_steps        -- cached detailed steps (sop_id, phase_name, step_number, detail_markdown)
+sop_recommended_videos    -- video links per SOP
+sop_sync_log              -- git→DB sync audit trail
+```
+
+**Phase 1 additions** (`20260304000001_schema_evolution_phase1.sql`):
+```sql
+sops.trade_id   UUID  -- FK → trades (exists)
+sops.scope      TEXT  -- 'system' default (exists)
+sops.outcome_id UUID  -- FK → project_outcomes (exists)
+```
+
+### SOP Authoring Workflow (docs-as-code)
+
+SOPs are authored as markdown files following SOP-META-001 Rev 1.3:
+- Location: `docs/sop/{TRADE}/SOP_{TRADE}_{Task_Name}.md`
+- REF docs: `docs/sop/{TRADE}/REF_{TRADE}_Codes_Standards.md` (shared per trade)
+- Index: `docs/sop/SOP_INDEX.md` (master registry)
+- Each SOP has: Executive Checklists (max 7 steps per phase) + Detailed Steps
+- Phases are logical groupings: Removal, Installation, Prep, Apply, Finish, etc.
+
+### Timesheet App (SEPARATE — do not build)
+
+A separate application consumes `work_order_step_progress` data to build employee timesheets. We only need to provide the tracking table and API endpoints. The timesheet app will overlay duration data from step progress records.
+
+---
+
+## Implementation Plan
+
+### Conversation 1: Database Migration
+
+Create ONE new migration file:
+```
+supabase/migrations/20260310000001_sop_wo_bridge.sql
+```
+
+#### 1A. Create `sop_sections` table
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

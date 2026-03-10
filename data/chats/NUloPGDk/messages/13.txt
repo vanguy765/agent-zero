@@ -1,0 +1,137 @@
+=== Verify work-orders.ts: SOP endpoints flow ===
+});
+
+// ============================================================================
+// SOP ENDPOINTS
+// ============================================================================
+
+// LIST SOPs (with optional trade filter)
+workOrdersRoute.get('/sops', async (c) => {
+...
+        .select()
+        .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+
+
+// ============================================================================
+// WORK ORDERS ENDPOINTS
+// ============================================================================
+
+// LIST ALL WORK ORDERS (with optional filters)
+
+=== Verify api.ts: sop_id in interface ===
+  created_at: string;
+  updated_at: string;
+  sop_id?: string;       // FK → sops, linked SOP
+  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+}
+
+export interface SopSummary {
+    id: string;
+
+=== Verify api.ts: new interfaces start ===
+export interface SopSummary {
+    id: string;
+    sop_number: string;
+    trade_code: string;
+    trade_name: string;
+    task_name: string;
+
+=== Verify api.ts: methods ===
+
+  // SOP Methods
+  async getSops(tradeCode?: string): Promise<SopSummary[]> {
+      const query = tradeCode ? `?trade_code=${tradeCode}` : '';
+      return this.request<SopSummary[]>(`/sops${query}`);
+  }
+
+  async getSop(id: string): Promise<any> {
+      return this.request<any>(`/sops/${id}`);
+  }
+
+  async getTemplateSop(templateId: string): Promise<{
+      sop: SopSummary | null;
+      steps: SopStep[];
+      sections: SopSection[];
+      _inherited: boolean;
+  }> {
+      return this.request(`/templates/${templateId}/sop`);
+  }
+
+  // Step Progress Methods
+  async getStepProgress(workOrderId: string): Promise<StepProgress[]> {
+      return this.request<StepProgress[]>(`/work-orders/${workOrderId}/step-progress`);
+  }
+
+  async initializeSteps(workOrderId: string): Promise<{ initialized: number }> {
+      return this.request(`/work-orders/${workOrderId}/initialize-steps`, { method: 'POST' });
+  }
+
+  async updateStepProgress(progressId: string, updates: Partial<StepProgress>): Promise<StepProgress> {
+      return this.request(`/work-orders/step-progress/${progressId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(updates),
+      });
+  }
+
+}
+
+
+=== Verify TemplateDetail.tsx: SopLink Show block ===
+                            </Show>
+                            <Show when={(template() as any)?.sop_id}>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Linked SOP</p>
+                                    <SopLink sopId={(template() as any).sop_id!} />
+                                </div>
+                            </Show>
+                        </div>
+                    </div>
+
+
+=== Verify TemplateDetail.tsx: SopLink component ===
+
+function SopLink(props: { sopId: string }) {
+    const [sop] = createResource(() => props.sopId, async (id) => {
+        const res = await api.getSop(id);
+        return res;
+    });
+
+    return (
+        <Show when={sop()} fallback={<span class="text-sm text-gray-500">Loading...</span>}>
+            <div class="flex items-center gap-3">
+                <span class="font-mono text-sm font-bold text-blue-700">{sop()!.sop_number}</span>
+                <span class="text-sm text-gray-700">{sop()!.task_name}</span>
+                <span class="text-xs text-gray-500">Rev {sop()!.revision}</span>
+            </div>
+        </Show>
+    );
+}
+
+export default TemplateDetail;
+
+=== Verify WorkOrderDetail.tsx: StepProgressPanel usage ===
+                        </Show>
+                    </div>
+
+                    <StepProgressPanel workOrderId={wo()!.id} />
+
+                </Show>
+            </Show>
+
+=== Verify WorkOrderDetail.tsx: component start ===
+function StepProgressPanel(props: { workOrderId: string }) {
+    const [progress, { refetch }] = createResource(
+        () => props.workOrderId,
+        (id) => api.getStepProgress(id)
+    );
+
+    const initSteps = async () => {
+        try {
+            await api.initializeSteps(props.workOrderId);
+            refetch();
+        } catch (err) {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

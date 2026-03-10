@@ -1,0 +1,192 @@
+=== api.ts: WorkOrderTemplate interface (lines 120-155) ===
+export interface WorkOrderTemplate {
+  id: string;
+  scope: 'system' | 'company' | 'project';  // NEW: Template scope
+  organization_id?: string;  // Now optional for app-level templates
+  project_id?: string;  // NEW: For project-level templates
+  library_id?: string;  // legacy Template library association
+  outcome_id?: string;  // NEW: Project Outcome association
+  trade_id?: string;    // NEW: Trade FK reference
+  trade_name: string;
+  version: number;
+  is_active: boolean;
+  is_frozen?: boolean;
+  definition: {
+    sections: Record<string, {
+      label: string;
+      order: number;
+      columns: Array<{
+        key: string;
+        label: string;
+        type: string;
+        order: number;
+      }>;
+      items?: string[];
+    }>;
+  } | null;
+  parent_template_id?: string;
+  copied_from_template_id?: string;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+}
+
+export interface WorkOrder {
+  id: string;
+\n=== api.ts: end of class (last 80 lines) ===
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API Error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  /** Submit a document for parsing via doc-parser service */
+  async submitDocParserJob(
+    documentId: string,
+    engine: 'claude-direct' | 'hybrid' = 'hybrid'
+  ): Promise<{ job_id: string; status: string; engine: string }> {
+    return this.docParserRequest(`/doc-parser/parse`, {
+      method: 'POST',
+      body: JSON.stringify({ document_id: documentId, engine }),
+    });
+  }
+
+  /** Poll job status (lightweight endpoint) */
+  async getDocParserStatus(jobId: string): Promise<{
+    job_id: string;
+    status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+    engine: string;
+    file_name: string;
+    progress: {
+      current_phase: string;
+      phases: string[];
+      current_page: number;
+      total_pages: number;
+      current_step: string;
+      floorplans_found: number;
+      tables_found: number;
+      percent_complete: number;
+    };
+    error?: string;
+    created_at: string;
+    updated_at: string;
+  }> {
+    return this.docParserRequest(`/doc-parser/status/${jobId}`);
+  }
+
+  /** Fetch full results (heavy endpoint, call once after completed) */
+  async getDocParserResults(jobId: string, summary?: boolean): Promise<any> {
+    const query = summary ? '?summary=true' : '';
+    return this.docParserRequest(`/doc-parser/results/${jobId}${query}`);
+  }
+
+  /** List all doc-parser jobs */
+  async listDocParserJobs(status?: string): Promise<any[]> {
+    const query = status ? `?status=${status}` : '';
+    return this.docParserRequest(`/doc-parser/jobs${query}`);
+  }
+
+  /** Delete a doc-parser job */
+  async deleteDocParserJob(jobId: string): Promise<{ status: string }> {
+    return this.docParserRequest(`/doc-parser/jobs/${jobId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /** Check doc-parser service health */
+  async getDocParserHealth(): Promise<{
+    status: string;
+    version: string;
+    engines: string[];
+  }> {
+    return this.docParserRequest('/doc-parser/health');
+  }
+
+}
+
+export const api = new ApiClient(API_URL);
+\n=== TemplateDetail.tsx: lines 1-30 ===
+import type { Component } from 'solid-js';
+import { createResource, For, Show } from 'solid-js';
+import { useParams, A } from '@solidjs/router';
+import type { WorkOrderTemplate } from '../lib/api';
+import { api } from '../lib/api';
+
+const TemplateDetail: Component = () => {
+    const params = useParams();
+    const [template] = createResource<WorkOrderTemplate>(() =>
+        params.id ? api.getTemplate(params.id) : Promise.reject('No template ID')
+    );
+
+    const getScopeBadgeClass = (scope: string) => {
+        const classes: Record<string, string> = {
+            'system': 'badge bg-blue-100 text-blue-700',
+            'company': 'badge bg-purple-100 text-purple-700',
+            'project': 'badge bg-purple-100 text-purple-700'
+        };
+        return classes[scope] || 'badge-secondary';
+    };
+
+    const getScopeLabel = (scope: string) => {
+        return scope.charAt(0).toUpperCase() + scope.slice(1);
+    };
+
+    return (
+        <div class="space-y-6">
+            {/* Header */}
+            <div class="flex items-center justify-between">
+                <div>
+\n=== TemplateDetail.tsx: lines 100-140 (parent_template_id area) ===
+                                </div>
+                            </Show>
+                            <Show when={template()!.parent_template_id}>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Parent Template</p>
+                                    <A
+                                        href={`/templates/${template()!.parent_template_id}`}
+                                        class="text-sm text-primary-600 hover:text-primary-700 font-mono"
+                                    >
+                                        {template()!.parent_template_id?.slice(0, 8)}...
+                                    </A>
+                                </div>
+                            </Show>
+                            <Show when={template()!.copied_from_template_id}>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Copied From</p>
+                                    <A
+                                        href={`/templates/${template()!.copied_from_template_id}`}
+                                        class="text-sm text-primary-600 hover:text-primary-700 font-mono"
+                                    >
+                                        {template()!.copied_from_template_id?.slice(0, 8)}...
+                                    </A>
+                                </div>
+                            </Show>
+                        </div>
+                    </div>
+
+                    {/* Sections */}
+                    <For each={Object.entries(template()!.definition?.sections || {}).sort((a, b) => a[1].order - b[1].order)}>
+                        {([_, section]) => (
+                            <div class="card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-xl font-semibold text-gray-900">{section.label}</h2>
+                                    <span class="text-sm text-gray-500">Section {section.order}</span>
+                                </div>
+
+                                {/* Columns (Checklist Steps) */}
+                                <div class="mb-4">
+                                    <h3 class="text-sm font-medium text-gray-700 mb-3">Checklist Steps:</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        <For each={section.columns?.sort((a, b) => a.order - b.order) || []}>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

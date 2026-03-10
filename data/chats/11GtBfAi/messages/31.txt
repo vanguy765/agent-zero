@@ -1,0 +1,81 @@
+./apps/api/scripts/seed_site.ts:15:    const taxonomyPath = path.resolve(__dirname, '../../../docs/timesheet/contractor_taxonomy.json');
+./apps/api/scripts/seed_site.ts:37:    const sitePath = path.resolve(__dirname, '../../../docs/timesheet/site_specific_example.json');
+./apps/site-companion/README.md:87:- [Voice Processing](../../docs/timesheet/transcription_example_and_db_design.md) — Voice-to-data pipeline design
+./backups/backup_data.sql:231:	('labor_cost_actual', 'Labor Cost (Actual)', 'cost_actual', NULL, '$', 'hours_actual * labor_rate', 'Actual labor cost from timesheets', 305),
+./backups/backup_data.sql:233:	('labor_hours_actual', 'Labor Hours (Actual)', 'labor', NULL, 'hrs', NULL, 'Actual hours worked from timesheets', 400),
+./backups/backup_schema.sql:2206:COMMENT ON COLUMN "public"."unit_room_calculations"."hours_actual" IS 'Actual labor hours from timesheets';
+./backups/full_dump_20260217.sql:5278:COMMENT ON COLUMN public.unit_room_calculations.hours_actual IS 'Actual labor hours from timesheets';
+./backups/full_dump_20260217.sql:6925:labor_cost_actual	Labor Cost (Actual)	cost_actual	\N	$	hours_actual * labor_rate	Actual labor cost from timesheets	305
+./backups/full_dump_20260217.sql:6927:labor_hours_actual	Labor Hours (Actual)	labor	\N	hrs	\N	Actual hours worked from timesheets	400
+./docs/general/platform_analysis.md:420:| Timesheet system | 📋 Designed | Schema designed, not yet implemented |
+./docs/general/platform_analysis.md:426:**Timesheet System** (documented in `docs/timesheet/`):
+./docs/general/platform_analysis.md:427:- `timesheets` table — daily time containers per user
+./docs/general/platform_analysis.md:431:- Voice-to-timesheet pipeline (speak → transcribe → extract hours + items → create work_log)
+./docs/general/platform_analysis.md:554:1. **Implement Timesheet Tables**: The schema is designed (`docs/timesheet/schema_design.md`). Create the migration for `timesheets`, `work_logs`, and `site_items` tables.
+./docs/general/platform_analysis.md:556:2. **Voice-to-Timesheet Pipeline**: Connect the existing voice transcription to the timesheet data model. This is the platform's killer feature — workers speak their hours and the system creates structured time entries.
+./docs/general/platform_analysis.md:617:│   ├── timesheet/            # Timesheet design docs
+./docs/timesheet/manual_admin.md:37:    App->>API: POST /timesheets/log
+./docs/timesheet/manual_admin.md:71:### Reviewing Timesheets
+./docs/timesheet/manual_admin.md:72:1.  Go to **Reports > Timesheets**.
+./docs/timesheet/manual_user.md:47:4.  Hit **Submit**. That's your timesheet!
+./docs/timesheet/next.md:13:    *   Update `docs/timesheet/site_specific_example.json` to use the Map structure for overrides.
+./docs/timesheet/next.md:27:*   `docs/timesheet/writable_view_pattern.md`: Contains the *old* array-based design, but the "Updatable View Pattern" concept is the same.
+./docs/timesheet/next.md:28:*   `docs/timesheet/site_specific_example.json`: Source of truth for the data structure.
+./docs/timesheet/schema.sql:10:CREATE TYPE timesheet_status AS ENUM ('draft', 'submitted', 'approved', 'rejected');
+./docs/timesheet/schema.sql:106:-- 8. Timesheets
+./docs/timesheet/schema.sql:107:CREATE TABLE timesheets (
+./docs/timesheet/schema.sql:112:    status timesheet_status DEFAULT 'draft',
+./docs/timesheet/schema.sql:120:    timesheet_id UUID REFERENCES timesheets(id) ON DELETE CASCADE,
+./docs/timesheet/schema_design.md:42:### 5. `timesheets`
+./docs/timesheet/schema_design.md:52:*   `timesheet_id` (FK)
+./docs/timesheet/timesheet_agent_and_contracts.md:1:# Timesheet Agent & System Contracts
+./docs/timesheet/timesheet_agent_and_contracts.md:3:You asked how the Timesheet Agent "knows" what to log against, and how the Timesheet App talks to the Core BOM System.
+./docs/timesheet/timesheet_agent_and_contracts.md:15:When the user hits "Record" on the Timesheet App, the app acts as follows:
+./docs/timesheet/timesheet_agent_and_contracts.md:23:#### The Timesheet System Prompt
+./docs/timesheet/timesheet_agent_and_contracts.md:39:The **Timesheet App** (Client) and the **Core BOM System** (Server) communicate via a strict API Contract.
+./docs/timesheet/timesheet_agent_and_contracts.md:42:*Used by the Timesheet App to prime the Agent.*
+./docs/timesheet/timesheet_agent_and_contracts.md:62:### B. POST /api/v1/timesheets/log
+./docs/timesheet/timesheet_agent_and_contracts.md:63:*Used by the Timesheet App to save the result.*
+./docs/timesheet/timesheet_integration_guide.md:1:# Linking Timesheets to BOM Status
+./docs/timesheet/timesheet_integration_guide.md:3:To verify status reports via timesheets, you need to connect the **Labor** (Timesheets) to the **Material/Scope** (BOM/`site_items`).
+./docs/timesheet/timesheet_integration_guide.md:9:### `timesheets` (The Envelope)
+./docs/timesheet/timesheet_integration_guide.md:19:*   `timesheet_id`: FK -> timesheets.id
+./docs/timesheet/timesheet_integration_guide.md:36:When the timesheet is submitted:
+./docs/timesheet/timesheet_integration_guide.md:48:*   *Calculation*: You have installed 50% of the toilets (verified by timesheets).
+./docs/timesheet/timesheet_integration_guide.md:54:*   *Actual*: Timesheets show average of 3.5 hours per toilet.
+./docs/workorders/implementation_progress.md:96:### Integration with Timesheet App
+./docs/workorders/implementation_progress.md:97:1. Add `work_order_id` to timesheet entries
+./docs/workorders/LESSONS_LEARNED.md:341:**Future Integration**: Link via `work_order_id` foreign key in timesheet entries.
+./docs/workorders/PDR.md:12:This app effectively becomes the "source of truth" for the renovation project state. Existing and future apps (like the Timesheet/Voice Log app) will integrate with this foundation.
+./docs/workorders/PDR.md:38:### 4.1 Relationship with Timesheet App
+./docs/workorders/PDR.md:39:The **Timesheet App** (currently `site-companion` / `voicelog`) focuses on *worker effort* (Who worked, how long, voice notes).
+./docs/workorders/PDR.md:43:-   **Linking Time to Scope**: Timesheet entries should reference a specific `WorkOrder` or `Task` ID.
+./docs/workorders/phase1_summary.md:161:### 4. Integration with Timesheet App
+./docs/workorders/phase1_summary.md:162:**Current Timesheet App**: `apps/site-companion`
+./docs/workorders/phase1_summary.md:165:- Add `work_order_id` and `task_id` foreign keys to timesheet entries
+./docs/workorders/planning_conversation.md:1302:Clarify for me, for the single tenant version, clicking a checkbox on web table will update the data in the db table, and vis versa? I want to be able to track percent complete as a function of time, an estimated time given by the admin and real-time as collected from employee timesheets (to be developed later). Amend the docs for this and amend to design the single-tenant version with future multi-tenancy in mind (e.g., use consistent naming conventions, modular code structure, avoid hard-coded org-specific logic). I also need the app to accept an uploaded image similar to what was given and then parse and save the images and data as the start to a project that contains workorders.
+./docs/workorders/planning_conversation.md:1384:// Actual time tracking (for future timesheet integration)
+./docs/workorders/planning_conversation.md:1495:// Placeholder for future timesheet integration
+./docs/workorders/planning_conversation.md:1496:<TimesheetEntryForm>
+./docs/workorders/planning_conversation.md:1499:    Timesheet integration coming soon.
+./docs/workorders/planning_conversation.md:1502:</TimesheetEntryForm>
+./docs/workorders/planning_conversation.md:2385:-- TIME ENTRIES (Future timesheet integration)
+./docs/workorders/planning_conversation.md:2485:- Future timesheet integration structure
+./docs/workorders/schedule.md:44:## Phase 4: Integration & Timesheets (Weeks 7-8)
+./docs/workorders/schedule.md:45:**Goal**: Connect the "Effort" (Timesheets) to the "Scope" (Work Orders).
+./docs/workorders/schedule.md:47:-   [ ] **Update Timesheet App (`site-companion`)**:
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:5:> **Codebase**: `/a0/usr/projects/timesheet_app/voicelog-scaffold`
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:12:This prompt implements the bridge between the existing SOP library system and the existing Work Order (WO) template inheritance hierarchy. The goal is to let each WO template reference an SOP, expose SOP steps through the WO API, and track step-level completion/duration at the unit work order level — feeding a separate timesheet application.
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:85:### Timesheet App (SEPARATE — do not build)
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:87:A separate application consumes `work_order_step_progress` data to build employee timesheets. We only need to provide the tracking table and API endpoints. The timesheet app will overlay duration data from step progress records.
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:183:The bridge table where field workers record completion of each SOP step within a unit work order. The separate timesheet app reads this data.
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:207:COMMENT ON TABLE public.work_order_step_progress IS 'Step-level completion tracking for unit work orders. Duration feeds timesheet app.';
+./docs/workorders/SOP_WO_INTEGRATION_PROMPT.md:834:6. Step progress records have `duration_minutes` for timesheet app -> check
+./docs/workorders/SOP_WO_WORKFLOW.md:5:> **Audience**: Developers, system administrators, and the timesheet application team
+./docs/workorders/SOP_WO_WORKFLOW.md:18:8. [Timesheet App Integration](#8-timesheet-app-integration)
+./docs/workorders/SOP_WO_WORKFLOW.md:31:│  SOP Library    │────▶│  Work Order System   │────▶│  Timesheet App  │
+./docs/workorders/SOP_WO_WORKFLOW.md:39:**Core principle**: SOPs are the single source of truth for *how* work is done. Work orders are the execution layer that tracks *who* did *what* and *how long* it took. The timesheet app consumes duration data to produce payroll-ready reports.
+./docs/workorders/SOP_WO_WORKFLOW.md:59:    │                       └──▶ [Timesheet App reads this]
+./docs/workorders/SOP_WO_WORKFLOW.md:301:- Enable the timesheet app to know what steps exist for duration tracking
+./docs/workorders/SOP_WO_WORKFLOW.md:354:    duration_minutes: 45   →  actual time spent (key for timesheets)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,42 @@
+# ============================================================
+# reset-and-start.ps1
+# Stops servers, resets DB, seeds users, starts dev servers
+# ============================================================
+
+Write-Host "`n=== Step 1: Killing dev servers ===" -ForegroundColor Cyan
+& "$PSScriptRoot\kill-dev-servers.ps1"
+
+Write-Host "`n=== Step 2: Resetting database ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\.."
+supabase db reset
+Pop-Location
+
+Write-Host "`n=== Step 3: Seeding users (alice + eric) ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\..\apps\api"
+npx tsx scripts/create_user.ts
+Pop-Location
+
+Write-Host "`n=== Step 4: Creating sysadmin user ===" -ForegroundColor Cyan
+$sysadminBody = @{
+    email         = "sysadmin@example.com"
+    password      = "sysadmin123"
+    email_confirm = $true
+    user_metadata = @{
+        role      = "sysadmin"
+        full_name = "System Administrator"
+    }
+} | ConvertTo-Json -Depth 3
+
+$serviceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+---
+20260223000002_sysadmin_rls_policies.sql
+20260228000001_sop_library.sql
+20260304000001_schema_evolution_phase1.sql
+20260304000002_schema_evolution_seed.sql
+early-work
+---
+scripts/apply-migration.ps1:    npx supabase start
+scripts/apply-migration.ps1:npx supabase db execute --local -q "NOTIFY pgrst, 'reload schema';" 2>&1
+scripts/create-sysadmin.sh:# Run after `supabase db reset` to restore the sysadmin account.
+scripts/reset-and-start.ps1:supabase db reset
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

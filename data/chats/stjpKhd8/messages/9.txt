@@ -1,0 +1,127 @@
+section
+--------------------
+ === NEW TABLES ===
+(1 row)
+
+        table_name        | col_count
+--------------------------+-----------
+ sop_dependencies         |         6
+ sop_ref_docs             |        11
+ sop_sections             |        12
+ sop_steps                |        16
+ work_order_step_progress |        15
+(5 rows)
+
+     section
+-----------------
+ === INDEXES ===
+(1 row)
+
+        tablename         |                       indexname
+--------------------------+--------------------------------------------------------
+ sop_dependencies         | idx_sop_deps_from
+ sop_dependencies         | idx_sop_deps_to
+ sop_dependencies         | sop_dependencies_from_sop_id_to_sop_id_link_type_key
+ sop_dependencies         | sop_dependencies_pkey
+ sop_ref_docs             | sop_ref_docs_doc_id_key
+ sop_ref_docs             | sop_ref_docs_pkey
+ sop_sections             | idx_sop_sections_sop
+ sop_sections             | idx_sop_sections_type
+ sop_sections             | sop_sections_pkey
+ sop_sections             | sop_sections_sop_id_section_number_key
+ sop_steps                | idx_sop_steps_phase
+ sop_steps                | idx_sop_steps_section
+ sop_steps                | idx_sop_steps_sop
+ sop_steps                | sop_steps_pkey
+ sop_steps                | sop_steps_sop_id_phase_number_step_number_key
+ work_order_step_progress | idx_wo_step_progress_org
+ work_order_step_progress | idx_wo_step_progress_status
+ work_order_step_progress | idx_wo_step_progress_step
+ work_order_step_progress | idx_wo_step_progress_user
+ work_order_step_progress | idx_wo_step_progress_wo
+ work_order_step_progress | work_order_step_progress_pkey
+ work_order_step_progress | work_order_step_progress_work_order_id_sop_step_id_key
+(22 rows)
+
+      section
+--------------------
+ === RLS STATUS ===
+(1 row)
+
+         relname          | relrowsecurity
+--------------------------+----------------
+ sop_dependencies         | t
+ sop_ref_docs             | t
+ sop_sections             | t
+ sop_steps                | t
+ work_order_step_progress | t
+(5 rows)
+
+       section
+----------------------
+ === RLS POLICIES ===
+(1 row)
+
+        tablename         |        policyname         |  cmd
+--------------------------+---------------------------+--------
+ sop_dependencies         | sop_deps_select           | SELECT
+ sop_dependencies         | sop_deps_sysadmin         | ALL
+ sop_ref_docs             | sop_ref_docs_select       | SELECT
+ sop_ref_docs             | sop_ref_docs_sysadmin     | ALL
+ sop_sections             | sop_sections_select       | SELECT
+ sop_sections             | sop_sections_sysadmin     | ALL
+ sop_steps                | sop_steps_select          | SELECT
+ sop_steps                | sop_steps_sysadmin        | ALL
+ work_order_step_progress | wo_step_progress_sysadmin | ALL
+ work_order_step_progress | wo_step_progress_tenant   | ALL
+(10 rows)
+
+     section
+------------------
+ === TRIGGERS ===
+(1 row)
+
+    event_object_table    |            trigger_name
+--------------------------+------------------------------------
+ sop_ref_docs             | update_sop_ref_docs_updated_at
+ sop_sections             | update_sop_sections_updated_at
+ sop_steps                | update_sop_steps_updated_at
+ work_order_step_progress | update_wo_step_progress_updated_at
+(4 rows)
+
+                section
+---------------------------------------
+ === FK COLUMNS ON EXISTING TABLES ===
+(1 row)
+
+       table_name       | column_name | data_type
+------------------------+-------------+-----------
+ sop_recommended_videos | sop_step_id | uuid
+ sops                   | ref_doc_id  | uuid
+(2 rows)
+
+            section
+-------------------------------
+ === FREEZE FUNCTION CHECK ===
+(1 row)
+
+       routine_name       |        has_sop_logic
+--------------------------+-----------------------------
+ freeze_project_templates | YES - contains sop_id logic
+(1 row)
+
+      section
+--------------------
+ === ROW COUNTS ===
+(1 row)
+
+           tbl            | count
+--------------------------+-------
+ sop_sections             |     0
+ sop_steps                |     0
+ sop_dependencies         |     0
+ work_order_step_progress |     0
+ sop_ref_docs             |     0
+(5 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

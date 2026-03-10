@@ -1,0 +1,41 @@
+=== LINE COUNTS ===
+work-orders.ts: 1324 apps/api/src/routes/work-orders.ts
+api.ts: 833 apps/work-orders/src/lib/api.ts
+TemplateDetail.tsx: 242 apps/work-orders/src/pages/TemplateDetail.tsx
+WorkOrderDetail.tsx: 246 apps/work-orders/src/pages/WorkOrderDetail.tsx
+
+=== VERIFY work-orders.ts ===
+389:    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id', 'sop_id'];
+707:        supabase.from('sop_sections').select('*').eq('sop_id', id).order('section_number'),
+708:        supabase.from('sop_steps').select('*').eq('sop_id', id).order('phase_number').order('step_number'),
+709:        supabase.from('sop_dependencies').select('*, to_sop:sops!to_sop_id(sop_number, task_name)').eq('from_sop_id', id),
+729:        .select('id, sop_id, parent_template_id, scope')
+676:// SOP ENDPOINTS
+762:// STEP PROGRESS ENDPOINTS
+
+=== VERIFY api.ts ===
+110:  matched_sop_id?: string;
+151:  sop_id?: string;       // FK → sops, linked SOP
+169:    sop_id: string;
+155:export interface SopSummary {
+167:export interface SopSection {
+177:export interface SopStep {
+190:export interface StepProgress {
+797:  async getSops(tradeCode?: string): Promise<SopSummary[]> {
+802:  async getSop(id: string): Promise<any> {
+806:  async getTemplateSop(templateId: string): Promise<{
+816:  async getStepProgress(workOrderId: string): Promise<StepProgress[]> {
+820:  async initializeSteps(workOrderId: string): Promise<{ initialized: number }> {
+824:  async updateStepProgress(progressId: string, updates: Partial<StepProgress>): Promise<StepProgress> {
+
+=== VERIFY TemplateDetail.tsx ===
+126:                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Linked SOP</p>
+127:                                    <SopLink sopId={(template() as any).sop_id!} />
+225:function SopLink(props: { sopId: string }) {
+
+=== VERIFY WorkOrderDetail.tsx ===
+167:                    <StepProgressPanel workOrderId={wo()!.id} />
+175:function StepProgressPanel(props: { workOrderId: string }) {
+183:            await api.initializeSteps(props.workOrderId);
+201:            <h3 class="text-lg font-semibold mb-4">Procedure Steps</h3>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

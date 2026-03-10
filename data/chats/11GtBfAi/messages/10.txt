@@ -1,0 +1,30 @@
+code |       name
+------+------------------
+ APL  | Appliances
+ CRP  | Carpentry
+ ELC  | Electrical
+ FLR  | Flooring
+ GEN  | General
+ HVC  | HVAC
+ MLW  | Millwork
+ PLB  | Plumbing
+ PNT  | Painting
+ WNC  | Window Coverings
+(10 rows)
+
+===WO TEMPLATE COUNT===
+  scope  | count
+---------+-------
+ system  |     9
+ company |     9
+(2 rows)
+
+===ORGS===
+                  id                  |     name
+--------------------------------------+---------------
+ 00000000-0000-0000-0000-000000000001 | Team Projects
+(1 row)
+
+===SEED WO TEMPLATES===
+10
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

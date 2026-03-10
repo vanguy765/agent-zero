@@ -1,0 +1,39 @@
+======================================================================
+5C END-TO-END VERIFICATION
+======================================================================
+
+✅ CHECK 1: System templates have sop_id
+  Appliances           sop_id=NULL     trade_id=a0000000 ⬜ no SOP (expected)
+  Carpentry            sop_id=NULL     trade_id=a0000000 ⬜ no SOP (expected)
+  Electrical           sop_id=a9796f8f trade_id=a0000000 ✅ LINKED
+  Flooring             sop_id=NULL     trade_id=a0000000 ⬜ no SOP (expected)
+  HVAC                 sop_id=NULL     trade_id=a0000000 ⬜ no SOP (expected)
+  Millwork             sop_id=NULL     trade_id=a0000000 ⬜ no SOP (expected)
+  Painting             sop_id=e041e426 trade_id=a0000000 ✅ LINKED
+  Plumbing             sop_id=229afd5a trade_id=a0000000 ✅ LINKED
+  Window Coverings     sop_id=NULL     trade_id=a0000000 ⬜ no SOP (expected)
+  → 3/9 system templates linked to SOPs (3 expected: ELC, PLB, PNT)
+
+✅ CHECK 2: Company templates inherit sop_id via copyTemplatesToOrg()
+  Appliances           sop_id=NULL     copied_from=30000000... ⬜ no SOP (expected)
+  Carpentry            sop_id=NULL     copied_from=30000000... ⬜ no SOP (expected)
+  Electrical           sop_id=a9796f8f copied_from=30000000... ✅ LINKED
+  Flooring             sop_id=NULL     copied_from=30000000... ⬜ no SOP (expected)
+  HVAC                 sop_id=NULL     copied_from=30000000... ⬜ no SOP (expected)
+  Millwork             sop_id=NULL     copied_from=30000000... ⬜ no SOP (expected)
+  Painting             sop_id=e041e426 copied_from=30000000... ✅ LINKED
+  Plumbing             sop_id=229afd5a copied_from=30000000... ✅ LINKED
+  Window Coverings     sop_id=NULL     copied_from=30000000... ⬜ no SOP (expected)
+  → 3/9 company templates linked to SOPs (3 expected: ELC, PLB, PNT)
+
+  Cross-check: system vs company sop_id match
+  ✅ All 9 trades: system sop_id == company sop_id
+
+✅ CHECK 3: Project template inherits sop_id via lazy-copy
+  Verifying freeze_project_templates() function includes sop_id...
+  ✅ freeze_project_templates() includes sop_id in COALESCE logic
+    → sop_id = COALESCE(pt.sop_id, ct.sop_id),
+
+  Note: No project-scope templates exist yet (no projects created).
+  The freeze trigger will propagate sop_id when a project activates.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

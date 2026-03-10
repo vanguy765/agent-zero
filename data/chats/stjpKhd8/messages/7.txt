@@ -1,0 +1,38 @@
+41:CREATE INDEX idx_sop_sections_sop ON public.sop_sections(sop_id);
+42:CREATE INDEX idx_sop_sections_type ON public.sop_sections(section_type);
+70:CREATE INDEX idx_sop_steps_sop ON public.sop_steps(sop_id);
+71:CREATE INDEX idx_sop_steps_section ON public.sop_steps(section_id);
+72:CREATE INDEX idx_sop_steps_phase ON public.sop_steps(sop_id, phase_number);
+90:CREATE INDEX idx_sop_deps_from ON public.sop_dependencies(from_sop_id);
+91:CREATE INDEX idx_sop_deps_to ON public.sop_dependencies(to_sop_id);
+120:CREATE INDEX idx_wo_step_progress_wo ON public.work_order_step_progress(work_order_id);
+121:CREATE INDEX idx_wo_step_progress_step ON public.work_order_step_progress(sop_step_id);
+122:CREATE INDEX idx_wo_step_progress_user ON public.work_order_step_progress(completed_by);
+123:CREATE INDEX idx_wo_step_progress_status ON public.work_order_step_progress(status);
+124:CREATE INDEX idx_wo_step_progress_org ON public.work_order_step_progress(organization_id);
+148:ALTER TABLE public.sops
+149:    ADD COLUMN IF NOT EXISTS ref_doc_id UUID REFERENCES public.sop_ref_docs(id) ON DELETE SET NULL;
+154:ALTER TABLE public.sop_recommended_videos
+155:    ADD COLUMN IF NOT EXISTS sop_step_id UUID REFERENCES public.sop_steps(id) ON DELETE SET NULL;
+161:CREATE OR REPLACE FUNCTION public.freeze_project_templates()
+184:-- from migration 20260222000002. CREATE OR REPLACE FUNCTION above updates it
+192:ALTER TABLE public.sop_sections ENABLE ROW LEVEL SECURITY;
+193:CREATE POLICY "sop_sections_select" ON public.sop_sections FOR SELECT
+195:CREATE POLICY "sop_sections_sysadmin" ON public.sop_sections FOR ALL
+199:ALTER TABLE public.sop_steps ENABLE ROW LEVEL SECURITY;
+200:CREATE POLICY "sop_steps_select" ON public.sop_steps FOR SELECT
+202:CREATE POLICY "sop_steps_sysadmin" ON public.sop_steps FOR ALL
+206:ALTER TABLE public.sop_dependencies ENABLE ROW LEVEL SECURITY;
+207:CREATE POLICY "sop_deps_select" ON public.sop_dependencies FOR SELECT
+209:CREATE POLICY "sop_deps_sysadmin" ON public.sop_dependencies FOR ALL
+213:ALTER TABLE public.sop_ref_docs ENABLE ROW LEVEL SECURITY;
+214:CREATE POLICY "sop_ref_docs_select" ON public.sop_ref_docs FOR SELECT
+216:CREATE POLICY "sop_ref_docs_sysadmin" ON public.sop_ref_docs FOR ALL
+220:ALTER TABLE public.work_order_step_progress ENABLE ROW LEVEL SECURITY;
+221:CREATE POLICY "wo_step_progress_tenant" ON public.work_order_step_progress FOR ALL
+223:CREATE POLICY "wo_step_progress_sysadmin" ON public.work_order_step_progress FOR ALL
+229:CREATE TRIGGER update_sop_sections_updated_at
+233:CREATE TRIGGER update_sop_steps_updated_at
+237:CREATE TRIGGER update_sop_ref_docs_updated_at
+241:CREATE TRIGGER update_wo_step_progress_updated_at
+(venv) root@d2d162d983f0:/a0/usr/workdir#

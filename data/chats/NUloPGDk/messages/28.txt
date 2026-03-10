@@ -1,0 +1,60 @@
+=== Conversation 4: SOP Manager Update - Final Verification ===
+
+--- File sizes ---
+total 44
+drwxr-xr-x 1 root root  4096 Mar  1 05:32 .
+drwxr-xr-x 1 root root  4096 Mar  1 01:54 ..
+-rw-r--r-- 1 root root 14317 Mar 10 04:14 AGENT_GUIDE.md
+-rw-r--r-- 1 root root 16087 Mar 10 04:11 README.md
+drwxr-xr-x 1 root root  4096 Mar 10 04:10 scripts
+-rw-r--r-- 1 root root 10293 Mar 10 04:13 SKILL.md
+
+--- sop_manager.py line count ---
+1277 /a0/usr/projects/timesheet_app/voicelog-scaffold/skills/sop_library_manager/scripts/sop_manager.py
+
+--- Key functions in sop_manager.py ---
+91:def get_client() -> Client:
+95:def md5_hash(content: str) -> str:
+99:def classify_section_type(title: str) -> str:
+135:def strip_markdown(text: str) -> str:
+158:class SOPParser:
+161:    def __init__(self, content: str):
+165:    def parse_header_table(self) -> dict:
+189:    def parse_sections(self) -> list:
+209:    def parse_executive_checklist(self, section_content: str, section_number: int, phase_name: str) -> list:
+238:    def parse_detailed_steps(self, section_content: str, section_number: int, phase_name: str) -> list:
+264:    def parse_recommended_videos(self, section_content: str, section_number: int) -> list:
+307:    def parse_to_sections_and_steps(self) -> dict:
+435:    def parse_scope_dependencies(self) -> list:
+481:    def parse(self) -> dict:
+516:class REFDocParser:
+520:    def __init__(self, content: str):
+524:    def parse_header_table(self) -> dict:
+545:    def parse(self) -> dict:
+594:class SOPLibraryManager:
+597:    def __init__(self):
+600:    def _ensure_bucket(self):
+610:    def upload_sop(self, filepath: str) -> dict:
+650:    def _sync_from_content(self, content: str, storage_path: str, file_hash: str) -> dict:
+736:    def sync_sop_to_new_schema(self, sop_id: str, content: str) -> dict:
+807:    def sync_new_schema_all(self) -> list:
+822:    def sync_new_schema_one(self, sop_number: str) -> dict:
+839:    def upload_ref_doc(self, filepath: str) -> dict:
+934:    def sync_dependencies(self, sop_id: str, content: str) -> dict:
+988:    def sync_dependencies_all(self) -> list:
+1003:    def sync_dependencies_one(self, sop_number: str) -> dict:
+1020:    def sync_all(self) -> list:
+1035:    def sync_one(self, sop_number: str) -> dict:
+1048:    def search(self, query: str) -> list:
+1056:    def list_all(self) -> list:
+1063:    def show(self, sop_number: str) -> dict:
+1090:    def check_and_request(self, trade: str, task: str) -> dict:
+1136:    def _log_action(self, sop_id, sop_number, action, details=None):
+1152:def main():
+
+--- Section type map includes pre-installation fix ---
+1
+
+--- SKILL.md version ---
+- **Version**: 2.0.0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/skills/sop_library_manager/scripts#

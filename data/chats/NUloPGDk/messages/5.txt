@@ -1,0 +1,212 @@
+=== WorkOrderDetail.tsx ===
+import type { Component } from 'solid-js';
+import { createResource, For, Show } from 'solid-js';
+import { useParams, A } from '@solidjs/router';
+import { api } from '../lib/api';
+
+const WorkOrderDetail: Component = () => {
+    const params = useParams();
+    const [wo, { refetch }] = createResource(() => params.id, api.getWorkOrder.bind(api));
+
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'completed': return 'badge-success';
+            case 'in_progress': return 'badge-warning';
+            case 'blocked': return 'badge-error';
+            default: return 'badge-secondary';
+        }
+    };
+
+    const toggleStep = async (taskId: string, stepIndex: number, currentStatus: string) => {
+        if (!wo()) return;
+        const task = wo()!.tasks?.find(t => t.id === taskId);
+        if (!task) return;
+
+        const newStatus = currentStatus === 'complete' ? 'pending' : 'complete';
+
+        // Deep clone task data to modify it
+        const updatedTaskData = JSON.parse(JSON.stringify(task.task_data));
+        updatedTaskData.steps[stepIndex].status = newStatus;
+
+        if (newStatus === 'complete') {
+            updatedTaskData.steps[stepIndex].completed_at = new Date().toISOString();
+        }
+
+        try {
+            await api.updateTask(wo()!.id, taskId, { task_data: updatedTaskData });
+            refetch();
+        } catch (err) {
+            console.error('Failed to update task', err);
+        }
+    };
+
+    const toggleNA = async (taskId: string, stepIndex: number, currentNA: boolean) => {
+        if (!wo()) return;
+        const task = wo()!.tasks?.find(t => t.id === taskId);
+        if (!task) return;
+
+        const updatedTaskData = JSON.parse(JSON.stringify(task.task_data));
+        updatedTaskData.steps[stepIndex].not_applicable = !currentNA;
+
+        try {
+            await api.updateTask(wo()!.id, taskId, { task_data: updatedTaskData });
+            refetch();
+        } catch (err) {
+            console.error('Failed to update task NA status', err);
+        }
+    };
+
+    return (
+        <div class="space-y-6">
+            <Show when={!wo.loading} fallback={<div class="p-8 text-center text-gray-500">Loading work order...</div>}>
+                <Show when={wo()} fallback={<div class="p-8 text-center text-red-500">Work order not found</div>}>
+                    {/* Header */}
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <A href={`/units`} class="text-sm font-medium text-gray-500 hover:text-gray-900">
+                                    Unit {wo()!.unit?.unit_number}
+                                </A>
+                                <span class="text-gray-300">/</span>
+                                <span class="text-sm font-medium text-gray-900">Work Order</span>
+                            </div>
+                            <h1 class="text-3xl font-bold text-gray-900 mt-1">
+                                {wo()!.trade_name}
+                            </h1>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class={`badge ${getStatusBadge(wo()!.status)} text-sm px-3 py-1 cursor-default`}>
+                                {wo()!.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Meta info */}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="card bg-white shadow-sm border border-gray-200">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Assigned Contractor</h3>
+                            <p class="text-gray-900">{wo()!.assigned_contractor_id || 'Unassigned'}</p>
+                        </div>
+                        <div class="card bg-white shadow-sm border border-gray-200">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1">Created At</h3>
+                            <p class="text-gray-900">{new Date(wo()!.created_at).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+
+                    {/* Checklist Areas */}
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-semibold text-gray-900 border-b pb-2">Task Checklist</h2>
+
+                        <Show when={wo()!.tasks && wo()!.tasks!.length > 0} fallback={<p class="text-gray-500">No tasks defined.</p>}>
+                            <For each={wo()!.tasks}>
+                                {(task) => {
+                                    const areaName = (task as any).room?.name || 'General Area';
+                                    const steps = task.task_data?.steps || [];
+
+                                    const completedSteps = steps.filter(s => s.status === 'complete' || s.not_applicable).length;
+                                    const progress = steps.length > 0 ? (completedSteps / steps.length) * 100 : 0;
+
+                                    return (
+                                        <div class="card overflow-hidden p-0 border border-gray-200 shadow-sm">
+                                            <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                                <h3 class="font-medium text-gray-900">{areaName}</h3>
+                                                <div class="flex items-center gap-3">
+                                                    <span class="text-sm text-gray-500">{completedSteps} / {steps.length} done</span>
+                                                    <div class="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                                        <div class="h-full bg-primary-500 transition-all" style={`width: ${progress}%`}></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <ul class="divide-y divide-gray-100">
+                                                <For each={steps}>
+                                                    {(step, stepIdx) => {
+                                                        const isDone = step.status === 'complete';
+                                                        const isNA = !!step.not_applicable;
+
+                                                        return (
+                                                            <li class={`px-6 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors ${(isDone || isNA) ? 'bg-gray-50/50' : ''}`}>
+                                                                <button
+                                                                    class={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${isDone ? 'bg-primary-500 border-primary-500 text-white' :
+                                                                            isNA ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed' :
+                                                                                'border-gray-300 hover:border-primary-400 focus:bg-primary-50'
+                                                                        }`}
+                                                                    onClick={() => isNA ? null : toggleStep(task.id, stepIdx(), step.status)}
+                                                                    disabled={isNA}
+                                                                >
+                                                                    <Show when={isDone}>
+                                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                                                    </Show>
+                                                                </button>
+
+                                                                <div class="flex-1">
+                                                                    <span class={`text-sm font-medium ${(isDone || isNA) ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                                                                        {step.label || 'Unnamed Step'}
+                                                                    </span>
+                                                                </div>
+
+                                                                <button
+                                                                    class={`text-xs px-2 py-1 rounded-md border font-medium uppercase tracking-wider ${isNA ? 'bg-gray-700 text-white border-gray-700' : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-100'
+                                                                        }`}
+                                                                    onClick={() => toggleNA(task.id, stepIdx(), isNA)}
+                                                                    title="Toggle Not Applicable"
+                                                                >
+                                                                    N/A
+                                                                </button>
+                                                            </li>
+                                                        );
+                                                    }}
+                                                </For>
+                                            </ul>
+                                        </div>
+                                    );
+                                }}
+                            </For>
+                        </Show>
+                    </div>
+
+                </Show>
+            </Show>
+        </div>
+    );
+};
+
+export default WorkOrderDetail;
+\n=== work-orders.ts lines 660-690 (template prefs -> WO CRUD boundary) ===
+        .upsert({
+            user_id: user.id,
+            template_id: templateId,
+            is_hidden: !!is_hidden,
+            updated_at: new Date().toISOString(),
+        }, {
+            onConflict: 'user_id,template_id',
+        });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json({ success: true });
+});
+
+// ============================================================================
+// WORK ORDERS ENDPOINTS
+// ============================================================================
+
+// LIST ALL WORK ORDERS (with optional filters)
+workOrdersRoute.get('/work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const unitId = c.req.query('unit_id');
+    const status = c.req.query('status');
+    const trade = c.req.query('trade');
+
+    let query = supabase
+        .from('work_orders')
+        .select(`
+            *,
+            unit:units(unit_number, unit_type, floor),
+            template:work_order_templates(trade_name, definition)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (unitId) query = query.eq('unit_id', unitId);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

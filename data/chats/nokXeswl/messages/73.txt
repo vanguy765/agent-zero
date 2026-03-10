@@ -1,0 +1,33 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === 1. MIGRATION FILES (template/inheritance related) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -rwxrwxrwx 1 root root  1505 Feb 22 05:18 20260222000001_template_rls_manager_admin.sql
+-rwxrwxrwx 1 root root  4055 Feb 22 06:07 20260222000002_project_lifecycle_template_inheritance.sql
+-rwxrwxrwx 1 root root  1333 Feb 22 20:28 20260222000003_user_template_prefs.sql
+-rw-r--r-- 1 root root 26941 Mar  4 22:09 20260304000001_schema_evolution_phase1.sql
+-rw-r--r-- 1 root root 14847 Mar  5 18:18 20260304000002_schema_evolution_seed.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === 2. API ROUTES ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# total 200
+drwxrwxrwx 1 root root  4096 Mar  5 05:10 .
+drwxrwxrwx 1 root root  4096 Mar  3 17:22 ..
+-rwxrwxrwx 1 root root  5327 Feb 17 02:18 a2a.ts
+-rwxrwxrwx 1 root root  2044 Mar  5 05:10 bom-action-requests.ts
+-rwxrwxrwx 1 root root   974 Feb 17 02:18 delivery.ts
+-rw-r--r-- 1 root root  6643 Mar  4 06:20 doc-parser-routes.ts
+-rwxrwxrwx 1 root root 23075 Mar  6 00:34 documents.ts
+-rw-r--r-- 1 root root 14324 Feb 19 05:40 entity-creation.ts
+-rwxrwxrwx 1 root root  1891 Feb 17 02:18 materials.ts
+-rwxrwxrwx 1 root root 13268 Mar  5 05:58 onboard.ts
+-rwxrwxrwx 1 root root  3476 Feb 17 02:18 project-definitions.ts
+-rwxrwxrwx 1 root root  1568 Mar  5 05:10 project-outcomes.ts
+-rw-r--r-- 1 root root  7186 Mar  4 06:12 reviews.ts
+-rwxrwxrwx 1 root root  3209 Feb 17 02:18 taxonomy.ts
+-rwxrwxrwx 1 root root  2848 Mar  4 06:12 todos.ts
+-rwxrwxrwx 1 root root  1486 Mar  5 05:10 trades.ts
+-rwxrwxrwx 1 root root  3329 Mar  5 05:19 type-orders.ts
+-rwxrwxrwx 1 root root  4928 Mar  5 05:50 units.ts
+-rwxrwxrwx 1 root root  3021 Feb 17 02:18 voice.ts
+-rwxrwxrwx 1 root root 34644 Mar  5 05:11 work-orders.ts
+-rwxr-xr-x 1 root root 34073 Mar  4 05:52 work-orders.ts.backup-orgfix
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === 3. GREP: parent_template across codebase ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

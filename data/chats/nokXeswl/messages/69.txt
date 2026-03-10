@@ -1,0 +1,124 @@
+=== Template Hierarchy Design ===
+# Template Hierarchy & Inheritance System
+
+**Date**: 2026-02-03
+**Status**: Design Document
+**Priority**: CRITICAL - Affects Phase 3 Implementation
+
+## Overview
+
+The Work Orders app needs a **three-tier template hierarchy** with inheritance and scoping:
+
+1. **App-Level Templates** (Global defaults)
+2. **Company-Level Templates** (Tenant-specific, inherited from app)
+3. **Project-Level Templates** (Project-specific, inherited from company or other projects)
+
+## Template Hierarchy
+
+```
+┌─────────────────────────────────────────────────────┐
+│ APP-LEVEL TEMPLATES (System Defaults)              │
+│ - Managed by: System Admins                        │
+│ - Scope: Global (all tenants)                      │
+│ - Examples: Painting, Plumbing, Electrical         │
+└──────────────────┬──────────────────────────────────┘
+                   │ Inherits/Copies
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│ COMPANY-LEVEL TEMPLATES (Tenant Defaults)          │
+│ - Managed by: Tenant Admins                        │
+│ - Scope: Organization (single tenant)              │
+│ - Origin: Copied from app templates                │
+│ - Customizable: Yes (tenant admin can edit)        │
+└──────────────────┬──────────────────────────────────┘
+                   │ Inherits/Copies
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│ PROJECT-LEVEL TEMPLATES (Project-Specific)         │
+│ - Managed by: Tenant Admins                        │
+│ - Scope: Project (single project/property)         │
+│ - Origin: Copied from company OR other project     │
+│ - Customizable: Yes (tenant admin can edit)        │
+└─────────────────────────────────────────────────────┘
+```
+
+## User Stories
+
+### As a System Admin
+- I can create and manage app-level templates
+- These templates serve as the base for all tenants
+- I cannot see or edit tenant-specific templates
+
+### As a Tenant Admin
+- I can view app-level templates (read-only)
+- I can copy app-level templates to create company defaults
+- I can edit my company's templates
+- I can create project-specific templates from company templates
+- I can copy templates between my projects
+- I cannot see other tenants' templates
+
+### As a Project User
+- I can only use templates assigned to my project
+
+=== Project Lifecycle Migration ===
+-- =============================================================
+-- Migration: Project Lifecycle & Template Inheritance
+-- Description:
+--   1. Expand wo_projects.status to include 'staged' and 'paused'
+--   2. Add is_frozen column to work_order_templates
+--   3. Allow NULL definition for lazy-copy project templates
+--   4. Create freeze_project_templates() trigger function
+--   5. Seed app-scope templates from existing company templates
+-- =============================================================
+
+-- -----------------------------------------------
+-- 1. Expand project status CHECK constraint
+-- -----------------------------------------------
+ALTER TABLE public.wo_projects DROP CONSTRAINT IF EXISTS wo_projects_status_check;
+ALTER TABLE public.wo_projects ADD CONSTRAINT wo_projects_status_check
+  CHECK (status IN ('staged', 'active', 'paused', 'completed', 'archived'));
+
+-- -----------------------------------------------
+-- 2. Add is_frozen to templates
+-- -----------------------------------------------
+ALTER TABLE public.work_order_templates
+  ADD COLUMN IF NOT EXISTS is_frozen BOOLEAN DEFAULT false;
+
+-- -----------------------------------------------
+-- 3. Allow NULL definition for lazy-copy templates
+--    (project templates reference parent until frozen)
+-- -----------------------------------------------
+ALTER TABLE public.work_order_templates
+  ALTER COLUMN definition DROP NOT NULL;
+
+-- -----------------------------------------------
+-- 4. Trigger: freeze project templates on activation
+--    When a project transitions to 'active', copy the
+--    definition from the parent company template into
+--    each unfrozen project template.
+-- -----------------------------------------------
+CREATE OR REPLACE FUNCTION public.freeze_project_templates()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only fire when status changes TO 'active'
+  IF NEW.status = 'active' AND (OLD.status IS DISTINCT FROM 'active') THEN
+    UPDATE public.work_order_templates pt
+    SET
+      definition = ct.definition,
+      is_frozen = true,
+      updated_at = now()
+    FROM public.work_order_templates ct
+    WHERE pt.project_id = NEW.id
+      AND pt.scope = 'project'
+      AND pt.parent_template_id = ct.id
+      AND pt.is_frozen = false
+      AND pt.definition IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_freeze_project_templates ON public.wo_projects;
+CREATE TRIGGER trg_freeze_project_templates
+  AFTER UPDATE OF status ON public.wo_projects
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

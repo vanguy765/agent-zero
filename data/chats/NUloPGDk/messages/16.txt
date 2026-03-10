@@ -1,0 +1,122 @@
+=== Route ordering check ===
+52:workOrdersRoute.get('/units', async (c) => {
+68:workOrdersRoute.get('/units/:id', async (c) => {
+85:workOrdersRoute.patch('/units/:id', async (c) => {
+108:workOrdersRoute.get('/projects', async (c) => {
+123:workOrdersRoute.get('/projects/:id', async (c) => {
+140:workOrdersRoute.post('/projects', async (c) => {
+165:workOrdersRoute.patch('/projects/:id', async (c) => {
+184:workOrdersRoute.delete('/projects/:id', async (c) => {
+204:workOrdersRoute.get('/template-libraries', async (c) => {
+228:workOrdersRoute.get('/template-libraries/:id', async (c) => {
+254:workOrdersRoute.get('/template-libraries/default/:projectType', async (c) => {
+278:workOrdersRoute.get('/templates', async (c) => {
+305:workOrdersRoute.get('/templates/system', async (c) => {
+322:workOrdersRoute.get('/templates/company', async (c) => {
+339:workOrdersRoute.get('/templates/:id', async (c) => {
+356:workOrdersRoute.post('/templates', async (c) => {
+383:workOrdersRoute.patch('/templates/:id', async (c) => {
+415:workOrdersRoute.delete('/templates/:id', async (c) => {
+433:workOrdersRoute.get('/templates/project/:projectId', async (c) => {
+468:workOrdersRoute.post('/templates/assign-to-company', async (c) => {
+525:workOrdersRoute.post('/templates/assign-to-project', async (c) => {
+594:workOrdersRoute.delete('/templates/:id/unassign', async (c) => {
+632:workOrdersRoute.get('/templates/prefs/hidden', async (c) => {
+680:workOrdersRoute.get('/sops', async (c) => {
+701:workOrdersRoute.get('/sops/:id', async (c) => {
+723:workOrdersRoute.get('/templates/:id/sop', async (c) => {
+766:workOrdersRoute.get('/work-orders/:id/step-progress', async (c) => {
+787:workOrdersRoute.post('/work-orders/:id/initialize-steps', async (c) => {
+844:workOrdersRoute.patch('/work-orders/step-progress/:id', async (c) => {
+883:workOrdersRoute.get('/work-orders', async (c) => {
+911:workOrdersRoute.get('/work-orders/:id', async (c) => {
+940:workOrdersRoute.post('/work-orders', async (c) => {
+1199:workOrdersRoute.patch('/work-orders/:id', async (c) => {
+1222:workOrdersRoute.patch('/work-orders/:workOrderId/tasks/:taskId', async (c) => {
+1279:workOrdersRoute.post('/work-orders/:id/notes', async (c) => {
+1307:workOrdersRoute.get('/work-orders/:id/notes', async (c) => {
+\n=== Verify SOP endpoints section (lines 674-690) ===
+
+// ============================================================================
+// SOP ENDPOINTS
+// ============================================================================
+
+// LIST SOPs (with optional trade filter)
+workOrdersRoute.get('/sops', async (c) => {
+    const supabase = getScopedClient(c);
+    const tradeId = c.req.query('trade_id');
+    const tradeCode = c.req.query('trade_code');
+
+    let query = supabase
+        .from('sops')
+        .select('id, sop_number, trade_code, trade_name, task_name, revision, status, estimated_duration, trade_id')
+        .eq('status', 'active')
+        .order('trade_code')
+        .order('sop_number');
+
+    if (tradeId) query = query.eq('trade_id', tradeId);
+    if (tradeCode) query = query.eq('trade_code', tradeCode);
+
+    const { data, error } = await query;
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data || []);
+});
+
+// GET SOP DETAIL (with sections, steps, dependencies)
+\n=== Verify step-progress PATCH route ===
+// UPDATE STEP PROGRESS
+workOrdersRoute.patch('/work-orders/step-progress/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body = await c.req.json();
+
+    const allowedFields = [
+        'status', 'completed_by', 'started_at', 'completed_at',
+        'duration_minutes', 'notes', 'photo_urls', 'override_detail', 'is_override'
+    ];
+
+    const updates: Record<string, any> = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) updates[field] = body[field];
+    }
+
+    if (updates.status === 'in_progress' && !updates.started_at) {
+        updates.started_at = new Date().toISOString();
+    }
+    if (updates.status === 'completed' && !updates.completed_at) {
+        updates.completed_at = new Date().toISOString();
+    }
+
+    const { data, error } = await supabase
+        .from('work_order_step_progress')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+\n=== Verify WorkOrderDetail StepProgressPanel insertion ===
+                                        </div>
+                                    );
+                                }}
+                            </For>
+                        </Show>
+                    </div>
+
+                    <StepProgressPanel workOrderId={wo()!.id} />
+
+                </Show>
+            </Show>
+        </div>
+    );
+};
+
+function StepProgressPanel(props: { workOrderId: string }) {
+    const [progress, { refetch }] = createResource(
+        () => props.workOrderId,
+        (id) => api.getStepProgress(id)
+    );
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

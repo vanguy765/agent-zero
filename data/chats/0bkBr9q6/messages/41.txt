@@ -1,0 +1,71 @@
+total 9516
+drwxrwxrwx 1 root root    4096 Mar  6 06:47 .
+drwxr-xr-x 1 root root    4096 Feb 24 00:56 ..
+drwxrwxrwx 1 root root    4096 Feb 26 04:14 .agents
+drwxrwxrwx 1 root root    4096 Feb 19 04:53 apps
+drwxrwxrwx 1 root root    4096 Feb 18 05:25 backups
+-rwxrwxrwx 1 root root   17024 Mar  5 05:11 build_errors.log
+-rwxrwxrwx 1 root root    8520 Mar  5 05:12 build_errors.txt
+-rwxrwxrwx 1 root root    1512 Feb 17 02:18 clean-documents.ps1
+-rwxrwxrwx 1 root root    1037 Feb 17 02:18 convert_bom.sql
+-rwxrwxrwx 1 root root    2112 Feb 17 02:18 create_work_order.ps1
+-rwxrwxrwx 1 root root  235104 Feb 22 04:56 db_reset_debug.log
+-rwxrwxrwx 1 root root      11 Feb 17 02:18 debug_write_test.txt
+drwxrwxrwx 1 root root    4096 Mar  9 19:49 doc-parser
+drwxrwxrwx 1 root root    4096 Mar  7 04:33 docs
+-rw-r--r-- 1 root root     136 Mar  4 03:42 .env
+-rwxrwxrwx 1 root root     250 Mar  5 22:00 error_out.txt
+-rwxrwxrwx 1 root root      70 Mar  6 00:06 full_result.json
+drwxrwxrwx 1 root root    4096 Mar  9 19:14 .git
+-rwxrwxrwx 1 root root     554 Feb 17 02:18 .gitattributes
+-rwxrwxrwx 1 root root   57984 Mar  6 00:33 git_hybrid_history.txt
+-rwxrwxrwx 1 root root     758 Mar  6 06:47 .gitignore
+-rwxrwxrwx 1 root root   23243 Mar  6 00:33 hybrid_old.py
+-rwxrwxrwx 1 root root       0 Mar  5 21:21 jobs.json
+drwxrwxrwx 1 root root    4096 Feb 21 02:00 nocodb
+-rwxrwxrwx 1 root root   15066 Feb 17 02:18 nocodb_full.txt
+-rwxrwxrwx 1 root root   14492 Feb 17 02:18 nocodb_logs.txt
+drwxrwxrwx 1 root root    4096 Feb 24 01:25 node_modules
+-rwxrwxrwx 1 root root       0 Mar  6 01:05 old_pdfplumber_diff.patch
+-rwxrwxrwx 1 root root       0 Mar  6 01:05 old_server.py
+-rwxrwxrwx 1 root root     724 Feb 23 04:48 package.json
+-rw-r--r-- 1 root root    6064 Feb 23 22:52 package-lock.json
+drwxrwxrwx 1 root root    4096 Feb 17 02:18 packages
+-rwxrwxrwx 1 root root  112752 Feb 21 23:40 pnpm-lock.yaml
+drwxr-xr-x 1 root root    4096 Feb 24 00:50 .pnpm-store
+-rwxrwxrwx 1 root root      40 Feb 17 02:18 pnpm-workspace.yaml
+-rwxrwxrwx 1 root root     239 Feb 17 02:18 project_ids.txt
+-rwxrwxrwx 1 root root    6355 Mar  4 06:12 README.md
+-rwxrwxrwx 1 root root    2328 Feb 17 02:18 restore-for-testing.ps1
+drwxrwxrwx 1 root root    4096 Mar  6 00:01 scripts
+-rwxrwxrwx 1 root root     387 Feb 17 02:18 seed_error.txt
+drwxr-xr-x 1 root root    4096 Mar  1 01:54 skills
+drwxrwxrwx 1 root root    4096 Mar  8 01:18 supabase
+-rwxrwxrwx 1 root root   12480 Feb 17 02:18 supabase_debug.log
+-rwxrwxrwx 1 root root     157 Feb 17 02:18 table_columns.txt
+-rwxrwxrwx 1 root root 8770689 Feb 17 02:18 temp_analysis.pdf
+-rwxrwxrwx 1 root root   96346 Mar  5 21:18 temp_docker_logs.txt
+-rwxrwxrwx 1 root root    1916 Mar  6 00:42 temp_trace.txt
+-rwxrwxrwx 1 root root    1326 Feb 17 02:18 test_api.ps1
+-rwxrwxrwx 1 root root   26634 Mar  6 00:03 test_docker_logs.txt
+-rwxrwxrwx 1 root root    4392 Mar  6 00:02 test_out.txt
+-rwxrwxrwx 1 root root    2564 Mar  6 00:05 test_post_out.txt
+drwxr-xr-x 1 root root    4096 Mar  4 22:11 tests
+-rwxrwxrwx 1 root root  192384 Mar  6 00:47 test_utf8_logs.txt
+-rwxrwxrwx 1 root root   19434 Feb 17 02:18 tracked_files.txt
+drwxrwxrwx 1 root root    4096 Mar  8 21:26 .turbo
+-rwxrwxrwx 1 root root     342 Feb 17 02:18 turbo.json
+-rwxrwxrwx 1 root root     336 Feb 17 02:18 unit_ids.txt
+-rwxrwxrwx 1 root root   48507 Mar  5 21:19 utf8_logs.txt
+-rwxrwxrwx 1 root root     401 Feb 17 02:18 verify_data.sql
+---
+total 36
+drwxr-xr-x 1 root root  4096 Mar  1 05:32 .
+drwxr-xr-x 1 root root  4096 Mar  1 01:54 ..
+-rw-r--r-- 1 root root 11261 Mar  2 05:54 AGENT_GUIDE.md
+-rw-r--r-- 1 root root 14843 Mar  2 05:54 README.md
+drwxr-xr-x 1 root root  4096 Mar  1 05:26 scripts
+-rw-r--r-- 1 root root  8123 Mar  2 05:54 SKILL.md
+---
+voicelog-scaffold
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

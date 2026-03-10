@@ -1,0 +1,1278 @@
+#!/usr/bin/env python3
+"""SOP Library Manager — Supabase Storage + Database Sync
+
+Manages the SOP library lifecycle:
+  - Upload .md files to Supabase Storage (apps/voicelog/sops/)
+  - Parse SOP markdown into structured data
+  - Sync parsed data to database tables (sops, sop_executive_checklists, sop_detailed_steps, sop_recommended_videos)
+  - Parse into new normalized schema (sop_sections, sop_steps)
+  - Parse REF docs into sop_ref_docs table
+  - Extract SOP dependencies from Scope sections
+  - Detect changes via MD5 hashing
+  - Search/query the library
+  - Request agent creation of missing SOPs
+
+Usage:
+  python sop_manager.py upload   <file.md>              Upload SOP to storage + parse + sync DB
+  python sop_manager.py sync     [--all | <sop_number>]  Re-parse and sync DB from storage
+  python sop_manager.py search   <query>                 Search SOPs by keyword/trade/tag
+  python sop_manager.py list                              List all SOPs in the library
+  python sop_manager.py show     <sop_number>            Show SOP details with cached data
+  python sop_manager.py request  <trade> <task>           Request agent to create a new SOP
+  python sop_manager.py check    <trade> <task>           Check if suitable SOP exists, request if not
+  python sop_manager.py sync-new [--all | <sop_number>]  Sync to new schema (sop_sections + sop_steps)
+  python sop_manager.py upload-ref <file.md>             Upload REF doc to sop_ref_docs
+  python sop_manager.py sync-deps [--all | <sop_number>] Extract and sync SOP dependencies
+"""
+
+import sys
+import os
+import re
+import json
+import hashlib
+import argparse
+from datetime import datetime, timezone
+
+try:
+    from supabase import create_client, Client
+except ImportError:
+    print("Installing supabase-py...")
+    os.system("pip install supabase")
+    from supabase import create_client, Client
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "http://host.docker.internal:54321")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU")
+STORAGE_BUCKET = "apps"
+STORAGE_PREFIX = "voicelog/sops"
+
+# ---------------------------------------------------------------------------
+# Section type classification keywords
+# Maps title keywords to the section_type enum values from the schema
+# ---------------------------------------------------------------------------
+SECTION_TYPE_MAP = {
+    "purpose": "purpose",
+    "scope": "scope",
+    "references & codes": "references",
+    "references and codes": "references",
+    "references": "references",
+    "personnel": "personnel",
+    "personnel & qualifications": "personnel",
+    "safety": "safety",
+    "safety requirements": "safety",
+    "tools": "tools",
+    "tools & equipment": "tools",
+    "tools and equipment": "tools",
+    "pre-work": "pre_work",
+    "pre-work assessment": "pre_work",
+    "pre work assessment": "pre_work",
+    "pre-installation": "pre_work",
+    "pre installation": "pre_work",
+    "procedure": "procedure",
+    "recommended video": "videos",
+    "recommended videos": "videos",
+    "testing": "testing",
+    "testing & commissioning": "testing",
+    "testing and commissioning": "testing",
+    "cleanup": "cleanup",
+    "cleanup & closeout": "cleanup",
+    "cleanup and closeout": "cleanup",
+    "troubleshooting": "troubleshooting",
+    "quality": "quality",
+    "quality standards": "quality",
+    "revision history": "revision_history",
+    "revision": "revision_history",
+}
+
+
+def get_client() -> Client:
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+def md5_hash(content: str) -> str:
+    return hashlib.md5(content.encode("utf-8")).hexdigest()
+
+
+def classify_section_type(title: str) -> str:
+    """Classify a section title into a section_type enum value.
+
+    Matches against SECTION_TYPE_MAP using longest-match-first strategy.
+    Falls back to keyword substring matching for procedure sections.
+    """
+    title_lower = title.lower().strip()
+
+    # Strip leading "Procedure — " or "Procedure - " prefix for matching
+    # but still classify as procedure
+    if title_lower.startswith("procedure"):
+        return "procedure"
+
+    # Try exact match first (after lowering)
+    if title_lower in SECTION_TYPE_MAP:
+        return SECTION_TYPE_MAP[title_lower]
+
+    # Try longest substring match
+    best_match = None
+    best_len = 0
+    for keyword, stype in SECTION_TYPE_MAP.items():
+        if keyword in title_lower and len(keyword) > best_len:
+            best_match = stype
+            best_len = len(keyword)
+
+    if best_match:
+        return best_match
+
+    # Default fallback — try common single-word matches
+    for keyword, stype in SECTION_TYPE_MAP.items():
+        if keyword.split()[0] in title_lower.split():
+            return stype
+
+    return "purpose"  # safe fallback
+
+
+def strip_markdown(text: str) -> str:
+    """Convert markdown to plain text by stripping common formatting."""
+    # Remove bold/italic markers
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    text = re.sub(r"\*(.+?)\*", r"\1", text)
+    # Remove links — keep text
+    text = re.sub(r"\[(.+?)\]\(.+?\)", r"\1", text)
+    # Remove headers
+    text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)
+    # Remove horizontal rules
+    text = re.sub(r"^---+$", "", text, flags=re.MULTILINE)
+    # Remove checkbox markers
+    text = re.sub(r"- \[[ x]\] ", "- ", text)
+    # Remove blockquote markers
+    text = re.sub(r"^>\s?", "", text, flags=re.MULTILINE)
+    # Collapse multiple blank lines
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+# ---------------------------------------------------------------------------
+# SOP Markdown Parser
+# ---------------------------------------------------------------------------
+class SOPParser:
+    """Parses a structured SOP .md file into components."""
+
+    def __init__(self, content: str):
+        self.content = content
+        self.lines = content.split("\n")
+
+    def parse_header_table(self) -> dict:
+        """Extract the header metadata table (Field | Detail format)."""
+        meta = {}
+        in_table = False
+        for line in self.lines:
+            # Detect table start: header row with Field/Detail or SOP Number
+            if "|" in line and ("Field" in line and "Detail" in line) and "---" not in line:
+                in_table = True
+                continue
+            # Skip separator row
+            if in_table and "|" in line and re.match(r"^[\|\s\-:]+$", line):
+                continue
+            if in_table and "|" in line:
+                cells = [c.strip() for c in line.split("|") if c.strip()]
+                if len(cells) >= 2:
+                    # Strip bold markdown markers
+                    key = re.sub(r"\*\*", "", cells[0]).strip()
+                    val = re.sub(r"\*\*", "", cells[1]).strip()
+                    if key:
+                        meta[key] = val
+            elif in_table and "|" not in line and line.strip() and line.strip() != "---":
+                break
+        return meta
+
+    def parse_sections(self) -> list:
+        """Split document into sections by ## headings."""
+        sections = []
+        current = None
+        for line in self.lines:
+            m = re.match(r"^## (\d+)\.\s+(.+)$", line)
+            if m:
+                if current:
+                    sections.append(current)
+                current = {
+                    "number": int(m.group(1)),
+                    "title": m.group(2).strip(),
+                    "content": ""
+                }
+            elif current:
+                current["content"] += line + "\n"
+        if current:
+            sections.append(current)
+        return sections
+
+    def parse_executive_checklist(self, section_content: str, section_number: int, phase_name: str) -> list:
+        """Parse executive checklist table from a procedure section."""
+        items = []
+        in_table = False
+        for line in section_content.split("\n"):
+            if "|" in line and "Step" in line and "Step Name" in line:
+                in_table = True
+                continue
+            if in_table and "|" in line and "---" not in line:
+                cells = [c.strip() for c in line.split("|") if c.strip()]
+                # Strip bold markdown (**text**) and checkbox markers from cells
+                cells = [c.replace("**", "").strip() for c in cells]
+                if len(cells) >= 3:
+                    try:
+                        step_num = int(cells[0])
+                    except (ValueError, IndexError):
+                        continue
+                    items.append({
+                        "section_number": section_number,
+                        "phase_name": phase_name,
+                        "step_number": step_num,
+                        "step_name": cells[1].strip(),
+                        "tasks": cells[2].strip() if len(cells) > 2 else "",
+                        "sort_order": step_num
+                    })
+            elif in_table and "|" not in line and line.strip():
+                break
+        return items
+
+    def parse_detailed_steps(self, section_content: str, section_number: int, phase_name: str) -> list:
+        """Parse detailed step subsections (#### Step N: Name)."""
+        steps = []
+        current_step = None
+        for line in section_content.split("\n"):
+            m = re.match(r"^####\s+Step\s+(\d+):\s+(.+)$", line)
+            if m:
+                if current_step:
+                    steps.append(current_step)
+                current_step = {
+                    "section_number": section_number,
+                    "phase_name": phase_name,
+                    "step_number": int(m.group(1)),
+                    "step_name": m.group(2).strip(),
+                    "content": "",
+                    "sort_order": int(m.group(1))
+                }
+            elif current_step:
+                current_step["content"] += line + "\n"
+        if current_step:
+            steps.append(current_step)
+        # Trim trailing whitespace from content
+        for s in steps:
+            s["content"] = s["content"].rstrip()
+        return steps
+
+    def parse_recommended_videos(self, section_content: str, section_number: int) -> list:
+        """Parse recommended videos tables."""
+        videos = []
+        current_phase = ""
+        in_table = False
+        sort_idx = 0
+        for line in section_content.split("\n"):
+            # Phase heading: ### Phase Name (Section N)
+            pm = re.match(r"^###\s+(.+?)(?:\s+\(Section\s+\d+\))?$", line)
+            if pm:
+                current_phase = pm.group(1).strip()
+                in_table = False
+                continue
+            if "|" in line and "Step" in line and "Video" in line:
+                in_table = True
+                continue
+            if in_table and "|" in line and "---" not in line:
+                cells = [c.strip() for c in line.split("|") if c.strip()]
+                if len(cells) >= 4:
+                    # Extract video title and URL from markdown link
+                    video_cell = cells[1]
+                    link_match = re.match(r"\[(.+?)\]\((.+?)\)", video_cell)
+                    if link_match:
+                        title = link_match.group(1)
+                        url = link_match.group(2)
+                    else:
+                        title = video_cell
+                        url = ""
+                    sort_idx += 1
+                    videos.append({
+                        "section_number": section_number,
+                        "phase_name": current_phase,
+                        "step_reference": cells[0],
+                        "video_title": title,
+                        "video_url": url,
+                        "duration": cells[2] if len(cells) > 2 else "",
+                        "source": cells[3] if len(cells) > 3 else "",
+                        "sort_order": sort_idx
+                    })
+            elif in_table and "|" not in line and line.strip() and not line.startswith(">"):
+                in_table = False
+        return videos
+
+    def parse_to_sections_and_steps(self) -> dict:
+        """Parse SOP markdown into structured data for sop_sections and sop_steps tables.
+
+        Returns:
+            dict with keys:
+                - "sections": list of dicts ready for sop_sections table insert
+                - "steps": list of dicts ready for sop_steps table insert
+                  (each step includes a "_section_number" key for section_id resolution)
+
+        Handles:
+            - Section header detection (## N. Title)
+            - Section type classification based on title keywords
+            - REF pointer detection (See [REF_...)
+            - Executive Checklist table parsing (pipe-delimited markdown tables)
+            - Detailed Steps extraction (#### Step N: Name)
+            - Phase name extraction from procedure section titles
+        """
+        raw_sections = self.parse_sections()
+        sections_out = []
+        steps_out = []
+
+        # Track procedure phase numbering across multiple procedure sections
+        phase_counter = 0
+
+        for sec in raw_sections:
+            title = sec["title"]
+            content_md = sec["content"].rstrip()
+            section_number = sec["number"]
+            section_type = classify_section_type(title)
+
+            # Detect REF pointers — section content starts with "See [REF_"
+            content_stripped = content_md.strip()
+            # Remove leading --- separators
+            content_stripped = re.sub(r"^---\s*\n", "", content_stripped).strip()
+            is_ref_pointer = bool(re.match(r"See\s+\[REF_", content_stripped, re.IGNORECASE))
+            ref_section = None
+            if is_ref_pointer:
+                # Extract the referenced section: "See [REF_PNT_...] — Section N: Title"
+                ref_match = re.search(
+                    r"See\s+\[REF_[^\]]+\]\([^)]+\)\s*(?:[—\-]+\s*)?(.+?)(?:\.|$)",
+                    content_stripped,
+                    re.IGNORECASE
+                )
+                if ref_match:
+                    ref_section = ref_match.group(1).strip().rstrip(".")
+
+            # Extract phase name for procedure sections
+            phase_name = None
+            if section_type == "procedure":
+                phase_counter += 1
+                # "Procedure — Surface Preparation" -> "Surface Preparation"
+                pm = re.match(
+                    r"Procedure\s*[—\-]+\s*(.+)",
+                    title,
+                    re.IGNORECASE
+                )
+                if pm:
+                    phase_name = pm.group(1).strip()
+                else:
+                    phase_name = title  # fallback to full title
+
+            # Build section record
+            section_record = {
+                "section_number": section_number,
+                "section_type": section_type,
+                "title": title,
+                "content_md": content_md,
+                "content_plain": strip_markdown(content_md),
+                "is_ref_pointer": is_ref_pointer,
+                "ref_section": ref_section,
+                "phase_name": phase_name,
+            }
+            sections_out.append(section_record)
+
+            # Extract steps from procedure sections
+            if section_type == "procedure":
+                # Parse executive checklist for step names and tasks summary
+                checklist_items = self.parse_executive_checklist(
+                    sec["content"], section_number, phase_name or title
+                )
+                # Parse detailed steps for full content
+                detailed_items = self.parse_detailed_steps(
+                    sec["content"], section_number, phase_name or title
+                )
+
+                # Build a lookup of detailed step content by step_number
+                detail_by_num = {d["step_number"]: d for d in detailed_items}
+
+                # Merge checklist + detailed steps into unified sop_steps records
+                # Checklist is the primary source (defines the trackable steps)
+                # Detailed steps provide the full content
+                if checklist_items:
+                    for cl in checklist_items:
+                        step_num = cl["step_number"]
+                        detail = detail_by_num.get(step_num, {})
+                        step_record = {
+                            "_section_number": section_number,  # for section_id resolution
+                            "phase_name": phase_name or title,
+                            "phase_number": phase_counter,
+                            "step_number": step_num,
+                            "step_name": cl["step_name"],
+                            "tasks_summary": cl.get("tasks", ""),
+                            "detail_md": detail.get("content", ""),
+                            "detail_plain": strip_markdown(detail.get("content", "")) if detail.get("content") else "",
+                            "sort_order": cl.get("sort_order", step_num),
+                        }
+                        steps_out.append(step_record)
+                elif detailed_items:
+                    # No checklist but has detailed steps — use those directly
+                    for d in detailed_items:
+                        step_record = {
+                            "_section_number": section_number,
+                            "phase_name": phase_name or title,
+                            "phase_number": phase_counter,
+                            "step_number": d["step_number"],
+                            "step_name": d["step_name"],
+                            "tasks_summary": "",
+                            "detail_md": d.get("content", ""),
+                            "detail_plain": strip_markdown(d.get("content", "")) if d.get("content") else "",
+                            "sort_order": d.get("sort_order", d["step_number"]),
+                        }
+                        steps_out.append(step_record)
+
+        return {
+            "sections": sections_out,
+            "steps": steps_out,
+        }
+
+    def parse_scope_dependencies(self) -> list:
+        """Parse the Scope section for SOP cross-references.
+
+        Detects patterns like:
+            - (see PNT-SOP-004: Trim & Baseboard Painting)
+            - (see SOP PLB-SOP-010)
+            - see DRW-SOP-001: Drywall Patch Repair
+            - (see ELC-SOP-005: New Branch Circuit Installation)
+
+        Returns:
+            list of dicts with keys: to_sop_number, condition_note
+        """
+        deps = []
+        sections = self.parse_sections()
+        scope_content = ""
+        for sec in sections:
+            if classify_section_type(sec["title"]) == "scope":
+                scope_content = sec["content"]
+                break
+
+        if not scope_content:
+            return deps
+
+        # Match patterns:
+        # (see PNT-SOP-004: Trim & Baseboard Painting)
+        # (see SOP PLB-SOP-010)
+        # see DRW-SOP-001: Drywall Patch Repair
+        # (see ELC-SOP-005: New Branch Circuit Installation)
+        pattern = re.compile(
+            r"(?:see|See)\s+(?:SOP\s+)?([A-Z]{2,4}-SOP-\d{3})(?:\s*:\s*([^)\n]+))?",
+            re.IGNORECASE
+        )
+
+        seen = set()
+        for match in pattern.finditer(scope_content):
+            sop_number = match.group(1).upper()
+            title = match.group(2).strip() if match.group(2) else None
+            if sop_number not in seen:
+                seen.add(sop_number)
+                deps.append({
+                    "to_sop_number": sop_number,
+                    "condition_note": title,
+                })
+
+        return deps
+
+    def parse(self) -> dict:
+        """Full parse of SOP document."""
+        meta = self.parse_header_table()
+        sections = self.parse_sections()
+
+        checklists = []
+        detailed_steps = []
+        videos = []
+
+        for sec in sections:
+            title_lower = sec["title"].lower()
+            # Procedure sections contain executive checklists and detailed steps
+            if "procedure" in title_lower or title_lower.startswith("procedure"):
+                phase_name = sec["title"].replace("Procedure \u2014 ", "").replace("Procedure \u2014 ", "")
+                cl = self.parse_executive_checklist(sec["content"], sec["number"], phase_name)
+                checklists.extend(cl)
+                ds = self.parse_detailed_steps(sec["content"], sec["number"], phase_name)
+                detailed_steps.extend(ds)
+            # Recommended Videos section
+            elif "recommended video" in title_lower:
+                vids = self.parse_recommended_videos(sec["content"], sec["number"])
+                videos.extend(vids)
+
+        return {
+            "meta": meta,
+            "sections": sections,
+            "checklists": checklists,
+            "detailed_steps": detailed_steps,
+            "videos": videos
+        }
+
+
+# ---------------------------------------------------------------------------
+# REF Document Parser
+# ---------------------------------------------------------------------------
+class REFDocParser:
+    """Parses a REF_{TRADE}_Codes_Standards.md file into structured data
+    for the sop_ref_docs table."""
+
+    def __init__(self, content: str):
+        self.content = content
+        self.lines = content.split("\n")
+
+    def parse_header_table(self) -> dict:
+        """Extract the header metadata table (Field | Detail format)."""
+        meta = {}
+        in_table = False
+        for line in self.lines:
+            if "|" in line and ("Field" in line and "Detail" in line) and "---" not in line:
+                in_table = True
+                continue
+            if in_table and "|" in line and re.match(r"^[\|\s\-:]+$", line):
+                continue
+            if in_table and "|" in line:
+                cells = [c.strip() for c in line.split("|") if c.strip()]
+                if len(cells) >= 2:
+                    key = re.sub(r"\*\*", "", cells[0]).strip()
+                    val = re.sub(r"\*\*", "", cells[1]).strip()
+                    if key:
+                        meta[key] = val
+            elif in_table and "|" not in line and line.strip() and line.strip() != "---":
+                break
+        return meta
+
+    def parse(self) -> dict:
+        """Parse REF document into a record for sop_ref_docs table.
+
+        Returns:
+            dict with keys: doc_id, trade_code, trade_name, revision, content_md, file_hash
+        """
+        meta = self.parse_header_table()
+
+        doc_id = meta.get("Document ID", "")
+        revision = meta.get("Revision", "1.0")
+
+        # Extract trade code from doc_id: REF-PNT-001 -> PNT
+        trade_code = ""
+        trade_name = ""
+        doc_id_match = re.match(r"REF-([A-Z]{2,4})-\d+", doc_id)
+        if doc_id_match:
+            trade_code = doc_id_match.group(1)
+
+        # Try to extract trade name from the title line
+        for line in self.lines:
+            if line.startswith("# "):
+                # "# Reference Document — Painting Trade: Codes & Standards"
+                title_match = re.search(r"[—\-]+\s*(.+?)\s*Trade", line, re.IGNORECASE)
+                if title_match:
+                    trade_name = title_match.group(1).strip()
+                break
+
+        # Fallback trade name from code
+        if not trade_name:
+            trade_name_map = {
+                "PLB": "Plumbing", "ELC": "Electrical", "HVA": "HVAC",
+                "PNT": "Painting", "CRP": "Carpentry", "DRW": "Drywall",
+                "FLR": "Flooring", "RFG": "Roofing", "LND": "Landscaping",
+            }
+            trade_name = trade_name_map.get(trade_code, trade_code)
+
+        return {
+            "doc_id": doc_id,
+            "trade_code": trade_code,
+            "trade_name": trade_name,
+            "revision": revision,
+            "content_md": self.content,
+            "file_hash": md5_hash(self.content),
+        }
+
+
+# ---------------------------------------------------------------------------
+# Library Manager
+# ---------------------------------------------------------------------------
+class SOPLibraryManager:
+    """Manages the SOP library in Supabase Storage + Database."""
+
+    def __init__(self):
+        self.client = get_client()
+
+    def _ensure_bucket(self):
+        """Ensure the storage bucket exists."""
+        try:
+            self.client.storage.get_bucket(STORAGE_BUCKET)
+        except Exception:
+            try:
+                self.client.storage.create_bucket(STORAGE_BUCKET, options={"public": False})
+            except Exception:
+                pass  # bucket may already exist
+
+    def upload_sop(self, filepath: str) -> dict:
+        """Upload an SOP .md file to storage and sync to DB."""
+        self._ensure_bucket()
+
+        with open(filepath, "r") as f:
+            content = f.read()
+
+        filename = os.path.basename(filepath)
+        storage_path = f"{STORAGE_PREFIX}/{filename}"
+        file_hash = md5_hash(content)
+
+        # Upload to storage
+        try:
+            self.client.storage.from_(STORAGE_BUCKET).remove([storage_path])
+        except Exception:
+            pass
+
+        with open(filepath, "rb") as f:
+            self.client.storage.from_(STORAGE_BUCKET).upload(
+                storage_path,
+                f,
+                file_options={"content-type": "text/markdown", "upsert": "true"}
+            )
+
+        # Parse and sync (legacy tables)
+        result = self._sync_from_content(content, storage_path, file_hash)
+
+        # Also sync to new schema
+        sop_id = result.get("sop_id")
+        if sop_id and result.get("status") != "unchanged":
+            new_result = self.sync_sop_to_new_schema(sop_id, content)
+            result["new_schema"] = new_result
+            # Extract dependencies
+            dep_result = self.sync_dependencies(sop_id, content)
+            result["dependencies"] = dep_result
+
+        self._log_action(result.get("sop_id"), result.get("sop_number"), "uploaded",
+                         {"file": filename, "hash": file_hash})
+        return result
+
+    def _sync_from_content(self, content: str, storage_path: str, file_hash: str) -> dict:
+        """Parse content and upsert into database."""
+        parser = SOPParser(content)
+        parsed = parser.parse()
+        meta = parsed["meta"]
+
+        sop_number = meta.get("SOP Number", "UNKNOWN")
+        trade_parts = meta.get("Trade", "General").split(" \u2014 ") if " \u2014 " in meta.get("Trade", "") else [meta.get("Trade", "General")]
+        trade_name = trade_parts[0].strip() if trade_parts else "General"
+
+        # Derive trade code from SOP number
+        trade_code = sop_number.split("-")[0] if "-" in sop_number else "GEN"
+
+        task_name = meta.get("Task", meta.get("Procedure", "Unknown Task"))
+        revision = meta.get("Revision", "1.0")
+        duration = meta.get("Estimated Duration", meta.get("Duration", ""))
+
+        # Build tags from trade and task
+        tags = [trade_code.lower(), trade_name.lower()]
+        for word in task_name.lower().split():
+            if len(word) > 3:
+                tags.append(word)
+
+        # Upsert master SOP record
+        sop_data = {
+            "sop_number": sop_number,
+            "trade_code": trade_code,
+            "trade_name": trade_name,
+            "task_name": task_name,
+            "revision": revision,
+            "status": "active",
+            "estimated_duration": duration,
+            "storage_path": storage_path,
+            "file_hash": file_hash,
+            "description": f"{trade_name} \u2014 {task_name} (Rev {revision})",
+            "tags": tags
+        }
+
+        # Check if exists
+        existing = self.client.table("sops").select("id, file_hash").eq("sop_number", sop_number).execute()
+
+        if existing.data:
+            sop_id = existing.data[0]["id"]
+            old_hash = existing.data[0].get("file_hash")
+            if old_hash == file_hash:
+                return {"sop_id": sop_id, "sop_number": sop_number, "status": "unchanged",
+                        "message": f"{sop_number} unchanged (hash match)"}
+            # Update
+            self.client.table("sops").update(sop_data).eq("id", sop_id).execute()
+        else:
+            result = self.client.table("sops").insert(sop_data).execute()
+            sop_id = result.data[0]["id"]
+
+        # Clear old cached data
+        self.client.table("sop_executive_checklists").delete().eq("sop_id", sop_id).execute()
+        self.client.table("sop_detailed_steps").delete().eq("sop_id", sop_id).execute()
+        self.client.table("sop_recommended_videos").delete().eq("sop_id", sop_id).execute()
+
+        # Insert checklists
+        for cl in parsed["checklists"]:
+            cl["sop_id"] = sop_id
+            self.client.table("sop_executive_checklists").insert(cl).execute()
+
+        # Insert detailed steps
+        for ds in parsed["detailed_steps"]:
+            ds["sop_id"] = sop_id
+            self.client.table("sop_detailed_steps").insert(ds).execute()
+
+        # Insert videos
+        for vid in parsed["videos"]:
+            vid["sop_id"] = sop_id
+            self.client.table("sop_recommended_videos").insert(vid).execute()
+
+        return {
+            "sop_id": sop_id,
+            "sop_number": sop_number,
+            "status": "synced",
+            "checklists": len(parsed["checklists"]),
+            "detailed_steps": len(parsed["detailed_steps"]),
+            "videos": len(parsed["videos"]),
+            "message": f"{sop_number} synced: {len(parsed['checklists'])} checklists, {len(parsed['detailed_steps'])} steps, {len(parsed['videos'])} videos"
+        }
+
+    # ------------------------------------------------------------------
+    # 4B: Sync to new normalized schema (sop_sections + sop_steps)
+    # ------------------------------------------------------------------
+    def sync_sop_to_new_schema(self, sop_id: str, content: str) -> dict:
+        """Upsert parsed SOP data into sop_sections and sop_steps tables.
+
+        Uses delete + insert pattern for idempotency:
+        1. Delete existing sop_steps for this sop_id (child first due to FK)
+        2. Delete existing sop_sections for this sop_id
+        3. Insert new sections, capturing returned IDs
+        4. Insert new steps with section_id references
+
+        Args:
+            sop_id: UUID of the SOP record in the sops table
+            content: Raw markdown content of the SOP file
+
+        Returns:
+            dict with counts of sections and steps inserted
+        """
+        parser = SOPParser(content)
+        parsed = parser.parse_to_sections_and_steps()
+
+        # Delete existing data (child first due to FK constraints)
+        # sop_steps references sop_sections, so delete steps first
+        self.client.table("sop_steps").delete().eq("sop_id", sop_id).execute()
+        self.client.table("sop_sections").delete().eq("sop_id", sop_id).execute()
+
+        # Insert sections and build section_number -> section_id map
+        section_id_map = {}  # section_number -> uuid
+        for sec in parsed["sections"]:
+            sec_record = {
+                "sop_id": sop_id,
+                "section_number": sec["section_number"],
+                "section_type": sec["section_type"],
+                "title": sec["title"],
+                "content_md": sec["content_md"],
+                "content_plain": sec["content_plain"],
+                "is_ref_pointer": sec["is_ref_pointer"],
+                "ref_section": sec["ref_section"],
+                "phase_name": sec["phase_name"],
+            }
+            result = self.client.table("sop_sections").insert(sec_record).execute()
+            if result.data:
+                section_id_map[sec["section_number"]] = result.data[0]["id"]
+
+        # Insert steps with section_id references
+        steps_inserted = 0
+        for step in parsed["steps"]:
+            section_number = step.pop("_section_number")
+            section_id = section_id_map.get(section_number)
+            if not section_id:
+                continue  # skip if section wasn't inserted
+
+            step_record = {
+                "sop_id": sop_id,
+                "section_id": section_id,
+                "phase_name": step["phase_name"],
+                "phase_number": step["phase_number"],
+                "step_number": step["step_number"],
+                "step_name": step["step_name"],
+                "tasks_summary": step.get("tasks_summary", ""),
+                "detail_md": step.get("detail_md", ""),
+                "detail_plain": step.get("detail_plain", ""),
+                "sort_order": step.get("sort_order", 0),
+            }
+            self.client.table("sop_steps").insert(step_record).execute()
+            steps_inserted += 1
+
+        return {
+            "sections": len(parsed["sections"]),
+            "steps": steps_inserted,
+            "message": f"New schema synced: {len(parsed['sections'])} sections, {steps_inserted} steps"
+        }
+
+    def sync_new_schema_all(self) -> list:
+        """Re-sync all SOPs to the new schema from storage."""
+        results = []
+        sops = self.client.table("sops").select("id, sop_number, storage_path").execute()
+        for sop in sops.data:
+            try:
+                data = self.client.storage.from_(STORAGE_BUCKET).download(sop["storage_path"])
+                content = data.decode("utf-8")
+                result = self.sync_sop_to_new_schema(sop["id"], content)
+                result["sop_number"] = sop["sop_number"]
+                results.append(result)
+            except Exception as e:
+                results.append({"sop_number": sop["sop_number"], "status": "error", "message": str(e)})
+        return results
+
+    def sync_new_schema_one(self, sop_number: str) -> dict:
+        """Re-sync a single SOP to the new schema from storage."""
+        sop = self.client.table("sops").select("id, storage_path").eq("sop_number", sop_number).execute()
+        if not sop.data:
+            return {"status": "error", "message": f"SOP {sop_number} not found in database"}
+        try:
+            data = self.client.storage.from_(STORAGE_BUCKET).download(sop.data[0]["storage_path"])
+            content = data.decode("utf-8")
+            result = self.sync_sop_to_new_schema(sop.data[0]["id"], content)
+            result["sop_number"] = sop_number
+            return result
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    # ------------------------------------------------------------------
+    # 4C: REF document parsing and sync
+    # ------------------------------------------------------------------
+    def upload_ref_doc(self, filepath: str) -> dict:
+        """Parse a REF_{TRADE}_Codes_Standards.md file and upsert into sop_ref_docs.
+
+        Also uploads the file to Supabase Storage and links matching SOPs
+        via sops.ref_doc_id.
+
+        Args:
+            filepath: Path to the REF doc markdown file
+
+        Returns:
+            dict with ref_doc_id, doc_id, trade_code, and linked SOP count
+        """
+        self._ensure_bucket()
+
+        with open(filepath, "r") as f:
+            content = f.read()
+
+        filename = os.path.basename(filepath)
+        storage_path = f"{STORAGE_PREFIX}/{filename}"
+        file_hash = md5_hash(content)
+
+        # Upload to storage
+        try:
+            self.client.storage.from_(STORAGE_BUCKET).remove([storage_path])
+        except Exception:
+            pass
+
+        with open(filepath, "rb") as f:
+            self.client.storage.from_(STORAGE_BUCKET).upload(
+                storage_path,
+                f,
+                file_options={"content-type": "text/markdown", "upsert": "true"}
+            )
+
+        # Parse the REF doc
+        parser = REFDocParser(content)
+        parsed = parser.parse()
+
+        if not parsed["doc_id"]:
+            return {"status": "error", "message": "Could not extract Document ID from REF doc"}
+
+        # Look up trade_id from trades table
+        trade_id = None
+        try:
+            trade_result = self.client.table("trades").select("id").eq("code", parsed["trade_code"]).execute()
+            if trade_result.data:
+                trade_id = trade_result.data[0]["id"]
+        except Exception:
+            pass  # trades table may not have this trade yet
+
+        # Upsert into sop_ref_docs (delete + insert by doc_id)
+        existing = self.client.table("sop_ref_docs").select("id").eq("doc_id", parsed["doc_id"]).execute()
+
+        ref_record = {
+            "doc_id": parsed["doc_id"],
+            "trade_code": parsed["trade_code"],
+            "trade_name": parsed["trade_name"],
+            "trade_id": trade_id,
+            "revision": parsed["revision"],
+            "content_md": parsed["content_md"],
+            "storage_path": storage_path,
+            "file_hash": file_hash,
+        }
+
+        if existing.data:
+            ref_doc_id = existing.data[0]["id"]
+            self.client.table("sop_ref_docs").update(ref_record).eq("id", ref_doc_id).execute()
+        else:
+            result = self.client.table("sop_ref_docs").insert(ref_record).execute()
+            ref_doc_id = result.data[0]["id"]
+
+        # Link matching SOPs (same trade_code) to this ref doc
+        linked_count = 0
+        matching_sops = self.client.table("sops").select("id").eq("trade_code", parsed["trade_code"]).execute()
+        for sop in matching_sops.data:
+            self.client.table("sops").update({"ref_doc_id": ref_doc_id}).eq("id", sop["id"]).execute()
+            linked_count += 1
+
+        self._log_action(None, parsed["doc_id"], "ref_doc_uploaded",
+                         {"file": filename, "trade_code": parsed["trade_code"], "linked_sops": linked_count})
+
+        return {
+            "ref_doc_id": ref_doc_id,
+            "doc_id": parsed["doc_id"],
+            "trade_code": parsed["trade_code"],
+            "trade_name": parsed["trade_name"],
+            "revision": parsed["revision"],
+            "linked_sops": linked_count,
+            "status": "synced",
+            "message": f"REF doc {parsed['doc_id']} synced, linked to {linked_count} SOP(s)"
+        }
+
+    # ------------------------------------------------------------------
+    # 4D: Dependency extraction and sync
+    # ------------------------------------------------------------------
+    def sync_dependencies(self, sop_id: str, content: str) -> dict:
+        """Extract SOP dependencies from the Scope section and sync to sop_dependencies.
+
+        Parses patterns like:
+            (see PNT-SOP-004: Trim & Baseboard Painting)
+            (see SOP PLB-SOP-010)
+
+        Uses delete + insert pattern for idempotency.
+
+        Args:
+            sop_id: UUID of the source SOP
+            content: Raw markdown content of the SOP file
+
+        Returns:
+            dict with count of dependencies created and any unresolved references
+        """
+        parser = SOPParser(content)
+        deps = parser.parse_scope_dependencies()
+
+        # Delete existing dependencies from this SOP
+        self.client.table("sop_dependencies").delete().eq("from_sop_id", sop_id).execute()
+
+        created = 0
+        unresolved = []
+
+        for dep in deps:
+            # Look up the target SOP by sop_number
+            target = self.client.table("sops").select("id").eq("sop_number", dep["to_sop_number"]).execute()
+
+            if target.data:
+                to_sop_id = target.data[0]["id"]
+                dep_record = {
+                    "from_sop_id": sop_id,
+                    "to_sop_id": to_sop_id,
+                    "link_type": "cross_reference",
+                    "condition_note": dep.get("condition_note"),
+                }
+                try:
+                    self.client.table("sop_dependencies").insert(dep_record).execute()
+                    created += 1
+                except Exception as e:
+                    # May fail on unique constraint if duplicate
+                    if "duplicate" not in str(e).lower():
+                        raise
+            else:
+                unresolved.append(dep["to_sop_number"])
+
+        return {
+            "created": created,
+            "unresolved": unresolved,
+            "total_refs": len(deps),
+            "message": f"{created} dependencies created, {len(unresolved)} unresolved"
+        }
+
+    def sync_dependencies_all(self) -> list:
+        """Extract and sync dependencies for all SOPs."""
+        results = []
+        sops = self.client.table("sops").select("id, sop_number, storage_path").execute()
+        for sop in sops.data:
+            try:
+                data = self.client.storage.from_(STORAGE_BUCKET).download(sop["storage_path"])
+                content = data.decode("utf-8")
+                result = self.sync_dependencies(sop["id"], content)
+                result["sop_number"] = sop["sop_number"]
+                results.append(result)
+            except Exception as e:
+                results.append({"sop_number": sop["sop_number"], "status": "error", "message": str(e)})
+        return results
+
+    def sync_dependencies_one(self, sop_number: str) -> dict:
+        """Extract and sync dependencies for a single SOP."""
+        sop = self.client.table("sops").select("id, storage_path").eq("sop_number", sop_number).execute()
+        if not sop.data:
+            return {"status": "error", "message": f"SOP {sop_number} not found"}
+        try:
+            data = self.client.storage.from_(STORAGE_BUCKET).download(sop.data[0]["storage_path"])
+            content = data.decode("utf-8")
+            result = self.sync_dependencies(sop.data[0]["id"], content)
+            result["sop_number"] = sop_number
+            return result
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    # ------------------------------------------------------------------
+    # Existing methods (unchanged)
+    # ------------------------------------------------------------------
+    def sync_all(self) -> list:
+        """Re-sync all SOPs from storage."""
+        results = []
+        sops = self.client.table("sops").select("sop_number, storage_path").execute()
+        for sop in sops.data:
+            try:
+                data = self.client.storage.from_(STORAGE_BUCKET).download(sop["storage_path"])
+                content = data.decode("utf-8")
+                file_hash = md5_hash(content)
+                result = self._sync_from_content(content, sop["storage_path"], file_hash)
+                results.append(result)
+            except Exception as e:
+                results.append({"sop_number": sop["sop_number"], "status": "error", "message": str(e)})
+        return results
+
+    def sync_one(self, sop_number: str) -> dict:
+        """Re-sync a single SOP from storage."""
+        sop = self.client.table("sops").select("storage_path").eq("sop_number", sop_number).execute()
+        if not sop.data:
+            return {"status": "error", "message": f"SOP {sop_number} not found in database"}
+        try:
+            data = self.client.storage.from_(STORAGE_BUCKET).download(sop.data[0]["storage_path"])
+            content = data.decode("utf-8")
+            file_hash = md5_hash(content)
+            return self._sync_from_content(content, sop.data[0]["storage_path"], file_hash)
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def search(self, query: str) -> list:
+        """Search SOPs by keyword in sop_number, trade, task, description, tags."""
+        q = query.lower()
+        results = self.client.table("sops").select("*").or_(
+            f"sop_number.ilike.%{q}%,trade_name.ilike.%{q}%,task_name.ilike.%{q}%,description.ilike.%{q}%"
+        ).execute()
+        return results.data
+
+    def list_all(self) -> list:
+        """List all SOPs."""
+        results = self.client.table("sops").select(
+            "sop_number, trade_code, trade_name, task_name, revision, status, storage_path"
+        ).order("sop_number").execute()
+        return results.data
+
+    def show(self, sop_number: str) -> dict:
+        """Show full SOP details with cached data."""
+        sop = self.client.table("sops").select("*").eq("sop_number", sop_number).execute()
+        if not sop.data:
+            return {"error": f"SOP {sop_number} not found"}
+        sop_id = sop.data[0]["id"]
+        checklists = self.client.table("sop_executive_checklists").select("*").eq("sop_id", sop_id).order("section_number,step_number").execute()
+        steps = self.client.table("sop_detailed_steps").select("*").eq("sop_id", sop_id).order("section_number,step_number").execute()
+        videos = self.client.table("sop_recommended_videos").select("*").eq("sop_id", sop_id).order("sort_order").execute()
+
+        # Also include new schema data if available
+        sections = self.client.table("sop_sections").select("*").eq("sop_id", sop_id).order("section_number").execute()
+        sop_steps = self.client.table("sop_steps").select("*").eq("sop_id", sop_id).order("phase_number,step_number").execute()
+        deps_from = self.client.table("sop_dependencies").select("*, to_sop:sops!sop_dependencies_to_sop_id_fkey(sop_number, task_name)").eq("from_sop_id", sop_id).execute()
+        deps_to = self.client.table("sop_dependencies").select("*, from_sop:sops!sop_dependencies_from_sop_id_fkey(sop_number, task_name)").eq("to_sop_id", sop_id).execute()
+
+        return {
+            "sop": sop.data[0],
+            "executive_checklists": checklists.data,
+            "detailed_steps": steps.data,
+            "recommended_videos": videos.data,
+            "sections": sections.data,
+            "sop_steps": sop_steps.data,
+            "depends_on": deps_from.data,
+            "depended_by": deps_to.data,
+        }
+
+    def check_and_request(self, trade: str, task: str) -> dict:
+        """Check if a suitable SOP exists. If not, return a request payload for agent creation."""
+        results = self.search(f"{trade} {task}")
+        if results:
+            return {
+                "found": True,
+                "matches": results,
+                "message": f"Found {len(results)} matching SOP(s)"
+            }
+        # No match — generate agent request
+        trade_code = trade[:3].upper()
+        # Find next number
+        existing = self.client.table("sops").select("sop_number").ilike("sop_number", f"{trade_code}%").execute()
+        max_num = 0
+        for s in existing.data:
+            m = re.search(r"(\d+)$", s["sop_number"])
+            if m:
+                max_num = max(max_num, int(m.group(1)))
+        next_number = f"{trade_code}-SOP-{max_num + 1:03d}"
+
+        request_payload = {
+            "found": False,
+            "message": f"No SOP found for '{trade} \u2014 {task}'. Agent creation requested.",
+            "agent_request": {
+                "action": "create_sop",
+                "sop_number": next_number,
+                "trade_code": trade_code,
+                "trade_name": trade,
+                "task_name": task,
+                "prompt": (
+                    f"Create a complete Standard Operating Procedure for {trade} \u2014 {task}. "
+                    f"Assign SOP number {next_number}. Follow the SOP Authoring Guide (SOP-META-001) exactly. "
+                    f"Include all mandatory sections: Purpose, Scope, References & Codes, Personnel, Safety, "
+                    f"Tools & Equipment, Pre-Work Assessment, Procedure phases with Executive Checklists and "
+                    f"Detailed Steps, Recommended Videos, Testing & Commissioning, Cleanup, Troubleshooting, "
+                    f"Quality Standards, and Revision History. "
+                    f"Save the file as {next_number.replace('-', '_')}_{task.replace(' ', '_')}.md"
+                )
+            }
+        }
+
+        # Log the request
+        self._log_action(None, next_number, "agent_requested",
+                         {"trade": trade, "task": task})
+        return request_payload
+
+    def _log_action(self, sop_id, sop_number, action, details=None):
+        """Log a sync action."""
+        try:
+            self.client.table("sop_sync_log").insert({
+                "sop_id": sop_id,
+                "sop_number": sop_number,
+                "action": action,
+                "details": details or {}
+            }).execute()
+        except Exception:
+            pass  # non-critical
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+def main():
+    parser = argparse.ArgumentParser(description="SOP Library Manager")
+    sub = parser.add_subparsers(dest="command")
+
+    # upload
+    p_upload = sub.add_parser("upload", help="Upload SOP .md file to storage and sync DB")
+    p_upload.add_argument("file", help="Path to .md file")
+
+    # sync
+    p_sync = sub.add_parser("sync", help="Re-sync DB from storage")
+    p_sync.add_argument("--all", action="store_true", help="Sync all SOPs")
+    p_sync.add_argument("sop_number", nargs="?", help="Specific SOP number to sync")
+
+    # sync-new (new schema)
+    p_sync_new = sub.add_parser("sync-new", help="Sync to new schema (sop_sections + sop_steps)")
+    p_sync_new.add_argument("--all", action="store_true", help="Sync all SOPs")
+    p_sync_new.add_argument("sop_number", nargs="?", help="Specific SOP number to sync")
+
+    # upload-ref
+    p_ref = sub.add_parser("upload-ref", help="Upload REF doc to sop_ref_docs")
+    p_ref.add_argument("file", help="Path to REF .md file")
+
+    # sync-deps
+    p_deps = sub.add_parser("sync-deps", help="Extract and sync SOP dependencies")
+    p_deps.add_argument("--all", action="store_true", help="Sync all SOPs")
+    p_deps.add_argument("sop_number", nargs="?", help="Specific SOP number")
+
+    # search
+    p_search = sub.add_parser("search", help="Search SOPs")
+    p_search.add_argument("query", help="Search query")
+
+    # list
+    sub.add_parser("list", help="List all SOPs")
+
+    # show
+    p_show = sub.add_parser("show", help="Show SOP details")
+    p_show.add_argument("sop_number", help="SOP number")
+
+    # request
+    p_req = sub.add_parser("request", help="Request agent to create SOP")
+    p_req.add_argument("trade", help="Trade name")
+    p_req.add_argument("task", help="Task name")
+
+    # check
+    p_check = sub.add_parser("check", help="Check if SOP exists, request if not")
+    p_check.add_argument("trade", help="Trade name")
+    p_check.add_argument("task", help="Task name")
+
+    args = parser.parse_args()
+    mgr = SOPLibraryManager()
+
+    if args.command == "upload":
+        result = mgr.upload_sop(args.file)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "sync":
+        if args.all:
+            results = mgr.sync_all()
+            for r in results:
+                print(json.dumps(r, indent=2, default=str))
+        elif args.sop_number:
+            result = mgr.sync_one(args.sop_number)
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print("Specify --all or a specific SOP number")
+
+    elif args.command == "sync-new":
+        if args.all:
+            results = mgr.sync_new_schema_all()
+            for r in results:
+                print(json.dumps(r, indent=2, default=str))
+        elif args.sop_number:
+            result = mgr.sync_new_schema_one(args.sop_number)
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print("Specify --all or a specific SOP number")
+
+    elif args.command == "upload-ref":
+        result = mgr.upload_ref_doc(args.file)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "sync-deps":
+        if args.all:
+            results = mgr.sync_dependencies_all()
+            for r in results:
+                print(json.dumps(r, indent=2, default=str))
+        elif args.sop_number:
+            result = mgr.sync_dependencies_one(args.sop_number)
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print("Specify --all or a specific SOP number")
+
+    elif args.command == "search":
+        results = mgr.search(args.query)
+        for r in results:
+            print(f"  {r['sop_number']:15s} {r['trade_name']:15s} {r['task_name']:30s} [{r['status']}]")
+        if not results:
+            print("  No SOPs found.")
+
+    elif args.command == "list":
+        results = mgr.list_all()
+        print(f"{'SOP Number':15s} {'Trade':10s} {'Task':30s} {'Rev':5s} {'Status':10s}")
+        print("-" * 75)
+        for r in results:
+            print(f"{r['sop_number']:15s} {r['trade_code']:10s} {r['task_name']:30s} {r['revision']:5s} {r['status']:10s}")
+        if not results:
+            print("  Library is empty.")
+
+    elif args.command == "show":
+        result = mgr.show(args.sop_number)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "request":
+        result = mgr.check_and_request(args.trade, args.task)
+        print(json.dumps(result, indent=2, default=str))
+
+    elif args.command == "check":
+        result = mgr.check_and_request(args.trade, args.task)
+        print(json.dumps(result, indent=2, default=str))
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

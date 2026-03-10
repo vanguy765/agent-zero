@@ -1,0 +1,97 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Schema evolution: work_order_templates changes ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 311-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+312-    type_order_id uuid NOT NULL REFERENCES public.type_orders(id) ON DELETE CASCADE,
+313:    work_order_template_id uuid NOT NULL REFERENCES public.work_order_templates(id) ON DELETE CASCADE,
+314-    is_required boolean DEFAULT true,
+315-    display_order integer DEFAULT 0,
+316-    created_at timestamptz NOT NULL DEFAULT now(),
+317-    UNIQUE(type_order_id, work_order_template_id)
+318-);
+--
+353-    action_description text NOT NULL,
+354-    bom_reference text,
+355:    matched_template_id uuid REFERENCES public.work_order_templates(id) ON DELETE SET NULL,
+356-    matched_sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+357-    match_confidence numeric(3,2),
+358-    match_method text DEFAULT 'pending',
+359-    status text NOT NULL DEFAULT 'pending',
+360-    metadata jsonb DEFAULT '{}',
+--
+397-
+398--- =============================================================================
+399:-- 1I. ALTER work_order_templates — add new columns
+400--- =============================================================================
+401:ALTER TABLE public.work_order_templates
+402-    ADD COLUMN IF NOT EXISTS trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+403-    ADD COLUMN IF NOT EXISTS sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+404-    ADD COLUMN IF NOT EXISTS outcome_id uuid REFERENCES public.project_outcomes(id) ON DELETE SET NULL,
+405-    ADD COLUMN IF NOT EXISTS inheritance_depth integer DEFAULT 0,
+406:    ADD COLUMN IF NOT EXISTS source_template_id uuid REFERENCES public.work_order_templates(id) ON DELETE SET NULL;
+407-
+408--- =============================================================================
+409--- 1J. ALTER work_orders — add new columns
+410--- =============================================================================
+411-ALTER TABLE public.work_orders
+--
+439-
+440--- Step 1: Drop ALL scope-related constraints FIRST (before updating data)
+441:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS work_order_templates_scope_check;
+442:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_app_scope;
+443:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_system_scope;
+444:ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_company_scope;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Schema evolution: sops table changes ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -- 1K. ALTER sops — add new columns
+-- =============================================================================
+ALTER TABLE public.sops
+    ADD COLUMN IF NOT EXISTS trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS scope text DEFAULT 'system',
+    ADD COLUMN IF NOT EXISTS outcome_id uuid REFERENCES public.project_outcomes(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1L. ALTER units — add type_order_id
+-- =============================================================================
+ALTER TABLE public.units
+    ADD COLUMN IF NOT EXISTS type_order_id uuid REFERENCES public.type_orders(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1M. ALTER wo_projects — add outcome_id
+-- =============================================================================
+ALTER TABLE public.wo_projects
+    ADD COLUMN IF NOT EXISTS outcome_id uuid REFERENCES public.project_outcomes(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1N. Scope rename: 'app' -> 'system'
+-- =============================================================================
+
+-- Step 1: Drop ALL scope-related constraints FIRST (before updating data)
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS work_order_templates_scope_check;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_app_scope;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_system_scope;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_company_scope;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_project_scope;
+
+-- Step 2: Update data
+UPDATE public.work_order_templates SET scope = 'system' WHERE scope = 'app';
+
+-- Step 3: Re-add constraints with new scope values
+ALTER TABLE public.work_order_templates ADD CONSTRAINT work_order_templates_scope_check
+    CHECK (scope IN ('system', 'company', 'project'));
+ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_system_scope
+    CHECK ((scope = 'system' AND organization_id IS NULL AND project_id IS NULL) OR scope <> 'system');
+ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_company_scope
+    CHECK ((scope = 'company' AND organization_id IS NOT NULL AND project_id IS NULL) OR scope <> 'company');
+ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_project_scope
+    CHECK ((scope = 'project' AND organization_id IS NOT NULL AND project_id IS NOT NULL) OR scope <> 'project');
+
+-- Same for template_libraries
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Total line count of key files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#   1121 apps/api/src/routes/work-orders.ts
+   415 apps/api/src/routes/onboard.ts
+   746 apps/work-orders/src/lib/api.ts
+   274 apps/work-orders/src/pages/ProjectTemplates.tsx
+   219 apps/work-orders/src/pages/TemplateDetail.tsx
+   531 apps/work-orders/src/pages/TemplateEditor.tsx
+  3306 total
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

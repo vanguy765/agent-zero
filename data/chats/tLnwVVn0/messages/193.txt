@@ -1,0 +1,53 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# --
+-- PostgreSQL database dump
+--
+
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 18.1 (Debian 18.1-2)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+
+-- Disable FK constraints during seeding (handles circular refs)
+SET session_replication_role = 'replica';
+
+--
+-- Data for Name: organizations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.organizations (id, name, slug, settings, created_at, updated_at) VALUES ('00000000-0000-0000-0000-000000000001', 'Team Projects', 'team-projects', '{"address": "501 E Hastings, Vancouver, BC", "total_units": 22, "project_type": "renovation"}', '2026-02-12 02:02:43.973884+00', '2026-02-12 02:02:43.973884+00');
+
+
+--
+-- Data for Name: template_libraries; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('c8991ce2-1638-4ed5-ac12-293e909185bc', 'Residential House - Standard', 'Standard template library for single-family residential homes', 'residential_house', 'system', NULL, 'home', '#4CAF50', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('35d9f6f9-be5d-436c-85bd-1257f4109ca3', 'Commercial Apartment - Standard', 'Standard template library for commercial apartment buildings', 'commercial_apartment', 'system', NULL, 'building', '#2196F3', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('5cb4e067-6062-46ab-969b-ecc8f244846c', 'Office/Commercial - Standard', 'Standard template library for office and commercial spaces', 'office_commercial', 'system', NULL, 'business', '#FF9800', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('a83d4d4e-5fe0-4647-9d90-870735345cd6', 'Retail - Standard', 'Standard template library for retail spaces', 'retail', 'system', NULL, 'store', '#9C27B0', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+INSERT INTO public.template_libraries (id, name, description, project_type, scope, organization_id, icon, color, metadata, is_active, is_default, created_at, updated_at) VALUES ('c9d1bdc3-7f43-4cb8-b686-ab82d6697f3d', 'Mixed-Use - Standard', 'Standard template library for mixed-use developments', 'mixed_use', 'system', NULL, 'domain', '#607D8B', '{}', true, true, '2026-02-12 02:02:44.003352+00', '2026-02-12 02:02:44.003352+00');
+
+
+--
+-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Entry', 1, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Kitchen', 2, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', 'Bathroom', 3, '2026-02-12 02:02:43.973884+00');
+INSERT INTO public.rooms (id, organization_id, name, display_order, created_at) VALUES ('10000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'Living', 4, '2026-02-12 02:02:43.973884+00');
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === END SEED HEAD ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 2238 /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/seed.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,47 @@
+=== File sizes ===
+ 1324 apps/api/src/routes/work-orders.ts
+  833 apps/work-orders/src/lib/api.ts
+  242 apps/work-orders/src/pages/TemplateDetail.tsx
+  246 apps/work-orders/src/pages/WorkOrderDetail.tsx
+ 2645 total
+\n=== 1. PATCH allowedFields (should include sop_id) ===
+389:    const allowedFields = ['trade_name', 'trade_id', 'definition', 'version', 'is_active', 'scope', 'project_id', 'library_id', 'outcome_id', 'sop_id'];
+849:    const allowedFields = [
+\n=== 2. New SOP endpoints ===
+676:// SOP ENDPOINTS
+680:workOrdersRoute.get('/sops', async (c) => {
+701:workOrdersRoute.get('/sops/:id', async (c) => {
+723:workOrdersRoute.get('/templates/:id/sop', async (c) => {
+762:// STEP PROGRESS ENDPOINTS
+765:// GET STEP PROGRESS for a work order
+766:workOrdersRoute.get('/work-orders/:id/step-progress', async (c) => {
+843:// UPDATE STEP PROGRESS
+844:workOrdersRoute.patch('/work-orders/step-progress/:id', async (c) => {
+\n=== 3. api.ts: sop_id in interface ===
+110:  matched_sop_id?: string;
+151:  sop_id?: string;       // FK → sops, linked SOP
+169:    sop_id: string;
+179:    sop_id: string;
+\n=== 4. api.ts: new interfaces ===
+155:export interface SopSummary {
+167:export interface SopSection {
+177:export interface SopStep {
+190:export interface StepProgress {
+\n=== 5. api.ts: new methods ===
+797:  async getSops(tradeCode?: string): Promise<SopSummary[]> {
+802:  async getSop(id: string): Promise<any> {
+806:  async getTemplateSop(templateId: string): Promise<{
+816:  async getStepProgress(workOrderId: string): Promise<StepProgress[]> {
+820:  async initializeSteps(workOrderId: string): Promise<{ initialized: number }> {
+824:  async updateStepProgress(progressId: string, updates: Partial<StepProgress>): Promise<StepProgress> {
+\n=== 6. TemplateDetail: SopLink ===
+124:                            <Show when={(template() as any)?.sop_id}>
+126:                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Linked SOP</p>
+127:                                    <SopLink sopId={(template() as any).sop_id!} />
+225:function SopLink(props: { sopId: string }) {
+\n=== 7. WorkOrderDetail: StepProgressPanel ===
+167:                    <StepProgressPanel workOrderId={wo()!.id} />
+175:function StepProgressPanel(props: { workOrderId: string }) {
+183:            await api.initializeSteps(props.workOrderId);
+201:            <h3 class="text-lg font-semibold mb-4">Procedure Steps</h3>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

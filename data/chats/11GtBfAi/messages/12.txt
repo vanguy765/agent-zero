@@ -1,0 +1,22 @@
+Columns: ['id', 'organization_id', 'trade_name', 'version', 'is_active', 'definition', 'created_at', 'updated_at', 'scope', 'project_id', 'parent_template_id', 'copied_from_template_id', 'created_by', 'updated_by', 'library_id', 'status', 'auto_generated', 'generation_source', 'generation_metadata', 'is_frozen', 'trade_id', 'sop_id', 'outcome_id', 'inheritance_depth', 'source_template_id']
+
+WO Templates: 18
+  company  | Millwork             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Painting             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Carpentry            | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Plumbing             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Flooring             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Electrical           | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | HVAC                 | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Appliances           | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  company  | Window Coverings     | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Painting             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Carpentry            | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Plumbing             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Flooring             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Electrical           | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | HVAC                 | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Appliances           | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Window Coverings     | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+  system   | Millwork             | UNKNOWN                                  | sop_id=NULL | trade_id=NULL
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,24 @@
+=== SOP Library Manager skill ===
+total 36
+drwxr-xr-x 1 root root  4096 Mar  1 05:32 .
+drwxr-xr-x 1 root root  4096 Mar  1 01:54 ..
+-rw-r--r-- 1 root root 11261 Mar  2 05:54 AGENT_GUIDE.md
+-rw-r--r-- 1 root root 14843 Mar  2 05:54 README.md
+drwxr-xr-x 1 root root  4096 Mar  1 05:26 scripts
+-rw-r--r-- 1 root root  8123 Mar  2 05:54 SKILL.md
+
+=== Active project (bmad_and_agent-zero) ===
+total 0
+drwxr-xr-x 1 root root 4096 Mar  5 04:36 .
+drwxr-xr-x 1 root root 4096 Feb 26 19:01 ..
+drwxr-xr-x 1 root root 4096 Feb 26 19:03 .a0proj
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 _bmad
+drwxr-xr-x 1 root root 4096 Mar  3 04:33 _bmad-output
+drwxr-xr-x 1 root root 4096 Feb 26 19:38 docs
+-rw-r--r-- 1 root root  344 Mar  5 04:36 .gitignore
+
+=== Agent Zero global skills ===
+create-skill
+
+=== Check for skills in active project ===
+(venv) root@d2d162d983f0:/a0/usr/projects/bmad_and_agent-zero#

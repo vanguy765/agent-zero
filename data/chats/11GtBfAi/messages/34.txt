@@ -1,0 +1,349 @@
+========== apps/site-companion/src/App.tsx ==========
+
+import { Component } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import { isSupabaseConfigured } from './lib/supabase';
+
+// Pages
+import UnitList from './pages/UnitList';
+import UnitDetail from './pages/UnitDetail';
+import VoiceTest from './pages/VoiceTest';
+
+const Layout: Component = (props: any) => {
+    return (
+        <div style={{ "min-height": "100vh", "background-color": "#f7fafc" }}>
+            <nav style={{ padding: "1rem", "background-color": "#ffffff", "border-bottom": "1px solid #e2e8f0", display: "flex", gap: "1rem" }}>
+                <a href="/units" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🏢 Units</a>
+                <a href="/voice" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🎤 Voice Test</a>
+            </nav>
+            <main style={{ padding: "1rem" }}>
+                {props.children}
+            </main>
+        </div>
+    );
+};
+
+const App: Component = () => {
+    return (
+        <>
+            {!isSupabaseConfigured && (
+                <div style={{ "background-color": "#e53e3e", color: "white", padding: "1rem", "text-align": "center", "font-weight": "bold" }}>
+                    CONFIG ERROR: Missing Supabase Environment Variables. Check .env file.
+                </div>
+            )}
+            <Router root={Layout}>
+                <Route path="/" component={UnitList} />
+                <Route path="/units" component={UnitList} />
+                <Route path="/units/:id" component={UnitDetail} />
+                <Route path="/voice" component={VoiceTest} />
+            </Router>
+        </>
+    );
+};
+
+export default App;
+
+========== apps/site-companion/src/pages/VoiceTest.tsx ==========
+
+import { Component, createSignal, Show } from 'solid-js';
+import { Button } from '@repo/ui';
+
+const VoiceTest: Component = () => {
+    const [status, setStatus] = createSignal<'idle' | 'recording' | 'processing' | 'success' | 'error'>('idle');
+    const [message, setMessage] = createSignal('');
+
+    let mediaRecorder: MediaRecorder | null = null;
+    let audioChunks: Blob[] = [];
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                await sendToApi(audioBlob);
+            };
+
+            mediaRecorder.start();
+            setStatus('recording');
+        } catch (err) {
+            console.error(err);
+            setStatus('error');
+            setMessage('Microphone access denied or not available');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    };
+
+    const sendToApi = async (blob: Blob) => {
+        setStatus('processing');
+        const formData = new FormData();
+        formData.append('audio', blob, 'voice_test.wav');
+
+        try {
+            const res = await fetch('http://localhost:3000/voice', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                setStatus('success');
+                setMessage(data.transcription || 'Success');
+            } else {
+                setStatus('error');
+                setMessage(data.error || 'Upload failed');
+            }
+        } catch (e) {
+            setStatus('error');
+            setMessage('Network Error');
+        }
+    };
+
+    return (
+        <div class="p-4">
+            <h1 class="text-2xl font-bold mb-4">Voice Verification Test</h1>
+
+            <div class="flex flex-col gap-4 max-w-md">
+                <Show when={status() === 'idle' || status() === 'success' || status() === 'error'}>
+                    <Button onClick={startRecording}>
+                        🎤 Start Recording Job
+                    </Button>
+                </Show>
+
+                <Show when={status() === 'recording'}>
+                    <Button onClick={stopRecording} style={{ "background-color": "red" }}>
+                        ⏹ Stop & Process
+                    </Button>
+                    <p>Recording... (Speak now)</p>
+                </Show>
+
+                <Show when={status() === 'processing'}>
+                    <p>Processing with AI... 🤖</p>
+                </Show>
+
+                <Show when={status() === 'success'}>
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                        <strong>Success!</strong>
+                        <p>Task created: "{message()}"</p>
+                    </div>
+                </Show>
+
+                <Show when={status() === 'error'}>
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <strong>Error</strong>
+                        <p>{message()}</p>
+                    </div>
+                </Show>
+            </div>
+        </div>
+    );
+};
+
+export default VoiceTest;
+
+========== docs/timesheet/timesheet_integration_guide.md ==========
+# Linking Timesheets to BOM Status
+
+To verify status reports via timesheets, you need to connect the **Labor** (Timesheets) to the **Material/Scope** (BOM/`site_items`).
+
+## 1. The Schema Strategy
+
+We need to bridge the gap between "I worked 8 hours" and "I installed the toilet".
+
+### `timesheets` (The Envelope)
+*   `id`: UUID
+*   `employee_id`: UUID
+*   `date`: Date
+*   `total_hours`: Decimal
+*   `status`: 'draft', 'submitted', 'approved'
+
+### `work_logs` (The Specifics)
+This table links the time to the specific BOM items.
+*   `id`: UUID
+*   `timesheet_id`: FK -> timesheets.id
+*   **`site_item_id`**: FK -> site_items.id (The BOM link!)
+*   `hours_spent`: Decimal (e.g., 2.5)
+*   **`status_update`**: Enum (Optional) - User can explicitly mark the item status here (e.g., "installed").
+*   `notes`: "Had trouble with the seal."
+
+## 2. The Workflow
+
+### Step A: The Employee View (Mobile)
+1.  **Select Unit**: Employee taps "Unit 105".
+2.  **Select Task/Items**: App shows available BOM items for that unit (e.g., "Toilet", "Vanity", "Towel Bar").
+3.  **Log Work**:
+    *   Employee selects "Toilet".
+    *   Inputs: "2 Hours".
+    *   **Action**: Taps "Mark as Complete" (or inputs "50% Done").
+
+### Step B: The Database Update (Backend)
+When the timesheet is submitted:
+1.  **Record Time**: 2 hours are logged against the Project/Unit for costing.
+2.  **Update BOM Status**: The system automatically updates the `site_items` table:
+    *   `site_items.status` -> "installed"
+    *   `site_items.installed_at` -> Timestamp
+    *   `site_items.installed_by` -> Employee ID
+
+## 3. The Payoff: Automated "Earned Value" Reporting
+
+Because you linked Time to Items, you can answer complex questions automatically:
+
+### 1. "Is the project on schedule?"
+*   *Calculation*: You have installed 50% of the toilets (verified by timesheets).
+*   *Timeline*: You are only 30% through the timeline.
+*   *Result*: **Ahead of Schedule.**
+
+### 2. "Are we over budget on labor?"
+*   *Estimate*: JSON says "Toilet Installation" = 2 hours avg.
+*   *Actual*: Timesheets show average of 3.5 hours per toilet.
+*   *Result*: **Over Budget.** The system flags this immediately, identifying *which* employee or *which* unit type is causing the variance.
+
+### 3. "What did they do today?"
+*   Instead of a generic "Worked on plumbing", the report says:
+    *   "Unit 101: Installed Toilet (Complete)"
+    *   "Unit 102: Installed Sink (Complete)"
+    *   "Unit 103: Rough-in Shower (50%)"
+
+## 4. Simplified "Task-Based" Logging
+If selecting individual items (like "Towel Bar") is too tedious, you can group them into "Tasks".
+*   **Concept**: Group all bathroom accessories (Towel bar, Ring, TP Holder) into a "Finish Hardware" task.
+*   **Logic**: Employee logs time to "Finish Hardware".
+*   **BOM Impact**: System updates *all* child items to "Complete" when the task is done, or distributes the % progress across them.
+
+========== docs/timesheet/manual_admin.md ==========
+# Admin Manual: Construction Management System
+
+## 1. System Overview
+This system uses a **Hybrid Database** approach:
+*   **Structured Data**: For Projects, Units, and Products (easy searching).
+*   **Flexible Data (JSONB)**: For the "Scope of Work" (Floorplans). This allows endless customization without asking IT to add columns.
+
+## 2. Key Concepts
+*   **Taxonomy**: The "Dictionary" of all possible work (Painting, Plumbing, etc.).
+*   **Bill of Materials (BOM)**: The detailed list of every physical task/item on the site, generated from the Floorplan Templates.
+*   **Context Injection**: The Agent "knows" the project because the specific list of open BOM items is sent along with the user's audio.
+
+## 3. Sequence Diagrams
+
+### Use Case A: User Logs Time (The "Happy Path")
+User speaks, Agent matches speech to ID, System updates Status.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Mobile App
+    participant API as Core System
+    participant LLM as Agent (AI)
+    participant DB as Database
+
+    User->>App: Taps Mic & Speaks ("Finished toilet in 105")
+    App->>API: GET /context/tasks?unit=105
+    API->>DB: Query open site_items for Unit 105
+    DB-->>API: Returns list: [{id: "A1", label: "Toilet"}]
+    API-->>App: Returns Context List
+
+    App->>LLM: Send Audio + Context List
+    LLM-->>App: Returns {task_id: "A1", hours: 2, status: "complete"}
+
+    App->>User: Confirms "Mark Toilet Complete?"
+    User->>App: Taps "Submit"
+    App->>API: POST /timesheets/log
+    API->>DB: UPDATE site_items SET status='installed'
+    API->>DB: INSERT INTO work_logs (hours, employee_id)
+```
+
+### Use Case B: Issue Report (The "Change Order")
+User reports a new problem, creating a Change Order.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant LLM
+    participant DB
+
+    User->>App: Speaks ("Wall in 105 is damaged, needs skim coat")
+    
+    App->>LLM: Send Audio + Context
+    Note right of LLM: Agent sees no existing task for "Skim Coat"
+    LLM-->>App: Returns { type: "issue", subject: "walls", action: "repair" }
+
+    App->>User: Shows "Report Issue: Wall Repair?"
+    User->>App: Confirms
+    App->>DB: INSERT INTO site_items (subject="walls", action="repair", source="change_order")
+    Note left of DB: New BOM item created instantly
+```
+
+## 4. Managing Data
+### Adding a New Floorplan
+1.  Go to **Project Settings**.
+2.  Clone an existing Floorplan (e.g., "Plan A").
+3.  Add/Remove rooms or items in the JSON editor (or GUI).
+4.  Click **"Sync BOM"**. This updates the `site_items` table for all unstarted units.
+
+### Reviewing Timesheets
+1.  Go to **Reports > Timesheets**.
+2.  You will see rows like: "John Doe - 8 Hours".
+3.  Expand row to see: "Unit 105 Toilet (2hr), Unit 106 Paint (6hr)".
+4.  **Variance Flag**: If John took 6 hours for a 2-hour task, it will be highlighted Red.
+
+========== docs/timesheet/manual_user.md ==========
+# Field User Manual: VoiceLog App
+
+> **Goal**: Use your voice to track work, report issues, and order supplies. Focus on the work, not the app.
+
+## 1. Getting Started
+1.  Open the App on your phone.
+2.  Tap your **Project** (e.g., "Serenity Lane").
+3.  Tap your **Unit** (e.g., "Unit 105").
+
+## 2. Using Voice Commands
+Tap the **Microphone Button** anytime to speak. Speak naturally.
+
+### Logging Time (Daily)
+Tell the app what you finished.
+*   **Say**: *"I finished the rough-in for the master bath toilet and the guest bath sank."*
+*   **Say**: *"Spent 4 hours framing the closet in the bedroom."*
+*   **Say**: *"Completed the first coat of paint in the living room."*
+
+### Reporting Issues (Change Requests)
+See something wrong? Tell the app so we can fix it.
+*   **Say**: *"The door hinge in the master bedroom is broken. We need to replace it."*
+*   **Say**: *"The drywall in the kitchen has water damage. It needs a skim coat before we can paint."*
+*   **Say**: *"The owner wants to add a dimmer switch in the dining room."*
+
+### Ordering Materials
+Need supplies?
+*   **Say**: *"I need two boxes of 3-inch screws and a roll of duct tape."*
+*   **Say**: *"Order a replacement vanity for the downstairs powder room, the white shaker one."*
+
+## 3. Reviewing Your Work
+After you speak, the app will show you a card summarizing what it heard.
+*   **Green Check**: "Toilet - Installed"
+*   **Text**: "Logged 4 hours."
+
+If it looks wrong, just tap the **Undo** button and speak again.
+
+## 4. Workflows
+
+### Morning Routine
+1.  Check **"My Tasks"** to see what's planned for today (e.g., "Unit 105: Paint Walls").
+2.  Gather your materials.
+
+### End of Day Routine
+1.  Walk the unit.
+2.  Tap the Mic.
+3.  Say: *"I'm done for the day. Finished painting the walls in 105 and 106. Cleaned up the site."*
+4.  Hit **Submit**. That's your timesheet!
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

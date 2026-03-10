@@ -1,0 +1,100 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === FILE 1: 20260222000002_project_lifecycle_template_inheritance.sql ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -- =============================================================
+-- Migration: Project Lifecycle & Template Inheritance
+-- Description:
+--   1. Expand wo_projects.status to include 'staged' and 'paused'
+--   2. Add is_frozen column to work_order_templates
+--   3. Allow NULL definition for lazy-copy project templates
+--   4. Create freeze_project_templates() trigger function
+--   5. Seed app-scope templates from existing company templates
+-- =============================================================
+
+-- -----------------------------------------------
+-- 1. Expand project status CHECK constraint
+-- -----------------------------------------------
+ALTER TABLE public.wo_projects DROP CONSTRAINT IF EXISTS wo_projects_status_check;
+ALTER TABLE public.wo_projects ADD CONSTRAINT wo_projects_status_check
+  CHECK (status IN ('staged', 'active', 'paused', 'completed', 'archived'));
+
+-- -----------------------------------------------
+-- 2. Add is_frozen to templates
+-- -----------------------------------------------
+ALTER TABLE public.work_order_templates
+  ADD COLUMN IF NOT EXISTS is_frozen BOOLEAN DEFAULT false;
+
+-- -----------------------------------------------
+-- 3. Allow NULL definition for lazy-copy templates
+--    (project templates reference parent until frozen)
+-- -----------------------------------------------
+ALTER TABLE public.work_order_templates
+  ALTER COLUMN definition DROP NOT NULL;
+
+-- -----------------------------------------------
+-- 4. Trigger: freeze project templates on activation
+--    When a project transitions to 'active', copy the
+--    definition from the parent company template into
+--    each unfrozen project template.
+-- -----------------------------------------------
+CREATE OR REPLACE FUNCTION public.freeze_project_templates()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only fire when status changes TO 'active'
+  IF NEW.status = 'active' AND (OLD.status IS DISTINCT FROM 'active') THEN
+    UPDATE public.work_order_templates pt
+    SET
+      definition = ct.definition,
+      is_frozen = true,
+      updated_at = now()
+    FROM public.work_order_templates ct
+    WHERE pt.project_id = NEW.id
+      AND pt.scope = 'project'
+      AND pt.parent_template_id = ct.id
+      AND pt.is_frozen = false
+      AND pt.definition IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_freeze_project_templates ON public.wo_projects;
+CREATE TRIGGER trg_freeze_project_templates
+  AFTER UPDATE OF status ON public.wo_projects
+  FOR EACH ROW
+  EXECUTE FUNCTION public.freeze_project_templates();
+
+-- -----------------------------------------------
+-- 5. Seed app-scope templates
+--    Create app-scope copies of each unique trade
+--    from the existing company templates (org 00...01)
+-- -----------------------------------------------
+INSERT INTO public.work_order_templates (
+  id, organization_id, trade_name, version, is_active,
+  definition, scope, project_id, is_frozen
+)
+SELECT
+  -- Deterministic UUIDs: A0000000-... prefix for app templates
+  ('a0000000-0000-0000-0000-' || lpad(row_number() OVER (ORDER BY trade_name)::text, 12, '0'))::uuid,
+  NULL,                    -- no org for app-scope
+  trade_name,
+  1,
+  true,
+  definition,              -- copy full definition
+  'app',                   -- app scope
+  NULL,                    -- no project
+  false                    -- not frozen (app templates are the source of truth)
+FROM public.work_order_templates
+WHERE scope = 'company'
+  AND organization_id = '00000000-0000-0000-0000-000000000001'
+  AND is_active = true
+ON CONFLICT DO NOTHING;
+
+-- Update the existing company templates to point back to their app source
+UPDATE public.work_order_templates ct
+SET copied_from_template_id = at.id
+FROM public.work_order_templates at
+WHERE at.scope = 'app'
+  AND ct.scope = 'company'
+  AND ct.organization_id = '00000000-0000-0000-0000-000000000001'
+  AND ct.trade_name = at.trade_name
+  AND ct.copied_from_template_id IS NULL;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

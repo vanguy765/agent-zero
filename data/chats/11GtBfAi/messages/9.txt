@@ -1,0 +1,94 @@
+===SEED FILES===
+-rwxrwxrwx 1 root root 2794942 Mar  5 18:22 supabase/seed.sql
+===SOP FILES===
+docs/sop/ELC/SOP_ELC_Outlet_Replacement.md
+docs/sop/PLB/SOP_PLB_Sink_Replacement.md
+docs/sop/PNT/SOP_PNT_Interior_Wall_Painting.md
+docs/sop/PNT/SOP_PNT_Trim_Baseboard_Painting.md
+docs/sop/SOP_AUTHORING_GUIDE.md
+docs/sop/SOP_INDEX.md
+docs/sop/SOP_TEMPLATE.md
+===REF FILES===
+docs/sop/PNT/REF_PNT_Codes_Standards.md
+===SEED MIGRATION===
+-- =============================================================================
+-- Migration: Schema Evolution Phase 1 - Seed Data
+-- Description: System-level seed data for trades, project outcomes, type orders,
+--              and backfill of trade_id on existing tables
+-- Date: 2026-03-04
+-- =============================================================================
+
+-- =============================================================================
+-- TRADES (system scope)
+-- UUID pattern: a0000000-0000-0000-0000-00000000XXXX
+-- =============================================================================
+INSERT INTO public.trades (id, code, name, display_order, scope, organization_id)
+VALUES
+    ('a0000000-0000-0000-0000-000000000001', 'PNT', 'Painting',          1, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000002', 'CRP', 'Carpentry',         2, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000003', 'PLB', 'Plumbing',          3, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000004', 'FLR', 'Flooring',          4, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000005', 'ELC', 'Electrical',        5, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000006', 'HVC', 'HVAC',              6, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000007', 'APL', 'Appliances',        7, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000008', 'WNC', 'Window Coverings',  8, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000009', 'MLW', 'Millwork',          9, 'system', NULL),
+    ('a0000000-0000-0000-0000-000000000010', 'GEN', 'General',          10, 'system', NULL)
+ON CONFLICT (code) DO NOTHING;
+
+-- =============================================================================
+-- PROJECT OUTCOMES (system scope)
+-- UUID pattern: b0000000-0000-0000-0000-00000000XXXX
+-- =============================================================================
+INSERT INTO public.project_outcomes (id, code, name, is_default, display_order, scope, organization_id)
+VALUES
+    ('b0000000-0000-0000-0000-000000000001', 'res_reno',   'Residential Renovation',       true,  1, 'system', NULL),
+    ('b0000000-0000-0000-0000-000000000002', 'com_build',  'Commercial Buildout',           false, 2, 'system', NULL),
+    ('b0000000-0000-0000-0000-000000000003', 'res_new',    'New Residential Construction',  false, 3, 'system', NULL),
+    ('b0000000-0000-0000-0000-000000000004', 'maint',      'Maintenance & Repair',          false, 4, 'system', NULL)
+ON CONFLICT DO NOTHING;
+
+-- =============================================================================
+-- TRADE-OUTCOME ASSIGNMENTS
+-- =============================================================================
+
+-- res_reno: ALL trades except GEN (PNT, CRP, PLB, FLR, ELC, HVC, APL, WNC, MLW)
+INSERT INTO public.trade_outcome_assignments (trade_id, outcome_id, display_order)
+VALUES
+    ('a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 1),  -- PNT
+    ('a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 2),  -- CRP
+    ('a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001', 3),  -- PLB
+    ('a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000001', 4),  -- FLR
+    ('a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000001', 5),  -- ELC
+    ('a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000001', 6),  -- HVC
+    ('a0000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000001', 7),  -- APL
+    ('a0000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000001', 8),  -- WNC
+    ('a0000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000001', 9)   -- MLW
+ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+
+-- com_build: PNT, CRP, PLB, FLR, ELC, HVC, MLW
+INSERT INTO public.trade_outcome_assignments (trade_id, outcome_id, display_order)
+VALUES
+    ('a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000002', 1),  -- PNT
+    ('a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000002', 2),  -- CRP
+    ('a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 3),  -- PLB
+    ('a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 4),  -- FLR
+    ('a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 5),  -- ELC
+    ('a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000002', 6),  -- HVC
+    ('a0000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000002', 7)   -- MLW
+ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+
+-- res_new: ALL trades (PNT, CRP, PLB, FLR, ELC, HVC, APL, WNC, MLW)
+INSERT INTO public.trade_outcome_assignments (trade_id, outcome_id, display_order)
+VALUES
+    ('a0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000003', 1),  -- PNT
+    ('a0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000003', 2),  -- CRP
+    ('a0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000003', 3),  -- PLB
+    ('a0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000003', 4),  -- FLR
+    ('a0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000003', 5),  -- ELC
+    ('a0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000003', 6),  -- HVC
+    ('a0000000-0000-0000-0000-000000000007', 'b0000000-0000-0000-0000-000000000003', 7),  -- APL
+    ('a0000000-0000-0000-0000-000000000008', 'b0000000-0000-0000-0000-000000000003', 8),  -- WNC
+    ('a0000000-0000-0000-0000-000000000009', 'b0000000-0000-0000-0000-000000000003', 9)   -- MLW
+ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

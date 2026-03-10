@@ -1,0 +1,115 @@
+=== work-orders.ts section headers ===
+31:    workOrdersRoute.use('*', authMiddleware);
+33:// workOrdersRoute.use('*', authMiddleware);
+47:// ============================================================================
+49:// ============================================================================
+52:workOrdersRoute.get('/units', async (c) => {
+68:workOrdersRoute.get('/units/:id', async (c) => {
+85:workOrdersRoute.patch('/units/:id', async (c) => {
+103:// ============================================================================
+105:// ============================================================================
+108:workOrdersRoute.get('/projects', async (c) => {
+123:workOrdersRoute.get('/projects/:id', async (c) => {
+140:workOrdersRoute.post('/projects', async (c) => {
+165:workOrdersRoute.patch('/projects/:id', async (c) => {
+184:workOrdersRoute.delete('/projects/:id', async (c) => {
+199:// ============================================================================
+201:// ============================================================================
+204:workOrdersRoute.get('/template-libraries', async (c) => {
+228:workOrdersRoute.get('/template-libraries/:id', async (c) => {
+254:workOrdersRoute.get('/template-libraries/default/:projectType', async (c) => {
+273:// ============================================================================
+275:// ============================================================================
+278:workOrdersRoute.get('/templates', async (c) => {
+299:// ============================================================================
+302:// ============================================================================
+305:workOrdersRoute.get('/templates/system', async (c) => {
+322:workOrdersRoute.get('/templates/company', async (c) => {
+339:workOrdersRoute.get('/templates/:id', async (c) => {
+356:workOrdersRoute.post('/templates', async (c) => {
+383:workOrdersRoute.patch('/templates/:id', async (c) => {
+415:workOrdersRoute.delete('/templates/:id', async (c) => {
+433:workOrdersRoute.get('/templates/project/:projectId', async (c) => {
+468:workOrdersRoute.post('/templates/assign-to-company', async (c) => {
+525:workOrdersRoute.post('/templates/assign-to-project', async (c) => {
+594:workOrdersRoute.delete('/templates/:id/unassign', async (c) => {
+632:workOrdersRoute.get('/templates/prefs/hidden', async (c) => {
+647:workOrdersRoute.put('/templates/prefs/:templateId/hidden', async (c) => {
+675:// ============================================================================
+677:// ============================================================================
+680:workOrdersRoute.get('/work-orders', async (c) => {
+708:workOrdersRoute.get('/work-orders/:id', async (c) => {
+737:workOrdersRoute.post('/work-orders', async (c) => {
+996:workOrdersRoute.patch('/work-orders/:id', async (c) => {
+1014:// ============================================================================
+1016:// ============================================================================
+1019:workOrdersRoute.patch('/work-orders/:workOrderId/tasks/:taskId', async (c) => {
+1071:// ============================================================================
+1073:// ============================================================================
+1076:workOrdersRoute.post('/work-orders/:id/notes', async (c) => {
+1104:workOrdersRoute.get('/work-orders/:id/notes', async (c) => {
+\n=== Frontend files ===
+total 244
+drwxrwxrwx 1 root root  4096 Mar  5 05:20 .
+drwxrwxrwx 1 root root  4096 Feb 17 02:18 ..
+-rwxrwxrwx 1 root root 11238 Mar  5 05:16 CompanyTemplates.tsx
+-rwxrwxrwx 1 root root  8408 Feb 23 23:24 Dashboard.tsx
+-rw-r--r-- 1 root root  3127 Feb 24 00:49 LoginPage.tsx
+-rwxrwxrwx 1 root root   830 Feb 17 02:18 NewProject.tsx
+-rwxrwxrwx 1 root root 19128 Mar  5 05:51 ProjectDetail.tsx
+-rwxrwxrwx 1 root root 28618 Mar  5 23:42 ProjectDocuments.tsx
+-rwxr-xr-x 1 root root 26363 Mar  3 17:22 ProjectDocuments.tsx.bak
+-rwxrwxrwx 1 root root  2168 Mar  5 05:20 ProjectOutcomes.tsx
+-rwxrwxrwx 1 root root 12142 Feb 17 02:18 Projects.tsx
+-rwxrwxrwx 1 root root 14145 Feb 22 19:08 ProjectTemplates.tsx
+-rwxrwxrwx 1 root root 12029 Mar  5 05:16 TemplateDetail.tsx
+-rwxrwxrwx 1 root root 26433 Mar  5 05:13 TemplateEditor.tsx
+-rwxrwxrwx 1 root root 25812 Feb 23 01:47 Templates.tsx
+-rwxrwxrwx 1 root root  1662 Mar  5 05:20 Trades.tsx
+-rwxrwxrwx 1 root root  6724 Mar  5 05:19 TypeOrders.tsx
+-rwxrwxrwx 1 root root 11828 Mar  5 05:51 Units.tsx
+-rwxrwxrwx 1 root root 10349 Mar  5 05:17 WorkOrderDetail.tsx
+\n=== api.ts line count ===
+746 apps/work-orders/src/lib/api.ts
+\n=== WorkOrderTemplate interface in api.ts ===
+120:export interface WorkOrderTemplate {
+154:export interface WorkOrder {
+175:export interface WorkOrderTask {
+319:  async getUnits(): Promise<Unit[]> {
+323:  async getUnit(id: string): Promise<Unit> {
+327:  async updateUnit(id: string, data: Partial<Unit>): Promise<Unit> {
+341:  async getTemplates(scope?: 'system' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+346:  async getTemplate(id: string): Promise<WorkOrderTemplate> {
+350:  async createTemplate(data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+357:  async updateTemplate(id: string, data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+364:  async deleteTemplate(id: string): Promise<{ success: boolean }> {
+371:  async getSystemTemplates(): Promise<WorkOrderTemplate[]> {
+375:  async getCompanyTemplates(): Promise<WorkOrderTemplate[]> {
+379:  async getProjectTemplates(projectId: string): Promise<WorkOrderTemplate[]> {
+404:  async getHiddenTemplateIds(): Promise<string[]> {
+416:  async getWorkOrders(): Promise<WorkOrder[]> {
+420:  async getWorkOrder(id: string): Promise<WorkOrder> {
+424:  async createWorkOrder(data: { unit_id: string; template_id: string }): Promise<WorkOrder> {
+431:  async updateWorkOrder(id: string, data: Partial<WorkOrder>): Promise<WorkOrder> {
+439:  async updateTask(workOrderId: string, taskId: string, data: Partial<WorkOrderTask>): Promise<WorkOrderTask> {
+447:  async getNotes(workOrderId: string): Promise<any[]> {
+451:  async createNote(workOrderId: string, content: string): Promise<any> {
+459:  async getProjects(): Promise<WOProject[]> {
+463:  async getProject(id: string): Promise<WOProject> {
+467:  async createProject(data: Partial<WOProject>): Promise<WOProject> {
+474:  async updateProject(id: string, data: Partial<WOProject>): Promise<WOProject> {
+481:  async deleteProject(id: string): Promise<{ success: boolean }> {
+488:  async getTemplateLibraries(params?: {
+498:  async getTemplateLibrary(id: string): Promise<TemplateLibrary> {
+502:  async getDefaultLibrary(projectType: string): Promise<TemplateLibrary> {
+511:  async getTrades(): Promise<Trade[]> {
+515:  async getOrganizationTrades(): Promise<Trade[]> {
+520:  async getProjectOutcomes(): Promise<ProjectOutcome[]> {
+524:  async getProjectOutcomeTrades(outcomeId: string): Promise<{ trade_id: string; outcome_id: string }[]> {
+529:  async getTypeOrders(category?: string): Promise<TypeOrder[]> {
+534:  async getTypeOrderCompositions(typeOrderId: string): Promise<any[]> {
+538:  async getTypeOrderDefaultWorkOrders(typeOrderId: string): Promise<any[]> {
+542:  async updateTypeOrderDefaultWorkOrders(typeOrderId: string, templateIds: string[]): Promise<void> {
+550:  async getBomActionRequests(projectId: string): Promise<BomActionRequest[]> {
+554:  async updateBomActionRequest(id: string, updates: Partial<BomActionRequest>): Promise<BomActionRequest> {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

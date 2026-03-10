@@ -1,0 +1,451 @@
+=== SOP WO Bridge Migration ===
+-- =============================================================================
+-- Migration: SOP ↔ Work Order Bridge
+-- Description:
+--   1A. sop_sections — unified hierarchical SOP structure (replaces flat checklists/steps)
+--   1B. sop_steps — individual trackable steps (one row = one checklist item = one RAG chunk)
+--   1C. sop_dependencies — directed graph of SOP relationships
+--   1D. work_order_step_progress — step-level completion tracking for unit WOs
+--   1E. sop_ref_docs — trade-level reference documents
+--   1F. Add ref_doc_id to sops
+--   1G. Add sop_step_id to sop_recommended_videos
+--   1H. Update freeze_project_templates() to preserve sop_id
+--   1I. RLS policies for all new tables
+--   1J. Updated_at triggers for all new tables
+-- Date: 2026-03-10
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. sop_sections — structured sections parsed from SOP markdown files
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_sections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_number INTEGER NOT NULL,
+    section_type TEXT NOT NULL CHECK (section_type IN (
+        'purpose', 'scope', 'references', 'personnel', 'safety',
+        'tools', 'pre_work', 'procedure', 'videos', 'testing',
+        'cleanup', 'troubleshooting', 'quality', 'revision_history'
+    )),
+    title TEXT NOT NULL,
+    content_md TEXT,
+    content_plain TEXT,
+    is_ref_pointer BOOLEAN DEFAULT false,
+    ref_section TEXT,
+    phase_name TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, section_number)
+);
+
+COMMENT ON TABLE public.sop_sections IS 'Structured sections parsed from SOP markdown files';
+CREATE INDEX idx_sop_sections_sop ON public.sop_sections(sop_id);
+CREATE INDEX idx_sop_sections_type ON public.sop_sections(section_type);
+
+-- =============================================================================
+-- 1B. sop_steps — individual trackable steps
+--     Each row = one trackable unit of work = one RAG chunk
+--     This is the table that work_order_step_progress references
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_steps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    section_id UUID NOT NULL REFERENCES public.sop_sections(id) ON DELETE CASCADE,
+    phase_name TEXT NOT NULL,
+    phase_number INTEGER NOT NULL,
+    step_number INTEGER NOT NULL,
+    step_name TEXT NOT NULL,
+    tasks_summary TEXT,
+    detail_md TEXT,
+    detail_plain TEXT,
+    est_duration_minutes INTEGER,
+    requires_photo BOOLEAN DEFAULT false,
+    requires_measurement BOOLEAN DEFAULT false,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(sop_id, phase_number, step_number)
+);
+
+COMMENT ON TABLE public.sop_steps IS 'Individual trackable steps parsed from SOP procedure phases. One row = one checklist item = one RAG chunk.';
+CREATE INDEX idx_sop_steps_sop ON public.sop_steps(sop_id);
+CREATE INDEX idx_sop_steps_section ON public.sop_steps(section_id);
+CREATE INDEX idx_sop_steps_phase ON public.sop_steps(sop_id, phase_number);
+
+-- =============================================================================
+-- 1C. sop_dependencies — directed graph of SOP relationships
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_dependencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    from_sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    to_sop_id UUID NOT NULL REFERENCES public.sops(id) ON DELETE CASCADE,
+    link_type TEXT NOT NULL CHECK (link_type IN (
+        'prerequisite', 'sub_procedure', 'cross_reference', 'optional'
+    )),
+    condition_note TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(from_sop_id, to_sop_id, link_type)
+);
+
+COMMENT ON TABLE public.sop_dependencies IS 'Directed graph of SOP relationships';
+CREATE INDEX idx_sop_deps_from ON public.sop_dependencies(from_sop_id);
+CREATE INDEX idx_sop_deps_to ON public.sop_dependencies(to_sop_id);
+
+-- =============================================================================
+-- 1D. work_order_step_progress — step-level completion tracking
+--     The bridge table where field workers record completion of each SOP step
+--     within a unit work order. The separate timesheet app reads this data.
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.work_order_step_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    work_order_id UUID NOT NULL REFERENCES public.work_orders(id) ON DELETE CASCADE,
+    sop_step_id UUID NOT NULL REFERENCES public.sop_steps(id) ON DELETE RESTRICT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN (
+        'pending', 'in_progress', 'completed', 'skipped', 'blocked'
+    )),
+    completed_by UUID REFERENCES auth.users(id),
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    duration_minutes INTEGER,
+    notes TEXT,
+    photo_urls TEXT[] DEFAULT '{}',
+    override_detail TEXT,
+    is_override BOOLEAN DEFAULT false,
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(work_order_id, sop_step_id)
+);
+
+COMMENT ON TABLE public.work_order_step_progress IS 'Step-level completion tracking for unit work orders. Duration feeds timesheet app.';
+CREATE INDEX idx_wo_step_progress_wo ON public.work_order_step_progress(work_order_id);
+CREATE INDEX idx_wo_step_progress_step ON public.work_order_step_progress(sop_step_id);
+CREATE INDEX idx_wo_step_progress_user ON public.work_order_step_progress(completed_by);
+CREATE INDEX idx_wo_step_progress_status ON public.work_order_step_progress(status);
+CREATE INDEX idx_wo_step_progress_org ON public.work_order_step_progress(organization_id);
+
+-- =============================================================================
+-- 1E. sop_ref_docs — trade-level reference documents that SOPs link to
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.sop_ref_docs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    doc_id TEXT NOT NULL UNIQUE,
+    trade_code TEXT NOT NULL,
+    trade_name TEXT NOT NULL,
+    trade_id UUID REFERENCES public.trades(id) ON DELETE SET NULL,
+    revision TEXT NOT NULL DEFAULT '1.0',
+    content_md TEXT,
+    storage_path TEXT,
+    file_hash TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.sop_ref_docs IS 'Trade-level reference documents that SOPs link to via pointers';
+
+-- =============================================================================
+-- 1F. Add ref_doc_id to sops table
+-- =============================================================================
+ALTER TABLE public.sops
+    ADD COLUMN IF NOT EXISTS ref_doc_id UUID REFERENCES public.sop_ref_docs(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1G. Add sop_step_id to sop_recommended_videos
+-- =============================================================================
+ALTER TABLE public.sop_recommended_videos
+    ADD COLUMN IF NOT EXISTS sop_step_id UUID REFERENCES public.sop_steps(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1H. Update freeze_project_templates() trigger
+--     Ensure sop_id is preserved when freezing project templates
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.freeze_project_templates()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Only fire when status changes TO 'active'
+  IF NEW.status = 'active' AND (OLD.status IS DISTINCT FROM 'active') THEN
+    UPDATE public.work_order_templates pt
+    SET
+      definition = ct.definition,
+      sop_id = COALESCE(pt.sop_id, ct.sop_id),
+      is_frozen = true,
+      updated_at = now()
+    FROM public.work_order_templates ct
+    WHERE pt.project_id = NEW.id
+      AND pt.scope = 'project'
+      AND pt.parent_template_id = ct.id
+      AND pt.is_frozen = false
+      AND pt.definition IS NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Note: The trigger trg_freeze_project_templates on wo_projects already exists
+-- from migration 20260222000002. CREATE OR REPLACE FUNCTION above updates it
+-- in-place — no need to drop/recreate the trigger binding.
+
+-- =============================================================================
+-- 1I. RLS Policies
+-- =============================================================================
+
+-- sop_sections
+ALTER TABLE public.sop_sections ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_sections_select" ON public.sop_sections FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_sections_sysadmin" ON public.sop_sections FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_steps
+ALTER TABLE public.sop_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_steps_select" ON public.sop_steps FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_steps_sysadmin" ON public.sop_steps FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_dependencies
+ALTER TABLE public.sop_dependencies ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_deps_select" ON public.sop_dependencies FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_deps_sysadmin" ON public.sop_dependencies FOR ALL
+    USING (public.is_sysadmin());
+
+-- sop_ref_docs
+ALTER TABLE public.sop_ref_docs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "sop_ref_docs_select" ON public.sop_ref_docs FOR SELECT
+    USING (auth.role() = 'authenticated');
+CREATE POLICY "sop_ref_docs_sysadmin" ON public.sop_ref_docs FOR ALL
+    USING (public.is_sysadmin());
+
+-- work_order_step_progress
+ALTER TABLE public.work_order_step_progress ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "wo_step_progress_tenant" ON public.work_order_step_progress FOR ALL
+    USING (organization_id = public.current_user_organization_id());
+CREATE POLICY "wo_step_progress_sysadmin" ON public.work_order_step_progress FOR ALL
+    USING (public.is_sysadmin());
+
+-- =============================================================================
+-- 1J. Updated_at triggers
+-- =============================================================================
+CREATE TRIGGER update_sop_sections_updated_at
+    BEFORE UPDATE ON public.sop_sections
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_sop_steps_updated_at
+    BEFORE UPDATE ON public.sop_steps
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_sop_ref_docs_updated_at
+    BEFORE UPDATE ON public.sop_ref_docs
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_wo_step_progress_updated_at
+    BEFORE UPDATE ON public.work_order_step_progress
+    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- =============================================================================
+-- Notify PostgREST to reload schema cache
+-- =============================================================================
+NOTIFY pgrst, 'reload schema';
+\n=== Schema Evolution Phase 1 ===
+-- =============================================================================
+-- Migration: Schema Evolution Phase 1
+-- Description: Trades, Project Outcomes, Type Orders, BOM Action Requests,
+--              and related junction tables + ALTER existing tables
+-- Date: 2026-03-04
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. trades table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.trades (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    code text NOT NULL UNIQUE,
+    name text NOT NULL,
+    description text,
+    icon text,
+    color text,
+    display_order integer DEFAULT 0,
+    is_active boolean NOT NULL DEFAULT true,
+    scope text NOT NULL DEFAULT 'system',
+    organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+    parent_trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT trades_scope_check CHECK (scope IN ('system', 'company')),
+    CONSTRAINT valid_system_trade CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_trade CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company')
+);
+
+-- RLS for trades
+ALTER TABLE public.trades ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "trades_select_system" ON public.trades FOR SELECT
+    USING (scope = 'system');
+
+CREATE POLICY "trades_select_company" ON public.trades FOR SELECT
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "trades_insert_company" ON public.trades FOR INSERT
+    WITH CHECK (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "trades_update_company" ON public.trades FOR UPDATE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "trades_delete_company" ON public.trades FOR DELETE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+-- Indexes for trades
+CREATE INDEX IF NOT EXISTS idx_trades_code ON public.trades(code);
+CREATE INDEX IF NOT EXISTS idx_trades_scope ON public.trades(scope);
+CREATE INDEX IF NOT EXISTS idx_trades_organization_id ON public.trades(organization_id);
+
+-- Updated_at trigger for trades
+DO $$ BEGIN
+    CREATE TRIGGER update_trades_updated_at
+        BEFORE UPDATE ON public.trades
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 1B. project_outcomes table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.project_outcomes (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    name text NOT NULL,
+    code text NOT NULL,
+    description text,
+    scope text NOT NULL DEFAULT 'system',
+    organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+    icon text,
+    color text,
+    metadata jsonb DEFAULT '{}',
+    is_active boolean NOT NULL DEFAULT true,
+    is_default boolean DEFAULT false,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT project_outcomes_scope_check CHECK (scope IN ('system', 'company')),
+    CONSTRAINT valid_system_outcome CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_outcome CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company')
+    -- UNIQUE handled by partial indexes below
+);
+
+-- RLS for project_outcomes
+ALTER TABLE public.project_outcomes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "project_outcomes_select_system" ON public.project_outcomes FOR SELECT
+    USING (scope = 'system');
+
+CREATE POLICY "project_outcomes_select_company" ON public.project_outcomes FOR SELECT
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_insert_company" ON public.project_outcomes FOR INSERT
+    WITH CHECK (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_update_company" ON public.project_outcomes FOR UPDATE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_delete_company" ON public.project_outcomes FOR DELETE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+-- Indexes for project_outcomes
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_code ON public.project_outcomes(code);
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_scope ON public.project_outcomes(scope);
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_organization_id ON public.project_outcomes(organization_id);
+-- Partial unique indexes for project_outcomes (handles NULL organization_id)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_outcomes_unique_system
+    ON public.project_outcomes(code) WHERE scope = 'system';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_outcomes_unique_company
+    ON public.project_outcomes(code, organization_id) WHERE scope = 'company';
+
+-- Updated_at trigger for project_outcomes
+DO $$ BEGIN
+    CREATE TRIGGER update_project_outcomes_updated_at
+        BEFORE UPDATE ON public.project_outcomes
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 1C. organization_trades junction table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.organization_trades (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    trade_id uuid NOT NULL REFERENCES public.trades(id) ON DELETE CASCADE,
+    is_primary boolean DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(organization_id, trade_id)
+);
+
+-- RLS for organization_trades
+ALTER TABLE public.organization_trades ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "org_trades_select" ON public.organization_trades FOR SELECT
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "org_trades_insert" ON public.organization_trades FOR INSERT
+    WITH CHECK (organization_id = current_user_organization_id());
+
+CREATE POLICY "org_trades_update" ON public.organization_trades FOR UPDATE
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "org_trades_delete" ON public.organization_trades FOR DELETE
+    USING (organization_id = current_user_organization_id());
+
+-- Indexes for organization_trades
+CREATE INDEX IF NOT EXISTS idx_org_trades_org_id ON public.organization_trades(organization_id);
+CREATE INDEX IF NOT EXISTS idx_org_trades_trade_id ON public.organization_trades(trade_id);
+
+-- =============================================================================
+-- 1D. trade_outcome_assignments junction table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.trade_outcome_assignments (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    trade_id uuid NOT NULL REFERENCES public.trades(id) ON DELETE CASCADE,
+    outcome_id uuid NOT NULL REFERENCES public.project_outcomes(id) ON DELETE CASCADE,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(trade_id, outcome_id)
+);
+
+-- RLS for trade_outcome_assignments
+ALTER TABLE public.trade_outcome_assignments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "trade_outcome_select" ON public.trade_outcome_assignments FOR SELECT
+    USING (
+        EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                AND (trades.scope = 'system' OR trades.organization_id = current_user_organization_id()))
+    );
+
+CREATE POLICY "trade_outcome_insert" ON public.trade_outcome_assignments FOR INSERT
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                AND trades.organization_id = current_user_organization_id())
+        OR EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                   AND trades.scope = 'system')
+    );
+
+CREATE POLICY "trade_outcome_delete" ON public.trade_outcome_assignments FOR DELETE
+    USING (
+        EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                AND (trades.scope = 'system' OR trades.organization_id = current_user_organization_id()))
+    );
+
+-- Indexes for trade_outcome_assignments
+CREATE INDEX IF NOT EXISTS idx_trade_outcome_trade_id ON public.trade_outcome_assignments(trade_id);
+CREATE INDEX IF NOT EXISTS idx_trade_outcome_outcome_id ON public.trade_outcome_assignments(outcome_id);
+
+-- =============================================================================
+-- 1E. type_orders table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.type_orders (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    name text NOT NULL,
+    code text NOT NULL,
+    description text,
+    category text NOT NULL DEFAULT 'interior',
+    scope text NOT NULL DEFAULT 'system',
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

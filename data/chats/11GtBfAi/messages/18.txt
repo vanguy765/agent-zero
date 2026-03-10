@@ -1,0 +1,30 @@
+docs/sop/PNT/REF_PNT_Codes_Standards.md
+===UPLOADING SOPs===
+{
+  "sop_id": "a9796f8f-f5c6-4cb5-ba36-6870849ea365",
+  "sop_number": "ELC-SOP-001",
+  "status": "synced",
+  "checklists": 10,
+  "detailed_steps": 10,
+  "videos": 8,
+  "message": "ELC-SOP-001 synced: 10 checklists, 10 steps, 8 videos",
+  "new_schema": {
+    "sections": 15,
+    "steps": 10,
+    "message": "New schema synced: 15 sections, 10 steps"
+  },
+  "dependencies": {
+    "created": 0,
+    "unresolved": [
+      "ELC-SOP-005",
+      "ELC-SOP-010",
+      "ELC-SOP-015",
+      "ELC-SOP-020",
+      "ELC-SOP-025",
+      "ELC-SOP-030"
+    ],
+    "total_refs": 6,
+    "message": "0 dependencies created, 6 unresolved"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

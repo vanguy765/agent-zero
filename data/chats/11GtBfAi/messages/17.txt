@@ -1,0 +1,202 @@
+def upload_sop(self, filepath: str) -> dict:
+        """Upload an SOP .md file to storage and sync to DB."""
+        self._ensure_bucket()
+
+        with open(filepath, "r") as f:
+            content = f.read()
+
+        filename = os.path.basename(filepath)
+        storage_path = f"{STORAGE_PREFIX}/{filename}"
+        file_hash = md5_hash(content)
+
+        # Upload to storage
+        try:
+            self.client.storage.from_(STORAGE_BUCKET).remove([storage_path])
+        except Exception:
+            pass
+
+        with open(filepath, "rb") as f:
+            self.client.storage.from_(STORAGE_BUCKET).upload(
+                storage_path,
+                f,
+                file_options={"content-type": "text/markdown", "upsert": "true"}
+            )
+
+        # Parse and sync (legacy tables)
+        result = self._sync_from_content(content, storage_path, file_hash)
+
+        # Also sync to new schema
+        sop_id = result.get("sop_id")
+        if sop_id and result.get("status") != "unchanged":
+            new_result = self.sync_sop_to_new_schema(sop_id, content)
+            result["new_schema"] = new_result
+            # Extract dependencies
+            dep_result = self.sync_dependencies(sop_id, content)
+            result["dependencies"] = dep_result
+
+        self._log_action(result.get("sop_id"), result.get("sop_number"), "uploaded",
+                         {"file": filename, "hash": file_hash})
+        return result
+
+    def _sync_from_content(self, content: str, storage_path: str, file_hash: str) -> dict:
+        """Parse content and upsert into database."""
+        parser = SOPParser(content)
+        parsed = parser.parse()
+        meta = parsed["meta"]
+
+        sop_number = meta.get("SOP Number", "UNKNOWN")
+        trade_parts = meta.get("Trade", "General").split(" \u2014 ") if " \u2014 " in meta.get("Trade", "") else [meta.get("Trade", "General")]
+        trade_name = trade_parts[0].strip() if trade_parts else "General"
+
+        # Derive trade code from SOP number
+        trade_code = sop_number.split("-")[0] if "-" in sop_number else "GEN"
+
+        task_name = meta.get("Task", meta.get("Procedure", "Unknown Task"))
+        revision = meta.get("Revision", "1.0")
+        duration = meta.get("Estimated Duration", meta.get("Duration", ""))
+
+        # Build tags from trade and task
+        tags = [trade_code.lower(), trade_name.lower()]
+        for word in task_name.lower().split():
+            if len(word) > 3:
+                tags.append(word)
+
+        # Upsert master SOP record
+        sop_data = {
+            "sop_number": sop_number,
+            "trade_code": trade_code,
+            "trade_name": trade_name,
+            "task_name": task_name,
+            "revision": revision,
+            "status": "active",
+            "estimated_duration": duration,
+            "storage_path": storage_path,
+            "file_hash": file_hash,
+            "description": f"{trade_name} \u2014 {task_name} (Rev {revision})",
+            "tags": tags
+        }
+
+        # Check if exists
+        existing = self.client.table("sops").select("id, file_hash").eq("sop_number", sop_number).execute()
+
+        if existing.data:
+            sop_id = existing.data[0]["id"]
+            old_hash = existing.data[0].get("file_hash")
+            if old_hash == file_hash:
+                return {"sop_id": sop_id, "sop_number": sop_number, "status": "unchanged",
+                        "message": f"{sop_number} unchanged (hash match)"}
+            # Update
+            self.client.table("sops").update(sop_data).eq("id", sop_id).execute()
+        else:
+            result = self.client.table("sops").insert(sop_data).execute()
+            sop_id = result.data[0]["id"]
+
+        # Clear old cached data
+        self.client.table("sop_executive_checklists").delete().eq("sop_id", sop_id).execute()
+        self.client.table("sop_detailed_steps").delete().eq("sop_id", sop_id).execute()
+        self.client.table("sop_recommended_videos").delete().eq("sop_id", sop_id).execute()
+
+        # Insert checklists
+        for cl in parsed["checklists"]:
+            cl["sop_id"] = sop_id
+            self.client.table("sop_executive_checklists").insert(cl).execute()
+
+        # Insert detailed steps
+        for ds in parsed["detailed_steps"]:
+            ds["sop_id"] = sop_id
+            self.client.table("sop_detailed_steps").insert(ds).execute()
+
+        # Insert videos
+        for vid in parsed["videos"]:
+            vid["sop_id"] = sop_id
+            self.client.table("sop_recommended_videos").insert(vid).execute()
+
+        return {
+            "sop_id": sop_id,
+            "sop_number": sop_number,
+            "status": "synced",
+            "checklists": len(parsed["checklists"]),
+            "detailed_steps": len(parsed["detailed_steps"]),
+            "videos": len(parsed["videos"]),
+            "message": f"{sop_number} synced: {len(parsed['checklists'])} checklists, {len(parsed['detailed_steps'])} steps, {len(parsed['videos'])} videos"
+        }
+
+    # ------------------------------------------------------------------
+    # 4B: Sync to new normalized schema (sop_sections + sop_steps)
+    # ------------------------------------------------------------------
+    def sync_sop_to_new_schema(self, sop_id: str, content: str) -> dict:
+        """Upsert parsed SOP data into sop_sections and sop_steps tables.
+
+        Uses delete + insert pattern for idempotency:
+        1. Delete existing sop_steps for this sop_id (child first due to FK)
+        2. Delete existing sop_sections for this sop_id
+        3. Insert new sections, capturing returned IDs
+        4. Insert new steps with section_id references
+
+        Args:
+            sop_id: UUID of the SOP record in the sops table
+            content: Raw markdown content of the SOP file
+
+        Returns:
+            dict with counts of sections and steps inserted
+        """
+        parser = SOPParser(content)
+        parsed = parser.parse_to_sections_and_steps()
+
+        # Delete existing data (child first due to FK constraints)
+        # sop_steps references sop_sections, so delete steps first
+        self.client.table("sop_steps").delete().eq("sop_id", sop_id).execute()
+        self.client.table("sop_sections").delete().eq("sop_id", sop_id).execute()
+
+        # Insert sections and build section_number -> section_id map
+        section_id_map = {}  # section_number -> uuid
+        for sec in parsed["sections"]:
+            sec_record = {
+                "sop_id": sop_id,
+                "section_number": sec["section_number"],
+                "section_type": sec["section_type"],
+                "title": sec["title"],
+                "content_md": sec["content_md"],
+                "content_plain": sec["content_plain"],
+                "is_ref_pointer": sec["is_ref_pointer"],
+                "ref_section": sec["ref_section"],
+                "phase_name": sec["phase_name"],
+            }
+            result = self.client.table("sop_sections").insert(sec_record).execute()
+            if result.data:
+                section_id_map[sec["section_number"]] = result.data[0]["id"]
+
+        # Insert steps with section_id references
+        steps_inserted = 0
+        for step in parsed["steps"]:
+            section_number = step.pop("_section_number")
+            section_id = section_id_map.get(section_number)
+            if not section_id:
+                continue  # skip if section wasn't inserted
+
+            step_record = {
+                "sop_id": sop_id,
+                "section_id": section_id,
+                "phase_name": step["phase_name"],
+                "phase_number": step["phase_number"],
+                "step_number": step["step_number"],
+                "step_name": step["step_name"],
+                "tasks_summary": step.get("tasks_summary", ""),
+                "detail_md": step.get("detail_md", ""),
+                "detail_plain": step.get("detail_plain", ""),
+                "sort_order": step.get("sort_order", 0),
+            }
+            self.client.table("sop_steps").insert(step_record).execute()
+            steps_inserted += 1
+
+        return {
+            "sections": len(parsed["sections"]),
+            "steps": steps_inserted,
+            "message": f"New schema synced: {len(parsed['sections'])} sections, {steps_inserted} steps"
+        }
+
+    def sync_new_schema_all(self) -> list:
+        """Re-sync all SOPs to the new schema from storage."""
+        results = []
+        sops = self.client.table("sops").select("id, sop_number, storage_path").execute()
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

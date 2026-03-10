@@ -1,0 +1,77 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === onboard.ts: template copy logic ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 11:// GET  /onboard/trades    — List distinct trade names from app-scope templates
+60:// Copy app-scope templates to a new organization as company-scope
+62:async function copyTemplatesToOrg(
+64:  tradeFilter?: string, // if undefined, copy ALL trades
+66:  // Fetch app-scope templates (optionally filtered by trade)
+68:    .from('work_order_templates')
+69:    .select('id, trade_name, definition, version')
+70:    .eq('scope', 'system')
+73:  if (tradeFilter) {
+74:    query = query.eq('trade_name', tradeFilter);
+77:  const { data: appTemplates, error } = await query;
+78:  if (error || !appTemplates || appTemplates.length === 0) return;
+80:  // Build company-scope copies
+81:  const copies = appTemplates.map((t) => ({
+83:    trade_name: t.trade_name,
+87:    scope: 'company' as const,
+89:    copied_from_template_id: t.id,
+93:  await adminClient.from('work_order_templates').insert(copies);
+97:// GET /onboard/trades  — list distinct trade names from app-scope templates
+99:onboardRoute.get('/trades', async (c) => {
+101:    .from('work_order_templates')
+102:    .select('trade_name')
+103:    .eq('scope', 'system')
+105:    .order('trade_name');
+109:  // Deduplicate trade names
+110:  const trades = [...new Set((data || []).map((r: { trade_name: string }) => r.trade_name))].sort();
+111:  return c.json(trades);
+209:  // --- Assign trade templates based on industry ---
+213:        // General Contractor gets ALL app-scope templates
+214:        await copyTemplatesToOrg(org.id);
+216:        // Specific trade — copy only that trade's template
+217:        await copyTemplatesToOrg(org.id, industry);
+219:    } catch (templateErr) {
+220:      // Non-fatal: org and user are created, templates can be assigned later
+221:      console.error('Failed to copy templates during onboarding:', templateErr);
+321:  // Reassign trade templates if industry changed
+325:      // Remove existing company-scope templates that were copied from app-scope
+327:        .from('work_order_templates')
+330:        .eq('scope', 'company')
+331:        .not('copied_from_template_id', 'is', null);
+333:      // Copy new templates based on selected industry
+336:          await copyTemplatesToOrg(id);
+338:          await copyTemplatesToOrg(id, newIndustry);
+341:    } catch (templateErr) {
+342:      console.error('Failed to reassign templates on industry change:', templateErr);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Frontend: TemplateDetail.tsx parent display ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#                                 <div>
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Library</p>
+                                    <p class="text-sm text-gray-900 font-mono">
+                                        {template()!.library_id?.slice(0, 8)}...
+                                    </p>
+                                </div>
+                            </Show>
+                            <Show when={template()!.parent_template_id}>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Parent Template</p>
+                                    <A
+                                        href={`/templates/${template()!.parent_template_id}`}
+                                        class="text-sm text-primary-600 hover:text-primary-700 font-mono"
+                                    >
+                                        {template()!.parent_template_id?.slice(0, 8)}...
+                                    </A>
+                                </div>
+                            </Show>
+                            <Show when={template()!.copied_from_template_id}>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Copied From</p>
+                                    <A
+                                        href={`/templates/${template()!.copied_from_template_id}`}
+                                        class="text-sm text-primary-600 hover:text-primary-700 font-mono"
+                                    >
+                                        {template()!.copied_from_template_id?.slice(0, 8)}...
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Frontend: any other files referencing parent_template_id ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

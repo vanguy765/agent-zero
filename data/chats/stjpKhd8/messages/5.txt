@@ -1,0 +1,21 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:3:-- Description: Add is_sysadmin() helper and full-access policies
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:9:CREATE OR REPLACE FUNCTION public.is_sysadmin() RETURNS boolean
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:28:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:29:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:34:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:35:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:40:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:41:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:46:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:47:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:52:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:53:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:58:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:59:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:64:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:65:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:70:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:71:  WITH CHECK (is_sysadmin());
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:76:  USING (is_sysadmin())
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql:77:  WITH CHECK (is_sysadmin());
+(venv) root@d2d162d983f0:/a0/usr/workdir#

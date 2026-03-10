@@ -1,0 +1,89 @@
+===PLB===
+{
+  "sop_id": "229afd5a-4a6e-43db-98cf-c5d0e9f06916",
+  "sop_number": "PLB-SOP-001",
+  "status": "synced",
+  "checklists": 10,
+  "detailed_steps": 10,
+  "videos": 8,
+  "message": "PLB-SOP-001 synced: 10 checklists, 10 steps, 8 videos",
+  "new_schema": {
+    "sections": 15,
+    "steps": 10,
+    "message": "New schema synced: 15 sections, 10 steps"
+  },
+  "dependencies": {
+    "created": 0,
+    "unresolved": [
+      "PLB-SOP-010",
+      "PLB-SOP-005",
+      "PLB-SOP-006"
+    ],
+    "total_refs": 3,
+    "message": "0 dependencies created, 3 unresolved"
+  }
+}
+===PNT-001===
+{
+  "sop_id": "e041e426-86c3-4daa-a7ae-32619302d9eb",
+  "sop_number": "PNT-SOP-001",
+  "status": "synced",
+  "checklists": 18,
+  "detailed_steps": 18,
+  "videos": 0,
+  "message": "PNT-SOP-001 synced: 18 checklists, 18 steps, 0 videos",
+  "new_schema": {
+    "sections": 16,
+    "steps": 18,
+    "message": "New schema synced: 16 sections, 18 steps"
+  },
+  "dependencies": {
+    "created": 0,
+    "unresolved": [
+      "PNT-SOP-004",
+      "PNT-SOP-003",
+      "PNT-SOP-002",
+      "DRW-SOP-001",
+      "DRW-SOP-004"
+    ],
+    "total_refs": 5,
+    "message": "0 dependencies created, 5 unresolved"
+  }
+}
+===PNT-004===
+{
+  "sop_id": "93555cdf-ce3c-45b1-ac28-17f1af69f26e",
+  "sop_number": "PNT-SOP-004",
+  "status": "synced",
+  "checklists": 15,
+  "detailed_steps": 15,
+  "videos": 0,
+  "message": "PNT-SOP-004 synced: 15 checklists, 15 steps, 0 videos",
+  "new_schema": {
+    "sections": 16,
+    "steps": 15,
+    "message": "New schema synced: 16 sections, 15 steps"
+  },
+  "dependencies": {
+    "created": 1,
+    "unresolved": [
+      "PNT-SOP-002",
+      "PNT-SOP-003",
+      "CRP-SOP-001"
+    ],
+    "total_refs": 4,
+    "message": "1 dependencies created, 3 unresolved"
+  }
+}
+===REF DOC===
+{
+  "ref_doc_id": "1138ef0a-609f-4274-a15f-46803a663399",
+  "doc_id": "REF-PNT-001",
+  "trade_code": "PNT",
+  "trade_name": "Painting",
+  "revision": "1.1",
+  "linked_sops": 2,
+  "status": "synced",
+  "message": "REF doc REF-PNT-001 synced, linked to 2 SOP(s)"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

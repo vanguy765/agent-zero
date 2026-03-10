@@ -1,0 +1,14 @@
+Cleaned up 10 test step progress records from WO 94b06dee-80e...
+
+======================================================================
+FINAL DATA INVENTORY
+======================================================================
+  sops                                              4 rows
+  sop_sections                                     62 rows
+  sop_steps                                        53 rows
+  sop_ref_docs                                      1 rows
+  work_order_templates (with sop_id)                6 rows
+  work_order_templates (total)                     18 rows
+  work_orders                                     220 rows
+  work_order_step_progress                          0 rows
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

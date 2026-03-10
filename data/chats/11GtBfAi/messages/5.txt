@@ -1,0 +1,518 @@
+-- =============================================================================
+-- Migration: Schema Evolution Phase 1
+-- Description: Trades, Project Outcomes, Type Orders, BOM Action Requests,
+--              and related junction tables + ALTER existing tables
+-- Date: 2026-03-04
+-- =============================================================================
+
+-- =============================================================================
+-- 1A. trades table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.trades (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    code text NOT NULL UNIQUE,
+    name text NOT NULL,
+    description text,
+    icon text,
+    color text,
+    display_order integer DEFAULT 0,
+    is_active boolean NOT NULL DEFAULT true,
+    scope text NOT NULL DEFAULT 'system',
+    organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+    parent_trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT trades_scope_check CHECK (scope IN ('system', 'company')),
+    CONSTRAINT valid_system_trade CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_trade CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company')
+);
+
+-- RLS for trades
+ALTER TABLE public.trades ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "trades_select_system" ON public.trades FOR SELECT
+    USING (scope = 'system');
+
+CREATE POLICY "trades_select_company" ON public.trades FOR SELECT
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "trades_insert_company" ON public.trades FOR INSERT
+    WITH CHECK (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "trades_update_company" ON public.trades FOR UPDATE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "trades_delete_company" ON public.trades FOR DELETE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+-- Indexes for trades
+CREATE INDEX IF NOT EXISTS idx_trades_code ON public.trades(code);
+CREATE INDEX IF NOT EXISTS idx_trades_scope ON public.trades(scope);
+CREATE INDEX IF NOT EXISTS idx_trades_organization_id ON public.trades(organization_id);
+
+-- Updated_at trigger for trades
+DO $$ BEGIN
+    CREATE TRIGGER update_trades_updated_at
+        BEFORE UPDATE ON public.trades
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 1B. project_outcomes table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.project_outcomes (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    name text NOT NULL,
+    code text NOT NULL,
+    description text,
+    scope text NOT NULL DEFAULT 'system',
+    organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+    icon text,
+    color text,
+    metadata jsonb DEFAULT '{}',
+    is_active boolean NOT NULL DEFAULT true,
+    is_default boolean DEFAULT false,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT project_outcomes_scope_check CHECK (scope IN ('system', 'company')),
+    CONSTRAINT valid_system_outcome CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_outcome CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company')
+    -- UNIQUE handled by partial indexes below
+);
+
+-- RLS for project_outcomes
+ALTER TABLE public.project_outcomes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "project_outcomes_select_system" ON public.project_outcomes FOR SELECT
+    USING (scope = 'system');
+
+CREATE POLICY "project_outcomes_select_company" ON public.project_outcomes FOR SELECT
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_insert_company" ON public.project_outcomes FOR INSERT
+    WITH CHECK (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_update_company" ON public.project_outcomes FOR UPDATE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "project_outcomes_delete_company" ON public.project_outcomes FOR DELETE
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+-- Indexes for project_outcomes
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_code ON public.project_outcomes(code);
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_scope ON public.project_outcomes(scope);
+CREATE INDEX IF NOT EXISTS idx_project_outcomes_organization_id ON public.project_outcomes(organization_id);
+-- Partial unique indexes for project_outcomes (handles NULL organization_id)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_outcomes_unique_system
+    ON public.project_outcomes(code) WHERE scope = 'system';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_project_outcomes_unique_company
+    ON public.project_outcomes(code, organization_id) WHERE scope = 'company';
+
+-- Updated_at trigger for project_outcomes
+DO $$ BEGIN
+    CREATE TRIGGER update_project_outcomes_updated_at
+        BEFORE UPDATE ON public.project_outcomes
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 1C. organization_trades junction table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.organization_trades (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    trade_id uuid NOT NULL REFERENCES public.trades(id) ON DELETE CASCADE,
+    is_primary boolean DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(organization_id, trade_id)
+);
+
+-- RLS for organization_trades
+ALTER TABLE public.organization_trades ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "org_trades_select" ON public.organization_trades FOR SELECT
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "org_trades_insert" ON public.organization_trades FOR INSERT
+    WITH CHECK (organization_id = current_user_organization_id());
+
+CREATE POLICY "org_trades_update" ON public.organization_trades FOR UPDATE
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "org_trades_delete" ON public.organization_trades FOR DELETE
+    USING (organization_id = current_user_organization_id());
+
+-- Indexes for organization_trades
+CREATE INDEX IF NOT EXISTS idx_org_trades_org_id ON public.organization_trades(organization_id);
+CREATE INDEX IF NOT EXISTS idx_org_trades_trade_id ON public.organization_trades(trade_id);
+
+-- =============================================================================
+-- 1D. trade_outcome_assignments junction table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.trade_outcome_assignments (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    trade_id uuid NOT NULL REFERENCES public.trades(id) ON DELETE CASCADE,
+    outcome_id uuid NOT NULL REFERENCES public.project_outcomes(id) ON DELETE CASCADE,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(trade_id, outcome_id)
+);
+
+-- RLS for trade_outcome_assignments
+ALTER TABLE public.trade_outcome_assignments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "trade_outcome_select" ON public.trade_outcome_assignments FOR SELECT
+    USING (
+        EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                AND (trades.scope = 'system' OR trades.organization_id = current_user_organization_id()))
+    );
+
+CREATE POLICY "trade_outcome_insert" ON public.trade_outcome_assignments FOR INSERT
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                AND trades.organization_id = current_user_organization_id())
+        OR EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                   AND trades.scope = 'system')
+    );
+
+CREATE POLICY "trade_outcome_delete" ON public.trade_outcome_assignments FOR DELETE
+    USING (
+        EXISTS (SELECT 1 FROM public.trades WHERE trades.id = trade_outcome_assignments.trade_id
+                AND (trades.scope = 'system' OR trades.organization_id = current_user_organization_id()))
+    );
+
+-- Indexes for trade_outcome_assignments
+CREATE INDEX IF NOT EXISTS idx_trade_outcome_trade_id ON public.trade_outcome_assignments(trade_id);
+CREATE INDEX IF NOT EXISTS idx_trade_outcome_outcome_id ON public.trade_outcome_assignments(outcome_id);
+
+-- =============================================================================
+-- 1E. type_orders table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.type_orders (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    name text NOT NULL,
+    code text NOT NULL,
+    description text,
+    category text NOT NULL DEFAULT 'interior',
+    scope text NOT NULL DEFAULT 'system',
+    organization_id uuid REFERENCES public.organizations(id) ON DELETE CASCADE,
+    project_id uuid REFERENCES public.wo_projects(id) ON DELETE CASCADE,
+    parent_type_order_id uuid REFERENCES public.type_orders(id) ON DELETE SET NULL,
+    is_composite boolean DEFAULT false,
+    definition jsonb DEFAULT '{}',
+    is_active boolean NOT NULL DEFAULT true,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT type_orders_category_check CHECK (category IN ('interior', 'exterior', 'pre_construction', 'common')),
+    CONSTRAINT type_orders_scope_check CHECK (scope IN ('system', 'company', 'project')),
+    CONSTRAINT valid_system_type CHECK ((scope = 'system' AND organization_id IS NULL AND project_id IS NULL) OR scope <> 'system'),
+    CONSTRAINT valid_company_type CHECK ((scope = 'company' AND organization_id IS NOT NULL AND project_id IS NULL) OR scope <> 'company'),
+    CONSTRAINT valid_project_type CHECK ((scope = 'project' AND organization_id IS NOT NULL AND project_id IS NOT NULL) OR scope <> 'project')
+);
+
+-- Partial unique indexes for type_orders (cleaner than COALESCE with sentinel UUIDs)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_system
+    ON public.type_orders(code) WHERE scope = 'system';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_company
+    ON public.type_orders(code, organization_id) WHERE scope = 'company';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_type_orders_unique_project
+    ON public.type_orders(code, organization_id, project_id) WHERE scope = 'project';
+
+-- RLS for type_orders
+ALTER TABLE public.type_orders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "type_orders_select_system" ON public.type_orders FOR SELECT
+    USING (scope = 'system');
+
+CREATE POLICY "type_orders_select_company" ON public.type_orders FOR SELECT
+    USING (scope = 'company' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "type_orders_select_project" ON public.type_orders FOR SELECT
+    USING (scope = 'project' AND organization_id = current_user_organization_id());
+
+CREATE POLICY "type_orders_insert_company" ON public.type_orders FOR INSERT
+    WITH CHECK (
+        (scope = 'company' AND organization_id = current_user_organization_id())
+        OR (scope = 'project' AND organization_id = current_user_organization_id())
+    );
+
+CREATE POLICY "type_orders_update_company" ON public.type_orders FOR UPDATE
+    USING (
+        (scope = 'company' AND organization_id = current_user_organization_id())
+        OR (scope = 'project' AND organization_id = current_user_organization_id())
+    );
+
+CREATE POLICY "type_orders_delete_company" ON public.type_orders FOR DELETE
+    USING (
+        (scope = 'company' AND organization_id = current_user_organization_id())
+        OR (scope = 'project' AND organization_id = current_user_organization_id())
+    );
+
+-- Indexes for type_orders
+CREATE INDEX IF NOT EXISTS idx_type_orders_code ON public.type_orders(code);
+CREATE INDEX IF NOT EXISTS idx_type_orders_scope ON public.type_orders(scope);
+CREATE INDEX IF NOT EXISTS idx_type_orders_category ON public.type_orders(category);
+CREATE INDEX IF NOT EXISTS idx_type_orders_organization_id ON public.type_orders(organization_id);
+
+-- Updated_at trigger for type_orders
+DO $$ BEGIN
+    CREATE TRIGGER update_type_orders_updated_at
+        BEFORE UPDATE ON public.type_orders
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 1F. type_order_compositions junction table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.type_order_compositions (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    composite_type_order_id uuid NOT NULL REFERENCES public.type_orders(id) ON DELETE CASCADE,
+    component_type_order_id uuid NOT NULL REFERENCES public.type_orders(id) ON DELETE CASCADE,
+    quantity integer NOT NULL DEFAULT 1,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(composite_type_order_id, component_type_order_id)
+);
+
+-- RLS for type_order_compositions
+ALTER TABLE public.type_order_compositions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "type_order_comp_select" ON public.type_order_compositions FOR SELECT
+    USING (
+        EXISTS (SELECT 1 FROM public.type_orders WHERE type_orders.id = type_order_compositions.composite_type_order_id
+                AND (type_orders.scope = 'system' OR type_orders.organization_id = current_user_organization_id()))
+    );
+
+CREATE POLICY "type_order_comp_insert" ON public.type_order_compositions FOR INSERT
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM public.type_orders WHERE type_orders.id = type_order_compositions.composite_type_order_id
+                AND type_orders.organization_id = current_user_organization_id())
+    );
+
+CREATE POLICY "type_order_comp_delete" ON public.type_order_compositions FOR DELETE
+    USING (
+        EXISTS (SELECT 1 FROM public.type_orders WHERE type_orders.id = type_order_compositions.composite_type_order_id
+                AND type_orders.organization_id = current_user_organization_id())
+    );
+
+-- Indexes for type_order_compositions
+CREATE INDEX IF NOT EXISTS idx_type_order_comp_composite ON public.type_order_compositions(composite_type_order_id);
+CREATE INDEX IF NOT EXISTS idx_type_order_comp_component ON public.type_order_compositions(component_type_order_id);
+
+-- =============================================================================
+-- 1G. type_order_default_work_orders junction table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.type_order_default_work_orders (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    type_order_id uuid NOT NULL REFERENCES public.type_orders(id) ON DELETE CASCADE,
+    work_order_template_id uuid NOT NULL REFERENCES public.work_order_templates(id) ON DELETE CASCADE,
+    is_required boolean DEFAULT true,
+    display_order integer DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE(type_order_id, work_order_template_id)
+);
+
+-- RLS for type_order_default_work_orders
+ALTER TABLE public.type_order_default_work_orders ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "type_order_dwo_select" ON public.type_order_default_work_orders FOR SELECT
+    USING (
+        EXISTS (SELECT 1 FROM public.type_orders WHERE type_orders.id = type_order_default_work_orders.type_order_id
+                AND (type_orders.scope = 'system' OR type_orders.organization_id = current_user_organization_id()))
+    );
+
+CREATE POLICY "type_order_dwo_insert" ON public.type_order_default_work_orders FOR INSERT
+    WITH CHECK (
+        EXISTS (SELECT 1 FROM public.type_orders WHERE type_orders.id = type_order_default_work_orders.type_order_id
+                AND type_orders.organization_id = current_user_organization_id())
+    );
+
+CREATE POLICY "type_order_dwo_delete" ON public.type_order_default_work_orders FOR DELETE
+    USING (
+        EXISTS (SELECT 1 FROM public.type_orders WHERE type_orders.id = type_order_default_work_orders.type_order_id
+                AND type_orders.organization_id = current_user_organization_id())
+    );
+
+-- Indexes for type_order_default_work_orders
+CREATE INDEX IF NOT EXISTS idx_type_order_dwo_type_order ON public.type_order_default_work_orders(type_order_id);
+CREATE INDEX IF NOT EXISTS idx_type_order_dwo_template ON public.type_order_default_work_orders(work_order_template_id);
+
+-- =============================================================================
+-- 1H. bom_action_requests table (NEW)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.bom_action_requests (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    project_id uuid NOT NULL REFERENCES public.wo_projects(id) ON DELETE CASCADE,
+    unit_id uuid REFERENCES public.units(id) ON DELETE SET NULL,
+    document_id uuid,
+    action_description text NOT NULL,
+    bom_reference text,
+    matched_template_id uuid REFERENCES public.work_order_templates(id) ON DELETE SET NULL,
+    matched_sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+    match_confidence numeric(3,2),
+    match_method text DEFAULT 'pending',
+    status text NOT NULL DEFAULT 'pending',
+    metadata jsonb DEFAULT '{}',
+    organization_id uuid NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    CONSTRAINT bom_status_check CHECK (status IN ('pending', 'matched', 'rejected', 'applied')),
+    CONSTRAINT bom_method_check CHECK (match_method IN ('pending', 'auto', 'manual', 'ai_suggested'))
+);
+
+-- RLS for bom_action_requests
+ALTER TABLE public.bom_action_requests ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "bom_requests_select" ON public.bom_action_requests FOR SELECT
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "bom_requests_insert" ON public.bom_action_requests FOR INSERT
+    WITH CHECK (organization_id = current_user_organization_id());
+
+CREATE POLICY "bom_requests_update" ON public.bom_action_requests FOR UPDATE
+    USING (organization_id = current_user_organization_id());
+
+CREATE POLICY "bom_requests_delete" ON public.bom_action_requests FOR DELETE
+    USING (organization_id = current_user_organization_id());
+
+-- Indexes for bom_action_requests
+CREATE INDEX IF NOT EXISTS idx_bom_requests_project_id ON public.bom_action_requests(project_id);
+CREATE INDEX IF NOT EXISTS idx_bom_requests_unit_id ON public.bom_action_requests(unit_id);
+CREATE INDEX IF NOT EXISTS idx_bom_requests_status ON public.bom_action_requests(status);
+CREATE INDEX IF NOT EXISTS idx_bom_requests_org_id ON public.bom_action_requests(organization_id);
+CREATE INDEX IF NOT EXISTS idx_bom_requests_matched_template ON public.bom_action_requests(matched_template_id);
+
+-- Updated_at trigger for bom_action_requests
+DO $$ BEGIN
+    CREATE TRIGGER update_bom_action_requests_updated_at
+        BEFORE UPDATE ON public.bom_action_requests
+        FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- =============================================================================
+-- 1I. ALTER work_order_templates — add new columns
+-- =============================================================================
+ALTER TABLE public.work_order_templates
+    ADD COLUMN IF NOT EXISTS trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS sop_id uuid REFERENCES public.sops(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS outcome_id uuid REFERENCES public.project_outcomes(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS inheritance_depth integer DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS source_template_id uuid REFERENCES public.work_order_templates(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1J. ALTER work_orders — add new columns
+-- =============================================================================
+ALTER TABLE public.work_orders
+    ADD COLUMN IF NOT EXISTS trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS bom_action_request_id uuid REFERENCES public.bom_action_requests(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS type_order_id uuid REFERENCES public.type_orders(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1K. ALTER sops — add new columns
+-- =============================================================================
+ALTER TABLE public.sops
+    ADD COLUMN IF NOT EXISTS trade_id uuid REFERENCES public.trades(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS scope text DEFAULT 'system',
+    ADD COLUMN IF NOT EXISTS outcome_id uuid REFERENCES public.project_outcomes(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1L. ALTER units — add type_order_id
+-- =============================================================================
+ALTER TABLE public.units
+    ADD COLUMN IF NOT EXISTS type_order_id uuid REFERENCES public.type_orders(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1M. ALTER wo_projects — add outcome_id
+-- =============================================================================
+ALTER TABLE public.wo_projects
+    ADD COLUMN IF NOT EXISTS outcome_id uuid REFERENCES public.project_outcomes(id) ON DELETE SET NULL;
+
+-- =============================================================================
+-- 1N. Scope rename: 'app' -> 'system'
+-- =============================================================================
+
+-- Step 1: Drop ALL scope-related constraints FIRST (before updating data)
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS work_order_templates_scope_check;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_app_scope;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_system_scope;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_company_scope;
+ALTER TABLE public.work_order_templates DROP CONSTRAINT IF EXISTS valid_project_scope;
+
+-- Step 2: Update data
+UPDATE public.work_order_templates SET scope = 'system' WHERE scope = 'app';
+
+-- Step 3: Re-add constraints with new scope values
+ALTER TABLE public.work_order_templates ADD CONSTRAINT work_order_templates_scope_check
+    CHECK (scope IN ('system', 'company', 'project'));
+ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_system_scope
+    CHECK ((scope = 'system' AND organization_id IS NULL AND project_id IS NULL) OR scope <> 'system');
+ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_company_scope
+    CHECK ((scope = 'company' AND organization_id IS NOT NULL AND project_id IS NULL) OR scope <> 'company');
+ALTER TABLE public.work_order_templates ADD CONSTRAINT valid_project_scope
+    CHECK ((scope = 'project' AND organization_id IS NOT NULL AND project_id IS NOT NULL) OR scope <> 'project');
+
+-- Same for template_libraries
+ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS template_libraries_scope_check;
+ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_app_library;
+ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_system_library;
+ALTER TABLE public.template_libraries DROP CONSTRAINT IF EXISTS valid_company_library;
+
+UPDATE public.template_libraries SET scope = 'system' WHERE scope = 'app';
+
+ALTER TABLE public.template_libraries ADD CONSTRAINT template_libraries_scope_check
+    CHECK (scope IN ('system', 'company'));
+ALTER TABLE public.template_libraries ADD CONSTRAINT valid_system_library
+    CHECK ((scope = 'system' AND organization_id IS NULL) OR scope <> 'system');
+ALTER TABLE public.template_libraries ADD CONSTRAINT valid_company_library
+    CHECK ((scope = 'company' AND organization_id IS NOT NULL) OR scope <> 'company');
+
+-- 1O. Trade name sync trigger
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.sync_trade_name()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.trade_id IS NOT NULL AND (TG_OP = 'INSERT' OR OLD.trade_id IS DISTINCT FROM NEW.trade_id) THEN
+        SELECT name INTO NEW.trade_name FROM public.trades WHERE id = NEW.trade_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_trade_name_templates ON public.work_order_templates;
+CREATE TRIGGER trg_sync_trade_name_templates
+    BEFORE INSERT OR UPDATE OF trade_id ON public.work_order_templates
+    FOR EACH ROW EXECUTE FUNCTION public.sync_trade_name();
+
+DROP TRIGGER IF EXISTS trg_sync_trade_name_work_orders ON public.work_orders;
+CREATE TRIGGER trg_sync_trade_name_work_orders
+    BEFORE INSERT OR UPDATE OF trade_id ON public.work_orders
+    FOR EACH ROW EXECUTE FUNCTION public.sync_trade_name();
+
+-- Trade name + code sync trigger for sops
+CREATE OR REPLACE FUNCTION public.sync_trade_name_and_code()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.trade_id IS NOT NULL AND (TG_OP = 'INSERT' OR OLD.trade_id IS DISTINCT FROM NEW.trade_id) THEN
+        SELECT name, code INTO NEW.trade_name, NEW.trade_code FROM public.trades WHERE id = NEW.trade_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_trade_name_code_sops ON public.sops;
+CREATE TRIGGER trg_sync_trade_name_code_sops
+    BEFORE INSERT OR UPDATE OF trade_id ON public.sops
+    FOR EACH ROW EXECUTE FUNCTION public.sync_trade_name_and_code();
+
+-- =============================================================================
+-- 1P. Updated_at triggers for all new tables (already created above inline)
+-- Trades, project_outcomes, type_orders, bom_action_requests triggers
+-- were created in their respective sections above.
+-- =============================================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

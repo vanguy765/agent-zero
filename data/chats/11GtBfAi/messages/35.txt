@@ -1,0 +1,48 @@
+=== API routes referencing timesheet/work_log/voice ===
+apps/api/src/index.ts:18:import { voiceRoute } from './routes/voice';
+apps/api/src/index.ts:45:app.route('/voice', voiceRoute);
+apps/api/src/index.ts:73:    title: 'Construction Voice Platform API',
+apps/api/src/routes/voice.ts:7:// REFERENCE IMPLEMENTATION: VOICE PROCESSING
+apps/api/src/routes/voice.ts:15:export const voiceRoute = new OpenAPIHono();
+apps/api/src/routes/voice.ts:21:voiceRoute.post('/', async (c) => {
+apps/api/src/routes/voice.ts:22:    console.log('[Voice] Received Request');
+apps/api/src/routes/voice.ts:35:    console.log(`[Voice] Processing Audio: ${audioFile.size} bytes`);
+apps/api/src/routes/voice.ts:42:    const extractedTask = `Voice Entry at ${new Date().toLocaleTimeString()}`;
+apps/api/src/routes/voice.ts:43:    console.log('[Voice] AI Extracted:', extractedTask);
+apps/api/src/routes/voice.ts:53:        console.error('[Voice] No users found to assign task to.');
+apps/api/src/routes/voice.ts:54:        return c.json({ message: "Voice processed but no users found." });
+apps/api/src/routes/voice.ts:68:        console.error('[Voice] DB Error:', insertError);
+apps/api/src/routes/voice.ts:72:    console.log(`[Voice] Broadcasted task to ${tasksToInsert.length} users.`);
+apps/api/src/routes/voice.ts:76:        message: `Voice processed and broadcasted to ${tasksToInsert.length} users`,
+apps/api/src/services/a2a/agentCard.ts:5:    name: 'VoiceLog Construction Agent',
+apps/api/src/services/a2a/agentCard.ts:11:        organization: 'VoiceLog',
+apps/api/src/services/placeholderGenerator.ts:309:  | 'ai_assisted'        // AI parsed/generated from text or voice
+apps/api/src/services/placeholderGenerator.ts:319:  raw_input?: string;       // Original user text/voice transcript
+
+=== Migrations referencing timesheet ===
+supabase/migrations/20260310000001_sop_wo_bridge.sql
+
+=== work_order_step_progress migration content ===
+grep: supabase/migrations/: Is a directory
+
+=== API route files ===
+apps/api/src/routes/a2a.ts
+apps/api/src/routes/bom-action-requests.ts
+apps/api/src/routes/delivery.ts
+apps/api/src/routes/doc-parser-routes.ts
+apps/api/src/routes/documents.ts
+apps/api/src/routes/entity-creation.ts
+apps/api/src/routes/materials.ts
+apps/api/src/routes/onboard.ts
+apps/api/src/routes/project-definitions.ts
+apps/api/src/routes/project-outcomes.ts
+apps/api/src/routes/reviews.ts
+apps/api/src/routes/taxonomy.ts
+apps/api/src/routes/todos.ts
+apps/api/src/routes/trades.ts
+apps/api/src/routes/type-orders.ts
+apps/api/src/routes/units.ts
+apps/api/src/routes/voice.ts
+apps/api/src/routes/work-orders.ts
+apps/api/src/services/a2a/skillRouter.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

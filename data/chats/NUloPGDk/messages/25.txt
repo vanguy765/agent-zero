@@ -1,0 +1,84 @@
+--- REF Doc Parser ---
+  doc_id:     REF-PNT-001
+  trade_code: PNT
+  trade_name: Painting
+  revision:   1.1
+  file_hash:  420f112cd0e2061b31f264e24768066f
+  content_md: 4877 chars
+  ✅ REF doc parsed successfully
+
+--- PLB SOP: Scope Dependencies ---
+Dependencies found: 3
+  -> PLB-SOP-010: None
+  -> PLB-SOP-005: None
+  -> PLB-SOP-006: None
+
+--- ELC SOP: Scope Dependencies ---
+Dependencies found: 6
+  -> ELC-SOP-005: New Branch Circuit Installation
+  -> ELC-SOP-010: Panel & Breaker Service
+  -> ELC-SOP-015: Legacy Wiring Remediation
+  -> ELC-SOP-020: Dedicated Appliance Circuit
+  -> ELC-SOP-025: Smart Device Installation
+  -> ELC-SOP-030: Exterior Receptacle Installation
+
+--- PNT Trim SOP: parse_to_sections_and_steps ---
+Sections: 16
+  § 1 [purpose         ] Purpose
+  § 2 [scope           ] Scope
+  § 3 [references      ] References & Codes [REF]
+  § 4 [personnel       ] Personnel & Qualifications [REF]
+  § 5 [safety          ] Safety Requirements
+  § 6 [tools           ] Tools & Equipment
+  § 7 [pre_work        ] Pre-Work Assessment
+  § 8 [procedure       ] Procedure — Preparation (phase: Preparation)
+  § 9 [procedure       ] Procedure — Priming (phase: Priming)
+  §10 [procedure       ] Procedure — Painting (phase: Painting)
+  §11 [videos          ] Recommended Videos
+  §12 [testing         ] Testing & Commissioning
+  §13 [cleanup         ] Cleanup & Closeout [REF]
+  §14 [troubleshooting ] Troubleshooting
+  §15 [quality         ] Quality Standards
+  §16 [revision_history] Revision History
+Steps: 15
+  Phase 1, Step 1: Clear & Protect Work Area
+  Phase 1, Step 2: Clean Trim Surfaces
+  Phase 1, Step 3: Patch Nail Holes & Defects
+  Phase 1, Step 4: Sand & Feather
+  Phase 1, Step 5: Caulk Gaps
+  Phase 1, Step 6: Mask Adjacent Surfaces
+  Phase 2, Step 1: Select & Mix Primer
+  Phase 2, Step 2: Apply Primer to Trim
+  Phase 2, Step 3: Dry, Inspect & Light Sand
+  Phase 3, Step 1: Select & Mix Trim Paint
+  Phase 3, Step 2: Apply First Coat
+  Phase 3, Step 3: Dry & Inspect First Coat
+  Phase 3, Step 4: Sand Between Coats
+  Phase 3, Step 5: Apply Second Coat
+  Phase 3, Step 6: Remove Tape Before Full Cure
+
+Trim Dependencies: 4
+  -> PNT-SOP-001: Interior Wall Painting
+  -> PNT-SOP-002: Exterior Siding Painting
+  -> PNT-SOP-003: Cabinet Repainting
+  -> CRP-SOP-001: Interior Door Replacement
+
+--- PLB SOP: parse_to_sections_and_steps ---
+Sections: 15
+  § 1 [purpose         ] Purpose
+  § 2 [scope           ] Scope
+  § 3 [references      ] References & Codes
+  § 4 [personnel       ] Personnel & Qualifications
+  § 5 [safety          ] Safety Requirements
+  § 6 [tools           ] Tools & Equipment
+  § 7 [purpose         ] Pre-Installation
+  § 8 [procedure       ] Procedure — Removal of Existing Sink (phase: Removal of Existing Sink)
+  § 9 [procedure       ] Procedure — Installation of New Sink (phase: Installation of New Sink)
+  §10 [videos          ] Recommended Videos
+  §11 [testing         ] Testing & Commissioning
+  §12 [cleanup         ] Cleanup & Closeout
+  §13 [troubleshooting ] Troubleshooting
+  §14 [quality         ] Quality Standards
+  §15 [revision_history] Revision History
+Steps: 10
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,130 @@
+=== packages/schemas ===
+packages/schemas/src/delivery.ts
+packages/schemas/src/index.ts
+packages/schemas/src/materials.ts
+packages/schemas/src/renovation.ts
+packages/schemas/src/taxonomy.ts
+packages/schemas/src/test_materials.ts
+packages/schemas/src/todo.ts
+packages/schemas/src/work-orders.ts
+packages/schemas/src/zod.ts
+
+=== Schema types (timesheet/work related) ===
+
+=== earned_value_and_stages.md ===
+# Earned Value & Granular Activity Tracking
+
+You asked how to track multi-stage activities (Filling -> Sanding -> Priming -> Painting) when the original scope just says "Paint", and how to handle estimated hours.
+
+## 1. The Strategy: Milestones, Not Rows
+
+**Problem**: Creating 5 separate database rows for "Paint Unit 101 Walls" (one for each coat/step) creates 5x the data entry work for the user.
+**Solution**: Use **Weighted Milestones** on a single Item.
+
+### Implementation in Taxonomy
+We added `milestones` and `labor_factor` to `contractor_taxonomy.json`:
+
+```json
+{
+  "name": "walls",
+  "measure": "area_sqft",
+  "default": 350,
+  "labor_factor": 0.02, // Hours per sqft
+  "milestones": ["Prep (20%)", "Prime (30%)", "Coat 1 (70%)", "Coat 2 (100%)"]
+}
+```
+
+*   **`labor_factor`**: The default multiplier. 350 sqft * 0.02 = **7.0 Hours Estimated**.
+*   **`milestones`**: Defines the "Percent Complete" checkpoints.
+
+## 2. Calculating Earned Value (EV)
+
+When an employee logs time or updates status, they select a Milestone.
+
+### Scenario:
+*   **Scope**: Paint Bedroom Walls (350 sqft).
+*   **Budget**: 7.0 Hours ($350 labor cost).
+*   **Status Update**: Employee marks "Prime (30%)" as done.
+
+**Calculations**:
+1.  **Earned Value (EV)**: 30% of Budget = **2.1 Hours** earned.
+2.  **Actual Cost (AC)**: Employee logged 3.0 Hours to get to this stage.
+3.  **Variance**: 2.1 (Earned) - 3.0 (Actual) = **-0.9 Hours** (Behind efficiency).
+
+## 3. Handling Overrides
+
+The JSONB flexibility allows you to override these defaults per Unit or per Floorplan.
+
+### Example: "Bad Condition" Walls
+Unit 105 has water damage, so it needs more prep active.
+
+**JSON Override**:
+```json
+"specific_overrides": {
+  "walls": {
+    "labor_factor": 0.04, // Double the hours (14 hours total)
+    "milestones": ["Heavy Patch (10%)", "Skim Coat (30%)", "Prime (50%)", "Finish (100%)"]
+  }
+}
+```
+*   **Impact**: Ideally, the Agent parses "The walls in 105 are rough, need skimming" and applies this override automatically. Now your logic for Unit 105 is accurate to the reality of that unit.
+
+## 4. User Interface Recommendation
+
+Don't make the user type "Filling". Give them a **Progress Slider** or a **Stepper** in the app.
+
+*   [ ] Prep
+*   [ ] Prime
+*   [x] 1st Coat  <-- User taps here
+*   [ ] Finish
+
+Tapping "1st Coat" automatically sets the BOM item `percent_complete` to 70%.
+
+## 5. Advanced Milestones (Hours & Days)
+
+You asked if milestones can be defined by **Hours** or **Days** directly. Yes, the JSONB structure supports complex objects for milestones.
+
+### Absolute Duration Milestones
+Instead of a simple string array, milestone definitions can be objects:
+
+```json
+"milestones_complex": [
+  { "name": "Cure Stage 1", "duration_days": 2, "labor_hours": 0.5 },
+  { "name": "Cure Stage 2", "duration_days": 2, "labor_hours": 0.5 },
+  { "name": "Final Seal", "duration_days": 1, "labor_hours": 2.0 }
+]
+```
+
+### Impact on Calculation
+If you use this structure, your EV calculation changes from **% of Total** to **Sum of Completed Steps**.
+
+1.  **Total Budget**: 0.5 + 0.5 + 2.0 = **3.0 Hours** Labor.
+2.  **Total Schedule**: 2 + 2 + 1 = **5 Days**.
+3.  **Status**: User marks "Cure Stage 1" Complete.
+    *   **EV (Labor)**: 0.5 Hours (16%).
+    *   **Schedule Progress**: 2 Days (40%).
+
+This allows you to track "Time Efficiency" (Labor) separately from "Schedule Efficiency" (Days), which is critical for curing/drying processes where no one is working, but the project is "busy".
+
+=== apps list ===
+apps/api/	      apps/site-companion/  apps/web-dashboard/
+apps/material-admin/  apps/tenant-portal/   apps/work-orders/
+
+=== work-orders app pages ===
+apps/work-orders/src/pages/CompanyTemplates.tsx
+apps/work-orders/src/pages/Dashboard.tsx
+apps/work-orders/src/pages/LoginPage.tsx
+apps/work-orders/src/pages/NewProject.tsx
+apps/work-orders/src/pages/ProjectDetail.tsx
+apps/work-orders/src/pages/ProjectDocuments.tsx
+apps/work-orders/src/pages/ProjectOutcomes.tsx
+apps/work-orders/src/pages/Projects.tsx
+apps/work-orders/src/pages/ProjectTemplates.tsx
+apps/work-orders/src/pages/TemplateDetail.tsx
+apps/work-orders/src/pages/TemplateEditor.tsx
+apps/work-orders/src/pages/Templates.tsx
+apps/work-orders/src/pages/Trades.tsx
+apps/work-orders/src/pages/TypeOrders.tsx
+apps/work-orders/src/pages/Units.tsx
+apps/work-orders/src/pages/WorkOrderDetail.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

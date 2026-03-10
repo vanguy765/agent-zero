@@ -1,0 +1,244 @@
+=== PNT Trim SOP (first 80 lines) ===
+# Standard Operating Procedure
+## Painting — Trim & Baseboard Painting
+
+| Field | Detail |
+|---|---|
+| **SOP Number** | PNT-SOP-004 |
+| **Trade** | Painting |
+| **Task** | Interior trim and baseboard painting — surface prep, prime, and 2-coat brush finish |
+| **Revision** | 1.0 |
+| **Effective Date** | 2026-03-08 |
+| **Approved By** | DRAFT |
+| **Estimated Duration** | 2–4 hrs per room (varies by linear footage and condition) |
+
+---
+
+## 1. Purpose
+
+This SOP defines the standard procedure for preparing, priming, and painting interior trim and baseboard surfaces including door casings, window casings, baseboards, and crown molding. It ensures a clean, durable, and professional finish consistent with industry quality standards.
+
+---
+
+## 2. Scope
+
+This SOP covers:
+- Interior baseboards, door casings, window casings, and crown molding
+- Priming bare wood, MDF, or previously painted trim in poor condition
+- Application of 2-coat semi-gloss or gloss brush finish on trim surfaces
+
+This SOP does **not** cover:
+- Interior wall painting (see PNT-SOP-001: Interior Wall Painting)
+- Exterior trim or fascia painting (see PNT-SOP-002: Exterior Siding Painting)
+- Cabinet face or door painting (see PNT-SOP-003: Cabinet Repainting)
+- Full trim removal and reinstallation (see CRP-SOP-001: Interior Door Replacement)
+- Wood staining or clear coat finish — this SOP covers opaque paint only
+
+---
+
+## 3. References & Codes
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Painting Trade: Codes & Standards Reference.
+
+> ⚠️ **Code Check:** Trim and windows in pre-1978 homes are among the highest-risk surfaces for lead paint. Test before sanding. Follow EPA RRP (40 CFR Part 745) protocol strictly.
+
+---
+
+## 4. Personnel & Qualifications
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 4: Personnel & Qualifications.
+
+**SOP-specific note:** Painter's Helper may prep and mask but may not sand independently on pre-1978 surfaces.
+
+---
+
+## 5. Safety Requirements
+
+### 5.1 Personal Protective Equipment (PPE)
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 5: Standard PPE.
+
+**SOP-specific note:** Knee pads are essential (not optional) for all baseboard work.
+
+### 5.2 Hazard Awareness
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 6: Common Hazard Awareness.
+
+**Additional hazards for this SOP:**
+
+| Hazard | Mitigation |
+|---|---|
+| Prolonged kneeling (baseboard work) | Use knee pads; take breaks; alternate kneeling and squatting |
+
+### 5.3 Pre-Work Safety Checklist
+
+- [ ] Lead paint test completed on any trim surface to be sanded in a pre-1978 structure
+- [ ] Ventilation confirmed: windows open or fan exhausting to exterior
+- [ ] Knee pads available for baseboard work
+- [ ] Ladder inspected — rated for user weight, non-slip feet, all locks engaged
+- [ ] SDS sheets reviewed for all products and accessible on site
+- [ ] Drop cloths placed under all work areas to catch drips
+
+\n=== PLB SOP (first 80 lines) ===
+# Standard Operating Procedure
+## Plumbing — Sink Replacement
+
+| Field | Detail |
+|---|---|
+| **SOP Number** | PLB-SOP-001 |
+| **Trade** | Plumbing |
+| **Task** | Remove & Replace Sink (Kitchen / Bathroom / Utility) |
+| **Revision** | 1.0 |
+| **Effective Date** | 2026-02-26 |
+| **Approved By** | _________________________ |
+| **Estimated Duration** | 2 – 4 hours (varies by scope) |
+
+---
+
+## 1. Purpose
+
+This procedure defines the safe, code-compliant steps for removing an existing sink and installing a replacement sink, including all associated supply lines, drain connections, and fixtures. It applies to kitchen, bathroom, and utility sinks in residential and light-commercial settings.
+
+---
+
+## 2. Scope
+
+This SOP covers:
+- Disconnection and removal of the existing sink, faucet, and drain assembly
+- Preparation of the countertop or mounting surface
+- Installation of the new sink, faucet, supply lines, and drain assembly
+- Leak testing and final inspection
+
+This SOP does **not** cover:
+- Countertop fabrication or modification beyond standard sink cutout adjustments
+- Relocation of supply or drain rough-in (see SOP PLB-SOP-010)
+- Garbage disposal installation (see SOP PLB-SOP-005)
+- Dishwasher connection (see SOP PLB-SOP-006)
+
+---
+
+## 3. References & Codes
+
+- International Plumbing Code (IPC) — current edition
+- Uniform Plumbing Code (UPC) — current edition (where applicable)
+- Local jurisdiction amendments
+- Manufacturer installation instructions for specific sink and faucet models
+- OSHA 29 CFR 1926 — Construction Industry Standards
+
+---
+
+## 4. Personnel & Qualifications
+
+| Role | Requirement |
+|---|---|
+| Lead Plumber | Licensed journeyman plumber or equivalent |
+| Apprentice (if assisting) | Enrolled apprentice under direct supervision |
+| Inspector (if required) | Local AHJ plumbing inspector for final sign-off |
+
+---
+
+## 5. Safety Requirements
+
+### 5.1 Personal Protective Equipment (PPE)
+- Safety glasses / goggles
+- Work gloves (cut-resistant recommended)
+- Knee pads (for under-cabinet work)
+- Steel-toe boots
+- Dust mask (if cutting or grinding)
+
+### 5.2 Hazard Awareness
+| Hazard | Mitigation |
+|---|---|
+| Water damage | Shut off supply valves; have towels/bucket ready |
+| Sharp edges | Wear cut-resistant gloves; deburr all cut pipe |
+| Mold / mildew exposure | Wear N95 mask if mold is present; report to supervisor |
+| Electrical proximity | Verify no live wiring near work area; use GFCI-protected circuits |
+| Back strain | Use proper lifting technique; get assistance for heavy sinks (cast iron, stone) |
+| Lead solder (older homes) | Test if pre-1986 plumbing; follow lead-safe work practices if positive |
+
+### 5.3 Pre-Work Safety Checklist
+- [ ] Water supply shut off and verified (both hot and cold)
+- [ ] Work area cleared and protected (drop cloths, floor protection)
+- [ ] Electrical circuits near sink area identified
+\n=== ELC SOP (first 80 lines) ===
+# Standard Operating Procedure
+## Electrical — Outlet Replacement
+
+| Field | Detail |
+|---|---|
+| **SOP Number** | ELC-SOP-001 |
+| **Trade** | Electrical |
+| **Task** | Remove & Replace Electrical Outlet (Receptacle) — 120V/240V Residential & Light-Commercial |
+| **Revision** | 1.0 |
+| **Effective Date** | 2026-02-28 |
+| **Approved By** | _________________________ |
+| **Estimated Duration** | 30 min – 2 hours (varies by scope and circuit complexity) |
+
+---
+
+## 1. Purpose
+
+This procedure defines the safe, code-compliant steps for removing an existing electrical outlet (receptacle) and installing a replacement. It covers standard duplex receptacles, GFCI receptacles, USB-equipped receptacles, and 240V receptacles in residential and light-commercial settings.
+
+---
+
+## 2. Scope
+
+This SOP covers:
+- De-energizing the circuit and verifying zero-energy state
+- Removal of the existing receptacle, cover plate, and wiring connections
+- Installation of the replacement receptacle with proper wiring terminations
+- Testing for correct wiring, grounding, and GFCI protection
+- Cover plate installation and final commissioning
+
+This SOP does **not** cover:
+- New circuit installation or home run wiring (see ELC-SOP-005: New Branch Circuit Installation)
+- Electrical panel upgrades or breaker replacement (see ELC-SOP-010: Panel & Breaker Service)
+- Whole-room rewiring or knob-and-tube replacement (see ELC-SOP-015: Legacy Wiring Remediation)
+- Dedicated 240V circuit installation for appliances (see ELC-SOP-020: Dedicated Appliance Circuit)
+- Smart outlet / home automation integration (see ELC-SOP-025: Smart Device Installation)
+- Outdoor / wet-location receptacle installation requiring new weatherproof boxes (see ELC-SOP-030: Exterior Receptacle Installation)
+
+---
+
+## 3. References & Codes
+
+- National Electrical Code (NEC / NFPA 70) — current edition
+- Local jurisdiction amendments and permit requirements
+- Manufacturer installation instructions for specific receptacle models
+- OSHA 29 CFR 1926 Subpart K — Electrical (Construction)
+- OSHA 29 CFR 1910 Subpart S — Electrical (General Industry)
+- NFPA 70E — Standard for Electrical Safety in the Workplace
+
+---
+
+## 4. Personnel & Qualifications
+
+| Role | Requirement |
+|---|---|
+| Lead Electrician | Licensed journeyman electrician or equivalent per jurisdiction |
+| Apprentice (if assisting) | Enrolled electrical apprentice under direct supervision |
+| Inspector (if required) | Local AHJ electrical inspector for final sign-off |
+
+---
+
+## 5. Safety Requirements
+
+### 5.1 Personal Protective Equipment (PPE)
+- Safety glasses / goggles
+- Insulated electrical gloves (rated for voltage class — minimum Class 00 for 120V)
+- Leather protector gloves over insulated gloves
+- Non-conductive / dielectric footwear
+- Arc-rated clothing (if panel work required — minimum 8 cal/cm²)
+- Hearing protection (if using power tools)
+
+### 5.2 Hazard Awareness
+| Hazard | Mitigation |
+|---|---|
+| Electrical shock (120V/240V) | LOTO procedure; verify zero-energy with rated tester; never trust a single test |
+| Arc flash | Wear arc-rated PPE; maintain safe approach boundaries per NFPA 70E |
+| Fire risk | Verify wire gauge matches breaker rating; ensure tight connections; no backstab on 20A circuits |
+| Damaged / deteriorated wiring | Inspect all visible wiring; report and remediate before proceeding |
+| Asbestos (older homes) | If suspected in wall material, stop work and report; do not disturb |
+| Aluminum wiring (pre-1976 homes) | Identify by color (silver vs. copper); use CO/ALR rated devices only; apply anti-oxidant compound |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

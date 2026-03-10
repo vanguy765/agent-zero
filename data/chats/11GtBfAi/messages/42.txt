@@ -1,0 +1,96 @@
+=== Files ===
+-rw-r--r-- 1 root root 31841 Mar 10 04:56 TIMESHEET_IMPLEMENTATION_PROMPT.md
+-rw-r--r-- 1 root root 24943 Mar 10 04:58 TIMESHEET_WORKFLOW.md
+
+=== IMPLEMENTATION PROMPT — Table of Contents ===
+# Timesheet System — Full Implementation Prompt
+## Executive Summary
+### What Gets Built
+## Context: What Already Exists
+### Database Tables (DO NOT MODIFY structure — only read from these)
+#### `site_items` — The BOM
+#### `work_orders` — Scoped work assignments
+#### `work_order_step_progress` — Step-level tracking (feeds timesheet app)
+#### `sop_steps` — Procedure steps with estimated durations
+#### `units` — Workable spaces
+### Existing API Patterns
+### Existing Step Progress API Endpoints (DO NOT MODIFY)
+### Existing Voice UI (TO BE UPGRADED)
+### Existing Frontend Patterns (site-companion)
+### RLS Helper Functions (already exist)
+### Existing Schemas Package
+## Implementation Plan
+### Conversation 1: Database Migration
+#### 1A. Create `timesheets` table
+#### 1B. Create `work_logs` table
+#### 1C. Auto-sum trigger for timesheet total_hours
+#### 1D. Auto-update site_items status from work_logs
+#### 1E. Aggregation views
+#### 1F. RLS Policies
+#### 1G. Updated_at triggers
+### Conversation 2: TypeScript Types
+### Conversation 3: API Routes — Timesheet CRUD
+#### 3A. GET /timesheets
+#### 3B. GET /timesheets/:id
+#### 3C. POST /timesheets
+#### 3D. POST /timesheets/:id/logs
+#### 3E. PATCH /timesheets/:id/submit
+#### 3F. PATCH /timesheets/:id/approve
+#### 3G. GET /timesheets/context/tasks
+#### Register route in `apps/api/src/index.ts`:
+### Conversation 4: Voice Pipeline Upgrade
+#### 4A. Audio Transcription
+#### 4B. LLM Extraction (Context Injection)
+#### 4C. Updated Voice Route Flow
+### Conversation 5: Frontend — Timesheet Pages
+#### 5A. New Files
+#### 5B. Route Registration
+#### 5C. TimesheetList Page
+#### 5D. TimesheetDetail Page
+#### 5E. TimesheetEntry Page (Manual)
+#### 5F. VoiceTimesheet Page (Upgraded Voice)
+### Conversation 6: Reporting Views (Optional Enhancement)
+#### 6A. GET /timesheets/reports/daily-summary
+#### 6B. GET /timesheets/reports/labor-variance
+#### 6C. GET /timesheets/reports/step-duration
+## Verification Checklist
+### V1. Database
+### V2. API
+### V3. Frontend
+### V4. Integration
+## File Summary
+
+=== WORKFLOW — Table of Contents ===
+# Timesheet System — Workflow & User Guide
+## 1. System Overview
+### Architecture
+### Key Concepts
+## 2. User Roles & Capabilities
+### 🔨 Field Worker
+#### What they can do after implementation:
+#### Voice Entry Workflow (Step by Step)
+#### Manual Entry Workflow
+### 👷 Supervisor / Project Manager
+#### What they can do after implementation:
+#### Approval Workflow
+### 🏗️ System Administrator
+#### What they can do after implementation:
+## 3. Data Flow: End-to-End
+### Scenario: Worker logs voice entry, supervisor approves
+## 4. Reporting Capabilities
+### 4.1 Daily Summary Report
+### 4.2 Labor Variance Report
+### 4.3 Step Duration Report
+## 5. Integration Points
+### 5.1 Work Order Step Progress → Timesheets
+### 5.2 BOM Status Auto-Update
+### 5.3 Earned Value Calculation
+### 5.4 Future: Payroll Export
+## 6. API Endpoint Reference
+## 7. Database Schema (New Tables)
+### `timesheets`
+### `work_logs`
+## 8. Frontend Pages (New)
+## 9. Security & Access Control
+## 10. Glossary
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders#

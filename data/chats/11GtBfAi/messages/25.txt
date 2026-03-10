@@ -1,0 +1,28 @@
+======================================================================
+5C END-TO-END VERIFICATION (continued)
+======================================================================
+
+✅ CHECK 4: Template → SOP resolution with sections and steps
+  Template: system / Electrical (id=30000000...)
+  sop_id: a9796f8f...
+  SOP: ELC-SOP-001 — Remove & Replace Electrical Outlet (Receptacle) — 120V/240V Residential & Light-Commercial
+  Sections: 15
+  Steps: 10
+    Phase 1, Step 1: Isolate & Verify Zero Energy
+    Phase 1, Step 2: Remove Cover & Device
+    Phase 1, Step 3: Document & Disconnect Wiring
+    Phase 1, Step 4: Inspect Box & Wiring
+    Phase 1, Step 5: Prepare for Installation
+    Phase 2, Step 1: Prepare & Wire the Receptacle
+    Phase 2, Step 2: Secure Device in Box
+    Phase 2, Step 3: Install Cover Plate
+    Phase 2, Step 4: Energize & Test
+    Phase 2, Step 5: Commission & Document
+
+  Company template: company / Electrical (id=20000000...)
+  sop_id: a9796f8f... (direct, matches system: True)
+
+  Parent fallback test:
+  If sop_id were NULL, would resolve via parent_template_id=None
+  ✅ Template → SOP resolution works correctly
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

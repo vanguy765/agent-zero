@@ -1,0 +1,45 @@
+WO: 94b06dee-80e... (Electrical)
+SOP steps: 10
+
+── CHECK 5: Initialize step progress ──
+✅ Created 10 step progress records
+  id=eaa31e12... sop_step_id=cda50cca... status=pending
+  id=1d9e5635... sop_step_id=875e0b30... status=pending
+  id=ee82dbae... sop_step_id=ce34fda5... status=pending
+  id=129000c3... sop_step_id=86e17a43... status=pending
+  id=24561fb4... sop_step_id=7e9effd9... status=pending
+  id=3b5921a0... sop_step_id=79ab748f... status=pending
+  id=279ce272... sop_step_id=1fb39be2... status=pending
+  id=ee11edbf... sop_step_id=e2ee808e... status=pending
+  id=fdcc7261... sop_step_id=55aae91e... status=pending
+  id=b999beaa... sop_step_id=aa92f75a... status=pending
+
+── Updating step 1 to 'in_progress' ──
+✅ Step 1 started at 2026-03-10T04:31:15
+
+── Completing step 1 with duration_minutes=25 ──
+✅ Step 1 completed:
+  status:           completed
+  started_at:       2026-03-10T04:31:15.944047+00:00
+  completed_at:     2026-03-10T04:56:15.944047+00:00
+  duration_minutes: 25
+  notes:            Verified zero energy, removed old outlet safely.
+
+======================================================================
+CHECK 6: Step progress records have duration_minutes for timesheet app
+======================================================================
+
+All step progress for WO 94b06dee-80e...:
+Phase  Step  Step Name                                Status       Duration   Est.Dur
+-------------------------------------------------------------------------------------
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+Cell In[1], line 86
+     84     dur = str(p.get('duration_minutes', '')) or '-'
+     85     est = str(s.get('est_duration_minutes', '')) or '-'
+---> 86     print(f"{s.get('phase_number','?'):>5s}  {s.get('step_number','?'):>4s}  {s.get('step_name','?')[:38]:38s} {p['status']:12s} {dur:>8s}m  {est:>6s}m")
+     88 completed_with_duration = [p for p in all_progress.data if p.get('duration_minutes') is not None]
+     89 print(f"\n✅ {len(completed_with_duration)} step(s) have duration_minutes set")
+
+ValueError: Unknown format code 's' for object of type 'int'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,40 @@
+======================================================================
+CHECK 5: Work order → initialize steps → update progress
+======================================================================
+
+  Selected WO: 94b06dee-80e...
+  Template: 20000000-000... (Electrical)
+  Organization: 00000000-000...
+
+  Template sop_id: a9796f8f-f5c...
+  SOP steps: 10
+    Phase 1, Step 1: Isolate & Verify Zero Energy
+    Phase 1, Step 2: Remove Cover & Device
+    Phase 1, Step 3: Document & Disconnect Wiring
+    Phase 1, Step 4: Inspect Box & Wiring
+    Phase 1, Step 5: Prepare for Installation
+    Phase 2, Step 1: Prepare & Wire the Receptacle
+    Phase 2, Step 2: Secure Device in Box
+    Phase 2, Step 3: Install Cover Plate
+    Phase 2, Step 4: Energize & Test
+    Phase 2, Step 5: Commission & Document
+
+  Existing step progress records: 0
+
+  Initializing step progress...
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+Cell In[1], line 50
+     42 print("\n  Initializing step progress...")
+     43 records = [{
+     44     'work_order_id': wo_id,
+     45     'sop_step_id': step['id'],
+     46     'status': 'pending',
+     47     'organization_id': org_id,
+     48 } for step in steps.data]
+---> 50 created = client.table('work_order_step_progress').insert(records).select().execute()
+     51 print(f"  ✅ Created {len(created.data)} step progress records")
+     53 # Step 6: Update first step to in_progress
+
+AttributeError: 'SyncQueryRequestBuilder' object has no attribute 'select'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

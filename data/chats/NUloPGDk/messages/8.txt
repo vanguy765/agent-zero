@@ -1,0 +1,109 @@
+=== api.ts lines 140-165 (WorkOrderTemplate interface) ===
+        order: number;
+      }>;
+      items?: string[];
+    }>;
+  } | null;
+  parent_template_id?: string;
+  copied_from_template_id?: string;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+}
+
+export interface WorkOrder {
+  id: string;
+  organization_id: string;
+  unit_id: string;
+  template_id: string;
+  trade_id?: string;
+  trade_name: string;
+  type_order_id?: string;
+  bom_action_request_id?: string;
+  assigned_contractor_id?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  started_at?: string;
+=== api.ts last 20 lines ===
+
+  /** Delete a doc-parser job */
+  async deleteDocParserJob(jobId: string): Promise<{ status: string }> {
+    return this.docParserRequest(`/doc-parser/jobs/${jobId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /** Check doc-parser service health */
+  async getDocParserHealth(): Promise<{
+    status: string;
+    version: string;
+    engines: string[];
+  }> {
+    return this.docParserRequest('/doc-parser/health');
+  }
+
+}
+
+export const api = new ApiClient(API_URL);
+=== TemplateDetail.tsx lines 115-135 ===
+                                    <p class="text-sm font-medium text-gray-500 uppercase mb-1">Copied From</p>
+                                    <A
+                                        href={`/templates/${template()!.copied_from_template_id}`}
+                                        class="text-sm text-primary-600 hover:text-primary-700 font-mono"
+                                    >
+                                        {template()!.copied_from_template_id?.slice(0, 8)}...
+                                    </A>
+                                </div>
+                            </Show>
+                        </div>
+                    </div>
+
+                    {/* Sections */}
+                    <For each={Object.entries(template()!.definition?.sections || {}).sort((a, b) => a[1].order - b[1].order)}>
+                        {([_, section]) => (
+                            <div class="card">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h2 class="text-xl font-semibold text-gray-900">{section.label}</h2>
+                                    <span class="text-sm text-gray-500">Section {section.order}</span>
+                                </div>
+
+=== TemplateDetail.tsx last 10 lines ===
+                            Edit Template
+                        </A>
+                    </div>
+                </div>
+            </Show>
+        </div>
+    );
+};
+
+export default TemplateDetail;
+=== WorkOrderDetail.tsx first 10 lines ===
+import type { Component } from 'solid-js';
+import { createResource, For, Show } from 'solid-js';
+import { useParams, A } from '@solidjs/router';
+import { api } from '../lib/api';
+
+const WorkOrderDetail: Component = () => {
+    const params = useParams();
+    const [wo, { refetch }] = createResource(() => params.id, api.getWorkOrder.bind(api));
+
+    const getStatusBadge = (status: string) => {
+=== WorkOrderDetail.tsx last 15 lines ===
+                                            </ul>
+                                        </div>
+                                    );
+                                }}
+                            </For>
+                        </Show>
+                    </div>
+
+                </Show>
+            </Show>
+        </div>
+    );
+};
+
+export default WorkOrderDetail;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

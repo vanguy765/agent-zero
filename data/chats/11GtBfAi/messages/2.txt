@@ -1,0 +1,12 @@
+docs/sop/ELC/SOP_ELC_Outlet_Replacement.md
+docs/sop/PLB/SOP_PLB_Sink_Replacement.md
+docs/sop/PNT/REF_PNT_Codes_Standards.md
+docs/sop/PNT/SOP_PNT_Interior_Wall_Painting.md
+docs/sop/PNT/SOP_PNT_Trim_Baseboard_Painting.md
+docs/sop/SOP_AUTHORING_GUIDE.md
+docs/sop/SOP_INDEX.md
+docs/sop/SOP_TEMPLATE.md
+---
+./skills/sop_library_manager/scripts/sop_manager.py
+./skills/sop_library_manager/scripts/__pycache__/sop_manager.cpython-313.pyc
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

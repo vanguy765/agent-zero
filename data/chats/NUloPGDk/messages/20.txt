@@ -1,0 +1,558 @@
+=== PNT Interior Wall Painting SOP ===
+# Standard Operating Procedure
+## Painting — Interior Wall Painting
+
+| Field | Detail |
+|---|---|
+| **SOP Number** | PNT-SOP-001 |
+| **Trade** | Painting |
+| **Task** | Interior wall painting — primer and 2-coat finish system |
+| **Revision** | 1.0 |
+| **Effective Date** | 2026-03-08 |
+| **Approved By** | DRAFT |
+| **Estimated Duration** | 4–8 hrs per room (varies by size and condition) |
+
+---
+
+## 1. Purpose
+
+This SOP establishes the standard procedure for preparing, priming, and painting interior wall surfaces with a 2-coat latex finish system. It ensures consistent surface preparation, coverage, and final appearance across all residential and light commercial interior painting jobs.
+
+---
+
+## 2. Scope
+
+This SOP covers:
+- Interior wall surfaces: drywall, plaster, and previously painted surfaces
+- Minor surface repairs (holes ≤ 3" diameter, hairline cracks)
+- Application of primer coat on new, repaired, or stained surfaces
+- Application of 2-coat interior latex finish
+
+This SOP does **not** cover:
+- Ceiling painting — treated as a separate scope; consult Operations Manager for procedure
+- Trim and baseboard painting (see PNT-SOP-004: Trim & Baseboard Painting)
+- Cabinet repainting (see PNT-SOP-003: Cabinet Repainting)
+- Exterior wall or siding painting (see PNT-SOP-002: Exterior Siding Painting)
+- Drywall repairs larger than 3" diameter (see DRW-SOP-001: Drywall Patch Repair)
+- Active moisture, mold, or water-damage remediation (see DRW-SOP-004: Water Damage Repair)
+
+---
+
+## 3. References & Codes
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Painting Trade: Codes & Standards Reference.
+
+---
+
+## 4. Personnel & Qualifications
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 4: Personnel & Qualifications.
+
+---
+
+## 5. Safety Requirements
+
+### 5.1 Personal Protective Equipment (PPE)
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 5: Standard PPE.
+
+### 5.2 Hazard Awareness
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 6: Common Hazard Awareness.
+
+**Additional hazards for this SOP:**
+
+| Hazard | Mitigation |
+|---|---|
+| Slip hazard from paint spills | Fully cover floors with drop cloths; clean drips immediately; secure cloth edges with tape |
+| Fire / flammability (solvent products) | No open flame near solvent-based paints; ensure ventilation; keep ABC extinguisher accessible |
+
+### 5.3 Pre-Work Safety Checklist
+
+- [ ] Ventilation confirmed: windows open, fans positioned to exhaust fumes to exterior
+- [ ] Lead paint test completed on any surface to be sanded in pre-1978 structure
+- [ ] Ladder inspected — all locks engaged, feet non-slip, rated for user weight + tools
+- [ ] Drop cloths fully covering floors and secured at edges
+- [ ] SDS sheets reviewed for all products in use and accessible on site
+- [ ] Fire extinguisher accessible if solvent-based products are used
+
+---
+
+## 6. Tools & Equipment
+
+### 6.1 Required Tools
+
+| Tool | Purpose |
+|---|---|
+| 9" roller frame with extension pole | Rolling paint on wall field |
+| Roller covers — 3/8" nap (smooth) or 1/2" nap (textured) | Texture-matched coverage |
+| 2.5" angled sash brush | Cutting in at ceiling, corners, and trim edges |
+| 2" angled brush | Tight corners and detail areas |
+| Paint tray with liner | Holding and loading roller |
+| 5-in-1 painter's tool | Opening cans, cleaning roller, scraping |
+| Putty knife (4") | Applying spackling compound |
+| Sanding block | Feathering repairs flush |
+| Sandpaper — 120-grit and 220-grit | Surface prep and feathering |
+| Painter's tape — 1.5" and 2" | Masking trim, outlets, and adjacent surfaces |
+| Drop cloths | Floor and furniture protection |
+| Step ladder (6-ft) | Access to upper walls and ceiling edge |
+| Stir sticks | Mixing paint and primer |
+| Drill with mixing paddle (optional) | Thorough mixing of large volumes |
+| Damp rags and clean cloths | Surface wipe-down and drip cleanup |
+
+### 6.2 Required Materials
+
+| Material | Specification |
+|---|---|
+| Interior latex primer | PVA primer for new drywall; shellac or stain-blocking primer for water stains or smoke; standard latex primer for repaint |
+| Interior latex paint — finish coat | Customer-selected color and sheen (eggshell or satin recommended for walls); low-VOC preferred |
+| Lightweight spackling compound | For holes up to 1/2"; feathers flush with minimal sanding |
+| Joint compound (all-purpose) | For larger repairs up to 3"; requires multiple coats and drying time |
+| 100% paintable latex caulk | For gaps at trim and corner joints |
+| Sandpaper | 120-grit for shaping repairs; 220-grit for feathering smooth |
+| Painter's tape | 1.5" and 2" widths depending on masking location |
+
+---
+
+## 7. Pre-Work Assessment
+
+### 7.1 Site Assessment
+
+1. Walk all walls and inspect for holes, cracks, popped nails, stains, mold, efflorescence, or peeling paint.
+2. Identify any active moisture source or mold — **stop and remediate before painting**. See DRW-SOP-004.
+3. If structure was built before 1978, test surfaces to be sanded for lead paint before proceeding.
+4. Check adhesion of existing paint — press tape firmly and pull sharply. If existing paint lifts, the surface requires additional prep (scraping, sanding, or primer).
+5. Assess existing sheen: painting flat over semi-gloss without scuff-sanding will reduce adhesion.
+6. Calculate paint quantity: approx. 350–400 sq ft per gallon per coat. Order 10% extra for waste and touch-ups.
+7. Confirm color, sheen, and finish with customer before purchasing materials.
+
+### 7.2 Customer Communication
+
+- Confirm paint color, sheen (flat, eggshell, satin), and brand with customer — obtain written or text confirmation.
+- Clarify furniture relocation: who is responsible for moving heavy items before work begins.
+- Advise customer of dry time: typically touch-dry in 1–2 hrs, recoat in 4 hrs, full cure in 24–48 hrs.
+- Inform customer that the space will require ventilation for 24–48 hrs after completion.
+- Note any accent walls, two-tone areas, or feature treatments requiring separate color application.
+
+---
+
+## 8. Procedure — Surface Preparation
+
+### Executive Checklist
+
+Complete each step in order. Check off the step when **all tasks within it are finished**.
+
+| Step | Step Name | Tasks | ✓ |
+|:---:|---|---|:---:|
+| **1** | **Clear & Protect the Space** | Move or cover furniture; lay drop cloths; remove outlet and switch cover plates | ☐ |
+| **2** | **Inspect & Clean Surfaces** | Check for defects, grease, and contamination; wipe down walls with damp cloth | ☐ |
+| **3** | **Patch Holes & Cracks** | Apply spackling or joint compound to all defects; allow to dry fully | ☐ |
+| **4** | **Sand & Feather Repairs** | Sand all patches flush; feather edges smooth; scuff-sand glossy areas | ☐ |
+| **5** | **Caulk Gaps at Trim** | Apply paintable latex caulk to gaps between wall and trim; tool smooth | ☐ |
+| **6** | **Mask Edges & Trim** | Apply painter's tape to trim, outlets, ceiling edge (if not cutting free-hand), and floor | ☐ |
+| **7** | **Final Surface Wipe-Down** | Remove sanding dust with damp cloth or tack cloth; allow to fully dry | ☐ |
+
+> ✅ **All steps complete?** → Proceed to Section 9 — Priming.
+
+---
+
+### Detailed Steps
+
+#### Step 1: Clear & Protect the Space
+
+1. Remove small furniture and decor from the room entirely where possible.
+2. Push large furniture to the center of the room and cover with plastic sheeting.
+3. Lay canvas or plastic drop cloths over the entire floor — overlap seams by 6" and secure edges with painter's tape so cloths cannot shift underfoot.
+4. Remove all outlet covers, switch plates, and light fixture trim rings. Place hardware in a labeled bag.
+5. Turn off HVAC supply to the room if possible to prevent paint mist from circulating through the system.
+
+#### Step 2: Inspect & Clean Surfaces
+
+1. Walk every wall in strong raking light (hold a work light parallel to the surface) to reveal low spots, bumps, and defects.
+2. Mark all defects with a pencil circle.
+3. Check for grease, soap film, or fingerprints — common near light switches, door frames, and kitchens.
+4. Wipe greasy areas with a TSP (trisodium phosphate) substitute solution or degreaser; rinse with clean water and allow to dry.
+5. Inspect for stains (water rings, smoke, crayon, marker). Stained areas require stain-blocking primer — do not attempt to cover with standard latex primer alone.
+
+> ⚠️ **Code Check:** Do not paint over active mold. If black or green growth is found, stop work and follow remediation protocol before painting (see DRW-SOP-004).
+
+#### Step 3: Patch Holes & Cracks
+
+1. For nail holes and small dents (< 1/4"): apply a small dab of lightweight spackling with a putty knife; strike flush; allow to dry.
+2. For holes 1/4" – 1" diameter: apply joint compound in layers no thicker than 1/4" per coat. Allow each coat to dry fully (typically 2–4 hrs) before adding next coat.
+3. For holes 1" – 3": use a mesh patch or California patch technique. Apply joint compound in 2–3 coats. Allow full drying between coats.
+4. For hairline cracks: widen slightly with putty knife, fill with joint compound, and tape with paper tape if crack is active.
+
+> **Best practice:** Do not rush patching. Insufficient drying time is the leading cause of rework. If using a heat gun to accelerate drying, avoid scorching the compound.
+
+#### Step 4: Sand & Feather Repairs
+
+1. Once patches are fully dry (white throughout — no dark wet spots), sand with 120-grit on a sanding block.
+2. Feather the edges of each patch so it blends seamlessly into the surrounding wall — no raised ridges.
+3. For existing semi-gloss or gloss surfaces: lightly scuff-sand all walls with 120-grit to improve primer adhesion.
+4. Final pass: smooth all patched areas with 220-grit for a paintable surface.
+5. Wipe down the sanded surface lightly with a damp sponge to remove dust.
+
+#### Step 5: Caulk Gaps at Trim
+
+1. Load a caulk gun with 100% paintable latex caulk.
+2. Cut the tip at a 45° angle — small opening (approx. 1/8") for fine lines.
+3. Run a continuous bead along all gaps between the wall and trim (baseboards, door casings, window casings).
+4. Tool the bead immediately with a wet finger or caulk tool, pressing it into the gap and smoothing flush with the wall surface.
+5. Wipe away excess caulk with a damp cloth before it skins over.
+6. Allow to dry per manufacturer instructions (typically 30–60 min) before taping.
+
+#### Step 6: Mask Edges & Trim
+
+1. Apply painter's tape to the top face of baseboards and door/window casing — press the tape edge firmly with a putty knife or 5-in-1 tool to ensure a sharp paint line.
+2. Mask outlet and switch boxes (tape or use purchased covers).
+3. If not cutting in free-hand at the ceiling, apply tape along the ceiling edge.
+
+> **Best practice:** Do not leave painter's tape on surfaces longer than 24 hrs — it can lift existing paint on removal. Plan masking to coincide with the painting day.
+
+#### Step 7: Final Surface Wipe-Down
+
+1. Using a lightly dampened cloth or tack cloth, wipe down all wall surfaces to remove sanding dust.
+2. Pay attention to corners, near trim, and at ceiling edges where dust collects.
+3. Allow wall surfaces to dry completely before applying primer — damp surfaces cause primer adhesion failure.
+
+---
+
+## 9. Procedure — Priming
+
+### Executive Checklist
+
+Complete each step in order. Check off the step when **all tasks within it are finished**.
+
+| Step | Step Name | Tasks | ✓ |
+|:---:|---|---|:---:|
+| **1** | **Select & Mix Primer** | Identify correct primer type for substrate; stir or shake thoroughly | ☐ |
+| **2** | **Cut In Primer at Edges** | Brush primer at ceiling, corners, and trim edges (3–4" band) | ☐ |
+| **3** | **Roll Primer on Field** | Roll primer onto main wall field; maintain wet edge | ☐ |
+| **4** | **Dry & Inspect** | Allow full dry time; inspect for bleed-through; apply second prime coat if needed | ☐ |
+
+> ✅ **All steps complete?** → Proceed to Section 10 — Painting.
+
+---
+
+### Detailed Steps
+
+#### Step 1: Select & Mix Primer
+
+1. Select primer based on substrate condition:
+   - **New drywall:** PVA (polyvinyl acetate) drywall primer — seals paper face and reduces topcoat absorption.
+   - **Repaired surfaces:** Standard latex primer over all patches, even if walls are not fully new.
+   - **Water stains, smoke, or tannin bleed:** Shellac-based or oil-based stain-blocking primer — do not use latex primer for these applications.
+   - **Repainting (good condition):** Primer may be skipped if existing surface is clean, dull, and in good adhesion — confirm with Lead Painter.
+2. Stir primer thoroughly with a stir stick for at least 60 seconds, or use a drill mixer for large quantities.
+3. Pour a working amount into a paint tray.
+
+#### Step 2: Cut In Primer at Edges
+
+1. Load a 2.5" angled brush — dip 1"–1.5" into primer, tap lightly (do not drag against the side of the can).
+2. Starting at the ceiling/wall junction, cut in a 3–4" band of primer along the entire ceiling edge.
+3. Continue cutting in at all inside corners, around window and door openings, and along the top edge of baseboards.
+4. Maintain a wet edge — work continuously around the perimeter without letting cut-in sections dry before rolling.
+
+#### Step 3: Roll Primer on Field
+
+1. Load a 9" roller with primer — roll off excess on the tray ramp until the cover is evenly loaded but not dripping.
+2. Starting at the top corner, apply primer in a large "W" or "M" pattern, then fill in without lifting the roller.
+3. Roll from the ceiling edge down to the baseboard, overlapping each stroke by 50% to avoid lap marks.
+4. Work in sections of approximately 4' wide — keep a wet edge between sections.
+5. Back-roll lightly (without additional primer) to even out texture.
+
+#### Step 4: Dry & Inspect
+
+1. Allow primer to dry per manufacturer instructions — typically 1–2 hrs for latex, longer for shellac-based.
+2. Inspect in raking light: check for stain bleed-through (discoloration showing through primer).
+3. If stains bleed through latex primer, apply a second coat of stain-blocking shellac primer over affected areas only.
+4. Inspect patched areas — if patches appear to absorb primer heavily (dull spots), apply a second prime coat.
+5. Lightly sand any raised primer stipple or brush marks with 220-grit before topcoating.
+
+---
+
+## 10. Procedure — Painting
+
+### Executive Checklist
+
+Complete each step in order. Check off the step when **all tasks within it are finished**.
+
+| Step | Step Name | Tasks | ✓ |
+|:---:|---|---|:---:|
+| **1** | **Select & Mix Paint** | Confirm color and sheen; box multiple cans; stir thoroughly | ☐ |
+| **2** | **Cut In First Coat** | Brush first coat at ceiling, corners, and trim edges | ☐ |
+| **3** | **Roll First Coat on Field** | Roll first coat onto wall field; maintain wet edge; full coverage | ☐ |
+| **4** | **Dry & Inspect First Coat** | Allow full recoat time; inspect coverage and check for defects | ☐ |
+| **5** | **Cut In Second Coat** | Brush second coat at edges; blend into rolled area before dry | ☐ |
+| **6** | **Roll Second Coat on Field** | Roll second coat for uniform finish; feather final strokes | ☐ |
+| **7** | **Remove Tape & Final Inspection** | Pull tape before full cure; inspect finish; touch up as needed | ☐ |
+
+> ✅ **All steps complete?** → Proceed to Section 11 — Recommended Videos.
+
+---
+
+### Detailed Steps
+
+#### Step 1: Select & Mix Paint
+
+1. Verify paint cans match the approved color and sheen on the order — check the lid label and the colorant strip on the side.
+2. **Box the paint:** If using multiple cans of the same color, combine into a single bucket and stir thoroughly. Subtle batch variations are invisible once boxed.
+3. Stir each can thoroughly with a stir stick (60 seconds minimum), or use a drill mixer.
+4. Pour working amount into a lined paint tray.
+
+> **Best practice:** Stir paint every 30–45 minutes during the job — pigment settles, especially in darker colors.
+
+#### Step 2: Cut In First Coat
+
+1. Load a 2.5" angled brush — dip 1"–1.5" into paint, remove excess, and maintain a controlled bead.
+2. Cut in along the ceiling/wall junction: hold the brush at 45° to the wall, using the tip of the bristles to create a clean line. Maintain a 3–4" band.
+3. Cut in at all inside corners, around window and door openings, and along the top of baseboards.
+4. Do not allow cut-in sections to dry before rolling — work in sections small enough to stay wet.
+
+#### Step 3: Roll First Coat on Field
+
+1. Load roller — roll off excess on tray ramp.
+2. Begin at the cut-in edge while it is still wet. Roll in overlapping vertical strokes, working into the wet cut-in band to eliminate the brush/roller junction line.
+3. Use a large "W" or "M" rolling pattern, then fill in without re-loading.
+4. Maintain a wet edge — never roll into a section that has begun to dry (causes lap marks).
+5. Work top to bottom, section by section, keeping edges wet.
+6. The first coat is a foundation coat — full, even coverage is the goal; perfection of finish is the second coat.
+
+#### Step 4: Dry & Inspect First Coat
+
+1. Allow full recoat time per manufacturer instructions — typically 2–4 hrs for latex interior.
+2. Inspect in raking light for holidays (missed spots), thin coverage, roller stipple, sags, and brush marks.
+3. Lightly sand any drips, sags, or raised texture with 220-grit.
+4. Wipe sanding dust before second coat.
+
+#### Step 5: Cut In Second Coat
+
+1. Repeat cut-in technique from Step 2.
+2. The second coat requires greater precision — take time to achieve a clean line.
+3. Immediately roll into the wet cut-in section (Step 6) to prevent lap marks.
+
+#### Step 6: Roll Second Coat on Field
+
+1. Repeat rolling technique from Step 3.
+2. The second coat should achieve full opacity — if coverage is uneven, a third coat may be required in isolated areas.
+3. Final roller strokes: use light, vertical "laying off" strokes from ceiling to baseboard without additional paint to eliminate visible roller texture.
+
+> **Best practice:** Maintain room temperature between 50°F–90°F and humidity below 85% during application and drying. Extreme cold, heat, or humidity affects dry time and adhesion.
+
+#### Step 7: Remove Tape & Final Inspection
+
+1. Remove painter's tape **before the paint fully cures** — ideally when paint is dry to the touch but not hard (approximately 1–2 hrs after final coat).
+2. Pull tape back at a 45° angle toward the painted surface (not away from it) to prevent lifting paint.
+3. If the tape pulls paint, score the tape edge lightly with a utility knife before pulling.
+4. Inspect the entire room in raking light: look for holidays, sags, lap marks, and tape bleed.
+5. Touch up as needed with a small brush, feathering edges into the surrounding surface.
+
+---
+
+## 11. Recommended Videos
+
+The following videos demonstrate the techniques described in the Detailed Steps above.
+
+### Surface Preparation (Section 8)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Steps 1–2: Protect Space & Inspect | 🔍 *Video to be sourced* | — | — |
+| Steps 3–4: Patching & Sanding | 🔍 *Video to be sourced* | — | — |
+| Steps 5–6: Caulking & Masking | 🔍 *Video to be sourced* | — | — |
+
+### Priming (Section 9)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Steps 1–4: Selecting, Cutting In & Rolling Primer | 🔍 *Video to be sourced* | — | — |
+
+### Painting (Section 10)
+
+| Step | Video | Duration | Source |
+|---|---|---|---|
+| Step 2: Cutting In Technique | 🔍 *Video to be sourced* | — | — |
+| Step 3: Rolling Technique & Wet Edge | 🔍 *Video to be sourced* | — | — |
+| Steps 5–6: Second Coat & Finishing | 🔍 *Video to be sourced* | — | — |
+| Step 7: Tape Removal | 🔍 *Video to be sourced* | — | — |
+
+> 📹 **Curation notes:** Prefer content from paint manufacturer channels (Sherwin-Williams, Benjamin Moore) and licensed trade professionals. Verify links at each SOP revision. Maximum 5 videos per phase.
+
+---
+
+## 12. Testing & Commissioning
+
+### Step 1: Visual Inspection
+
+- [ ] No visible brush marks, sags, drips, or roller stipple from 5 ft viewing distance
+- [ ] Uniform sheen across entire wall surface — no flat or shiny spots
+- [ ] Full coverage — no holidays (missed spots) or thin areas showing substrate or previous color
+- [ ] Clean paint lines at ceiling, trim, and adjacent walls — no tape bleed
+- [ ] All patches invisible under the final coat
+
+### Step 2: Color & Sheen Verification
+
+- [ ] Color matches customer-approved sample in the room's natural and artificial lighting
+- [ ] Sheen level consistent with specification (eggshell, satin, or flat)
+- [ ] No color variation between sections (batch mismatch or inconsistent mixing)
+
+### Step 3: Final Verification
+
+- [ ] All painter's tape removed without pulling existing paint
+- [ ] Outlet covers and switch plates reinstalled
+- [ ] Drop cloths removed; floor free of paint drips
+- [ ] No paint on trim, windows, ceiling, or flooring (or touch-up of overspray complete)
+
+---
+
+## 13. Cleanup & Closeout
+
+See [REF_PNT_Codes_Standards.md](REF_PNT_Codes_Standards.md) — Section 7: Standard Cleanup, Documentation & Customer Handoff.
+
+**Additional steps for this SOP:**
+
+- Clean rollers: use a roller spinner tool over a bucket; rinse until water runs clear; dispose of if badly worn.
+- Reinstall outlet covers, switch plates, and light fixture trim rings before leaving the space.
+
+---
+
+## 14. Troubleshooting
+
+| Issue | Probable Cause | Resolution |
+|---|---|---|
+| Paint peeling after drying | Poor surface prep; contamination; insufficient primer | Strip affected section, clean thoroughly, prime correctly, repaint |
+| Lap marks / roller lines visible | Rolling into dry sections; wrong nap size; paint drying too fast | Maintain wet edge; work smaller sections; add conditioner (e.g., Floetrol) in hot/dry conditions |
+| Drips and sags | Over-applied paint; coat applied too thick | Allow to dry fully; sand smooth; apply thinner coat |
+| Blotchy or uneven color | Insufficient primer on porous patches; skipped prime coat | Apply PVA primer to all patched areas; repaint |
+| Sheen variation between sections | Different paint batches; inconsistent technique | Box all cans before starting; apply consistent pressure and roller speed |
+| Paint bleed under tape | Tape not pressed firmly; surface dirty under tape | Score tape edge carefully; remove tape; touch up with small brush |
+| Brush marks at cut-in visible | Paint drying in brush between cut-in and rolling | Immediately roll into wet cut-in; use conditioner in brush paint to extend open time |
+| Stains bleeding through topcoat | Inadequate stain-blocking primer | Apply shellac-based primer over stained areas; repaint |
+
+---
+
+## 15. Quality Standards
+
+- No visible brush marks, roller lines, sags, or drips at normal viewing distance (5 ft)
+- Uniform sheen across the entire wall surface — no inconsistencies
+- Clean paint lines at ceiling, trim, and adjacent walls — gaps ≤ 1/16"
+- Full opacity — no substrate, previous color, or patch visible
+- Color confirmed to match customer-approved sample in room lighting
+- All repairs fully covered and invisible under final coat
+- No paint on trim, glass, flooring, or ceiling (or thoroughly cleaned)
+
+---
+
+## 16. Revision History
+
+| Rev | Date | Author | Description |
+|---|---|---|---|
+| 1.0 | 2026-03-08 | — | Initial release |
+| 1.1 | 2026-03-08 | — | Shared sections (§3–§5.2, §13) extracted to REF-PNT-001; SOP-specific content retained inline |
+
+---
+
+*This SOP is a living document. Report any errors, omissions, or improvement suggestions to the Operations Manager.*
+\n\n=== REF PNT Codes Standards ===
+# Reference Document — Painting Trade: Codes & Standards
+
+| Field | Detail |
+|---|---|
+| **Document ID** | REF-PNT-001 |
+| **Applies To** | All PNT-SOP-### procedures |
+| **Revision** | 1.1 |
+| **Effective Date** | 2026-03-08 |
+
+---
+
+## 1. Regulatory References
+
+- **EPA RRP Rule (40 CFR Part 745)** — Lead-safe work practices required for pre-1978 structures; applies to all sanding, scraping, and surface preparation on painted surfaces
+- **OSHA 29 CFR 1926.62** — Lead exposure limits and controls in construction
+- **OSHA 29 CFR 1910.94** — Ventilation requirements for spray and brush application of coatings
+
+## 2. Codes & Standards
+
+- **Local jurisdiction VOC limits** — Verify maximum allowable g/L for architectural coatings before product selection; limits vary by air quality district
+- **PDCA Standards (Painting and Decorating Contractors of America)** — Industry workmanship standards for surface preparation and finish quality
+
+## 3. Documentation Requirements
+
+- **Paint manufacturer application instructions** — Required reading before applying any product; conditions, spread rate, recoat time, and compatibility vary by product line
+- **SDS sheets (Safety Data Sheets)** — Must be on-site and reviewed before use for all paints, primers, solvents, and caulks
+
+---
+
+## 4. Personnel & Qualifications
+
+Applies to all painting SOPs unless the individual SOP specifies otherwise.
+
+| Role | Requirement |
+|---|---|
+| Lead Painter | Journeyman painter or equivalent field experience; EPA RRP Certified if structure built before 1978 |
+| Painter's Helper | Under direct supervision of Lead Painter; no independent work on pre-1978 surfaces without Lead Painter present |
+
+---
+
+## 5. Standard PPE
+
+Required for all painting procedures unless the individual SOP notes exceptions or additions.
+
+- Safety glasses or goggles — splash protection when opening cans, pouring, or rolling; required when working overhead
+- Nitrile gloves — chemical resistance to paint, primer, caulk, and solvents
+- N95 respirator or P100 half-mask — required when sanding any surface; VOC-rated respirator required if using solvent-based products
+- Non-slip closed-toe footwear
+- Protective coveralls (recommended to prevent clothing contamination)
+- Knee pads — required for baseboard-level and low-surface work
+
+---
+
+## 6. Common Hazard Awareness
+
+The following hazards apply across all painting procedures. Individual SOPs list additional task-specific hazards.
+
+| Hazard | Mitigation |
+|---|---|
+| Lead paint disturbance (pre-1978 structures) | Test surfaces before any sanding or scraping; follow EPA RRP protocol; never dry-sand lead paint; use HEPA vacuum on all sanding dust |
+| VOC inhalation | Open windows and exterior doors; use box fans exhausting to exterior; use low-VOC or zero-VOC products where possible |
+| Eye splash from paint | Wear safety glasses; do not work overhead without eye protection |
+| Ladder / step stool fall | Use ladder rated for combined weight of user and materials; maintain 3-point contact; never overreach |
+| Skin and respiratory irritation | Wear nitrile gloves and respirator when sanding or using solvent-based products; wash skin immediately on contact |
+
+---
+
+## 7. Standard Cleanup, Documentation & Customer Handoff
+
+### Cleanup
+
+1. Remove all painter's tape — pull slowly at a 45° angle toward the painted surface.
+2. Remove drop cloths; fold paint-side in; clean or dispose of properly.
+3. Inspect floor for paint drips — clean wet paint immediately with a damp cloth; dried latex can be gently scraped with a plastic scraper.
+4. Clean brushes: rinse latex paint brushes under warm water, working paint out from heel to tip; hang or lay flat to dry.
+5. Reseal all paint cans tightly; label with date opened, color, sheen, and room.
+
+### Documentation
+
+1. Record paint color name, code, formula, sheen, and brand on the work order.
+2. Photograph completed work — one photo per wall or surface area, angled in raking light to reveal finish quality.
+3. Log quantity of paint used per room or area.
+4. Note any conditions flagged for follow-up (e.g., monitored stain areas, cracked joints, active settlement).
+
+### Customer Handoff
+
+- Walk customer through the completed space; identify any areas that may benefit from a future touch-up coat.
+- Provide leftover paint in a clearly labeled container for customer touch-ups.
+- Advise: ventilate the space for 24–48 hrs after completion.
+- Advise: allow full cure time before cleaning or placing items against painted surfaces (typically 24–48 hrs touch-safe; 7 days for full hardness).
+- Obtain customer sign-off on the work order.
+
+---
+
+## Revision History
+
+| Rev | Date | Author | Description |
+|---|---|---|---|
+| 1.0 | 2026-03-08 | — | Initial release; extracted from PNT-SOP-001 and PNT-SOP-004 |
+| 1.1 | 2026-03-08 | — | Added §4 Personnel, §5 PPE, §6 Common Hazards, §7 Standard Cleanup |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
