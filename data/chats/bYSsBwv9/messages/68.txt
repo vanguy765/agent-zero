@@ -1,0 +1,14 @@
+2.77.1
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---docker check---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: docker: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---pg check---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql (PostgreSQL) 18.1 (Debian 18.1-2)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql: error: connection to server at "127.0.0.1", port 54322 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections?
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---pg ports---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---pg installed---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---supabase status---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: supabase: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---pg clusters---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# no pg_lsclusters
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

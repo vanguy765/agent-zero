@@ -1,0 +1,6 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Current node_modules symlink type ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# lrwxrwxrwx 1 root root 153 Mar 11 00:18 apps/site-companion/node_modules/vite-plugin-solid -> ../../../node_modules/.pnpm/vite-plugin-solid@2.11.10_solid-js@1.9.10_vite@5.4.21_@types+node@25.0.10_lightningcss@1.30.2_/node_modules/vite-plugin-solid
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# lrwxrwxrwx 1 root root 153 Mar 11 00:18 apps/work-orders/node_modules/vite-plugin-solid -> ../../../node_modules/.pnpm/vite-plugin-solid@2.11.10_solid-js@1.9.10_vite@5.4.21_@types+node@25.0.10_lightningcss@1.30.2_/node_modules/vite-plugin-solid
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Count total node_modules dirs ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

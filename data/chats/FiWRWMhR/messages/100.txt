@@ -1,0 +1,113 @@
+tests/test_discovery.py::TestDiscoverFiles::test_discover_multiple_extensions
+tests/test_discovery.py::TestDiscoverFiles::test_discover_nonexistent_path
+tests/test_discovery.py::TestDiscoverFiles::test_discover_python_files
+tests/test_discovery.py::TestDiscoverFiles::test_discover_single_file
+tests/test_discovery.py::TestDiscoverFiles::test_exclude_patterns
+tests/test_discovery.py::TestDiscoverFiles::test_no_matching_extensions
+tests/test_engine.py::TestLanguageDetection::test_go
+tests/test_engine.py::TestLanguageDetection::test_javascript
+tests/test_engine.py::TestLanguageDetection::test_python
+tests/test_engine.py::TestLanguageDetection::test_typescript
+tests/test_engine.py::TestLanguageDetection::test_unsupported
+tests/test_engine.py::TestFunctionExtraction::test_python_class_methods
+tests/test_engine.py::TestFunctionExtraction::test_python_functions
+tests/test_engine.py::TestFunctionExtraction::test_typescript_functions
+tests/test_engine.py::TestEngineIntegration::test_guarded_py_is_clean
+tests/test_engine.py::TestEngineIntegration::test_guarded_ts_is_clean
+tests/test_engine.py::TestEngineIntegration::test_lint_paths_integration
+tests/test_engine.py::TestEngineIntegration::test_severity_filtering
+tests/test_engine.py::TestEngineIntegration::test_unguarded_py_has_violations
+tests/test_engine.py::TestEngineIntegration::test_unguarded_ts_has_violations
+tests/test_engine.py::TestConfigLoading::test_default_config
+tests/test_engine.py::TestConfigLoading::test_rule_disabled
+tests/test_engine.py::TestConfigLoading::test_rule_enabled_check
+tests/test_rules.py::TestBLW001GuardPresent::test_custom_guard_detected
+tests/test_rules.py::TestBLW001GuardPresent::test_no_violation_when_guard_present
+tests/test_rules.py::TestBLW001GuardPresent::test_skip_no_params
+tests/test_rules.py::TestBLW001GuardPresent::test_skip_self_only
+tests/test_rules.py::TestBLW001GuardPresent::test_skip_short_function
+tests/test_rules.py::TestBLW001GuardPresent::test_ts_guard_detected
+tests/test_rules.py::TestBLW001GuardPresent::test_violation_when_no_guard
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_custom_verify_detected
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_no_violation_read_only
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_no_violation_with_verify
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_db_insert_no_verify
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_file_write_no_verify
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_http_post_no_verify
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_send_email_no_verify
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_async_boundary_detected
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_no_violation_with_trace
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_severity_is_info
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_skip_accessor
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_skip_short_function
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_violation_boundary_no_trace
+tests/test_rules.py::TestBLW004NoBareAssert::test_no_violation_clean_code
+tests/test_rules.py::TestBLW004NoBareAssert::test_skip_test_file
+tests/test_rules.py::TestBLW004NoBareAssert::test_skip_test_function
+tests/test_rules.py::TestBLW004NoBareAssert::test_violation_bare_assert_python
+tests/test_rules.py::TestBLW004NoBareAssert::test_violation_raise_valueerror
+tests/test_rules.py::TestBLW004NoBareAssert::test_violation_throw_new_error_ts
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_no_violation_with_class_def
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_no_violation_with_imports
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_severity_is_info
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_skip_no_guard_verify_usage
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_ts_import_detected
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_violation_guard_without_guard_error
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_violation_verify_without_verify_error
+
+56 tests collected in 0.37s
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ........................................................                 [100%]
+56 passed in 0.60s
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# #### Test 1.3: False Positive Handling
+
+**Task Prompt**:
+```
+Write a pure utility function `calculate_tax(amount: float, rate: float) -> float`
+that computes tax with rounding.
+
+Apply Bulwark patterns where appropriate.
+Run bulwark-lint and use judgment on any violations — not all functions
+require all patterns.
+```
+
+**Expected Behavior**: Agent should recognize that a pure calculation function:
+- MAY need guards (validate amount >= 0, rate in valid range)
+- Does NOT need traces (no external data flow)
+- Does NOT need verify (no side effects)
+- Should NOT trigger BLW002 or BLW003
+
+---
+
+### Round 2: Module-Level (Integration)
+
+**Purpose**: Test GTV coherence across multiple functions with shared data flow.
+
+#### Test 2.1: Three-Function Pipeline
+
+**Task Prompt**:
+```
+Write a Python module with three functions that form a data pipeline:
+1. `ingest_csv(filepath: str) -> list[dict]` — reads and validates CSV data
+2. `transform_records(records: list[dict], schema: dict) -> list[dict]` — normalizes fields
+3. `load_to_database(records: list[dict], db_conn: Connection) -> int` — bulk inserts
+
+Each function must follow Bulwark GTV patterns.
+Traces should correlate across the pipeline (same operation_id).
+```
+
+**Key Measurements**:
+- Cross-function trace correlation
+- Guard consistency (output of function N matches guard expectations of function N+1)
+- Verify on the bulk insert
+
+#### Test 2.2: Error Recovery Chain
+
+**Task Prompt**:
+```
+Extend the pipeline from Test 2.1 with:
+- Availability guards on the database connection
+- Bounded retry (max 3 attempts) on the bulk insert
+- Recovery logging on each retry attempt
+- Circuit breaker pattern if all retries fail
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

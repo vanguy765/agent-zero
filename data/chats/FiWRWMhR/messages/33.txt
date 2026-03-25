@@ -1,0 +1,41 @@
+{
+    "version": "1.0.0",
+    "files_scanned": 1,
+    "total_violations": 15,
+    "violations": [
+        {
+            "rule_id": "BLW001",
+            "rule_name": "function-needs-guard",
+            "severity": "warning",
+            "message": "handleCreateUser() has parameters but no guard calls",
+            "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+            "line": 11,
+            "function_name": "handleCreateUser"
+        },
+        {
+            "rule_id": "BLW002",
+            "rule_name": "verify-after-mutation",
+            "severity": "warning",
+            "message": "handleCreateUser() has database mutation but no verify call",
+            "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+            "line": 11,
+            "function_name": "handleCreateUser"
+        },
+        {
+            "rule_id": "BLW003",
+            "rule_name": "trace-at-boundary",
+            "severity": "info",
+            "message": "handleCreateUser() appears to be a phase boundary but has no trace call",
+            "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+            "line": 11,
+            "function_name": "handleCreateUser"
+        },
+        {
+            "rule_id": "BLW004",
+            "rule_name": "no-bare-assert",
+            "severity": "warning",
+            "message": "handleCreateUser() uses throw new Error for validation instead of guard()",
+            "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+            "line": 19,
+            "function_name": "handleCreateUser"
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

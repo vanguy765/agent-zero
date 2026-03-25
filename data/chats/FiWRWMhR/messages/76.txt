@@ -1,0 +1,25 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Linter source structure ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# linter/bulwark_lint/cli.py
+linter/bulwark_lint/config.py
+linter/bulwark_lint/discovery.py
+linter/bulwark_lint/engine.py
+linter/bulwark_lint/languages.py
+linter/bulwark_lint/reporters/json_reporter.py
+linter/bulwark_lint/reporters/terminal.py
+linter/bulwark_lint/reporters/__init__.py
+linter/bulwark_lint/rules/base.py
+linter/bulwark_lint/rules/blw001_guard_present.py
+linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+linter/bulwark_lint/rules/blw004_no_bare_assert.py
+linter/bulwark_lint/rules/blw005_custom_error_types.py
+linter/bulwark_lint/rules/__init__.py
+linter/bulwark_lint/__init__.py
+linter/bulwark_lint/__main__.py
+linter/tests/fixtures/sample_guarded.py
+linter/tests/fixtures/sample_unguarded.py
+linter/tests/test_discovery.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Main scanner module ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# cat: linter/bulwark_lint/scanner.py: No such file or directory
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

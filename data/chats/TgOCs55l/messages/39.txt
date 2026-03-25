@@ -1,0 +1,7 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api# 11:| Approach | Best for | Blocks caller? |
+28:## Approach 1 — HTTP Pipeline Endpoint (recommended for AI agents)
+97:## Approach 2 — HTTP Proxy (custom polling)
+118:## Approach 3 — Python CLI Pipeline
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api# 160 /a0/usr/projects/timesheet_app/voicelog-scaffold/.agents/workflows/parse-document.md
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

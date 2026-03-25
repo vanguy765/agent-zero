@@ -1,0 +1,20 @@
+[0s] processing | 85.0% | llm_analysis | cropping_and_uploading_elements
+[5s] processing | 85.0% | llm_analysis | cropping_and_uploading_elements
+[10s] processing | 85.0% | llm_analysis | cropping_and_uploading_elements
+[15s] processing | 85.0% | llm_analysis | cropping_and_uploading_elements
+[20s] processing | 85.0% | llm_analysis | cropping_and_uploading_elements
+[25s] processing | 85.0% | llm_analysis | extracting_tables
+[30s] processing | 85.0% | llm_analysis | extracting_tables
+[35s] processing | 85.0% | llm_analysis | extracting_tables
+[40s] processing | 85.0% | llm_analysis | extracting_tables
+[45s] processing | 85.0% | llm_analysis | extracting_tables
+[50s] processing | 85.0% | llm_analysis | extracting_tables
+[55s] processing | 85.0% | llm_analysis | extracting_tables
+[60s] processing | 85.0% | llm_analysis | extracting_tables
+[65s] processing | 85.0% | llm_analysis | extracting_tables
+[70s] processing | 85.0% | llm_analysis | extracting_tables
+[75s] processing | 85.0% | llm_analysis | extracting_tables
+[80s] completed | 100.0% | complete | initializing
+
+JOB COMPLETED!
+(venv) root@d2d162d983f0:/a0/usr/workdir#

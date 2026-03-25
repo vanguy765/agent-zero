@@ -1,0 +1,13 @@
+=== Before fix ===
+456:            .upload(path, image_bytes, {"contentType": "image/png", "upsert": "true"})
+505:            .upload(path, content_bytes, {"contentType": "text/markdown", "upsert": "true"})
+
+=== Applying MIME type fix ===
+
+=== After fix ===
+456:            .upload(path, image_bytes, file_options={"content-type": "image/png", "upsert": "true"})
+505:            .upload(path, content_bytes, file_options={"content-type": "text/markdown", "upsert": "true"})
+
+=== Cleanup test files ===
+Storage is clean
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

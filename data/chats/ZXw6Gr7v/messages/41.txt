@@ -1,0 +1,61 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 179-          document_id:   documentId,
+180-          page_number:   pageNumber,
+181:          storage_url:   pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+182-          thumbnail_url: pd?.thumbnail_url ?? null,
+183-          category:      inferPageCategory(pd),
+184-          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+185-          metadata:      pd ?? null,
+186-        },
+187-        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+188-      )
+189-      .select('id')
+190-      .single();
+191-
+--
+560-          document_id:   documentId,
+561-          page_number:   pageNumber,   // real page number in the original document
+562:          storage_url:   pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+563-          thumbnail_url: pd?.thumbnail_url ?? null,
+564-          category:      inferPageCategory(pd),
+565-          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+566-          metadata:      pd ?? null,
+567-        },
+568-        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+569-      )
+570-      .select('id')
+571-      .single();
+572-
+--
+701-  let query = supabase
+702-    .from('document_pages')
+703:    .select('id, document_id, page_number, storage_url, thumbnail_url, category, raw_text, created_at, updated_at')
+704-    .eq('document_id', documentId)
+705-    .order('page_number', { ascending: true })
+706-    .range(offset, offset + limit - 1);
+707-
+708-  if (category) {
+709-    query = query.eq('category', category);
+710-  }
+711-
+712-  const { data, error, count } = await query;
+713-
+--
+730-// GET /documents/:documentId/pages/:pageNumber
+731-// Get a single parsed page by its 1-indexed page number.
+732:// Returns storage_url, thumbnail_url, category, raw_text,
+733-// and full metadata blob.
+734-// ============================================================
+735-
+736-docParserRoutes.get('/documents/:documentId/pages/:pageNumber', async (c) => {
+737-  const documentId = c.req.param('documentId');
+738-  const pageNumber = Number(c.req.param('pageNumber'));
+739-
+740-  if (!pageNumber || pageNumber < 1) {
+741-    return c.json({ error: 'pageNumber must be a positive integer (1-indexed)' }, 400);
+742-  }
+--
+931-  const { data: pages, error: pagesErr } = await supabase
+932-    .from('document_pages')
+933:    .select('page_number, category, thumbnail_url, storage_url')
+934-    .eq('document_id', documentId)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

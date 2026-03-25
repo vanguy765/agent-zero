@@ -1,0 +1,14 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === .env ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# DOC_PARSER_URL=http://localhost:5000
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API port config ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 1:import { config } from 'dotenv';
+2:import { resolve } from 'path';
+6:import { serve } from '@hono/node-server';
+7:import { OpenAPIHono } from '@hono/zod-openapi';
+8:import { swaggerUI } from '@hono/swagger-ui';
+9:import { logger } from 'hono/logger';
+10:import { cors } from 'hono/cors';
+11:import { z } from 'zod';
+15:// Import Routes
+16:import { deliveryRoute } from './routes/delivery';
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,88 @@
+=== .env ===
+OPENROUTER_API_KEY=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
+DEFAULT_LLM_PROVIDER=openrouter/anthropic/claude-3.5-sonnet
+PROGRAM_STATUS=develop_without_ai(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# === upload_image_to_storage ===
+36:                 is_architectural_drawing() returns False.
+62:    Detected by: CV2 detect_elements_cv2() returns element type "spec_table"
+166:    # Overall confidence returned in the output when the confidence
+279:    """Send image + prompt to LLM provider and return response text."""
+282:        return json.dumps({
+303:                {"type": "image_url", "image_url": {
+315:        return response.choices[0].message.content
+330:        return json.dumps({
+349:        return response.choices[0].message.content
+402:        return ""
+419:        return ""
+429:    return "\n".join(lines)
+436:async def upload_image_to_storage(
+445:    """Upload image to Supabase Storage and return public URL."""
+447:        return None
+466:                    "image_url": path,
+477:        return url_response
+480:        return None
+483:async def upload_table_to_storage(
+494:        return None
+503:        # supabase-py 2.x raises StorageApiError on failure, but some versions return
+504:        # an error dict instead — check explicitly so the path is never returned on failure.
+513:                    "image_url": path,
+522:        return url_response
+525:        return None
+550:        return valid
+553:        return []
+673:                url = await upload_image_to_storage(
+978:                        url = await upload_image_to_storage(
+1007:                                fp_url = await upload_image_to_storage(
+1026:                                d_url = await upload_image_to_storage(
+1047:                        url = await upload_image_to_storage(
+1067:                        url = await upload_image_to_storage(
+1179:                tbl_img_url = await upload_image_to_storage(
+1279:                    "image_url": tbl_img_url,
+1305:                "image_url": tbl_img_url,
+1442:                    unit["image_url"] = crop_url
+1456:                    "image_url": crop_url,
+1465:                    "image_url": crop_url,
+1592:                    "image_url": t.get("image_url", ""),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# === results structure ===
+292:    pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+293:    total_pages = len(pdf_pages)
+296:        job_id, total_pages=total_pages,
+303:        current_step="classifying_pages",
+306:    pages_result = {}
+315:    # Process tables
+316:    for table in result_doc.tables:
+331:        if page_no not in pages_result:
+332:            pages_result[page_no] = {
+333:                "floorplans": [], "tables": [],
+336:        pages_result[page_no]["tables"].append(md_text)
+339:        job_id, tables_found=len(table_data),
+360:        if page_no not in pages_result:
+361:            pages_result[page_no] = {
+362:                "floorplans": [], "tables": [],
+366:        classification = classify_image(pil_img)
+368:        if classification == "floorplan":
+376:                    page_no=page_no, image_type="floorplan",
+378:        elif classification == "site_photo":
+379:            photo_idx = len(pages_result[page_no]["site_photos"])
+380:            pages_result[page_no]["site_photos"].append("detected")
+385:                    page_no=page_no, image_type="site_photo",
+387:        elif classification == "diagram":
+388:            diag_idx = len(pages_result[page_no]["diagrams"])
+389:            pages_result[page_no]["diagrams"].append("detected")
+394:                    page_no=page_no, image_type="diagram",
+437:            if page_no not in pages_result:
+438:                pages_result[page_no] = {
+439:                    "floorplans": [], "tables": [],
+442:            pages_result[page_no]["floorplans"].append(floorplan_data)
+446:            if page_no not in pages_result:
+447:                pages_result[page_no] = {
+448:                    "floorplans": [], "tables": [],
+451:            pages_result[page_no]["floorplans"].append(
+458:        fp for page_data in pages_result.values()
+474:            synth_parts = [f"Total pages: {total_pages}"]
+500:        "pages": pages_result,
+507:    for page_no, page_data in pages_result.items():
+531:        tables=[{"page_no": pg, "markdown": md} for pg, md in table_data],
+533:        total_pages=total_pages,
+540:        "pages_count": total_pages,
+542:        "tables_count": len(table_data),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

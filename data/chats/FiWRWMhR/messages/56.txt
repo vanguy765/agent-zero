@@ -1,0 +1,16 @@
+/a0/usr/projects/bmad_and_agent-zero/.a0proj/secrets.env
+/a0/usr/secrets.env
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Key names only (masking values) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > File: /a0/usr/projects/bmad_and_agent-zero/.a0proj/secrets.env
+  (no KEY=VALUE pairs found)
+File: /a0/usr/secrets.env
+GITHUB_TOKEN
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Check .env files too ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# /a0/usr/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/.env
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

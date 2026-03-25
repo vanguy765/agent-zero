@@ -1,0 +1,4 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > No pages found or different structure
+Top-level keys: ['job_id', 'result', 'status']
+{'job_id': '896d53c0-769c-4550-ab5d-74fc797ca7ab', 'status': 'completed', 'result': {'job_id': '896d53c0-769c-4550-ab5d-74fc797ca7ab', 'engine': 'hybrid_page_render', 'timestamp': '2026-03-13T22:21:05.010847', 'summary': {'total_pages': 29, 'units_found': 17, 'floorplans_found': 17, 'floorplan_dias_found': 28, 'tables_found': 27, 'photos_found': 198, 'diagrams_found': 37, 'thumbnails_count': 29, 'pages_with_elements': 29}, 'confidence': {'overall': 0.1, 'room_dimensions': False, 'door_specificat
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

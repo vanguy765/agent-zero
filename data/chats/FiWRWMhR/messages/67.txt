@@ -1,0 +1,26 @@
+Port 54321 (API): HTTP 404
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Port 54323 (Studio): HTTP 307
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Container info ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 9a1d9e0c769e
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# default via 172.21.0.1 dev eth0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Container hostname ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 9a1d9e0c769e
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === DNS resolution ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# fdc4:f303:9324::254 host.docker.internal
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Default gateway (likely host) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# default via 172.21.0.1 dev eth0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Gateway IP: 172.21.0.1
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Try reaching Supabase via gateway IP ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Gateway:54321 (API): HTTP 404
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Gateway:54323 (Studio): HTTP 307
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Docker network mode ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 0::/
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Check if Docker socket is available ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# srw-rw---- 1 root root 0 Mar 14 23:52 /var/run/docker.sock
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

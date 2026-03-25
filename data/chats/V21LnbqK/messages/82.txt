@@ -1,0 +1,34 @@
+{
+    "status": "healthy",
+    "version": "2.0.0",
+    "engines": [
+        "docling",
+        "hybrid"
+    ],
+    "dependencies": {
+        "docling": true,
+        "tesseract": true,
+        "litellm": true
+    },
+    "jobs": {
+        "running": 0,
+        "queued": 0,
+        "total": 0
+    },
+    "config": {
+        "store_backend": "memory",
+        "default_provider": "openrouter/anthropic/claude-3.5-sonnet",
+        "processing_timeout_s": 1800
+    }
+}
+---
+{"detail":"Not Found"}---
+169:@app.post("/parse/docling")
+587:@app.post("/parse/hybrid")
+660:@app.get("/status/{job_id}")
+677:@app.get("/results/{job_id}")
+732:@app.get("/health")
+790:@app.get("/jobs")
+817:@app.delete("/jobs/{job_id}")
+840:@app.get("/result/{job_id}")
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

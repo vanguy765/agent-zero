@@ -1,0 +1,16 @@
+✅ Syntax valid
+✅ Module imports successfully
+  GuardError: <class 'fetch_and_save.GuardError'>
+  VerifyError: <class 'fetch_and_save.VerifyError'>
+  guard_type: <function guard_type at 0x78ae6ca91620>
+  guard_not_none: <function guard_not_none at 0x78ae6c91dee0>
+  describe_shape: <function describe_shape at 0x78ae6bb072e0>
+  trace: <function trace at 0x78ae6b962160>
+  fetch_and_save: <function fetch_and_save at 0x78ae6b99cf40>
+
+✅ Guard catches bad url type: GUARD:fetch_and_save | url | expected str, got int
+✅ Guard catches empty url: GUARD:fetch_and_save | url | expected non-empty str, got empty str
+✅ Guard catches non-http url: GUARD:fetch_and_save | url | expected str starting with 'http', got prefix 'ftp://bad...'
+✅ Guard catches None db: GUARD:fetch_and_save | db | expected a value, got None
+✅ Guard catches db without execute: GUARD:fetch_and_save | db | expected object with 'execute' method, got str
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

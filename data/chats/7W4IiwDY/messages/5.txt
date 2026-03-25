@@ -1,0 +1,117 @@
+=== CONTINUATION_PROMPT.md (first 20 lines) ===
+# Bulwark AI — Continuation Prompt
+
+> Paste this into a new Agent Zero conversation (developer profile) to resume work.
+
+---
+
+## Project Summary
+
+I'm developing **Bulwark AI** — a zero-dependency defensive coding standard that mitigates AI-generated code failures through a **Guard-Trace-Verify (GTV)** framework. It's a convention, not a library.
+
+## Repository
+
+- **GitHub**: Private repo `bulwark-ai` (authenticated via `§§secret(GITHUB_TOKEN)`)
+- **Local path**: `/a0/usr/workdir/bulwark-ai`
+- **Key files**:
+  - `SPEC.md` — Formal specification (v0.2.0-draft, includes §10.2 Service Manifest)
+  - `GUIDE.md` — 1,570-line comprehensive guide
+  - `QUICKSTART.md` — 5-minute on-ramp
+  - `PROJECT_STATUS.md` — Full project context, history, open questions
+  - `LIVE_TEST_PLAN.md` — Three-round test plan with cross-model addendum
+=== PROJECT_STATUS.md (first 20 lines) ===
+# Bulwark AI — Project Status & Context
+
+> **Purpose**: This document provides the full project context for any new
+> contributor (human or AI) picking up development. It captures the evolution
+> narrative, competitive positioning, open questions, and creator vision that
+> cannot be reconstructed from the specification or code alone.
+>
+> **Last Updated**: 2026-03-17 (v0.2.0-draft)
+
+---
+
+## Table of Contents
+
+1. [Creator Vision](#creator-vision)
+2. [Project Evolution](#project-evolution)
+3. [Current State Assessment](#current-state-assessment)
+4. [Competitive Landscape](#competitive-landscape)
+5. [Open Questions](#open-questions)
+6. [Known Gaps & Technical Debt](#known-gaps--technical-debt)
+7. [Audience & Adoption Profile](#audience--adoption-profile)
+=== ANNOUNCEMENT_KICKOFF.md (first 20 lines) ===
+# Bulwark AI — Open Source Announcement & Marketing Session
+
+> Paste this into a new Agent Zero conversation to get help with your first open source launch.
+
+---
+
+## Context
+
+I'm launching **Bulwark AI** — my first open source project. It's a zero-dependency defensive coding standard (Guard-Trace-Verify) that makes AI-generated code more reliable. Think of it as a convention, not a library.
+
+### Repository
+- **GitHub**: `https://github.com/vanguy765/bulwark-ai` (currently private, needs to go public)
+- **Local path**: `/a0/usr/workdir/bulwark-ai`
+- **Tag**: `v0.2.0` (just tagged)
+- **License**: Already has a LICENSE file
+
+### What Makes It Interesting
+1. **The Problem**: AI coding assistants generate code that looks correct but fails silently — wrong types, missing data, unverified side effects
+2. **The Solution**: Three defensive layers (Guard inputs → Trace data shapes → Verify side effects) that any AI agent can learn from a single prompt
+3. **Validation**: 6/6 live tests passing — a Claude agent learned the standard and produced compliant code with 100% self-correction rate
+=== DECISIONS.md (first 20 lines) ===
+# Bulwark AI — Architecture Decision Records
+
+> **Purpose**: This document captures every significant design decision made during
+> the development of Bulwark AI, including the context, alternatives considered,
+> and rationale for each choice. It exists to prevent re-debating settled questions
+> and to give any new contributor (human or AI) the full reasoning chain.
+>
+> **Format**: Each decision follows the ADR (Architecture Decision Record) pattern:
+> Context → Decision → Alternatives → Rationale → Consequences
+
+---
+
+## Table of Contents
+
+1. [ADR-001: Project Name](#adr-001-project-name)
+2. [ADR-002: Three-Layer Architecture](#adr-002-three-layer-architecture)
+3. [ADR-003: Zero-Dependency Philosophy](#adr-003-zero-dependency-philosophy)
+4. [ADR-004: Convention Over Library](#adr-004-convention-over-library)
+5. [ADR-005: Custom Exception Types](#adr-005-custom-exception-types)
+6. [ADR-006: Guards Always Active](#adr-006-guards-always-active)
+=== LIVE_TEST_PLAN.md (first 20 lines) ===
+# Bulwark × BMAD × Agent Zero — Live Test Plan
+
+> **Version**: 1.0.0
+> **Date**: 2025-03-15
+> **System Under Test**: Claude Opus 4.6 via Agent Zero with BMAD methodology
+> **Objective**: Validate autonomous self-correcting code development using Bulwark defensive patterns
+
+---
+
+## 1. Executive Summary
+
+### What We're Testing
+
+An autonomous AI agent (Claude Opus 4.6 running inside Agent Zero) that:
+1. **Receives** a coding task
+2. **Loads** the BMAD Bulwark skill (`.bmad/skills/bulwark-defensive-coding.md`)
+3. **Generates** code following the Guard-Trace-Verify (GTV) pattern
+4. **Lints** its own output using `bulwark-lint --format json`
+5. **Self-corrects** any violations detected
+6. **Re-lints** to confirm compliance
+=== git log (last 10 commits) ===
+2ec840a (HEAD -> main, origin/main) docs: add announcement kickoff prompt for OSS launch
+54e3fd6 (tag: v0.2.0) docs: add service manifest guide, security considerations, and spec updates
+1cb17cd docs: update 4 files with §10.2 manifest references and test results
+794f6bf test: Test 2.3 Service Manifest Guard — ALL SCENARIOS PASSED
+205b521 feat: add Test 2.3 Service Manifest Guard fixtures and prompt
+365deb6 feat: add Service Manifest (§10.2) and Cross-Model Validation addendum
+fc13937 Update PROJECT_STATUS.md with Round 2 test results (Tests 2.1, 2.2)
+c2b475a Test 2.2: Error Recovery Chain - ALL SCENARIOS PASSED (100% weighted score)
+9c39854 test: Test 2.1 complete — 14/14 pattern quality, 8/8 coherence, 75% self-correction
+aad7dd6 Add Test 2.1 prompt, results template, and continuation prompt
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

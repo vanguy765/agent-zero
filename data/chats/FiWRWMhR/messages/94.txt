@@ -1,0 +1,28 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   linter/bulwark_lint/languages.py
+	modified:   linter/bulwark_lint/rules/blw001_guard_present.py
+	modified:   linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+	modified:   linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+	modified:   linter/bulwark_lint/rules/blw004_no_bare_assert.py
+	modified:   linter/bulwark_lint/rules/blw005_custom_error_types.py
+	new file:   linter/bulwark_lint/text_utils.py
+	modified:   linter/tests/test_rules.py
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#  linter/bulwark_lint/languages.py                   |  21 ++-
+ linter/bulwark_lint/rules/blw001_guard_present.py  |   4 +-
+ .../rules/blw002_verify_after_mutation.py          |  12 +-
+ .../bulwark_lint/rules/blw003_trace_at_boundary.py |   6 +-
+ linter/bulwark_lint/rules/blw004_no_bare_assert.py |   4 +-
+ .../rules/blw005_custom_error_types.py             |  14 +-
+ linter/bulwark_lint/text_utils.py                  | 161 +++++++++++++++++++++
+ linter/tests/test_rules.py                         |  48 +++++-
+ 8 files changed, 250 insertions(+), 20 deletions(-)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > > > > > > > > [main 6acdc27] fix(linter): eliminate false positives from string literals and comments (F-LNT)
+ 8 files changed, 250 insertions(+), 20 deletions(-)
+ create mode 100644 linter/bulwark_lint/text_utils.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,121 @@
+
+  return c.json({
+    document_id: documentId,
+    pages:       data ?? [],
+    count:       data?.length ?? 0,
+    offset,
+    limit,
+    ...(category ? { filter: { category } } : {}),
+  });
+});
+
+// ============================================================
+// GET /documents/:documentId/pages/:pageNumber
+// Get a single parsed page by its 1-indexed page number.
+// Returns storage_url, thumbnail_url, category, raw_text,
+// and full metadata blob.
+// ============================================================
+
+docParserRoutes.get('/documents/:documentId/pages/:pageNumber', async (c) => {
+  const documentId = c.req.param('documentId');
+  const pageNumber = Number(c.req.param('pageNumber'));
+
+  if (!pageNumber || pageNumber < 1) {
+    return c.json({ error: 'pageNumber must be a positive integer (1-indexed)' }, 400);
+  }
+
+  const supabase = getScopedClient(c);
+
+  const { data, error } = await supabase
+    .from('document_pages')
+    .select('*')
+    .eq('document_id', documentId)
+    .eq('page_number', pageNumber)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return c.json({
+        error: `Page ${pageNumber} not found for document ${documentId}. Has the document been parsed?`,
+      }, 404);
+    }
+    return c.json({ error: `Database query failed: ${error.message}` }, 500);
+  }
+
+  return c.json(data);
+});
+
+// ============================================================
+// GET /documents/:documentId/ocr
+// List all OCR / table extraction results for a document.
+//
+// Query params:
+//   ?page_number=N  (filter by source page)
+//   ?limit=50       (default 100)
+//   ?offset=0
+// ============================================================
+
+docParserRoutes.get('/documents/:documentId/ocr', async (c) => {
+  const documentId = c.req.param('documentId');
+  const pageNumber = c.req.query('page_number') ? Number(c.req.query('page_number')) : null;
+  const limit      = Math.min(Number(c.req.query('limit')  ?? 100), 500);
+  const offset     = Number(c.req.query('offset') ?? 0);
+
+  const supabase = getScopedClient(c);
+
+  // If filtering by page_number, join through document_pages
+  let query;
+  if (pageNumber !== null) {
+    // Get the page_id first, then filter ocr_results
+    const { data: pageRow, error: pageErr } = await supabase
+      .from('document_pages')
+      .select('id')
+      .eq('document_id', documentId)
+      .eq('page_number', pageNumber)
+      .single();
+
+    if (pageErr || !pageRow) {
+      return c.json({
+        error: `Page ${pageNumber} not found for document ${documentId}`,
+        document_id: documentId,
+        ocr_results: [],
+        count: 0,
+      }, 404);
+    }
+
+    query = supabase
+      .from('ocr_results')
+      .select('id, document_id, page_id, table_index, markdown, structured_data, confidence, created_at')
+      .eq('document_id', documentId)
+      .eq('page_id', pageRow.id)
+      .order('table_index', { ascending: true })
+      .range(offset, offset + limit - 1);
+  } else {
+    query = supabase
+      .from('ocr_results')
+      .select('id, document_id, page_id, table_index, markdown, structured_data, confidence, created_at')
+      .eq('document_id', documentId)
+      .order('table_index', { ascending: true })
+      .range(offset, offset + limit - 1);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('[doc-parser] ocr_results query failed:', error.message);
+    return c.json({ error: `Database query failed: ${error.message}` }, 500);
+  }
+
+  return c.json({
+    document_id: documentId,
+    ocr_results: data ?? [],
+    count:       data?.length ?? 0,
+    offset,
+    limit,
+    ...(pageNumber !== null ? { filter: { page_number: pageNumber } } : {}),
+  });
+});
+
+export { docParserRoutes };
+export default docParserRoutes;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

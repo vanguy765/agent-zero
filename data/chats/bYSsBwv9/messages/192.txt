@@ -1,0 +1,13 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+Port 3002 is in use, trying another one...
+Port 3003 is in use, trying another one...
+Port 3004 is in use, trying another one...
+
+  VITE v5.4.21  ready in 7880 ms
+
+  ➜  Local:   http://localhost:3005/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

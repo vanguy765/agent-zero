@@ -1,0 +1,40 @@
+if __name__ == "__main__":
+    print("=" * 60)
+    print("Bulwark AI — Python Reference Implementation Self-Test")
+    print(f"Version: 0.2.0-draft")
+    print(f"Config: {get_config()}")
+    print("=" * 60)
+
+    passed = 0
+    failed = 0
+
+    def test(name, fn):
+        global passed, failed
+        try:
+            fn()
+            print(f"  [PASS] {name}")
+            passed += 1
+        except Exception as e:
+            print(f"  [FAIL] {name}: {e}")
+            failed += 1
+
+    # --- Guard Tests ---
+    print("\n--- Guard Tests ---")
+
+    test("guard(True) passes",
+         lambda: guard(True, "test", "should pass"))
+
+    def _guard_false():
+        try:
+            guard(False, "test", "expected X, got Y")
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard(False) raises GuardError", _guard_false)
+
+    test("guard_type(dict) passes",
+         lambda: guard_type({"a": 1}, dict, "test", "data"))
+
+    def _guard_type_fail():
+        try:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

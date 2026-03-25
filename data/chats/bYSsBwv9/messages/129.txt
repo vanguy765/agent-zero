@@ -1,0 +1,104 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === SEED DATA ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Supabase status ===
+bash: supabase: command not found
+
+=== Running processes ===
+postgres    8839  0.0  0.1 226300 31296 ?        Ss   00:41   0:00 /usr/lib/postgresql/18/bin/postgres -D /tmp/pgdata
+postgres    8840  0.0  0.0 226432  9596 ?        Ss   00:41   0:00 postgres: io worker 0
+postgres    8841  0.0  0.0 226432  6140 ?        Ss   00:41   0:00 postgres: io worker 1
+postgres    8842  0.0  0.0 226432  6332 ?        Ss   00:41   0:00 postgres: io worker 2
+postgres    8843  0.0  0.1 226564 18812 ?        Ss   00:41   0:00 postgres: checkpointer
+postgres    8844  0.0  0.0 226460  7100 ?        Ss   00:41   0:00 postgres: background writer
+postgres    8846  0.0  0.0 226432 10172 ?        Ss   00:41   0:00 postgres: walwriter
+postgres    8847  0.0  0.0 227880  8828 ?        Ss   00:41   0:00 postgres: autovacuum launcher
+postgres    8848  0.0  0.0 227880  7676 ?        Ss   00:41   0:00 postgres: logical replication launcher
+root        9065  0.0  0.2 1073823476 47216 ?    Sl   00:43   0:01 /tmp/postgrest /tmp/postgrest.conf
+postgres    9120  0.0  0.0 228384 13820 ?        Ss   00:43   0:00 postgres: authenticator postgres 127.0.0.1(36932) idle
+postgres    9421  0.0  0.1 226648 32448 ?        Ss   00:44   0:00 /usr/lib/postgresql/18/bin/postgres -D /var/lib/postgresql/18/main -c config_file=/etc/postgresql/18/main/postgresql.conf
+postgres    9422  0.0  0.0 226636  8348 ?        Ss   00:44   0:00 postgres: 18/main: io worker 0
+postgres    9423  0.0  0.0 226636  6428 ?        Ss   00:44   0:00 postgres: 18/main: io worker 1
+postgres    9424  0.0  0.0 226636  5852 ?        Ss   00:44   0:00 postgres: 18/main: io worker 2
+postgres    9425  0.0  0.0 226748  9884 ?        Ss   00:44   0:00 postgres: 18/main: checkpointer
+postgres    9426  0.0  0.0 226768  7388 ?        Ss   00:44   0:00 postgres: 18/main: background writer
+postgres    9428  0.0  0.0 226636 10268 ?        Ss   00:44   0:00 postgres: 18/main: walwriter
+postgres    9429  0.0  0.0 228196  9116 ?        Ss   00:44   0:00 postgres: 18/main: autovacuum launcher
+postgres    9430  0.0  0.0 228064  8156 ?        Ss   00:44   0:00 postgres: 18/main: logical replication launcher
+root        9498  0.0  0.0  20128 12096 ?        S    00:45   0:00 /usr/lib/postgresql/18/bin/psql -U postgres -h 127.0.0.1 -d postgres -c SELECT column_name, data_type FROM information_schema.columns WHERE table_name='space_archetypes' ORDER BY ordinal_position;
+root       10763  0.0  0.3 1030808 60596 ?       Sl   00:58   0:00 node postgrest-proxy.js
+postgres   11030  0.0  0.1 229728 20732 ?        Ss   00:58   0:00 postgres: authenticator postgres 127.0.0.1(59884) idle
+
+=== Supabase config ports ===
+port = 54321
+port = 54322
+shadow_port = 54320
+port = 54329
+# Configure one of the supported pooler modes: `transaction`, `session`.
+# Supports glob patterns relative to supabase directory: "./schemas/*.sql"
+# Supports glob patterns relative to supabase directory: "./seeds/*.sql"
+port = 54323
+port = 54324
+# Uncomment to expose additional ports for testing user applications that send emails.
+# smtp_port = 54325
+# pop3_port = 54326
+# JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).
+# Passwords that do not meet the following requirements will be rejected as weak. Supported values
+# Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
+# port = 587
+# Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
+# Supported request policies: `oneshot`, `per_worker`.
+inspector_port = 8083
+
+=== docs/ports.md ===
+# Port Allocation Contract
+
+To avoid conflicts during development, we strictly assign specific ports to each application in the monorepo.
+
+## Assigned Ports
+
+| Port      | Application         | Path                  | Notes                                                                 |
+| :-------- | :------------------ | :-------------------- | :-------------------------------------------------------------------- |
+| **3000**  | **API**             | `apps/api`            | The Backend (Hono) + A2A Protocol (`/a2a`, `/.well-known/agent.json`) |
+| **3001**  | **Web Dashboard**   | `apps/web-dashboard`  | Admin/Office View (Legacy/Reference)                                  |
+| **3003**  | **Material Admin**  | `apps/material-admin` | Material & Taxonomy Manager                                           |
+| **3002**  | **Site Companion**  | `apps/site-companion` | Mobile Companion App (Voice Log)                                      |
+| **3004**  | **Work Orders**     | `apps/work-orders`    | Work Orders Management                                                |
+| **3005**  | **Tenant Portal**   | `apps/tenant-portal`  | Configurable Tenant Data Portal (SolidJS)                             |
+| **5000**  | **Doc Parser**      | `doc-parser`          | Python FastAPI Service for LayoutParser                               |
+| **8082**  | **NocoDB**          | -                     | No-code Database Interface (Internal Tools)                           |
+| **54321** | **Supabase**        | -                     | Local Database (Postgres)                                             |
+| **54323** | **Supabase Studio** | -                     | Local Dashboard UI                                                    |
+| **5080**  | **Agent Zero**      | `agent-zero`          | Agent Zero                                                            |
+
+## Rules
+
+1.  **Strict Ports**: In `vite.config.ts`, always set `server.port` to the assigned value.
+2.  **No Random Ports**: Do not let Vite pick a random port. This breaks CORS configurations.
+3.  **Check this doc**: Before creating a new app, claim the next available port here.
+
+## Troubleshooting
+
+### Windows "Zombie" Processes
+
+If you encounter `EADDRINUSE` or random port assignments (e.g., 3009 instead of 3002), it is likely that a previous Node process is still running in the background.
+
+**Fix**: Run this command in PowerShell to Force-Kill all Node processes:
+
+```powershell
+taskkill /F /IM node.exe
+```
+
+---
+
+## Docker / Compose port mapping (local development)
+
+The repository provides a `docker-compose.yml` (root of `agent-zero`) that maps the service ports for the single "agent-zero" service. By default the compose file maps:
+
+- Container port 80 -> Host 80
+- Container port 9000 -> Host 9000
+- Container port 22 -> Host 22
+
+If you run multiple services from the monorepo in parallel, ensure these host ports are free or modify the `docker-compose.yml` port mappings to avoid conflicts.
+
+Tip: use `docker compose ps` and `docker compose logs -f <service>` to inspect running services and assigned ports.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

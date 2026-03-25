@@ -1,0 +1,12 @@
+7:    ADD CONSTRAINT document_images_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.project_documents(id) ON DELETE CASCADE;
+12:ALTER TABLE ONLY public.project_documents
+13:    ADD CONSTRAINT project_documents_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.wo_projects(id) ON DELETE CASCADE;
+15:ALTER TABLE ONLY public.project_documents
+16:    ADD CONSTRAINT project_documents_uploaded_by_fkey FOREIGN KEY (uploaded_by) REFERENCES auth.users(id);
+25:    ADD CONSTRAINT unit_documents_document_id_fkey FOREIGN KEY (document_id) REFERENCES public.project_documents(id) ON DELETE CASCADE;
+46:    ADD CONSTRAINT units_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.wo_projects(id) ON DELETE SET NULL;
+48:ALTER TABLE ONLY public.wo_projects
+51:ALTER TABLE ONLY public.wo_projects
+79:    ADD CONSTRAINT work_order_templates_project_id_fkey FOREIGN KEY (project_id) REFERENCES public.wo_projects(id) ON DELETE CASCADE;
+---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

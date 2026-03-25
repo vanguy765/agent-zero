@@ -1,0 +1,15 @@
+=== Current patched lines ===
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)  # Return full public URL
+        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+        try:
+            await asyncio.to_thread(
+---
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        url_response = sb_client.storage.from_("project-documents").get_public_url(path)  # Return full public URL
+        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+        try:
+            await asyncio.to_thread(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

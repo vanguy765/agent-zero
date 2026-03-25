@@ -1,0 +1,39 @@
+AI Memory for Developers - Persistent Context Across Sessions | ContextStream
+https://contextstream.io/features/ai-memory
+AI memory for developers is a system that stores context, decisions, and preferences from your AI coding sessions so they persist across conversations. Instead of re-explaining your project every time, your AI already knows your tech stack, coding style, and past decisions.
+
+How I gave my AI assistant persistent memory using nothing but ...
+https://medium.com/@paulotenorio/how-i-gave-my-ai-assistant-persistent-memory-using-nothing-but-markdown-files-ead91f659e57
+Feb 9, 2026 ... “Your assistant remembers everything.” It doesn't. Every time you start a new session, it wakes up fresh. No memory of yesterday. No context ...
+
+VS Code AI Memory: Persistent Context Across Sessions with Continue and ...
+https://www.memnexus.ai/blog/2026-02-20-vs-code-ai-persistent-memory
+VS Code AI extensions like Continue.dev reset every session. Here's how to add persistent memory across sessions so your AI actually learns your codebase.
+
+GitHub - mkreyman/mcp-memory-keeper: MCP server for persistent context ...
+https://github.com/mkreyman/mcp-memory-keeper
+A Model Context Protocol (MCP) server that provides persistent context management for Claude AI coding assistants. Never lose context during compaction again! This MCP server helps Claude Code maintain context across sessions, preserving your work history, decisions, and progress.
+
+Tired of AI That Forgets Everything - So We Built Persistent Memory
+https://www.reddit.com/r/microsaas/comments/1qjv5jm/tired_of_ai_that_forgets_everything_so_we_built/
+Jan 22, 2026 ... Does anyone else feel frustrated staring at the blank Prompt Text box in Every AI App with no Context about your problem.
+
+Building Persistent Memory for AI Coding Assistants
+https://jkraemer.net/2026/01/building-persistent-memory-for-ai-coding-assistants/
+Building Persistent Memory for AI Coding Assistants January 14, 2026 | ai, mcp, ruby, sqlite, llm AI coding assistants have a frustrating limitation: they forget everything when a conversation ends. Every session starts from zero. You re-explain the same architectural decisions, re-debug the same issues, and re-teach the same patterns.
+
+Making the Most Out Of Your Coding AI Assistant - Dometrain
+https://dometrain.com/blog/making-the-most-out-of-your-coding-ai-assistant/
+Jan 20, 2026 ... Go beyond smart autocomplete. Learn to master your AI coding assistant with best practices for prompting, context, and tackling complex ...
+
+Intelligent Coding Assistant Enhanced with Memory - FSE-AIWare 2026
+https://mem-comp.github.io/
+Memory is increasingly recognized as missing infrastructure for transforming coding agents from reactive tools into persistent collaborators. Goals The competition is centered on the core scientific question: How does persistent memory change the effectiveness and efficiency of AI coding assistants in long-term software development workflows?
+
+The Complete Guide to AI Coding Agents
+https://www.gdsonline.tech/the-complete-guide-to-ai-coding-agents/
+The ability to invoke tools transforms an AI coding assistant into a full coding agent. ... Some AI agents maintain session-level memory or persistent project ...
+
+Top 10 AI Assistants With Memory in 2026 | Dume.ai Guide | Dume.ai
+https://www.dume.ai/blog/top-10-ai-assistants-with-memory-in-2026
+Best use cases: Developers working with large codebases, analysts processing long documents, legal teams, and anyone needing precise, auditable memory without surprising "auto-learned" behavior. How memory helps: Memory makes Claude a true collaborative partner for long projects. You can hand off a 10,000-word document to Claude, and it remembers key context across future sessions.

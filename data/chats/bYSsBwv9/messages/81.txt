@@ -1,0 +1,16 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > GRANT
+GRANT
+GRANT
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---permissions granted---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---config created---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# db-uri = "postgres://authenticator:postgres@127.0.0.1:54322/postgres"
+db-schema = "public"
+db-anon-role = "anon"
+server-port = 54321
+server-host = "*"
+jwt-secret = "super-secret-jwt-token-with-at-least-32-characters-long"
+db-pool = 10
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

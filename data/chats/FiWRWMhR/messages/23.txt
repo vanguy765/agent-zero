@@ -1,0 +1,27 @@
+bulwark-lint 1.0.0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Exit code: clean file (should be 0) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+✔ No violations found.
+Exit code: 0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Exit code: violations found (should be 1) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts
+  11:1  warning  BLW001  function-needs-guard     handleCreateUser() has parameters but no guard calls
+  11:1  warning  BLW002  verify-after-mutation     handleCreateUser() has database mutation but no verify call
+  19:1  warning  BLW004  no-bare-assert     handleCreateUser() uses throw new Error for validation instead of guard()
+  23:1  warning  BLW004  no-bare-assert     handleCreateUser() uses throw new Error for validation instead of guard()
+  33:1  warning  BLW001  function-needs-guard     syncUserToExternalApi() has parameters but no guard calls
+  33:1  warning  BLW002  verify-after-mutation     syncUserToExternalApi() has database query, HTTP POST (+1 more) but no verify call
+  44:1  warning  BLW004  no-bare-assert     syncUserToExternalApi() uses throw new Error for validation instead of guard()
+  49:1  warning  BLW001  function-needs-guard     parseUserPayload() has parameters but no guard calls
+  61:1  warning  BLW004  no-bare-assert     parseUserPayload() uses throw new Error for validation instead of guard()
+  66:1  warning  BLW001  function-needs-guard     exportUsersToFile() has parameters but no guard calls
+  66:1  warning  BLW002  verify-after-mutation     exportUsersToFile() has file write but no verify call
+  74:1  warning  BLW001  function-needs-guard     notifyUserCreated() has parameters but no guard calls
+  74:1  warning  BLW002  verify-after-mutation     notifyUserCreated() has notification send but no verify call
+
+✖ 13 problems (0 errors, 13 warnings, 0 info)
+Exit code: 0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

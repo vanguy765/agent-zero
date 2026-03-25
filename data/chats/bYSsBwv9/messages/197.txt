@@ -1,0 +1,152 @@
+# ============================================================
+# reset-and-start.ps1
+# Stops servers, ensures Supabase + doc-parser are running,
+# resets the database, seeds users, and starts dev servers
+# ============================================================
+
+$Root = Resolve-Path "$PSScriptRoot\.."
+
+# -- Step 0a: Ensure Supabase is running
+Write-Host "`n=== Step 0a: Checking Supabase ===" -ForegroundColor Cyan
+try {
+    $null = Invoke-WebRequest -Uri "http://localhost:54321/rest/v1/" `
+        -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+    Write-Host "  Supabase is already running on :54321" -ForegroundColor Green
+}
+catch {
+    Write-Host "  Supabase not detected - running 'supabase start'..." -ForegroundColor Yellow
+    Push-Location $Root
+    supabase start
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "  ERROR: 'supabase start' failed. Aborting." -ForegroundColor Red
+        exit 1
+    }
+    Pop-Location
+    Write-Host "  Waiting for Supabase to be ready..." -ForegroundColor Yellow
+    $retries = 0
+    do {
+        Start-Sleep -Seconds 3
+        $retries++
+        try {
+            $null = Invoke-WebRequest -Uri "http://localhost:54321/rest/v1/" `
+                -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+            Write-Host "  Supabase is ready." -ForegroundColor Green
+            break
+        }
+        catch {
+            Write-Host "  Still waiting... ($retries/10)" -ForegroundColor DarkGray
+        }
+    } while ($retries -lt 10)
+    if ($retries -ge 10) {
+        Write-Host "  WARNING: Supabase may not be fully ready. Continuing anyway." -ForegroundColor Yellow
+    }
+}
+
+# -- Step 0b: Ensure doc-parser container is running
+Write-Host "`n=== Step 0b: Checking doc-parser container ===" -ForegroundColor Cyan
+$docParserDir = Join-Path $Root "doc-parser"
+
+# Helper: treat 200 OR 404 as "service is up" (root path returns 404 by design)
+function Test-DocParserReady {
+    try {
+        $r = Invoke-WebRequest -Uri "http://localhost:5000/" `
+            -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+        return $true  # 200 OK
+    }
+    catch {
+        $code = $_.Exception.Response.StatusCode.value__
+        if ($code -eq 404) { return $true }  # 404 = server up, root path just not defined
+        return $false  # connection refused / timeout
+    }
+}
+
+$docParserUp = Test-DocParserReady
+
+if ($docParserUp) {
+    Write-Host "  doc-parser is already running on :5000" -ForegroundColor Green
+}
+else {
+    $fmt = '{{.Status}}'
+    $containerStatus = docker ps -a --filter 'name=doc-parser' --format $fmt 2>$null
+    if ($containerStatus -match 'Exited') {
+        Write-Host "  doc-parser container is stopped - restarting..." -ForegroundColor Yellow
+        Push-Location $docParserDir
+        docker compose start
+        Pop-Location
+    }
+    else {
+        Write-Host "  doc-parser container not found - starting with docker compose..." -ForegroundColor Yellow
+        Push-Location $docParserDir
+        docker compose up -d
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "  WARNING: docker compose up failed for doc-parser. Continuing without it." -ForegroundColor Yellow
+        }
+        Pop-Location
+    }
+    $retries = 0
+    do {
+        Start-Sleep -Seconds 3
+        $retries++
+        if (Test-DocParserReady) {
+            Write-Host "  doc-parser is ready on :5000" -ForegroundColor Green
+            break
+        }
+        else {
+            Write-Host "  Still waiting for doc-parser... ($retries/10)" -ForegroundColor DarkGray
+        }
+    } while ($retries -lt 10)
+    if ($retries -ge 10) {
+        Write-Host "  WARNING: doc-parser may not be ready. Continuing anyway." -ForegroundColor Yellow
+    }
+}
+
+# -- Step 1: Kill dev servers
+Write-Host "`n=== Step 1: Killing dev servers ===" -ForegroundColor Cyan
+& "$PSScriptRoot\kill-dev-servers.ps1"
+
+# -- Step 2: Reset database
+Write-Host "`n=== Step 2: Resetting database ===" -ForegroundColor Cyan
+Push-Location $Root
+supabase db reset
+Pop-Location
+
+# -- Step 3: Seed users (alice + eric)
+Write-Host "`n=== Step 3: Seeding users (alice + eric) ===" -ForegroundColor Cyan
+Push-Location (Join-Path $Root "apps\api")
+npx tsx scripts/create_user.ts
+Pop-Location
+
+# -- Step 4: Create sysadmin user
+Write-Host "`n=== Step 4: Creating sysadmin user ===" -ForegroundColor Cyan
+$sysadminBody = @{
+    email         = "sysadmin@example.com"
+    password      = "sysadmin123"
+    email_confirm = $true
+    user_metadata = @{
+        role      = "sysadmin"
+        full_name = "System Administrator"
+    }
+} | ConvertTo-Json -Depth 3
+
+$serviceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+try {
+    $response = Invoke-RestMethod -Uri "http://127.0.0.1:54321/auth/v1/admin/users" `
+        -Method Post `
+        -Headers @{
+        "apikey"        = $serviceRoleKey
+        "Authorization" = "Bearer $serviceRoleKey"
+        "Content-Type"  = "application/json"
+    } `
+        -Body $sysadminBody
+    Write-Host "  Sysadmin created: $($response.email)" -ForegroundColor Green
+}
+catch {
+    Write-Host "  Sysadmin creation skipped (may already exist): $($_.Exception.Message)" -ForegroundColor Yellow
+}
+
+# -- Step 5: Start dev servers
+Write-Host "`n=== Step 5: Starting dev servers ===" -ForegroundColor Cyan
+Push-Location $Root
+pnpm dev
+Pop-Location
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

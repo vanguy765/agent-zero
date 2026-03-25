@@ -1,0 +1,9 @@
+=== Test 1: doc-parser:5000 ===
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === Test 2: host.docker.internal:5000 ===
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === Test 3: localhost:5000 ===
+FAILED
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === Test 4: 172.17.0.1:5000 (docker bridge) ===
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":true,"tesseract":true,"litellm":true},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"openrouter/anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

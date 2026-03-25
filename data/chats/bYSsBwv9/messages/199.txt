@@ -1,0 +1,35 @@
+=== .cmd files in node_modules/.bin (0 = Linux install, >0 = Windows install) ===
+0
+
+=== Leftover junk files in voicelog-scaffold root ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/build_errors.log
+/a0/usr/projects/timesheet_app/voicelog-scaffold/build_errors.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/db_reset_debug.log
+/a0/usr/projects/timesheet_app/voicelog-scaffold/debug_write_test.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/error_out.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/full_result.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/git_hybrid_history.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/hybrid_old.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/jobs.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/nocodb_full.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/nocodb_logs.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/old_pdfplumber_diff.patch
+/a0/usr/projects/timesheet_app/voicelog-scaffold/old_server.py
+/a0/usr/projects/timesheet_app/voicelog-scaffold/package.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/package-lock.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/postgrest-proxy.js
+/a0/usr/projects/timesheet_app/voicelog-scaffold/project_ids.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/seed_error.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase_debug.log
+/a0/usr/projects/timesheet_app/voicelog-scaffold/table_columns.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/temp_docker_logs.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/temp_trace.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/test_docker_logs.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/test_out.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/test_post_out.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/test_utf8_logs.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/tracked_files.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/turbo.json
+/a0/usr/projects/timesheet_app/voicelog-scaffold/unit_ids.txt
+/a0/usr/projects/timesheet_app/voicelog-scaffold/utf8_logs.txt
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

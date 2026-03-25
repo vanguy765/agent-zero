@@ -1,0 +1,12 @@
+Line 987: That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+Line 988: ---
+Line 989:
+
+After fix:
+Line 987: That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+Line 988:
+Line 989: ---
+Line 990:
+
+Final line count: 1401
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

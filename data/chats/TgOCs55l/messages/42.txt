@@ -1,0 +1,16 @@
+8:-- Table: document_pages
+11:CREATE TABLE public.document_pages (
+13:    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+25:ALTER TABLE ONLY public.document_pages
+26:    ADD CONSTRAINT document_pages_pkey PRIMARY KEY (id);
+28:CREATE UNIQUE INDEX document_pages_document_page_idx
+29:    ON public.document_pages (document_id, page_number);
+37:    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+38:    page_id uuid REFERENCES public.document_pages(id) ON DELETE CASCADE,
+61:-- RLS: document_pages
+64:ALTER TABLE public.document_pages ENABLE ROW LEVEL SECURITY;
+66:CREATE POLICY document_pages_select ON public.document_pages
+69:CREATE POLICY document_pages_insert ON public.document_pages
+72:CREATE POLICY document_pages_update ON public.document_pages
+75:CREATE POLICY document_pages_delete ON public.document_pages
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

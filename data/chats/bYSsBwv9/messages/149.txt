@@ -1,0 +1,16 @@
+=== work-orders src/ ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# App.css  App.tsx  assets  components  index.css  index.tsx  lib  pages
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === work-orders vite.config ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# import { defineConfig } from 'vite';
+import solid from 'vite-plugin-solid';
+
+export default defineConfig({
+  plugins: [solid()],
+  server: {
+    port: 3004,
+  },
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === latest turbo log ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

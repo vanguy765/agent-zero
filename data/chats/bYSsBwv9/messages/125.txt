@@ -1,0 +1,89 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API server log ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+> api@0.0.0 dev /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api
+> tsx watch src/index.ts
+
+[dotenv@17.2.3] injecting env (1) from ../../.env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+[API] Zod Version: undefined
+[API] DOC_PARSER_URL is: http://localhost:5000
+Server is running on port 3000
+Swagger UI available at http://localhost:3000/ui
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing dashboard-stats ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {
+    "template_wo_counts": {
+        "20000000-0000-0000-0000-000000000001": 20,
+        "20000000-0000-0000-0000-000000000002": 20,
+        "20000000-0000-0000-0000-000000000003": 20,
+        "20000000-0000-0000-0000-000000000004": 20,
+        "20000000-0000-0000-0000-000000000005": 20,
+        "20000000-0000-0000-0000-000000000006": 20,
+        "20000000-0000-0000-0000-000000000007": 20,
+        "20000000-0000-0000-0000-000000000008": 20,
+        "20000000-0000-0000-0000-000000000009": 20,
+        "20000000-0000-0000-0000-000000000010": 20,
+        "20000000-0000-0000-0000-000000000011": 20
+    },
+    "template_wo_status_counts": {
+        "20000000-0000-0000-0000-000000000001": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000002": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000003": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000004": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000005": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000006": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000007": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000008": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000009": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000010": {
+            "pending": 20
+        },
+        "20000000-0000-0000-0000-000000000011": {
+            "pending": 20
+        }
+    },
+    "project_unit_stats": {
+        "761c1d88-d1f1-4da1-8b53-441b9b2667c2": {
+            "total": 20,
+            "not_started": 20,
+            "in_progress": 0,
+            "completed": 0
+        }
+    },
+    "type_order_compositions": {
+        "c0000000-0000-0000-0000-000000000050": [
+            {
+{"template_wo_counts":{"20000000-0000-0000-0000-000000000001":20,"20000000-0000-0000-0000-000000000002":20,"20000000-0000-0000-0000-000000000003":20,"20000000-0000-0000-0000-000000000004":20,"20000000-0000-0000-0000-000000000005":20,"20000000-0000-0000-0000-000000000006":20,"20000000-0000-0000-0000-000000000007":20,"20000000-0000-0000-0000-000000000008":20,"20000000-0000-0000-0000-000000000009":20,"20000000-0000-0000-0000-000000000010":20,"20000000-0000-0000-0000-000000000011":20},"template_wo_status_counts":{"20000000-0000-0000-0000-000000000001":{"pending":20},"20000000-0000-0000-0000-000000000002":{"pending":20},"20000000-0000-0000-0000-000000000003":{"pending":20},"20000000-0000-0000-0000-000000000004":{"pending":20},"20000000-0000-0000-0000-000000000005":{"pending":20},"20000000-0000-0000-0000-000000000006":{"pending":20},"20000000-0000-0000-0000-000000000007":{"pending":20},"20000000-0000-0000-0000-000000000008":{"pending":20},"20000000-0000-0000-0000-000000000009":{"pending":20},"20000000-0000-0000-0000-000000000010":{"pending":20},"20000000-0000-0000-0000-000000000011":{"pending":20}},"project_unit_stats":{"761c1d88-d1f1-4da1-8b53-441b9b2667c2":{"total":20,"not_started":20,"in_progress":0,"completed":0}},"type_order_compositions":{"c0000000-0000-0000-0000-000000000050":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":1}],"c0000000-0000-0000-0000-000000000051":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":1},{"id":"c0000000-0000-0000-0000-000000000003","name":"Bedroom","code":"bedroom","quantity":1}],"c0000000-0000-0000-0000-000000000052":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":1},{"id":"c0000000-0000-0000-0000-000000000003","name":"Bedroom","code":"bedroom","quantity":2}],"c0000000-0000-0000-0000-000000000053":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":2},{"id":"c0000000-0000-0000-0000-000000000003","name":"Bedroom","code":"bedroom","quantity":3}]}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API server log (last 40 lines) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+> api@0.0.0 dev /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api
+> tsx watch src/index.ts
+
+[dotenv@17.2.3] injecting env (1) from ../../.env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+[API] Zod Version: undefined
+[API] DOC_PARSER_URL is: http://localhost:5000
+Server is running on port 3000
+Swagger UI available at http://localhost:3000/ui
+<-- GET /work-orders/dashboard-stats
+--> GET /work-orders/dashboard-stats 200 50ms
+<-- GET /work-orders/dashboard-stats
+--> GET /work-orders/dashboard-stats 200 14ms
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing dashboard-stats ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {"template_wo_counts":{"20000000-0000-0000-0000-000000000001":20,"20000000-0000-0000-0000-000000000002":20,"20000000-0000-0000-0000-000000000003":20,"20000000-0000-0000-0000-000000000004":20,"20000000-0000-0000-0000-000000000005":20,"20000000-0000-0000-0000-000000000006":20,"20000000-0000-0000-0000-000000000007":20,"20000000-0000-0000-0000-000000000008":20,"20000000-0000-0000-0000-000000000009":20,"20000000-0000-0000-0000-000000000010":20,"20000000-0000-0000-0000-000000000011":20},"template_wo_status_counts":{"20000000-0000-0000-0000-000000000001":{"pending":20},"20000000-0000-0000-0000-000000000002":{"pending":20},"20000000-0000-0000-0000-000000000003":{"pending":20},"20000000-0000-0000-0000-000000000004":{"pending":20},"20000000-0000-0000-0000-000000000005":{"pending":20},"20000000-0000-0000-0000-000000000006":{"pending":20},"20000000-0000-0000-0000-000000000007":{"pending":20},"20000000-0000-0000-0000-000000000008":{"pending":20},"20000000-0000-0000-0000-000000000009":{"pending":20},"20000000-0000-0000-0000-000000000010":{"pending":20},"20000000-0000-0000-0000-000000000011":{"pending":20}},"project_unit_stats":{"761c1d88-d1f1-4da1-8b53-441b9b2667c2":{"total":20,"not_started":20,"in_progress":0,"completed":0}},"type_order_compositions":{"c0000000-0000-0000-0000-000000000050":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":1}],"c0000000-0000-0000-0000-000000000051":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":1},{"id":"c0000000-0000-0000-0000-000000000003","name":"Bedroom","code":"bedroom","quantity":1}],"c0000000-0000-0000-0000-000000000052":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":1},{"id":"c0000000-0000-0000-0000-000000000003","name":"Bedroom","code":"bedroom","quantity":2}],"c0000000-0000-0000-0000-000000000053":[{"id":"c0000000-0000-0000-0000-000000000004","name":"Living Room","code":"living_room","quantity":1},{"id":"c0000000-0000-0000-0000-000000000001","name":"Kitchen","code":"kitchen","quantity":1},{"id":"c0000000-0000-0000-0000-000000000002","name":"Bathroom","code":"bathroom","quantity":2},{"id":"c0000000-0000-0000-0000-000000000003","name":"Bedroom","code":"bedroom","quantity":3}]}}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

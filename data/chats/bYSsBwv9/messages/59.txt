@@ -1,0 +1,44 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# # Port Allocation Contract
+
+To avoid conflicts during development, we strictly assign specific ports to each application in the monorepo.
+
+## Assigned Ports
+
+| Port      | Application         | Path                  | Notes                                                                 |
+| :-------- | :------------------ | :-------------------- | :-------------------------------------------------------------------- |
+| **3000**  | **API**             | `apps/api`            | The Backend (Hono) + A2A Protocol (`/a2a`, `/.well-known/agent.json`) |
+| **3001**  | **Web Dashboard**   | `apps/web-dashboard`  | Admin/Office View (Legacy/Reference)                                  |
+| **3003**  | **Material Admin**  | `apps/material-admin` | Material & Taxonomy Manager                                           |
+| **3002**  | **Site Companion**  | `apps/site-companion` | Mobile Companion App (Voice Log)                                      |
+| **3004**  | **Work Orders**     | `apps/work-orders`    | Work Orders Management                                                |
+| **3005**  | **Tenant Portal**   | `apps/tenant-portal`  | Configurable Tenant Data Portal (SolidJS)                             |
+| **5000**  | **Doc Parser**      | `doc-parser`          | Python FastAPI Service for LayoutParser                               |
+| **8082**  | **NocoDB**          | -                     | No-code Database Interface (Internal Tools)                           |
+| **54321** | **Supabase**        | -                     | Local Database (Postgres)                                             |
+| **54323** | **Supabase Studio** | -                     | Local Dashboard UI                                                    |
+| **5080**  | **Agent Zero**      | `agent-zero`          | Agent Zero                                                            |
+
+## Rules
+
+1.  **Strict Ports**: In `vite.config.ts`, always set `server.port` to the assigned value.
+2.  **No Random Ports**: Do not let Vite pick a random port. This breaks CORS configurations.
+3.  **Check this doc**: Before creating a new app, claim the next available port here.
+
+## Troubleshooting
+
+### Windows "Zombie" Processes
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 3:const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/work-orders';
+373:      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+651:    const response = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+744:    const response = await fetch(`${this.docParserBaseUrl}${endpoint}`, {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+VITE_API_URL=http://localhost:3000/work-orders
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# no .env.local
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+# Doc-Parser service URL (localhost when API runs on host, docker service name when in container)
+DOC_PARSER_URL=http://localhost:5000
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,55 @@
+=== packages/schemas/src/ files ===
+delivery.ts  materials.ts   taxonomy.ts        todo.ts	       zod.ts
+index.ts     renovation.ts  test_materials.ts  work-orders.ts
+
+=== All schema files combined (looking for v3-specific APIs) ===
+
+=== packages/schemas/src/zod.ts ===
+import { z as zHono } from '@hono/zod-openapi';
+import { extendZodWithOpenApi } from '@hono/zod-openapi';
+
+// Hono's z might not be extended by default in all versions, or it might be lazy.
+// The safe bet is to use the one from the lib.
+// Docs say: import { z } from '@hono/zod-openapi'
+// We will also ensure it is extended just in case.
+
+// extendZodWithOpenApi(zHono);
+
+export const z = zHono;
+
+=== apps/api package.json (full) ===
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "@hono/node-server": "latest",
+    "@hono/swagger-ui": "^0.5.3",
+    "@hono/zod-openapi": "^1.2.0",
+    "@hono/zod-validator": "latest",
+    "@napi-rs/canvas": "^0.1.89",
+    "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@supabase/supabase-js": "^2.90.1",
+    "dotenv": "latest",
+    "hono": "latest",
+    "pdfjs-dist": "^5.4.624",
+    "unpdf": "^1.4.0",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/node": "latest",
+    "postgres": "^3.4.8",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

@@ -1,0 +1,34 @@
+=== Checking save_parsed_pages.py for AI calls ===
+NONE FOUND - clean
+
+=== Checking verify_image_urls.py for AI calls ===
+NONE FOUND - clean
+
+=== Checking what PROGRAM_STATUS does in hybrid.py ===
+280:    if os.getenv("PROGRAM_STATUS") == "develop_without_ai":
+328:    if os.getenv("PROGRAM_STATUS") == "develop_without_ai":
+
+=== Check if get_public_url is available ===
+
+=== Check Supabase URL env var ===
+job_manager.py:159:    def __init__(self, supabase_url: str, supabase_key: str):
+job_manager.py:162:            self._client = create_client(supabase_url, supabase_key)
+job_manager.py:536:    supabase_url: Optional[str] = None,
+job_manager.py:543:        supabase_url: Required if backend is "supabase"
+job_manager.py:546:    if backend == "supabase" and supabase_url and supabase_key:
+job_manager.py:547:        store = SupabaseJobStore(supabase_url, supabase_key)
+parse_document_pipeline.py:24:  SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DOC_PARSER_URL
+parse_document_pipeline.py:56:        default=os.getenv("SUPABASE_URL", "http://host.docker.internal:54321"),
+parse_document_pipeline.py:189:                "supabase_url": sb_url,
+parse_document_pipeline.py:348:    log(f"Supabase URL: {args.supabase_url}")
+parse_document_pipeline.py:351:    sb: Client = create_client(args.supabase_url, args.supabase_key)
+parse_document_pipeline.py:359:        args.supabase_url, args.supabase_key, args.poll_interval,
+process_document.py:28:               supabase_url, supabase_key, tenant_name, project_name):
+process_document.py:36:        if supabase_url:
+process_document.py:37:            data["supabase_url"] = supabase_url
+process_document.py:174:        supabase_url=args.supabase_url,
+server.py:63:SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+server.py:83:        supabase_url=SUPABASE_URL,
+server.py:128:    supabase_url: Optional[str] = None,
+server.py:132:    url = supabase_url or SUPABASE_URL
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

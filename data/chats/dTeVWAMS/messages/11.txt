@@ -1,0 +1,102 @@
+======================================================================
+SCENARIO A: Happy Path (no failures)
+======================================================================
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:start | pipeline starting, max_retries=3, simulate_failures=0 | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:input | filepath='/a0/usr/workdir/bulwark-ai/test-results/test_data.csv', file_size=199 bytes | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:output | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:output_detail | record_count=4, columns=['department', 'email', 'first_name', 'last_name'] | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:stage_complete | ingest complete, records=4 | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:input | record_count=4, schema_keys=['department', 'email', 'first_name', 'last_name'] | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:input_records | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:output | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:output_detail | transformed_count=4, new_fields=['dept', 'email_address', 'family_name', 'given_name'] | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:stage_complete | transform complete, records=4 | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:guard_db_available:available | host='localhost:5432', table='employees' | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:input | record_count=4, target_table='employees', max_retries=3 | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:input_records | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=0 | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | DEBUG | VERIFY:load_to_database_with_retry | OK — file '/a0/usr/workdir/bulwark-ai/test-results/pipeline_output.json' exists, size=523 bytes
+2026-03-18 03:47:18 | DEBUG | VERIFY:load_to_database_with_retry | OK — INSERT expected 4 records, file contains 4 records
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:success | inserted_count=4, attempt=1/3 | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:complete | ingested=4, transformed=4, loaded=4, attempts=1, circuit_breaker=CLOSED | op=d98e8973-1c68-4b6f-a4d3-eb58e3525ced
+
+Result: {
+  "operation_id": "d98e8973-1c68-4b6f-a4d3-eb58e3525ced",
+  "records_ingested": 4,
+  "records_transformed": 4,
+  "records_loaded": 4,
+  "retry_attempts": 1,
+  "circuit_breaker_state": "CLOSED",
+  "status": "verified"
+}
+Status: PASS
+
+======================================================================
+SCENARIO B: Transient Failure with Recovery (2 simulated failures)
+======================================================================
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:start | pipeline starting, max_retries=3, simulate_failures=2 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:input | filepath='/a0/usr/workdir/bulwark-ai/test-results/test_data.csv', file_size=199 bytes | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:output | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:output_detail | record_count=4, columns=['department', 'email', 'first_name', 'last_name'] | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:stage_complete | ingest complete, records=4 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:input | record_count=4, schema_keys=['department', 'email', 'first_name', 'last_name'] | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:input_records | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:output | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:output_detail | transformed_count=4, new_fields=['dept', 'email_address', 'family_name', 'given_name'] | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:stage_complete | transform complete, records=4 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:guard_db_available:available | host='localhost:5432', table='employees' | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:input | record_count=4, target_table='employees', max_retries=3 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:input_records | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=0 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:recovery | attempt=1/3, error="SimulatedDBError: connection refused to localhost:5432 (simulated, 1 failures remaining)", backoff=1s | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=1 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:recovery | attempt=2/3, error="SimulatedDBError: connection refused to localhost:5432 (simulated, 0 failures remaining)", backoff=2s | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=2 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | DEBUG | VERIFY:load_to_database_with_retry | OK — file '/a0/usr/workdir/bulwark-ai/test-results/pipeline_output.json' exists, size=523 bytes
+2026-03-18 03:47:18 | DEBUG | VERIFY:load_to_database_with_retry | OK — INSERT expected 4 records, file contains 4 records
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:success | inserted_count=4, attempt=3/3 | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:complete | ingested=4, transformed=4, loaded=4, attempts=3, circuit_breaker=CLOSED | op=858d21a3-493c-43dc-97ad-1fa6b6987d49
+
+Result: {
+  "operation_id": "858d21a3-493c-43dc-97ad-1fa6b6987d49",
+  "records_ingested": 4,
+  "records_transformed": 4,
+  "records_loaded": 4,
+  "retry_attempts": 3,
+  "circuit_breaker_state": "CLOSED",
+  "status": "verified"
+}
+Status: PASS
+
+======================================================================
+SCENARIO C: Total Failure — Circuit Breaker Trip (5 simulated failures)
+======================================================================
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:start | pipeline starting, max_retries=3, simulate_failures=5 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:input | filepath='/a0/usr/workdir/bulwark-ai/test-results/test_data.csv', file_size=199 bytes | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:output | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:ingest_csv:output_detail | record_count=4, columns=['department', 'email', 'first_name', 'last_name'] | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:stage_complete | ingest complete, records=4 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:input | record_count=4, schema_keys=['department', 'email', 'first_name', 'last_name'] | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:input_records | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:output | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:transform_records:output_detail | transformed_count=4, new_fields=['dept', 'email_address', 'family_name', 'given_name'] | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:run_pipeline_resilient:stage_complete | transform complete, records=4 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:guard_db_available:available | host='localhost:5432', table='employees' | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:input | record_count=4, target_table='employees', max_retries=3 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:input_records | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=0 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:recovery | attempt=1/3, error="SimulatedDBError: connection refused to localhost:5432 (simulated, 4 failures remaining)", backoff=1s | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=1 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:recovery | attempt=2/3, error="SimulatedDBError: connection refused to localhost:5432 (simulated, 3 failures remaining)", backoff=2s | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:check | name="db_connection", state=CLOSED, failures=2 | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:circuit_breaker:state_change | name="db_connection", from=CLOSED, to=OPEN, failures=3, error="connection refused to localhost:5432 (simulated, 2 failures remaining)" | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:recovery | attempt=3/3, error="SimulatedDBError: connection refused to localhost:5432 (simulated, 2 failures remaining)", backoff=3s | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+2026-03-18 03:47:18 | INFO  | TRACE:load_to_database_with_retry:exhausted | all 3 attempts failed, last_error="connection refused to localhost:5432 (simulated, 2 failures remaining)" | op=1f6893f0-a0f0-4482-aa41-9b708bae0268
+
+Pipeline failed as expected: GUARD:load_to_database_with_retry | all 3 retry attempts exhausted. Last error: connection refused to localhost:5432 (simulated, 2 failures remaining)
+Status: PASS
+
+======================================================================
+All scenarios complete.
+======================================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

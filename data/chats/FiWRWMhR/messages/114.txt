@@ -1,0 +1,14 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+def _find_main_guard_line(clean_source: str, original_source: str):
+    """Find line number of `if __name__` guard. Returns 1-indexed line or None."""
+    match = re.search(r"^if\s+__name__\s*==", clean_source, re.MULTILINE)
+    if match is None:
+        return None
+    return original_source[:match.start()].count("\n") + 1
+
+def _extract_python_functions(source: str, filepath: str) -> List[FunctionInfo]:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 144:    return functions
+307:    return functions
+374:    return functions
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

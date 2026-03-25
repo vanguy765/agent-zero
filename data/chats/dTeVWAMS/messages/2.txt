@@ -1,0 +1,47 @@
+=== GIT STATUS ===
+?? test-results/TEST_2.1_RESULTS.md
+?? test-results/csv_pipeline.py
+?? test-results/pipeline_output.json
+?? test-results/test_data.csv
+
+=== GIT LOG (last 5) ===
+aad7dd6 (HEAD -> main, origin/main) Add Test 2.1 prompt, results template, and continuation prompt
+eba4abd fix: eliminate all linter false positives (F-LNT-2/3/4)
+e0124e1 test: Test 1.3 complete — perfect judgment score (8/8), Round 1 finisheda059cf4 test: add Test 1.3 prompt and scoring template (False Positive Handling)de37510 docs: add guard naming convention to BMAD skill + live test results (F-SKL)
+
+=== TEST 2.2 FILES ===
+No Test 2.2 files yet
+
+=== LIVE TEST PLAN - Round 2 section ===
+178:#### Test 2.2: Error Recovery Chain
+179-
+180-**Task Prompt**:
+181-```
+182-Extend the pipeline from Test 2.1 with:
+183-- Availability guards on the database connection
+184-- Bounded retry (max 3 attempts) on the bulk insert
+185-- Recovery logging on each retry attempt
+186-- Circuit breaker pattern if all retries fail
+187-```
+188-
+189----
+190-
+191-### Round 3: Real Codebase (Production)
+192-
+193-**Purpose**: Test against actual production code patterns.
+194-
+195-#### Test 3.1: TypeScript/SolidJS Component
+196-
+197-**Task Prompt**:
+198-```
+199-Refactor the following SolidJS component to comply with Bulwark patterns.
+200-Focus on the data fetching and state mutation logic.
+201-
+202-[paste actual component code]
+203-```
+204-
+205-#### Test 3.2: Hono API Route Handler
+206-
+207-**Task Prompt**:
+208-```
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

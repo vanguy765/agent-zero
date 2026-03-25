@@ -1,0 +1,780 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > === blw001_guard_present.py ===
+"""BLW001 — function-needs-guard
+
+Functions with parameters should contain at least one guard call.
+"""
+
+import re
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# Guard call patterns — match any function call containing "guard" in its name
+_GUARD_PATTERN = re.compile(
+    r'\bguard(?:_?[a-zA-Z]*)\s*\(',
+    re.IGNORECASE,
+)
+
+# Python-only self/cls parameters
+_PYTHON_SELF_ONLY = re.compile(r'^\s*(self|cls)\s*$')
+_PYTHON_STRIP_SELF = re.compile(r'^\s*(self|cls)\s*,?\s*')
+
+
+def _parse_param_names(params: str, language: str) -> List[str]:
+    """Extract parameter names from raw parameter string."""
+    if not params.strip():
+        return []
+
+    cleaned = params
+
+    # Strip Python self/cls
+    if language == "python":
+        cleaned = _PYTHON_STRIP_SELF.sub('', cleaned)
+
+    if not cleaned.strip():
+        return []
+
+    names: List[str] = []
+    for part in cleaned.split(','):
+        part = part.strip()
+        if not part:
+            continue
+
+        # Handle type annotations
+        # Python: name: type = default
+        # TS/JS: name: type
+        # Go: name type
+        if language == "python":
+            name = part.split(':')[0].split('=')[0].strip()
+        elif language in ("typescript", "javascript"):
+            # Remove optional marker and type
+            name = part.split(':')[0].split('=')[0].strip()
+            name = name.lstrip('.')
+            # Handle destructuring — skip complex patterns
+            if '{' in name or '[' in name:
+                name = 'destructured'
+        elif language == "go":
+            # Go: name type or name, name type
+            tokens = part.split()
+            name = tokens[0] if tokens else part
+        else:
+            name = part.split(':')[0].split('=')[0].strip()
+
+        # Remove * and ** prefixes (Python)
+        name = name.lstrip('*')
+        # Remove ? suffix (TS optional)
+        name = name.rstrip('?')
+
+        if name and name not in ('self', 'cls'):
+            names.append(name)
+
+    return names
+
+
+def _generate_fix_hint(func: FunctionInfo, param_names: List[str]) -> str:
+    """Generate a suggested guard call based on function signature."""
+    hints: List[str] = []
+
+    for pname in param_names[:3]:  # Limit to first 3 params for readability
+        if func.language == "python":
+            hints.append(f'guard_type({pname}, expected_type, "{func.name}", "{pname}")')
+        elif func.language in ("typescript", "javascript"):
+            hints.append(f'guardType({pname}, "type", "{func.name}", "{pname}")')
+        elif func.language == "go":
+            hints.append(f'guard({pname} != nil, "{func.name}", "{pname} must not be nil")')
+
+    if len(param_names) > 3:
+        hints.append('...')
+
+    return 'Consider adding: ' + '; '.join(hints)
+
+
+class GuardPresentRule(BaseRule):
+    """Functions with parameters should contain at least one guard call."""
+
+    rule_id = "BLW001"
+    rule_name = "function-needs-guard"
+    description = "Functions with parameters should contain at least one guard call."
+    severity = Severity.WARNING
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip: no parameters
+        if not func.params.strip():
+            return violations
+
+        # Skip: Python self/cls only
+        if func.language == "python" and _PYTHON_SELF_ONLY.match(func.params):
+            return violations
+
+        # Parse actual parameter names (excluding self/cls)
+        param_names = _parse_param_names(func.params, func.language)
+        if not param_names:
+            return violations
+
+        # Skip: very short functions (< 3 lines) — likely simple getters/wrappers
+        body_lines = [l for l in func.body.split('\n') if l.strip()]
+        if len(body_lines) < 3:
+            return violations
+
+        # Skip: functions that ARE guard/verify/trace implementations
+        name_lower = func.name.lower()
+        if (name_lower.startswith('guard') or
+                name_lower.startswith('verify') or
+                name_lower == 'trace' or
+                name_lower.startswith('trace_')):
+            return violations
+
+        # Skip: private helpers with no real params (Python)
+        if func.language == "python" and func.name.startswith('_'):
+            real_params = _PYTHON_STRIP_SELF.sub('', func.params).strip()
+            if not real_params:
+                return violations
+
+        # Check for guard calls in function body
+        if _GUARD_PATTERN.search(func.body):
+            return violations
+
+        # No guard found — violation
+        fix_hint = _generate_fix_hint(func, param_names)
+
+        violations.append(self._make_violation(
+            message=f"{func.name}() has parameters but no guard calls",
+            filepath=func.filepath,
+            line=func.start_line,
+            function_name=func.name,
+            fix_hint=fix_hint,
+        ))
+
+        return violations
+
+=== blw002_verify_after_mutation.py ===
+"""BLW002 — verify-after-mutation
+
+Functions containing side-effect operations should have verify calls.
+"""
+
+import re
+from typing import List, Tuple
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Side-effect patterns (mutations)
+# ---------------------------------------------------------------------------
+
+_MUTATION_PATTERNS: List[Tuple[re.Pattern, str]] = [
+    # Database operations
+    (re.compile(r'\bdb\.(insert|update|delete|execute|run)\s*\(', re.IGNORECASE), "database mutation"),
+    (re.compile(r'\bdb\.query\s*\(', re.IGNORECASE), "database query"),
+    (re.compile(r'\.(create|save|destroy|remove)\s*\(', re.IGNORECASE), "ORM mutation"),
+    (re.compile(r'\b(INSERT\s+INTO|UPDATE\s+\w|DELETE\s+FROM)\b', re.IGNORECASE), "raw SQL mutation"),
+    (re.compile(r'\bprisma\.', re.IGNORECASE), "Prisma mutation"),
+    (re.compile(r'\.mutate\s*\(', re.IGNORECASE), "mutation call"),
+
+    # File I/O
+    (re.compile(r'\b(writeFile|writeFileSync|appendFile|appendFileSync)\s*\(', re.IGNORECASE), "file write"),
+    (re.compile(r'\bfs\.(write|append|mkdir|rm|unlink)', re.IGNORECASE), "filesystem mutation"),
+    (re.compile(r'\bopen\s*\([^)]*["\']w', re.IGNORECASE), "file write"),
+    (re.compile(r'\bf\.write\s*\(', re.IGNORECASE), "file write"),
+
+    # HTTP mutations
+    (re.compile(r'\bfetch\s*\([^)]*["\']POST', re.IGNORECASE), "HTTP POST"),
+    (re.compile(r'\bfetch\s*\([^)]*["\']PUT', re.IGNORECASE), "HTTP PUT"),
+    (re.compile(r'\bfetch\s*\([^)]*["\']PATCH', re.IGNORECASE), "HTTP PATCH"),
+    (re.compile(r'\bfetch\s*\([^)]*["\']DELETE', re.IGNORECASE), "HTTP DELETE"),
+    (re.compile(r'\bfetch\s*\([^)]*method\s*:\s*["\'](?:POST|PUT|PATCH|DELETE)', re.IGNORECASE), "HTTP mutation"),
+    (re.compile(r'\.(post|put|patch|delete)\s*\(', re.IGNORECASE), "HTTP mutation"),
+    (re.compile(r'\baxios\.(post|put|patch|delete)\s*\(', re.IGNORECASE), "Axios mutation"),
+
+    # Queue / messaging
+    (re.compile(r'\.(publish|send|emit)\s*\(', re.IGNORECASE), "message/event emission"),
+    (re.compile(r'\b(sendEmail|sendNotification|sendMessage)\s*\(', re.IGNORECASE), "notification send"),
+]
+
+# Read-only patterns — if the function ONLY has these, skip it
+_READ_ONLY_PATTERNS = [
+    re.compile(r'\bSELECT\b', re.IGNORECASE),
+    re.compile(r'\.(find|findOne|findMany|findFirst|findUnique|get|count|aggregate)\s*\(', re.IGNORECASE),
+    re.compile(r'\bfetch\s*\([^)]*["\']GET', re.IGNORECASE),
+    re.compile(r'\.get\s*\(', re.IGNORECASE),
+]
+
+# Verify call patterns
+_VERIFY_PATTERN = re.compile(
+    r'\bverify(?:_?[a-zA-Z]*)\s*\(',
+    re.IGNORECASE,
+)
+
+
+def _detect_mutations(body: str) -> List[str]:
+    """Detect side-effect operations in function body. Returns list of descriptions."""
+    found: List[str] = []
+    for pattern, desc in _MUTATION_PATTERNS:
+        if pattern.search(body):
+            if desc not in found:
+                found.append(desc)
+    return found
+
+
+def _is_read_only(body: str) -> bool:
+    """Check if function body contains only read operations."""
+    has_read = any(p.search(body) for p in _READ_ONLY_PATTERNS)
+    has_mutation = any(p.search(body) for p, _ in _MUTATION_PATTERNS)
+    return has_read and not has_mutation
+
+
+def _generate_fix_hint(func: FunctionInfo, mutations: List[str]) -> str:
+    """Generate a suggested verify call based on mutation type."""
+    mutation = mutations[0] if mutations else "mutation"
+
+    suggestions = {
+        "database mutation": f'verify(result.rowCount === 1, "{func.name}", "expected 1 affected row")',
+        "database query": f'verify(result !== null, "{func.name}", "query returned no results")',
+        "ORM mutation": f'verify(result !== null, "{func.name}", "ORM operation failed")',
+        "raw SQL mutation": f'verify(affectedRows > 0, "{func.name}", "SQL mutation affected 0 rows")',
+        "Prisma mutation": f'verify(result !== null, "{func.name}", "Prisma operation returned null")',
+        "file write": f'verify_file_written(filepath, "{func.name}", "file write failed")',
+        "filesystem mutation": f'verify_file_written(path, "{func.name}", "filesystem operation failed")',
+        "HTTP POST": f'verify_response_ok(response, "{func.name}", "POST request failed")',
+        "HTTP PUT": f'verify_response_ok(response, "{func.name}", "PUT request failed")',
+        "HTTP PATCH": f'verify_response_ok(response, "{func.name}", "PATCH request failed")',
+        "HTTP DELETE": f'verify_response_ok(response, "{func.name}", "DELETE request failed")',
+        "HTTP mutation": f'verify_response_ok(response, "{func.name}", "HTTP mutation failed")',
+        "Axios mutation": f'verify_response_ok(response, "{func.name}", "Axios request failed")',
+        "message/event emission": f'verify(sent === true, "{func.name}", "message send failed")',
+        "notification send": f'verify(sent === true, "{func.name}", "notification send failed")',
+        "mutation call": f'verify(result !== null, "{func.name}", "mutation returned null")',
+    }
+
+    hint = suggestions.get(mutation, f'verify(result, "{func.name}", "{mutation} succeeded")')
+
+    if func.language == "python":
+        # Convert to Python style
+        hint = hint.replace('===', '==').replace('!==', '!=')
+        hint = hint.replace('verify_response_ok', 'verify_response_ok')
+        hint = hint.replace('null', 'None').replace('true', 'True')
+
+    return f'Consider adding: {hint}'
+
+
+class VerifyAfterMutationRule(BaseRule):
+    """Functions with side-effect operations should have verify calls."""
+
+    rule_id = "BLW002"
+    rule_name = "verify-after-mutation"
+    description = "Functions containing side-effect operations should have verify calls."
+    severity = Severity.WARNING
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip read-only functions
+        if _is_read_only(func.body):
+            return violations
+
+        # Detect mutations
+        mutations = _detect_mutations(func.body)
+        if not mutations:
+            return violations
+
+        # Check for verify calls
+        if _VERIFY_PATTERN.search(func.body):
+            return violations
+
+        # Mutation found but no verify — violation
+        mutation_desc = ", ".join(mutations[:2])
+        if len(mutations) > 2:
+            mutation_desc += f" (+{len(mutations) - 2} more)"
+
+        fix_hint = _generate_fix_hint(func, mutations)
+
+        violations.append(self._make_violation(
+            message=f"{func.name}() has {mutation_desc} but no verify call",
+            filepath=func.filepath,
+            line=func.start_line,
+            function_name=func.name,
+            fix_hint=fix_hint,
+        ))
+
+        return violations
+
+=== blw003_trace_at_boundary.py ===
+"""BLW003 — trace-at-boundary
+
+Functions at phase boundaries should have trace calls.
+"""
+
+import re
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Boundary indicators
+# ---------------------------------------------------------------------------
+
+# Boundary keywords to search for in function names (case-insensitive)
+_BOUNDARY_KEYWORDS = {
+    "fetch", "parse", "transform", "process", "convert", "load", "extract",
+    "handle", "middleware", "serialize", "deserialize", "decode", "encode",
+    "normalize", "validate", "sanitize", "aggregate", "compile", "render",
+    "translate", "ingest", "digest", "pipeline", "dispatch", "route", "resolve",
+}
+
+# Accessor patterns — skip these
+_ACCESSOR_PREFIXES = ('get_', 'get', 'is_', 'is', 'has_', 'has', 'should_', 'can_')
+
+# Trace call patterns
+_TRACE_PATTERN = re.compile(
+    r'\btrace(?:_?[a-zA-Z]*)\s*\(',
+    re.IGNORECASE,
+)
+
+# Exclude false positives: traceback, stacktrace
+_TRACE_FALSE_POSITIVES = re.compile(
+    r'\b(traceback|stacktrace|stack_trace|traceError|backtrace)\b',
+    re.IGNORECASE,
+)
+
+# Decorator-based trace (Python)
+_TRACE_DECORATOR = re.compile(r'@\s*[Tt]raced?\b')
+
+
+def _split_name_parts(name: str) -> List[str]:
+    """Split a function name into lowercase parts.
+
+    Handles both snake_case and camelCase:
+      - "parseResponse" -> ["parse", "response"]
+      - "fetch_remote_users" -> ["fetch", "remote", "users"]
+      - "handleCreateUser" -> ["handle", "create", "user"]
+    """
+    parts: List[str] = []
+    for segment in name.split("_"):
+        # Split camelCase: insert boundary before uppercase letters
+        tokens = re.sub(r'([A-Z])', r'_\1', segment).split('_')
+        parts.extend(t.lower() for t in tokens if t)
+    return parts
+
+
+def _has_boundary_name(func_name: str) -> bool:
+    """Check if function name contains a boundary keyword."""
+    parts = _split_name_parts(func_name)
+    for part in parts:
+        if part in _BOUNDARY_KEYWORDS:
+            return True
+    return False
+
+
+def _is_accessor(func_name: str) -> bool:
+    """Check if function name suggests a simple accessor."""
+    lower = func_name.lower()
+    for prefix in _ACCESSOR_PREFIXES:
+        if lower.startswith(prefix) and len(lower) > len(prefix):
+            return True
+    return False
+
+
+def _is_boundary_function(func: FunctionInfo) -> bool:
+    """Heuristic: does this function appear to be at a phase boundary?
+
+    A function is considered a boundary if its name contains a boundary keyword.
+    Being async alone is NOT sufficient — many async functions are simple CRUD
+    operations that don't represent phase boundaries.
+    """
+    return _has_boundary_name(func.name)
+
+
+def _has_trace(func: FunctionInfo, source_before_func: str = "") -> bool:
+    """Check if function has trace calls (excluding false positives)."""
+    # Check for trace decorator above function (Python)
+    if _TRACE_DECORATOR.search(source_before_func):
+        return True
+
+    # Check body for trace calls
+    matches = _TRACE_PATTERN.findall(func.body)
+    if not matches:
+        return False
+
+    # Filter out false positives
+    body_without_fp = _TRACE_FALSE_POSITIVES.sub('', func.body)
+    return bool(_TRACE_PATTERN.search(body_without_fp))
+
+
+def _generate_fix_hint(func: FunctionInfo) -> str:
+    """Generate a suggested trace call."""
+    if func.language == "python":
+        return f'Consider adding: result = trace("after_{func.name}", data)'
+    elif func.language in ("typescript", "javascript"):
+        cap = func.name[0].upper() + func.name[1:] if func.name else "Func"
+        return f'Consider adding: const result = trace("after{cap}", data);'
+    elif func.language == "go":
+        return f'Consider adding: result = trace("after_{func.name}", data)'
+    return f'Consider adding a trace() call in {func.name}()'
+
+
+class TraceAtBoundaryRule(BaseRule):
+    """Functions at phase boundaries should have trace calls."""
+
+    rule_id = "BLW003"
+    rule_name = "trace-at-boundary"
+    description = "Functions at phase boundaries should have trace calls for observability."
+    severity = Severity.INFO
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip accessors
+        if _is_accessor(func.name):
+            return violations
+
+        # Skip very short functions (< 5 lines)
+        body_lines = [l for l in func.body.split('\n') if l.strip()]
+        if len(body_lines) < 5:
+            return violations
+
+        # Check if this looks like a boundary function
+        if not _is_boundary_function(func):
+            return violations
+
+        # Check for existing trace calls
+        if _has_trace(func):
+            return violations
+
+        # Boundary function without trace — violation
+        fix_hint = _generate_fix_hint(func)
+
+        violations.append(self._make_violation(
+            message=f"{func.name}() appears to be a phase boundary but has no trace call",
+            filepath=func.filepath,
+            line=func.start_line,
+            function_name=func.name,
+            fix_hint=fix_hint,
+        ))
+
+        return violations
+
+=== blw004_no_bare_assert.py ===
+"""BLW004 — no-bare-assert
+
+Code should use guard()/GuardError instead of bare assert or raw throw/raise for validation.
+"""
+
+import re
+from pathlib import Path
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Test file detection
+# ---------------------------------------------------------------------------
+
+_TEST_FILE_PATTERNS = re.compile(
+    r'(test_|_test\.|_test$|\.test\.|_spec\.|spec_|\.spec\.)',
+    re.IGNORECASE,
+)
+
+_TEST_FUNC_PATTERNS = re.compile(
+    r'^(test_|test[A-Z]|it_|describe_|spec_)',
+)
+
+
+def _is_test_file(filepath: str) -> bool:
+    """Check if file is a test file."""
+    name = Path(filepath).name
+    return bool(_TEST_FILE_PATTERNS.search(name))
+
+
+def _is_test_function(func_name: str) -> bool:
+    """Check if function is a test function."""
+    return bool(_TEST_FUNC_PATTERNS.match(func_name))
+
+
+# ---------------------------------------------------------------------------
+# Anti-patterns
+# ---------------------------------------------------------------------------
+
+# Python: bare assert at start of line (not in string)
+_PY_BARE_ASSERT = re.compile(r'^\s*assert\s+', re.MULTILINE)
+
+# Python: raise ValueError/TypeError for validation
+_PY_RAISE_VALIDATION = re.compile(
+    r'^\s*raise\s+(ValueError|TypeError|AssertionError)\s*\(',
+    re.MULTILINE,
+)
+
+# TS/JS: throw new Error for what looks like validation
+_TS_THROW_ERROR = re.compile(
+    r'^\s*throw\s+new\s+Error\s*\(',
+    re.MULTILINE,
+)
+
+# TS/JS: throw new TypeError/RangeError for validation
+_TS_THROW_VALIDATION = re.compile(
+    r'^\s*throw\s+new\s+(TypeError|RangeError|ReferenceError)\s*\(',
+    re.MULTILINE,
+)
+
+
+def _find_violations_in_body(body: str, language: str) -> List[dict]:
+    """Find bare assert/throw patterns in function body. Returns list of {pattern, line_offset}."""
+    results: List[dict] = []
+    lines = body.split('\n')
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+
+        # Skip comments
+        if stripped.startswith('#') or stripped.startswith('//'):
+            continue
+
+        # Skip strings (rough heuristic: line is mostly a string)
+        if stripped.startswith(('"', "'", '`')):
+            continue
+
+        if language == "python":
+            if _PY_BARE_ASSERT.match(line):
+                results.append({
+                    "pattern": "bare assert",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+            elif _PY_RAISE_VALIDATION.match(line):
+                results.append({
+                    "pattern": "raise for validation",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+
+        elif language in ("typescript", "javascript"):
+            if _TS_THROW_ERROR.match(line):
+                results.append({
+                    "pattern": "throw new Error",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+            elif _TS_THROW_VALIDATION.match(line):
+                results.append({
+                    "pattern": "throw validation error",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+
+    return results
+
+
+def _generate_fix_hint(pattern: str, language: str, func_name: str) -> str:
+    """Generate fix suggestion."""
+    if language == "python":
+        if "assert" in pattern:
+            return f'Replace assert with: guard(condition, "{func_name}", "description")'
+        else:
+            return f'Replace raise with: guard(condition, "{func_name}", "description") which raises GuardError'
+    else:
+        return f'Replace throw with: guard(condition, "{func_name}", "description") which throws GuardError'
+
+
+class NoBareAssertRule(BaseRule):
+    """Code should use guard() instead of bare assert/throw for validation."""
+
+    rule_id = "BLW004"
+    rule_name = "no-bare-assert"
+    description = "Use guard()/GuardError instead of bare assert or raw throw/raise for validation."
+    severity = Severity.WARNING
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip test files
+        if _is_test_file(func.filepath):
+            return violations
+
+        # Skip test functions
+        if _is_test_function(func.name):
+            return violations
+
+        # Find anti-patterns
+        found = _find_violations_in_body(func.body, func.language)
+
+        for item in found:
+            # Calculate actual line number
+            # We need to find the line offset within the body relative to start_line
+            actual_line = func.start_line + item["line_offset"] + 1  # +1 for def line itself
+
+            fix_hint = _generate_fix_hint(item["pattern"], func.language, func.name)
+
+            violations.append(self._make_violation(
+                message=f"{func.name}() uses {item['pattern']} for validation instead of guard()",
+                filepath=func.filepath,
+                line=actual_line,
+                function_name=func.name,
+                fix_hint=fix_hint,
+            ))
+
+        return violations
+
+=== blw005_custom_error_types.py ===
+"""BLW005 — custom-error-types
+
+Files using Bulwark patterns should define or import GuardError and VerifyError.
+This is a FILE-LEVEL rule, not function-level.
+"""
+
+import re
+from pathlib import Path
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Usage detection
+# ---------------------------------------------------------------------------
+
+# Guard usage patterns
+_GUARD_USAGE = re.compile(r'\bguard(?:_?[a-zA-Z]*)\s*\(', re.IGNORECASE)
+
+# Verify usage patterns
+_VERIFY_USAGE = re.compile(r'\bverify(?:_?[a-zA-Z]*)\s*\(', re.IGNORECASE)
+
+# ---------------------------------------------------------------------------
+# GuardError presence patterns
+# ---------------------------------------------------------------------------
+
+_GUARD_ERROR_PATTERNS = [
+    # Python: class definition
+    re.compile(r'\bclass\s+GuardError\b'),
+    # Python: import
+    re.compile(r'\bfrom\s+\S+\s+import\s+.*\bGuardError\b'),
+    re.compile(r'\bimport\s+.*\bGuardError\b'),
+    # TS/JS: class definition
+    re.compile(r'\bclass\s+GuardError\b'),
+    # TS/JS: import
+    re.compile(r'\bimport\s*\{[^}]*\bGuardError\b'),
+    re.compile(r'\bimport\s+.*\bGuardError\b'),
+    # Go: type definition
+    re.compile(r'\btype\s+GuardError\s+struct\b'),
+]
+
+# ---------------------------------------------------------------------------
+# VerifyError presence patterns
+# ---------------------------------------------------------------------------
+
+_VERIFY_ERROR_PATTERNS = [
+    # Python: class definition
+    re.compile(r'\bclass\s+VerifyError\b'),
+    # Python: import
+    re.compile(r'\bfrom\s+\S+\s+import\s+.*\bVerifyError\b'),
+    re.compile(r'\bimport\s+.*\bVerifyError\b'),
+    # TS/JS: class definition
+    re.compile(r'\bclass\s+VerifyError\b'),
+    # TS/JS: import
+    re.compile(r'\bimport\s*\{[^}]*\bVerifyError\b'),
+    re.compile(r'\bimport\s+.*\bVerifyError\b'),
+    # Go: type definition
+    re.compile(r'\btype\s+VerifyError\s+struct\b'),
+]
+
+# ---------------------------------------------------------------------------
+# Bulwark reference implementation detection (skip these files)
+# ---------------------------------------------------------------------------
+
+_BULWARK_REF_PATTERNS = [
+    re.compile(r'bulwark\.(py|ts|js|go)$', re.IGNORECASE),
+    re.compile(r'bulwark_ref', re.IGNORECASE),
+]
+
+
+def _is_bulwark_reference(filepath: str) -> bool:
+    """Check if file is the Bulwark reference implementation itself."""
+    name = Path(filepath).name
+    return any(p.search(name) for p in _BULWARK_REF_PATTERNS)
+
+
+def _has_guard_error(content: str) -> bool:
+    """Check if file defines or imports GuardError."""
+    return any(p.search(content) for p in _GUARD_ERROR_PATTERNS)
+
+
+def _has_verify_error(content: str) -> bool:
+    """Check if file defines or imports VerifyError."""
+    return any(p.search(content) for p in _VERIFY_ERROR_PATTERNS)
+
+
+class CustomErrorTypesRule(BaseRule):
+    """Files using Bulwark patterns should define or import GuardError/VerifyError."""
+
+    rule_id = "BLW005"
+    rule_name = "custom-error-types"
+    description = "Files using guard/verify should define or import GuardError/VerifyError."
+    severity = Severity.INFO
+    file_level = True
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        """Not used for file-level rules."""
+        return []
+
+    def check_file(self, filepath: str, content: str, language: str) -> List[Violation]:
+        """Check entire file for GuardError/VerifyError presence."""
+        violations: List[Violation] = []
+
+        # Skip Bulwark reference implementations
+        if _is_bulwark_reference(filepath):
+            return violations
+
+        uses_guard = bool(_GUARD_USAGE.search(content))
+        uses_verify = bool(_VERIFY_USAGE.search(content))
+
+        # Skip if file doesn't use any guard/verify calls
+        if not uses_guard and not uses_verify:
+            return violations
+
+        # Check for GuardError
+        if uses_guard and not _has_guard_error(content):
+            violations.append(self._make_violation(
+                message="File uses guard() calls but does not define or import GuardError",
+                filepath=filepath,
+                line=1,
+                function_name="(file-level)",
+                fix_hint=self._guard_error_hint(language),
+            ))
+
+        # Check for VerifyError
+        if uses_verify and not _has_verify_error(content):
+            violations.append(self._make_violation(
+                message="File uses verify() calls but does not define or import VerifyError",
+                filepath=filepath,
+                line=1,
+                function_name="(file-level)",
+                fix_hint=self._verify_error_hint(language),
+            ))
+
+        return violations
+
+    @staticmethod
+    def _guard_error_hint(language: str) -> str:
+        if language == "python":
+            return 'Add: from bulwark import GuardError  # or define class GuardError(Exception): pass'
+        elif language in ("typescript", "javascript"):
+            return 'Add: import { GuardError } from "./bulwark";  // or define class GuardError extends Error {}'
+        elif language == "go":
+            return 'Add: type GuardError struct { ... }'
+        return 'Define or import GuardError'
+
+    @staticmethod
+    def _verify_error_hint(language: str) -> str:
+        if language == "python":
+            return 'Add: from bulwark import VerifyError  # or define class VerifyError(Exception): pass'
+        elif language in ("typescript", "javascript"):
+            return 'Add: import { VerifyError } from "./bulwark";  // or define class VerifyError extends Error {}'
+        elif language == "go":
+            return 'Add: type VerifyError struct { ... }'
+        return 'Define or import VerifyError'
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

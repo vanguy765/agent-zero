@@ -1,0 +1,156 @@
+import os
+import cv2
+import fitz  # PyMuPDF
+import pdfplumber
+import pandas as pd
+import numpy as np
+from pathlib import Path
+import re
+
+def create_output_dir(base_path: str, run_id: str) -> str:
+    """Create a unique output directory for the run."""
+    out_dir = os.path.join(base_path, run_id)
+    os.makedirs(out_dir, exist_ok=True)
+    return out_dir
+
+def preparse_pdf_page(pdf_path: str, page_num: int, output_base_dir: str = "output", run_id: str = "preparse_run"):
+    """
+    Process a single page of a PDF:
+    1. Extract tabular data using pdfplumber to Excel/CSV.
+    2. Extract and crop table/text images using fitz/OpenCV.
+    3. Mask non-floorplan elements and crop the floorplan.
+    """
+    out_dir = create_output_dir(output_base_dir, run_id)
+    page_index = page_num - 1
+    
+    # 1. Open with fitz for rendering images
+    doc = fitz.open(pdf_path)
+    if page_index < 0 or page_index >= len(doc):
+        raise ValueError(f"Page {page_num} out of bounds.")
+    
+    # Render full page (high res for OCR/Image processing)
+    pix = doc[page_index].get_pixmap(matrix=fitz.Matrix(2, 2))
+    img_path = os.path.join(out_dir, "temp_full_page.png")
+    pix.save(img_path)
+    
+    # 2. Extract Data with pdfplumber
+    results = {
+        "tables": [],
+        "text_blocks": [],
+        "images": {}
+    }
+    
+    with pdfplumber.open(pdf_path) as pdf:
+        page = pdf.pages[page_index]
+        text = page.extract_text()
+        
+        # Save raw text
+        with open(os.path.join(out_dir, "raw_text.txt"), "w", encoding="utf-8") as f:
+            f.write(text if text else "")
+            
+        # Extract Tables
+        tables = page.extract_tables()
+        if tables:
+            for idx, table in enumerate(tables):
+                df = pd.DataFrame(table)
+                # Cleanup if first row is header
+                if len(df) > 1 and df.iloc[0].notna().any():
+                     df.columns = df.iloc[0]
+                     df = df[1:]
+                
+                table_path = os.path.join(out_dir, f"table_{idx}.csv")
+                df.to_csv(table_path, index=False)
+                results["tables"].append(table_path)
+                
+                # We also want to extract the *image* of the table for the LLM
+                # Find bounding box of the table (approximate based on pdfplumber)
+                # pdfplumber table bounding boxes are (x0, top, x1, bottom)
+                # Note: pdfplumber coordinates are 72dpi. We rendered fitz at 2x (144dpi).
+                table_settings = {"vertical_strategy": "lines", "horizontal_strategy": "lines"}
+                bboxes = page.find_tables(table_settings)
+                
+                if idx < len(bboxes):
+                    bbox = bboxes[idx].bbox
+                    # Scale coordinates by 2x to match fitz matrix
+                    crop_box = [int(v * 2) for v in bbox]
+                    table_img = cv2.imread(img_path)
+                    
+                    x0, y0, x1, y1 = crop_box
+                    # Ensure within bounds
+                    h, w, _ = table_img.shape
+                    x0, y0 = max(0, x0), max(0, y0)
+                    x1, y1 = min(w, x1), min(h, y1)
+                    
+                    if x1 > x0 and y1 > y0:
+                        cropped_table = table_img[y0:y1, x0:x1]
+                        table_img_path = os.path.join(out_dir, f"table_{idx}_img.png")
+                        cv2.imwrite(table_img_path, cropped_table)
+                        results["images"][f"table_{idx}"] = table_img_path
+    
+    # 3. Computer Vision Masking for Floorplan Isolation
+    img = cv2.imread(img_path)
+    h, w, _ = img.shape
+    
+    # Heuristic Masking (Customizable based on project)
+    # White out the areas we assume are NOT the floorplan
+    
+    # A. Mask Title Block (Assuming Bottom 10% or Right 10% based on typical architectural drawings)
+    # For this script, we'll assume a standard right-side or bottom title block
+    cv2.rectangle(img, (0, int(h*0.92)), (w, h), (255, 255, 255), -1) # Bottom strip
+    
+    # B. Mask the Tables Area (often on the right side)
+    cv2.rectangle(img, (int(w*0.65), 0), (w, h), (255, 255, 255), -1) # Right 35%
+    
+    # Save the masked image to show what we isolated
+    masked_path = os.path.join(out_dir, "masked_page.png")
+    cv2.imwrite(masked_path, img)
+    
+    # Contour Detection to automatically crop the remaining floorplan
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY_INV)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    if contours:
+        # Find the largest contour, assuming it's the floorplan
+        c = max(contours, key=cv2.contourArea)
+        x, y, w_rect, h_rect = cv2.boundingRect(c)
+        
+        # Only crop if it's substantial (> 10% of page area)
+        if (w_rect * h_rect) > (w * h * 0.05):
+            pad = 20
+            # Crop from the ORIGINAL unmasked image, so drawing details aren't lost if they bled into the mask slightly
+            original_img = cv2.imread(img_path)
+            
+            x0 = max(0, x - pad)
+            y0 = max(0, y - pad)
+            x1 = min(w, x + w_rect + pad)
+            y1 = min(h, y + h_rect + pad)
+            
+            floorplan_crop = original_img[y0:y1, x0:x1]
+            fp_path = os.path.join(out_dir, "floorplan_crop.png")
+            cv2.imwrite(fp_path, floorplan_crop)
+            results["images"]["floorplan"] = fp_path
+            
+            # Additional trace step: Cut OUT the floorplan to see what text is left
+            cv2.rectangle(original_img, (x0, y0), (x1, y1), (255, 255, 255), -1)
+            remaining_path = os.path.join(out_dir, "remaining_non_floorplan.png")
+            cv2.imwrite(remaining_path, original_img)
+            results["images"]["remaining"] = remaining_path
+
+    # Cleanup temp full page
+    if os.path.exists(img_path):
+        os.remove(img_path)
+        
+    doc.close()
+    return results
+
+if __name__ == "__main__":
+    import sys
+    # Simple CLI for testing
+    if len(sys.argv) > 1:
+        pdf_file = sys.argv[1]
+        preparse_pdf_page(pdf_file, 1, "output", "cli_test")
+        print(f"Extraction complete for {pdf_file}. Check output/cli_test directory.")
+    else:
+        print("Usage: python preparse.py <path_to_pdf>")
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

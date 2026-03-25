@@ -1,0 +1,1428 @@
+#!/usr/bin/env python3
+"""Bulwark AI — Python Reference Implementation
+
+Zero-dependency defensive coding primitives for AI-generated code.
+Implements the Guard-Trace-Verify standard using only Python builtins.
+
+Version: 0.2.0-draft
+License: MIT
+Usage:  Copy this file into your project. No pip install needed.
+
+Quick start:
+    from bulwark import guard_type, guard_keys, trace, verify
+
+    def process(data):
+        guard_type(data, dict, "process", "data")
+        guard_keys(data, {"id", "name"}, "process", "data")
+        data = trace("after_guard", data)
+        db.insert(data)
+        verify(result.rowcount == 1, "process", "INSERT expected 1 row")
+
+Configuration:
+    # Via environment variables:
+    BULWARK_MODE=production          # development (default), staging, production
+    BULWARK_TRACE_LEVEL=INFO         # DEBUG (default), INFO, WARNING, ERROR, OFF
+    BULWARK_VERIFY_STRATEGY=full     # full (default), sampled, adaptive
+    BULWARK_VERIFY_SAMPLE_RATE=0.01  # For sampled strategy: verify 1% of ops
+
+    # Via code:
+    from bulwark import configure
+    configure(mode="production", trace_level="INFO", verify_strategy="sampled")
+"""
+
+import logging
+import os
+import random
+from typing import Any, Callable, Dict, List, Optional, Set, Union
+from functools import wraps
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+log = logging.getLogger("bulwark")
+
+if not log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter(
+        "%(asctime)s | %(levelname)-5s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    ))
+    log.addHandler(_handler)
+    log.setLevel(logging.DEBUG)
+
+
+class _BulwarkConfig:
+    """Internal configuration state for Bulwark AI.
+
+    This class holds all runtime configuration. Users interact with it
+    through the module-level `configure()` function or environment variables.
+
+    Design decision: We use a class instead of module globals so that
+    configuration is atomic and testable. You can snapshot and restore
+    config in tests without worrying about import-order side effects.
+    """
+
+    # Valid values for each setting
+    VALID_MODES = {"development", "staging", "production"}
+    VALID_TRACE_LEVELS = {"DEBUG", "INFO", "WARNING", "ERROR", "OFF"}
+    VALID_VERIFY_STRATEGIES = {"full", "sampled", "adaptive"}
+
+    def __init__(self):
+        self.reset_to_defaults()
+
+    def reset_to_defaults(self):
+        """Reset all configuration to defaults, then apply environment overrides."""
+        # Core mode: controls default behavior of all layers
+        self.mode = "development"
+
+        # Guards: always active. This setting exists only for extreme edge
+        # cases (e.g., benchmarking). In normal use, guards are NEVER disabled.
+        # See SPEC.md §6.2 for rationale.
+        self.guards_enabled = True
+
+        # Traces: always present in code, output controlled by level.
+        # DEBUG  = full shape at every boundary (development default)
+        # INFO   = summary traces (type + size only)
+        # WARNING/ERROR = silent (but code is there, lower level to activate)
+        # OFF    = no trace output at all
+        self.trace_level = "DEBUG"
+
+        # Verifies: always present, strategy adapts to context.
+        # full     = verify every operation (development/staging default)
+        # sampled  = verify a percentage of operations (high-throughput production)
+        # adaptive = full for critical ops, sampled for high-throughput
+        self.verify_strategy = "full"
+
+        # For sampled strategy: what percentage of operations to verify.
+        # 0.01 = 1%, 0.05 = 5%, 1.0 = 100% (equivalent to "full")
+        self.verify_sample_rate = 0.01
+
+        # Internal counter for sampled verification
+        self._verify_counter = 0
+
+        # Apply environment variable overrides
+        self._apply_env_overrides()
+
+    def _apply_env_overrides(self):
+        """Read environment variables and override defaults."""
+        env_mode = os.environ.get("BULWARK_MODE", "").lower()
+        if env_mode in self.VALID_MODES:
+            self.mode = env_mode
+            self._apply_mode_defaults(env_mode)
+
+        env_trace = os.environ.get("BULWARK_TRACE_LEVEL", "").upper()
+        if env_trace in self.VALID_TRACE_LEVELS:
+            self.trace_level = env_trace
+
+        env_verify = os.environ.get("BULWARK_VERIFY_STRATEGY", "").lower()
+        if env_verify in self.VALID_VERIFY_STRATEGIES:
+            self.verify_strategy = env_verify
+
+        env_rate = os.environ.get("BULWARK_VERIFY_SAMPLE_RATE", "")
+        if env_rate:
+            try:
+                rate = float(env_rate)
+                if 0.0 < rate <= 1.0:
+                    self.verify_sample_rate = rate
+            except ValueError:
+                pass
+
+        env_guards = os.environ.get("BULWARK_GUARDS", "")
+        if env_guards == "0":
+            self.guards_enabled = False
+
+    def _apply_mode_defaults(self, mode: str):
+        """Set sensible defaults for each mode.
+
+        These can still be overridden by explicit env vars or configure() calls.
+        """
+        if mode == "development":
+            self.trace_level = "DEBUG"
+            self.verify_strategy = "full"
+        elif mode == "staging":
+            self.trace_level = "DEBUG"
+            self.verify_strategy = "full"
+        elif mode == "production":
+            self.trace_level = "INFO"
+            self.verify_strategy = "adaptive"
+
+
+# Module-level singleton
+_config = _BulwarkConfig()
+
+
+def configure(
+    mode: Optional[str] = None,
+    guards_enabled: Optional[bool] = None,
+    trace_level: Optional[str] = None,
+    verify_strategy: Optional[str] = None,
+    verify_sample_rate: Optional[float] = None,
+) -> None:
+    """Configure Bulwark AI runtime behavior.
+
+    Call this once at application startup. Any argument left as None
+    keeps its current value (from defaults or environment variables).
+
+    Args:
+        mode:               "development", "staging", or "production".
+                            Sets sensible defaults for all other settings.
+        guards_enabled:     Whether guards are active. Default True.
+                            WARNING: Setting False removes your primary defense.
+        trace_level:        "DEBUG", "INFO", "WARNING", "ERROR", or "OFF".
+        verify_strategy:    "full", "sampled", or "adaptive".
+        verify_sample_rate: Float 0.0-1.0. For sampled strategy, what
+                            fraction of operations to verify.
+
+    Example:
+        # Production with sampled verification
+        configure(mode="production", verify_strategy="sampled",
+                  verify_sample_rate=0.05)
+
+        # Development (verbose everything — the default)
+        configure(mode="development")
+    """
+    if mode is not None:
+        if mode not in _config.VALID_MODES:
+            raise ValueError(
+                f"BULWARK:configure | invalid mode '{mode}', "
+                f"expected one of: {sorted(_config.VALID_MODES)}"
+            )
+        _config.mode = mode
+        _config._apply_mode_defaults(mode)
+
+    if guards_enabled is not None:
+        _config.guards_enabled = guards_enabled
+        if not guards_enabled:
+            log.warning(
+                "BULWARK:configure | guards DISABLED — this removes your "
+                "primary defense against silent data failures. "
+                "See SPEC.md §6.2 for why this is not recommended."
+            )
+
+    if trace_level is not None:
+        if trace_level.upper() not in _config.VALID_TRACE_LEVELS:
+            raise ValueError(
+                f"BULWARK:configure | invalid trace_level '{trace_level}', "
+                f"expected one of: {sorted(_config.VALID_TRACE_LEVELS)}"
+            )
+        _config.trace_level = trace_level.upper()
+
+    if verify_strategy is not None:
+        if verify_strategy not in _config.VALID_VERIFY_STRATEGIES:
+            raise ValueError(
+                f"BULWARK:configure | invalid verify_strategy '{verify_strategy}', "
+                f"expected one of: {sorted(_config.VALID_VERIFY_STRATEGIES)}"
+            )
+        _config.verify_strategy = verify_strategy
+
+    if verify_sample_rate is not None:
+        if not (0.0 < verify_sample_rate <= 1.0):
+            raise ValueError(
+                f"BULWARK:configure | verify_sample_rate must be between "
+                f"0.0 (exclusive) and 1.0 (inclusive), got {verify_sample_rate}"
+            )
+        _config.verify_sample_rate = verify_sample_rate
+
+
+def get_config() -> dict:
+    """Return current Bulwark configuration as a dictionary.
+
+    Useful for logging configuration at startup or debugging.
+    """
+    return {
+        "mode": _config.mode,
+        "guards_enabled": _config.guards_enabled,
+        "trace_level": _config.trace_level,
+        "verify_strategy": _config.verify_strategy,
+        "verify_sample_rate": _config.verify_sample_rate,
+    }
+
+
+# ===========================================================================
+# LAYER 1: GUARD — Validate before processing
+#
+# Guards are ALWAYS active. They cost nanoseconds (isinstance, key-in-dict)
+# and catch the most common AI failure modes: wrong data shape, missing
+# keys, unexpected types. See SPEC.md §3.1 and §6.2.
+# ===========================================================================
+
+class GuardError(Exception):
+    """Raised when a Guard validation fails.
+
+    Inherits from Exception (not AssertionError) so that it is never
+    stripped by Python's -O flag. See SPEC.md §3.1.6.
+    """
+    pass
+
+
+def guard(condition: bool, function_name: str, message: str) -> None:
+    """Core guard primitive. Raises GuardError if condition is False.
+
+    Guards are the first line of defense. They validate that data matches
+    expectations BEFORE your function tries to use it. When a guard fails,
+    it tells you (or the AI agent) exactly what was expected and what was
+    received, so the fix is obvious.
+
+    Args:
+        condition:     The boolean condition that must be True.
+        function_name: Name of the function performing the guard.
+        message:       Diagnostic message (expected vs actual).
+
+    Raises:
+        GuardError with formatted diagnostic message.
+
+    Example:
+        guard(isinstance(data, dict), "process",
+              f"expected dict, got {type(data).__name__}")
+    """
+    if not _config.guards_enabled:
+        return
+    if not condition:
+        diag = f"GUARD:{function_name} | {message}"
+        log.error(diag)
+        raise GuardError(diag)
+
+
+def guard_type(value: Any, expected_type: type, function_name: str,
+               param_name: str = "input") -> None:
+    """Guard that validates the type of a value.
+
+    This is the most common guard. AI agents frequently assume a function
+    receives a dict when it actually receives a list, or a string when it
+    receives None.
+
+    Example:
+        guard_type(response, dict, "fetch_pages", "api_response")
+    """
+    guard(
+        isinstance(value, expected_type),
+        function_name,
+        f"'{param_name}' expected {expected_type.__name__}, "
+        f"got {type(value).__name__}"
+    )
+
+
+def guard_keys(data: dict, required_keys: Set[str], function_name: str,
+               param_name: str = "input") -> None:
+    """Guard that validates required keys exist in a dict.
+
+    AI agents routinely access dict keys that don't exist because they
+    assumed the API response shape without checking. This guard catches
+    that before the KeyError.
+
+    Example:
+        guard_keys(response, {"pages", "metadata"}, "process_doc", "api_response")
+    """
+    guard_type(data, dict, function_name, param_name)
+    missing = required_keys - set(data.keys())
+    guard(
+        len(missing) == 0,
+        function_name,
+        f"'{param_name}' missing keys: {sorted(missing)}, "
+        f"available: {sorted(data.keys())}"
+    )
+
+
+def guard_not_empty(value: Any, function_name: str,
+                    param_name: str = "input") -> None:
+    """Guard that validates a collection is not empty.
+
+    AI agents love to write `process(results[0])` without checking if
+    results is empty. This guard catches empty collections before they
+    cause IndexError.
+
+    Example:
+        guard_not_empty(pages, "process_pages", "pages_list")
+    """
+    guard(
+        value is not None,
+        function_name,
+        f"'{param_name}' is None"
+    )
+    if hasattr(value, "__len__"):
+        guard(
+            len(value) > 0,
+            function_name,
+            f"'{param_name}' is empty ({type(value).__name__}, len=0)"
+        )
+
+
+def guard_not_none(value: Any, function_name: str,
+                   param_name: str = "input") -> None:
+    """Guard that validates a value is not None.
+
+    Example:
+        guard_not_none(user_id, "get_user", "user_id")
+    """
+    guard(
+        value is not None,
+        function_name,
+        f"'{param_name}' is None"
+    )
+
+
+def guard_range(value: Union[int, float],
+                min_val: Optional[Union[int, float]] = None,
+                max_val: Optional[Union[int, float]] = None,
+                function_name: str = "unknown",
+                param_name: str = "input") -> None:
+    """Guard that validates a numeric value is within bounds.
+
+    Example:
+        guard_range(page_count, min_val=1, max_val=10000,
+                    function_name="parse", param_name="page_count")
+    """
+    if min_val is not None:
+        guard(
+            value >= min_val,
+            function_name,
+            f"'{param_name}' value {value} below minimum {min_val}"
+        )
+    if max_val is not None:
+        guard(
+            value <= max_val,
+            function_name,
+            f"'{param_name}' value {value} above maximum {max_val}"
+        )
+
+
+# ===========================================================================
+# LAYER 2: TRACE — Log shape at phase boundaries
+#
+# Traces are your flight recorder. The code is ALWAYS present, but the
+# output respects the configured trace level. In production, you can
+# increase the level without redeploying to diagnose issues.
+# See SPEC.md §3.2 and §6.3.
+# ===========================================================================
+
+# Map string levels to logging constants
+_TRACE_LEVEL_MAP = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "OFF": logging.CRITICAL + 10,  # Higher than any real level
+}
+
+
+def describe_shape(data: Any, max_depth: int = 2, _depth: int = 0) -> str:
+    """Describe the structural shape of data without exposing content.
+
+    This function is the heart of the Trace layer. It tells you WHAT
+    your data looks like (type, size, structure) without revealing
+    WHAT'S IN IT (values, PII, secrets).
+
+    Returns a human-readable shape string like:
+        dict, keys=['id','name','pages'], len=3
+        list, len=47, items=dict{keys=['id','content']}
+        str, len=4096
+        NoneType
+
+    Args:
+        data:      The data to describe.
+        max_depth: Maximum nesting depth to inspect.
+
+    Returns:
+        Shape description string.
+    """
+    if data is None:
+        return "NoneType"
+
+    t = type(data).__name__
+
+    if isinstance(data, dict):
+        keys = sorted(data.keys())
+        shape = f"{t}, keys={keys}, len={len(data)}"
+        if _depth < max_depth and data:
+            first_key = next(iter(data))
+            first_shape = describe_shape(
+                data[first_key], max_depth, _depth + 1
+            )
+            shape += f", sample['{first_key}']={first_shape}"
+        return shape
+
+    if isinstance(data, (list, tuple)):
+        shape = f"{t}, len={len(data)}"
+        if len(data) == 0:
+            shape += " (EMPTY)"
+        elif _depth < max_depth:
+            item_shape = describe_shape(data[0], max_depth, _depth + 1)
+            shape += f", items={item_shape}"
+        return shape
+
+    if isinstance(data, str):
+        return f"{t}, len={len(data)}"
+
+    if isinstance(data, bytes):
+        return f"{t}, len={len(data)} bytes"
+
+    if isinstance(data, (int, float, bool)):
+        return t
+
+    return f"{t}"
+
+
+def _safe_len(data: Any) -> str:
+    """Get length of data safely, returning '?' if not applicable."""
+    try:
+        return str(len(data))
+    except TypeError:
+        return "?"
+
+
+def trace(label: str, data: Any) -> Any:
+    """Log the shape of data at a phase boundary. Non-destructive pass-through.
+
+    The trace is always in your code, but what it outputs depends on the
+    configured trace level:
+
+    - DEBUG:   Full shape description (type, keys, nested structure)
+    - INFO:    Summary only (type + size)
+    - WARNING+: Silent (but the code is here — lower the level to activate)
+    - OFF:     No output at all
+
+    Args:
+        label: Human-readable label for this phase boundary.
+        data:  The data to trace (returned unchanged).
+
+    Returns:
+        The data, unchanged. Always.
+
+    Example:
+        raw = trace("after_fetch", fetch_document(url))
+        parsed = trace("after_parse", parse_response(raw))
+    """
+    configured_level = _TRACE_LEVEL_MAP.get(
+        _config.trace_level, logging.DEBUG
+    )
+
+    if configured_level <= logging.DEBUG:
+        # Full shape — development mode
+        shape = describe_shape(data)
+        log.debug(f"TRACE:{label} | {shape}")
+    elif configured_level <= logging.INFO:
+        # Summary — production verbose mode
+        log.info(
+            f"TRACE:{label} | {type(data).__name__}, "
+            f"len={_safe_len(data)}"
+        )
+    elif configured_level <= logging.WARNING:
+        # Only trace if something looks wrong
+        if data is None or (hasattr(data, "__len__") and len(data) == 0):
+            log.warning(
+                f"TRACE:{label} | UNEXPECTED: {describe_shape(data)}"
+            )
+    # ERROR and OFF: no output
+
+    return data  # Always pass-through, regardless of level
+
+
+def trace_warn(label: str, data: Any) -> Any:
+    """Trace at WARNING level — use when shape is unexpected but non-fatal.
+
+    This always emits regardless of trace_level configuration, because
+    it represents an anomaly worth recording.
+    """
+    shape = describe_shape(data)
+    log.warning(f"TRACE:{label} | ANOMALY: {shape}")
+    return data
+
+
+# ===========================================================================
+# LAYER 3: VERIFY — Confirm side effects actually happened
+#
+# Verifies are always present in code. The STRATEGY adapts to context:
+# - full:     verify every operation (default, best for dev/staging)
+# - sampled:  verify a percentage of operations (high-throughput production)
+# - adaptive: full for critical ops, sampled for normal ops
+# See SPEC.md §3.3 and §6.4.
+# ===========================================================================
+
+class VerifyError(Exception):
+    """Raised when a Verify confirmation fails.
+
+    Inherits from Exception (not AssertionError) so that it is never
+    stripped by Python's -O flag.
+    """
+    pass
+
+
+def _should_verify(critical: bool = False) -> bool:
+    """Determine whether this operation should be verified based on strategy.
+
+    Args:
+        critical: If True, always verify regardless of strategy.
+                  Use for payments, auth changes, deletions, etc.
+
+    Returns:
+        True if this operation should be verified.
+    """
+    strategy = _config.verify_strategy
+
+    # Critical operations are ALWAYS verified. No exceptions.
+    # See SPEC.md §3.3.5 "Critical Operations: Always Full Verify"
+    if critical:
+        return True
+
+    if strategy == "full":
+        return True
+
+    if strategy == "sampled":
+        _config._verify_counter += 1
+        # Verify if this operation falls within the sample rate
+        return random.random() < _config.verify_sample_rate
+
+    if strategy == "adaptive":
+        # Adaptive defaults to sampled for non-critical operations
+        _config._verify_counter += 1
+        return random.random() < _config.verify_sample_rate
+
+    return True  # Unknown strategy: verify everything (safe default)
+
+
+def verify(condition: bool, function_name: str, message: str,
+           critical: bool = False) -> None:
+    """Core verify primitive. Raises VerifyError if condition is False.
+
+    Verifies confirm that a side effect (database write, file write, API
+    call) actually achieved its intended result. Without verification,
+    your code might report "success" when nothing actually happened.
+
+    The `critical` flag ensures that important operations (payments,
+    auth changes, deletions) are ALWAYS verified, even when the verify
+    strategy is set to "sampled" for high-throughput production use.
+
+    Args:
+        condition:     The boolean condition that must be True.
+        function_name: Name of the function performing the verify.
+        message:       Diagnostic message (expected vs actual).
+        critical:      If True, always verify regardless of strategy.
+
+    Raises:
+        VerifyError with formatted diagnostic message.
+
+    Example:
+        verify(result.rowcount == 10, "save",
+               f"INSERT expected 10 rows, affected {result.rowcount}")
+
+        # Critical operation — always verified:
+        verify(payment.status == "completed", "charge_card",
+               f"payment expected 'completed', got '{payment.status}'",
+               critical=True)
+    """
+    if not _should_verify(critical):
+        return
+    if not condition:
+        diag = f"VERIFY:{function_name} | {message}"
+        log.error(diag)
+        raise VerifyError(diag)
+    else:
+        # Log successful verifications at DEBUG level for audit trail
+        log.debug(f"VERIFY:{function_name} | OK — {message}")
+
+
+def verify_rowcount(result: Any, expected: int, function_name: str,
+                    operation: str = "INSERT",
+                    critical: bool = False) -> None:
+    """Verify that a database operation affected the expected number of rows.
+
+    Works with most Python database libraries (sqlite3, psycopg2, SQLAlchemy,
+    Django ORM) by checking common attribute names for row count.
+
+    Args:
+        result:        The database operation result object.
+        expected:      Expected number of affected rows.
+        function_name: Name of the calling function.
+        operation:     SQL operation name for diagnostics.
+        critical:      If True, always verify regardless of strategy.
+
+    Example:
+        result = db.insert_many("users", records)
+        verify_rowcount(result, len(records), "save_users")
+
+        # Critical: always verify deletions
+        verify_rowcount(result, 1, "delete_user", "DELETE", critical=True)
+    """
+    if not _should_verify(critical):
+        return
+
+    actual = getattr(result, "rowcount", None)
+    if actual is None:
+        for attr in ("rows_affected", "affected_rows", "count"):
+            actual = getattr(result, attr, None)
+            if actual is not None:
+                break
+
+    if actual is not None:
+        verify(
+            actual == expected,
+            function_name,
+            f"{operation} expected {expected} rows, affected {actual}",
+            critical=critical,
+        )
+    else:
+        log.warning(
+            f"VERIFY:{function_name} | {operation} rowcount unavailable on "
+            f"{type(result).__name__} — manual verification recommended"
+        )
+
+
+def verify_file_written(filepath: str, function_name: str,
+                        min_size: int = 1,
+                        critical: bool = False) -> None:
+    """Verify that a file was written and meets minimum size.
+
+    File verifications are cheap (stat call) so they default to always
+    running, but the critical flag is available for consistency.
+
+    Args:
+        filepath:      Path to the file that should exist.
+        function_name: Name of the calling function.
+        min_size:      Minimum expected file size in bytes.
+        critical:      If True, always verify regardless of strategy.
+
+    Example:
+        with open(path, "w") as f:
+            json.dump(data, f)
+        verify_file_written(path, "export_results")
+    """
+    # File checks are so cheap we always run them
+    if not os.path.exists(filepath):
+        diag = (f"VERIFY:{function_name} | "
+                f"file '{filepath}' does not exist after write")
+        log.error(diag)
+        raise VerifyError(diag)
+
+    actual_size = os.path.getsize(filepath)
+    if actual_size < min_size:
+        diag = (f"VERIFY:{function_name} | "
+                f"file '{filepath}' expected size >= {min_size} bytes, "
+                f"actual: {actual_size} bytes")
+        log.error(diag)
+        raise VerifyError(diag)
+
+    log.debug(
+        f"VERIFY:{function_name} | OK — file '{filepath}' "
+        f"exists, size={actual_size} bytes"
+    )
+
+
+def verify_response_ok(response: Any, function_name: str,
+                       expected_status: int = 200,
+                       critical: bool = False) -> None:
+    """Verify that an HTTP response has the expected status code.
+
+    Works with requests.Response, httpx.Response, or any object with
+    a .status_code or .status attribute.
+
+    Args:
+        response:        HTTP response object.
+        function_name:   Name of the calling function.
+        expected_status: Expected HTTP status code.
+        critical:        If True, always verify regardless of strategy.
+
+    Example:
+        resp = requests.post(url, json=payload)
+        verify_response_ok(resp, "create_resource", expected_status=201)
+    """
+    if not _should_verify(critical):
+        return
+
+    status = getattr(response, "status_code", None)
+    if status is None:
+        status = getattr(response, "status", None)
+    verify(
+        status is not None,
+        function_name,
+        f"response object {type(response).__name__} has no status_code attribute",
+        critical=critical,
+    )
+    verify(
+        status == expected_status,
+        function_name,
+        f"HTTP expected status {expected_status}, got {status}",
+        critical=critical,
+    )
+
+
+# ===========================================================================
+# EXTENSION: AVAILABILITY GUARD
+#
+# Checks that an external dependency is reachable. Use at service startup
+# or pipeline initialization — NOT on every individual call.
+# See SPEC.md §10.1.
+# ===========================================================================
+
+def guard_available(
+    check: Callable[[], bool],
+    function_name: str,
+    dependency: str,
+    message: Optional[str] = None,
+    recovery_command: Optional[str] = None,
+    max_retries: int = 3,
+    retry_delay: float = 5.0,
+    backoff_multiplier: float = 2.0,
+) -> None:
+    """Verify that an external dependency is reachable.
+
+    Use this at service initialization, pipeline start, or health check
+    endpoints. Do NOT use on every individual API call — that would add
+    unacceptable latency.
+
+    If ``recovery_command`` is provided and the dependency is unavailable,
+    the guard will execute the command, wait, and re-check — up to
+    ``max_retries`` times with exponential backoff. This turns "detect and
+    complain" into "detect, fix, and continue."
+
+    Args:
+        check:              A callable that returns True if the dependency is
+                            available. Should have a timeout built in.
+        function_name:      Name of the function performing the check.
+        dependency:         Human-readable name of the dependency.
+        message:            Optional custom error message.
+        recovery_command:   Shell command or script path to execute when the
+                            dependency is unavailable. If None, no recovery is
+                            attempted (detection-only, original behavior).
+        max_retries:        Maximum recovery attempts before giving up.
+                            Default: 3.
+        retry_delay:        Seconds to wait after recovery command before
+                            re-checking. Default: 5.0.
+        backoff_multiplier: Multiply retry_delay by this after each failed
+                            attempt. Set to 1.0 for constant delay.
+                            Default: 2.0.
+
+    Example:
+        # Detection only (no recovery) — original behavior:
+        guard_available(
+            check=lambda: requests.head("http://db:5432/health",
+                                        timeout=5).status_code < 500,
+            function_name="app_startup",
+            dependency="database",
+        )
+
+        # Detection with recovery:
+        guard_available(
+            check=lambda: requests.head("http://db:5432/health",
+                                        timeout=5).status_code < 500,
+            function_name="app_startup",
+            dependency="database",
+            recovery_command="docker compose up -d postgres",
+            max_retries=3,
+            retry_delay=10.0,
+        )
+
+        # Recovery with a multi-step script:
+        guard_available(
+            check=lambda: os.path.isdir("/mnt/data/input"),
+            function_name="pipeline_start",
+            dependency="input data directory",
+            recovery_command="/scripts/mount-nfs.sh",
+        )
+    """
+    import subprocess
+    import time as _time
+
+    if not _config.guards_enabled:
+        return
+
+    def _run_check() -> tuple:
+        """Run the availability check. Returns (available: bool, error: Exception|None)."""
+        try:
+            return (check(), None)
+        except Exception as e:
+            return (False, e)
+
+    available, check_error = _run_check()
+
+    # --- Happy path: dependency is available on first check ---
+    if available:
+        log.info(
+            f"GUARD:AVAILABLE:{function_name} | {dependency} — OK"
+        )
+        return
+
+    # --- Dependency unavailable ---
+
+    # If no recovery command, fail loudly (original behavior)
+    if recovery_command is None:
+        if check_error:
+            diag = (
+                f"GUARD:AVAILABLE:{function_name} | "
+                f"{dependency} — check raised {type(check_error).__name__}: {check_error}"
+            )
+            log.error(diag)
+            raise GuardError(diag) from check_error
+        else:
+            diag = (
+                f"GUARD:AVAILABLE:{function_name} | "
+                f"{dependency} — {message or 'not available'}"
+            )
+            log.error(diag)
+            raise GuardError(diag)
+
+    # --- Recovery path ---
+    log.warning(
+        f"GUARD:AVAILABLE:{function_name} | "
+        f"{dependency} — unavailable, attempting recovery"
+    )
+
+    start_time = _time.monotonic()
+    current_delay = retry_delay
+
+    for attempt in range(1, max_retries + 1):
+        # Execute recovery command
+        log.info(
+            f"GUARD:RECOVERY:{function_name} | "
+            f"{dependency} — executing '{recovery_command}' "
+            f"(attempt {attempt}/{max_retries})"
+        )
+
+        try:
+            proc = subprocess.run(
+                recovery_command,
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=120,  # Hard limit: 2 minutes per command
+            )
+            exit_code = proc.returncode
+        except subprocess.TimeoutExpired:
+            exit_code = -1
+            log.warning(
+                f"GUARD:RECOVERY:{function_name} | "
+                f"{dependency} — command timed out after 120s"
+            )
+        except Exception as e:
+            exit_code = -1
+            log.warning(
+                f"GUARD:RECOVERY:{function_name} | "
+                f"{dependency} — command raised {type(e).__name__}: {e}"
+            )
+
+        log.info(
+            f"GUARD:RECOVERY:{function_name} | "
+            f"{dependency} — command exited with code {exit_code}, "
+            f"waiting {current_delay:.1f}s"
+        )
+
+        # Wait before re-checking
+        _time.sleep(current_delay)
+
+        # Re-check availability
+        available, check_error = _run_check()
+
+        elapsed = _time.monotonic() - start_time
+
+        if available:
+            log.info(
+                f"GUARD:AVAILABLE:{function_name} | "
+                f"{dependency} — OK (recovered after {attempt} "
+                f"attempt{'s' if attempt > 1 else ''}, {elapsed:.1f}s elapsed)"
+            )
+            return
+
+        log.warning(
+            f"GUARD:AVAILABLE:{function_name} | "
+            f"{dependency} — still unavailable after attempt {attempt}"
+        )
+
+        # Increase delay for next attempt
+        current_delay *= backoff_multiplier
+
+    # --- All retries exhausted ---
+    elapsed = _time.monotonic() - start_time
+    diag = (
+        f"GUARD:RECOVERY:{function_name} | "
+        f"{dependency} — all {max_retries} recovery attempts failed "
+        f"({elapsed:.1f}s elapsed) — FATAL"
+    )
+    log.error(diag)
+    raise GuardError(diag)
+
+
+# ===========================================================================
+# DECORATORS — Optional convenience wrappers
+# ===========================================================================
+
+def guarded(**type_specs):
+    """Decorator that adds type guards to function parameters.
+
+    Example:
+        @guarded(data=dict, user_id=str)
+        def process(data, user_id):
+            ...
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            import inspect
+            sig = inspect.signature(func)
+            bound = sig.bind(*args, **kwargs)
+            bound.apply_defaults()
+
+            for param_name, expected_type in type_specs.items():
+                if param_name in bound.arguments:
+                    value = bound.arguments[param_name]
+                    guard_type(
+                        value, expected_type, func.__name__, param_name
+                    )
+
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def traced(label: Optional[str] = None):
+    """Decorator that traces function input/output shapes.
+
+    Example:
+        @traced("parse_stage")
+        def parse(raw_data):
+            ...
+            return parsed
+    """
+    def decorator(func: Callable) -> Callable:
+        trace_label = label or func.__name__
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if args:
+                trace(f"{trace_label}:input", args[0])
+            result = func(*args, **kwargs)
+            trace(f"{trace_label}:output", result)
+            return result
+        return wrapper
+    return decorator
+
+
+# ===========================================================================
+# PIPELINE UTILITIES
+# ===========================================================================
+
+class BulwarkPipeline:
+    """A simple pipeline runner with built-in Guard-Trace-Verify.
+
+    Wraps a sequence of processing stages with automatic guards at
+    each stage input and traces at each stage output.
+
+    Example:
+        pipeline = BulwarkPipeline("document_processing")
+        pipeline.add_stage("fetch", fetch_document, input_type=str)
+        pipeline.add_stage("parse", parse_response, input_type=dict)
+        pipeline.add_stage("transform", transform_pages, input_type=list)
+        result = pipeline.run(document_url)
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+        self.stages: List[Dict[str, Any]] = []
+
+    def add_stage(
+        self,
+        name: str,
+        func: Callable,
+        input_type: Optional[type] = None,
+        input_keys: Optional[Set[str]] = None,
+        not_empty: bool = False,
+    ) -> "BulwarkPipeline":
+        """Add a processing stage to the pipeline."""
+        self.stages.append({
+            "name": name,
+            "func": func,
+            "input_type": input_type,
+            "input_keys": input_keys,
+            "not_empty": not_empty,
+        })
+        return self
+
+    def run(self, initial_input: Any) -> Any:
+        """Execute the pipeline with Guard-Trace-Verify at each stage."""
+        data = initial_input
+        log.info(
+            f"PIPELINE:{self.name} | starting with "
+            f"{len(self.stages)} stages"
+        )
+        trace(f"{self.name}:input", data)
+
+        for i, stage in enumerate(self.stages):
+            stage_label = f"{self.name}.{stage['name']}"
+
+            # GUARD: validate input to this stage
+            if stage["input_type"]:
+                guard_type(
+                    data, stage["input_type"],
+                    stage_label, "stage_input"
+                )
+            if stage["input_keys"]:
+                guard_keys(
+                    data, stage["input_keys"],
+                    stage_label, "stage_input"
+                )
+            if stage["not_empty"]:
+                guard_not_empty(data, stage_label, "stage_input")
+
+            # EXECUTE
+            data = stage["func"](data)
+
+            # TRACE: log output shape
+            trace(f"{stage_label}:output", data)
+
+        log.info(
+            f"PIPELINE:{self.name} | completed all "
+            f"{len(self.stages)} stages"
+        )
+        return data
+
+
+# ===========================================================================
+# SELF-TEST
+# ===========================================================================
+
+if __name__ == "__main__":
+    print("=" * 60)
+    print("Bulwark AI — Python Reference Implementation Self-Test")
+    print(f"Version: 0.2.0-draft")
+    print(f"Config: {get_config()}")
+    print("=" * 60)
+
+    passed = 0
+    failed = 0
+
+    def test(name, fn):
+        global passed, failed
+        try:
+            fn()
+            print(f"  [PASS] {name}")
+            passed += 1
+        except Exception as e:
+            print(f"  [FAIL] {name}: {e}")
+            failed += 1
+
+    # --- Guard Tests ---
+    print("\n--- Guard Tests ---")
+
+    test("guard(True) passes",
+         lambda: guard(True, "test", "should pass"))
+
+    def _guard_false():
+        try:
+            guard(False, "test", "expected X, got Y")
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard(False) raises GuardError", _guard_false)
+
+    test("guard_type(dict) passes",
+         lambda: guard_type({"a": 1}, dict, "test", "data"))
+
+    def _guard_type_fail():
+        try:
+            guard_type([1, 2], dict, "test", "data")
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_type(list as dict) raises", _guard_type_fail)
+
+    def _guard_keys_fail():
+        try:
+            guard_keys({"a": 1, "b": 2}, {"a", "c"}, "test")
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_keys missing key raises", _guard_keys_fail)
+
+    test("guard_keys all present passes",
+         lambda: guard_keys({"a": 1, "b": 2}, {"a", "b"}, "test"))
+
+    test("guard_not_empty([1,2]) passes",
+         lambda: guard_not_empty([1, 2], "test", "data"))
+
+    def _guard_empty():
+        try:
+            guard_not_empty([], "test", "data")
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_not_empty([]) raises", _guard_empty)
+
+    test("guard_range(5, 1, 10) passes",
+         lambda: guard_range(5, 1, 10, "test", "val"))
+
+    def _guard_range_fail():
+        try:
+            guard_range(15, 1, 10, "test", "val")
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_range(15, 1, 10) raises", _guard_range_fail)
+
+    test("GuardError is Exception (not AssertionError)",
+         lambda: None if issubclass(GuardError, Exception) and
+                 not issubclass(GuardError, AssertionError) else
+                 (_ for _ in ()).throw(RuntimeError("wrong base class")))
+
+    # --- Trace Tests ---
+    print("\n--- Trace Tests ---")
+
+    test("trace returns data unchanged",
+         lambda: None if trace("test", {"a": 1}) == {"a": 1}
+         else (_ for _ in ()).throw(RuntimeError("data changed")))
+
+    test("trace(None) returns None",
+         lambda: None if trace("test", None) is None
+         else (_ for _ in ()).throw(RuntimeError("not None")))
+
+    test("trace([]) returns []",
+         lambda: None if trace("test", []) == []
+         else (_ for _ in ()).throw(RuntimeError("not []")))
+
+    # --- Shape Description Tests ---
+    print("\n--- Shape Description Tests ---")
+    cases = [
+        (None, "NoneType"),
+        (42, "int"),
+        ("hello", "str, len=5"),
+        ([1, 2, 3], "list, len=3"),
+        ([], "list, len=0 (EMPTY)"),
+    ]
+    for value, expected_prefix in cases:
+        shape = describe_shape(value)
+        ok = shape.startswith(expected_prefix)
+        test(f"describe_shape({repr(value)[:20]}) = {shape[:40]}",
+             lambda ok=ok: None if ok
+             else (_ for _ in ()).throw(RuntimeError("wrong shape")))
+
+    # --- Verify Tests ---
+    print("\n--- Verify Tests ---")
+
+    test("verify(True) passes",
+         lambda: verify(True, "test", "should pass"))
+
+    def _verify_false():
+        try:
+            verify(False, "test", "INSERT expected 10, affected 0")
+            raise RuntimeError("should have raised")
+        except VerifyError:
+            pass
+    test("verify(False) raises VerifyError", _verify_false)
+
+    test("VerifyError is Exception (not AssertionError)",
+         lambda: None if issubclass(VerifyError, Exception) and
+                 not issubclass(VerifyError, AssertionError) else
+                 (_ for _ in ()).throw(RuntimeError("wrong base class")))
+
+    # --- Configuration Tests ---
+    print("\n--- Configuration Tests ---")
+
+    test("configure(mode='production') works",
+         lambda: configure(mode="production"))
+
+    test("config reflects production mode",
+         lambda: None if get_config()["mode"] == "production"
+         else (_ for _ in ()).throw(RuntimeError("wrong mode")))
+
+    def _bad_mode():
+        try:
+            configure(mode="invalid")
+            raise RuntimeError("should have raised")
+        except ValueError:
+            pass
+    test("configure(mode='invalid') raises ValueError", _bad_mode)
+
+    # Reset to development for remaining tests
+    configure(mode="development")
+
+    # --- Verify Strategy Tests ---
+    print("\n--- Verify Strategy Tests ---")
+
+    configure(verify_strategy="sampled", verify_sample_rate=0.0001)
+
+    # With very low sample rate, most verifies should be skipped
+    skipped = 0
+    for _ in range(100):
+        try:
+            verify(False, "test", "should mostly be skipped")
+        except VerifyError:
+            skipped -= 1  # This one wasn't skipped
+        else:
+            skipped += 1
+    test(f"sampled strategy skips most verifies ({skipped}/100 skipped)",
+         lambda: None if skipped > 80
+         else (_ for _ in ()).throw(RuntimeError(f"only {skipped} skipped")))
+
+    # Critical operations always verify even with sampled strategy
+    def _critical_always_verifies():
+        try:
+            verify(False, "test", "critical must verify", critical=True)
+            raise RuntimeError("should have raised")
+        except VerifyError:
+            pass
+    test("critical=True always verifies even when sampled",
+         _critical_always_verifies)
+
+    # Reset
+    configure(mode="development")
+
+    # --- Availability Guard Tests ---
+    print("\n--- Availability Guard Tests ---")
+
+    test("guard_available with True check passes",
+         lambda: guard_available(
+             check=lambda: True,
+             function_name="test",
+             dependency="test_service",
+         ))
+
+    def _unavailable():
+        try:
+            guard_available(
+                check=lambda: False,
+                function_name="test",
+                dependency="test_service",
+            )
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_available with False check raises", _unavailable)
+
+    def _check_exception():
+        try:
+            guard_available(
+                check=lambda: (_ for _ in ()).throw(
+                    ConnectionError("refused")
+                ),
+                function_name="test",
+                dependency="test_service",
+            )
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_available with exception raises GuardError",
+         _check_exception)
+
+    # --- Recovery Tests ---
+    print("\n--- Recovery Tests ---")
+
+    def _recovery_succeeds():
+        # Simulate: check fails twice, then succeeds after recovery
+        call_count = [0]
+        def flaky_check():
+            call_count[0] += 1
+            return call_count[0] >= 3  # Fails on calls 1,2; passes on 3
+        guard_available(
+            check=flaky_check,
+            function_name="test_recovery",
+            dependency="flaky_service",
+            recovery_command="echo recovering",
+            max_retries=3,
+            retry_delay=0.01,
+            backoff_multiplier=1.0,
+        )
+        # Should have succeeded after 2 recovery attempts
+        assert call_count[0] == 3, f"expected 3 checks, got {call_count[0]}"
+    test("guard_available with recovery succeeds after retries",
+         _recovery_succeeds)
+
+    def _recovery_exhausted():
+        try:
+            guard_available(
+                check=lambda: False,  # Always fails
+                function_name="test_recovery",
+                dependency="dead_service",
+                recovery_command="echo attempting",
+                max_retries=2,
+                retry_delay=0.01,
+                backoff_multiplier=1.0,
+            )
+            raise RuntimeError("should have raised")
+        except GuardError as e:
+            assert "all 2 recovery attempts failed" in str(e)
+            assert "FATAL" in str(e)
+    test("guard_available recovery fails after max retries",
+         _recovery_exhausted)
+
+    def _recovery_first_try():
+        # Recovery command runs but check passes on first retry
+        call_count = [0]
+        def check_after_one():
+            call_count[0] += 1
+            return call_count[0] >= 2  # Fails first, passes second
+        guard_available(
+            check=check_after_one,
+            function_name="test_recovery",
+            dependency="slow_starter",
+            recovery_command="echo starting",
+            max_retries=3,
+            retry_delay=0.01,
+            backoff_multiplier=1.0,
+        )
+        assert call_count[0] == 2, f"expected 2 checks, got {call_count[0]}"
+    test("guard_available recovery succeeds on first attempt",
+         _recovery_first_try)
+
+    def _no_recovery_preserves_behavior():
+        # Without recovery_command, should fail immediately (no retries)
+        call_count = [0]
+        def counting_check():
+            call_count[0] += 1
+            return False
+        try:
+            guard_available(
+                check=counting_check,
+                function_name="test",
+                dependency="test_service",
+            )
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+        assert call_count[0] == 1, f"expected 1 check (no retries), got {call_count[0]}"
+    test("guard_available without recovery preserves original behavior",
+         _no_recovery_preserves_behavior)
+
+    def _none_recovery_preserves_behavior():
+        call_count = [0]
+        def counting_check():
+            call_count[0] += 1
+            return False
+        try:
+            guard_available(
+                check=counting_check,
+                function_name="test",
+                dependency="test_service",
+                recovery_command=None,
+            )
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+        assert call_count[0] == 1, f"expected 1 check, got {call_count[0]}"
+    test("guard_available with recovery_command=None preserves original behavior",
+         _none_recovery_preserves_behavior)
+
+    # --- Pipeline Tests ---
+    print("\n--- Pipeline Tests ---")
+
+    pipeline = BulwarkPipeline("test_pipeline")
+    pipeline.add_stage(
+        "double", lambda x: [i * 2 for i in x],
+        input_type=list, not_empty=True
+    )
+    pipeline.add_stage(
+        "to_dict", lambda x: {"results": x, "count": len(x)},
+        input_type=list
+    )
+    result = pipeline.run([1, 2, 3])
+    test("pipeline produces correct result",
+         lambda: None if result == {"results": [2, 4, 6], "count": 3}
+         else (_ for _ in ()).throw(RuntimeError(f"wrong: {result}")))
+
+    # --- Summary ---
+    print(f"\n{'=' * 60}")
+    total = passed + failed
+    print(f"Results: {passed}/{total} passed, {failed} failed")
+    if failed == 0:
+        print("All self-tests passed. Bulwark AI is operational.")
+    else:
+        print(f"WARNING: {failed} test(s) failed!")
+    print("=" * 60)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

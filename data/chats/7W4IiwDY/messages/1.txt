@@ -1,0 +1,266 @@
+# Bulwark AI — Marketing Seeds & Positioning Reference
+
+> **Purpose**: Collected observations, taglines, metaphors, and positioning
+> insights that emerged organically during the design sessions. Preserved
+> as raw material for a dedicated marketing conversation. Minimally expanded
+> where a thought was clearly incomplete.
+>
+> **For**: The next AI agent handling marketing, launch copy, or brand voice.
+
+---
+
+## 1. The Name: Why "Bulwark"
+
+### The Comparison
+
+| Dimension | assert-ai | bulwark-ai |
+|-----------|-----------|------------|
+| Connotation | Technical, narrow — sounds like a testing tool | Defensive, protective — sounds like a safety system |
+| Semantic scope | Implies assertions only (one mechanism) | Implies a fortification (entire defensive posture) |
+| Narrative strength | Describes what it does | Describes what it *is* |
+| Searchability | Collides with `assert` keyword in every language | Clean namespace, no collisions |
+| Emotional register | Cold, mechanical | Strong, trustworthy, architectural |
+
+### Why "Bulwark" Won
+
+- A bulwark is a **defensive wall** — not a weapon, not a tool, but a
+  structural element that protects what's behind it. This maps precisely
+  to the framework's role: it doesn't generate code, fix code, or replace
+  code. It **defends** the space where code runs.
+- The word carries weight without aggression. It implies permanence,
+  reliability, and quiet strength — qualities that align with a standard
+  meant to be embedded everywhere and noticed nowhere (until it saves you).
+- "Bulwark" scales across all three layers naturally: Guards are the outer
+  wall, Traces are the watchtowers, Verifies are the inspectors at the gate.
+
+---
+
+## 2. Taglines
+
+### Primary
+
+> **"The defensive membrane for AI-generated code"**
+
+Why it works: "Membrane" is biological — thin, lightweight, always present,
+selectively permeable. It doesn't slow things down. It filters. This
+counters the assumption that defensive coding means heavy, slow, bureaucratic.
+
+### Alternates (surfaced during sessions)
+
+> "Make AI failures visible before they become yours"
+
+> "The safety layer your AI assistant doesn't know it needs"
+
+> "Convention-grade defense. Zero-dependency cost."
+
+> "What seatbelts are to cars, Bulwark is to AI-generated code"
+
+> "Catch what type systems miss"
+
+> "Your code passed type checks. It's still wrong. Bulwark catches that."
+
+---
+
+## 3. Core Metaphors
+
+These emerged naturally and resonated. Each maps to a different audience
+intuition.
+
+### The Seatbelt
+> Bulwark is to AI-generated code what seatbelts are to cars: a lightweight
+> safety layer that's always on, doesn't slow you down, and saves you when
+> things go wrong.
+
+**Why it works**: Everyone understands seatbelts. They're not optional.
+They're not heavy. You forget they're there — until the moment they matter.
+This neutralizes the "but it adds overhead" objection before it's raised.
+
+### The Nightclub (Guard / Trace / Verify)
+- **Guard** = The bouncer at the door. Checks your ID before you get in.
+  Wrong shape? Wrong type? You don't enter.
+- **Trace** = The security camera. Doesn't stop anyone, but records
+  everything flowing through. When something goes wrong, you can rewind.
+- **Verify** = The receipt checker at the exit. You said you'd buy three
+  items? Let me confirm you actually have three items in the bag.
+
+**Why it works**: Makes the three-layer system instantly intuitive to
+non-technical stakeholders. Each role is distinct, necessary, and
+understandable.
+
+### The Membrane
+A biological membrane is:
+- Thin (minimal code overhead)
+- Always present (not optional in living systems)
+- Selectively permeable (lets good data through, blocks bad)
+- Self-maintaining (guards don't need updating when business logic changes)
+
+**Why it works**: Positions Bulwark as organic and natural rather than
+bureaucratic and imposed. You don't "add" a membrane — it's part of
+healthy architecture.
+
+### The Self-Healing Immune System (Recovery Extension)
+When availability guards detect a failed dependency and automatically
+run recovery scripts:
+- Detect the infection (health check fails)
+- Deploy antibodies (recovery command)
+- Verify recovery (retry health check)
+- Escalate only if self-healing fails (raise error)
+
+**Why it works**: Extends the biological metaphor naturally. The system
+doesn't just detect problems — it heals them. This is the progression
+from passive defense to active resilience.
+
+---
+
+## 4. The Problem Story
+
+The narrative that frames why Bulwark exists. Every piece of marketing
+should trace back to this story.
+
+### The Setup
+AI coding assistants (Cursor, Copilot, Claude) generate code that:
+- Compiles ✅
+- Passes type checks ✅
+- Looks correct to human review ✅
+- **Silently produces wrong results** ❌
+
+### The Specific Failure Modes
+These are not hypothetical. They are the observed, repeatable ways
+AI-generated code fails:
+
+1. **Shape Mismatch**: Function expects `{"name", "age"}`, receives
+   `{"name", "years"}`. Valid dict. Valid types. Wrong keys. Silent
+   corruption.
+
+2. **Unverified Side Effects**: AI writes `db.insert(record)` and
+   moves on. Never checks if the insert succeeded. Never confirms
+   row count. Assumes success.
+
+3. **Invisible Transformations**: A 7-stage pipeline where stage 3
+   produces wrong output. You discover it at stage 7. Or never.
+   No logging of intermediate shapes.
+
+4. **Confident Wrongness**: The AI doesn't hedge. It doesn't add
+   "TODO: verify this works." It writes code with the same confidence
+   whether it's correct or catastrophically wrong.
+
+### The Punchline
+> Your AI assistant writes code with perfect confidence and zero
+> accountability. Bulwark adds the accountability.
+
+---
+
+## 5. Positioning Statements
+
+### What Bulwark Is
+- A **coding standard**, not a library
+- A **convention**, not a dependency
+- A **defensive layer**, not a testing framework
+- A **runtime guard**, not a compile-time check
+- A **pattern language**, not a package to install
+
+### What Bulwark Is NOT
+- Not a replacement for type systems (it catches what types miss)
+- Not a replacement for validation libraries (it works inside functions, not at boundaries)
+- Not a replacement for observability (it operates at function level, not system level)
+- Not a replacement for testing (it runs in production, not just in CI)
+- Not a framework you adopt — it's a habit you develop
+
+### The Differentiator Stack
+
+| Existing Tool | What It Checks | Where Bulwark Differs |
+|---------------|---------------|----------------------|
+| TypeScript / mypy | Types match at compile time | Bulwark checks shapes match at runtime — after the type system has already said "looks fine" |
+| Pydantic / Zod | Data matches schema at API boundary | Bulwark checks data shape *inside* functions, at every transformation stage |
+| OpenTelemetry | Request flow across services | Bulwark traces data *shape* within a single function |
+| pytest / Jest | Behavior before deployment | Bulwark validates behavior *during* deployment |
+| Design by Contract | Pre/post conditions on function interface | Bulwark guards are *internal* — they don't change the function's contract with callers |
+
+---
+
+## 6. Audience-Specific Hooks
+
+### For Solo Developers Using AI Assistants
+> "You're shipping AI-generated code to production. How do you know it's
+> actually doing what you think it's doing?"
+
+### For Team Leads Adopting AI Tooling
+> "Your team's AI assistant generates 10x more code. Who's checking
+> the 10x more assumptions?"
+
+### For AI Agent Developers
+> "Your agent generates and executes code autonomously. Bulwark is the
+> runtime safety net between 'the AI wrote it' and 'it ran in production.'"
+
+### For the Skeptic
+> "Add 3 lines to your function. Change nothing else. Catch the bug
+> that would have taken you 4 hours to find."
+
+---
+
+## 7. Conceptual Tensions Worth Exploring
+
+These are unresolved creative tensions that could fuel interesting
+marketing angles:
+
+### Trust vs. Verify
+We trust AI to write our code but don't verify that it works.
+Bulwark is the "trust but verify" layer.
+
+### Confidence vs. Correctness
+AI-generated code is maximally confident and variably correct.
+Human-written code is variably confident and usually correct.
+Bulwark bridges the gap.
+
+### Invisible vs. Essential
+The best defensive code is code you forget is there — until the
+moment it catches something. Bulwark aspires to be invisible
+infrastructure, like plumbing or electrical wiring.
+
+### Speed vs. Safety
+The conventional framing: safety slows you down. Bulwark's counter:
+guards cost nanoseconds, bugs cost hours. The fastest path includes
+the safety layer.
+
+### Convention vs. Enforcement
+Bulwark is a convention, not a rule. You adopt it because it helps,
+not because a linter forces you. This is a strength (low friction)
+and a weakness (no enforcement). The linter will bridge this gap.
+
+---
+
+## 8. Voice & Tone Notes
+
+Observations about what communication style felt right during development:
+
+- **Confident but not aggressive**: "Bulwark defends" not "Bulwark dominates"
+- **Technical but accessible**: Analogies first, specifications second
+- **Pragmatic over ideological**: "Add 3 lines" not "transform your practice"
+- **Specific over abstract**: Real failure modes, real code examples, real numbers
+- **Understated**: The shield emoji 🛡️ as the only visual flourish. No hype.
+  Let the problem statement do the selling.
+
+---
+
+## 9. One-Liners for Various Contexts
+
+**GitHub repo description:**
+> A zero-dependency defensive coding standard for AI-generated code. Guard inputs. Trace shapes. Verify side effects.
+
+**Hacker News title:**
+> Bulwark AI: A defensive membrane for AI-generated code (convention, not library)
+
+**Tweet-length:**
+> Your AI writes code that compiles, passes types, and silently corrupts data. Bulwark catches that. Zero deps. Three patterns. Add lines, not libraries.
+
+**Conference talk subtitle:**
+> What happens when AI-generated code is confidently wrong — and how three simple patterns make failures visible
+
+**README hero line:**
+> AI-generated code fails in ways type systems can\'t catch. Bulwark makes those failures visible.
+
+---
+
+*Raw material for marketing development. Expand, remix, and refine
+in a dedicated session.*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

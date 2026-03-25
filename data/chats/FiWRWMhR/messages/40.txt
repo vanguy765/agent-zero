@@ -1,0 +1,5 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### TD-2: ~~AI System Prompt Needs Updating~~ ✅ RESOLVED
+~~The `bulwark-system-prompt.md` was written for v0.1.0 and doesn't include
+recovery examples, configuration guidance, or availability guard patterns.~~ Updated to v0.2.0 on 2026-03-15. Now includes: custom error types, if/raise patterns (no bare assert), describe_shape(), availability guards with recovery, configuration modes, verify strategies, Pydantic/Zod integration guidance, TypeScript examples throughout, and linter reference.
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

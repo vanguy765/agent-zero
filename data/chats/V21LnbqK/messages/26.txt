@@ -1,0 +1,67 @@
+=== thumbnail_url references ===
+hybrid.py:660:        thumbnail_urls: Dict[int, str] = {}
+hybrid.py:679:                    thumbnail_urls[page_no] = url
+hybrid.py:687:                thumbnail_urls[page_no] = local_path
+hybrid.py:689:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+hybrid.py:1513:            thumbnail_urls=thumbnail_urls,
+hybrid.py:1552:    thumbnail_urls: Dict[int, str],
+hybrid.py:1569:            "thumbnail_url": thumbnail_urls.get(page_no, ""),
+hybrid.py:1630:        "thumbnails_count": len(thumbnail_urls),
+hybrid.py:1654:        "thumbnails": dict(thumbnail_urls),
+parse_document_pipeline.py:10:  6. Insert document_pages (one per page, with storage_url, thumbnail_url, category)
+parse_document_pipeline.py:241:            "thumbnail_url": page_data.get("thumbnail_url"),
+server.py:426:            pages_result[page_no]["thumbnail_url"] = thumb_url
+
+=== floorplan_dia_urls references ===
+hybrid.py:953:        floorplan_dia_urls: Dict[int, List[str]] = {}  # full architectural drawing sheet
+hybrid.py:975:                    fp_dia_idx = len(floorplan_dia_urls.get(page_no, []))
+hybrid.py:983:                            floorplan_dia_urls.setdefault(page_no, []).append(url)
+hybrid.py:990:                        floorplan_dia_urls.setdefault(page_no, []).append(
+hybrid.py:1087:        total_fp_dias = sum(len(v) for v in floorplan_dia_urls.values())
+hybrid.py:1514:            floorplan_dia_urls=floorplan_dia_urls,
+hybrid.py:1553:    floorplan_dia_urls: Dict[int, List[str]],
+hybrid.py:1570:            "floorplan_dia_urls": floorplan_dia_urls.get(page_no, []),
+hybrid.py:1621:    total_floorplan_dias = sum(len(v) for v in floorplan_dia_urls.values())
+
+=== upload / storage references ===
+benchmark_vision.py:39:    # The original endpoint expected multipart file uploads
+hybrid.py:6:      -> Generate 400px thumbnails -> upload to Supabase
+hybrid.py:9:      -> Crop individual elements, upload PNGs to Supabase
+hybrid.py:39:      - If Docling found tables on the page: exported as markdown, uploaded
+hybrid.py:46:      - Thumbnail is always generated and uploaded.
+hybrid.py:81:      6. On success: text uploaded as job_{id}_table_page_{N}_spec.md
+hybrid.py:87:        uploaded as job_{id}_footer_page_{N}.md.
+hybrid.py:95:    Processing: cropped, uploaded as job_{id}_photo_{i}_page_{N}.png,
+hybrid.py:436:async def upload_image_to_storage(
+hybrid.py:453:        upload_resp = await asyncio.to_thread(
+hybrid.py:456:            .upload(path, image_bytes, {"contentType": "image/png", "upsert": "true"})
+hybrid.py:458:        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+hybrid.py:459:            raise Exception(f"Storage upload error: {upload_resp['error']}")
+hybrid.py:479:        logger.warning(f"Image upload failed for {filename}: {e}")
+hybrid.py:483:async def upload_table_to_storage(
+hybrid.py:498:        upload_resp = await asyncio.to_thread(
+hybrid.py:501:            .upload(path, content_bytes, {"contentType": "text/markdown", "upsert": "true"})
+hybrid.py:505:        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+hybrid.py:506:            raise Exception(f"Storage upload error: {upload_resp['error']}")
+hybrid.py:521:        logger.info(f"Table markdown uploaded: {path}")
+hybrid.py:524:        logger.warning(f"Table upload failed for {filename}: {e}")
+hybrid.py:577:    5. Element Cropping      - crop and upload each detected region; insets
+hybrid.py:659:        # Generate and upload thumbnails (400px wide)
+hybrid.py:673:                url = await upload_image_to_storage(
+hybrid.py:945:            job_id, current_step="cropping_and_uploading_elements",
+hybrid.py:978:                        url = await upload_image_to_storage(
+hybrid.py:1007:                                fp_url = await upload_image_to_storage(
+hybrid.py:1026:                                d_url = await upload_image_to_storage(
+hybrid.py:1047:                        url = await upload_image_to_storage(
+hybrid.py:1067:                        url = await upload_image_to_storage(
+hybrid.py:1115:                url = await upload_table_to_storage(
+hybrid.py:1179:                tbl_img_url = await upload_image_to_storage(
+hybrid.py:1183:                logger.info(f"Job {job_id}: Table image uploaded: {tbl_img_fname}")
+hybrid.py:1287:                url = await upload_table_to_storage(
+hybrid.py:1347:                        url = await upload_table_to_storage(
+hybrid.py:1380:                footer_url = await upload_table_to_storage(
+hybrid.py:1385:                    logger.info(f"Job {job_id}: Footer uploaded: {footer_fname}")
+hybrid.py:1387:                    logger.warning(f"Job {job_id}: Footer upload failed: {footer_fname}")
+job_manager.py:249:            .upload(result_path, result_bytes, {"content-type": "application/json"})
+models.py:35:    UPLOADING = "uploading"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

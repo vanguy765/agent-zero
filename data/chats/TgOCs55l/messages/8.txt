@@ -1,0 +1,15 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# === Test artifact tree ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/logs
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/pdfs
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/pdfs/scheyk_drawings.pdf
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/reports
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# === Symlink target ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# total 0
+drwxr-xr-x 1 root root 4096 Mar 13 02:53 .
+drwxr-xr-x 1 root root 4096 Mar 13 02:53 ..
+lrwxrwxrwx 1 root root  115 Mar 13 02:53 scheyk_drawings.pdf -> "/a0/usr/projects/timesheet_app/voicelog-scaffold/tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

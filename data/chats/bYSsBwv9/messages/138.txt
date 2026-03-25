@@ -1,0 +1,121 @@
+=== dev-start.sh ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# #!/bin/bash
+# Start all required dev services
+cd "$(dirname "$0")/.."
+
+echo "=== Starting Dev Stack ==="
+echo ""
+
+# 1. PostgreSQL
+echo "[1/4] PostgreSQL..."
+if pg_isready -h 127.0.0.1 -p 54322 -U postgres -q 2>/dev/null; then
+  echo "  ✅ Already running on port 54322"
+else
+  echo "  Starting PostgreSQL..."
+  pg_ctlcluster 18 main start 2>/dev/null || \
+  su -c "/usr/lib/postgresql/18/bin/pg_ctl start -D /tmp/pgdata" postgres 2>/dev/null || \
+  echo "  ⚠️  Could not start PostgreSQL — may need manual start"
+fi
+
+# 2. PostgREST
+echo "[2/4] PostgREST..."
+if curl -sf http://localhost:54321/ > /dev/null 2>&1; then
+  echo "  ✅ Already running on port 54321"
+else
+  echo "  Starting PostgREST..."
+  nohup /tmp/postgrest /tmp/postgrest.conf > /tmp/postgrest.log 2>&1 &
+  sleep 2
+  if curl -sf http://localhost:54321/ > /dev/null 2>&1; then
+    echo "  ✅ PostgREST started on port 54321"
+  else
+    echo "  ❌ PostgREST failed to start — check /tmp/postgrest.log"
+  fi
+fi
+
+# 3. PostgREST Proxy
+echo "[3/4] PostgREST Proxy..."
+if curl -sf http://localhost:54330/rest/v1/ > /dev/null 2>&1; then
+  echo "  ✅ Already running on port 54330"
+else
+  echo "  Starting PostgREST proxy..."
+  nohup node postgrest-proxy.js > /tmp/postgrest-proxy.log 2>&1 &
+  sleep 1
+  if curl -sf http://localhost:54330/rest/v1/ > /dev/null 2>&1; then
+    echo "  ✅ Proxy started on port 54330"
+  else
+    echo "  ❌ Proxy failed to start — check /tmp/postgrest-proxy.log"
+  fi
+fi
+
+# 4. API
+echo "[4/4] API Server..."
+if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+  echo "  ✅ Already running on port 3000"
+else
+  echo "  Starting API server..."
+  nohup pnpm --filter api dev > /tmp/api.log 2>&1 &
+  sleep 3
+  if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+    echo "  ✅ API started on port 3000"
+  else
+    echo "  ⚠️  API still starting — check /tmp/api.log"
+  fi
+fi
+
+echo ""
+echo "=== Stack Status ==="
+bash scripts/dev-health.sh
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === docs/ports.md ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# # Port Allocation Contract
+
+To avoid conflicts during development, we strictly assign specific ports to each application in the monorepo.
+
+## Assigned Ports
+
+| Port      | Application         | Path                  | Notes                                                                 |
+| :-------- | :------------------ | :-------------------- | :-------------------------------------------------------------------- |
+| **3000**  | **API**             | `apps/api`            | The Backend (Hono) + A2A Protocol (`/a2a`, `/.well-known/agent.json`) |
+| **3001**  | **Web Dashboard**   | `apps/web-dashboard`  | Admin/Office View (Legacy/Reference)                                  |
+| **3003**  | **Material Admin**  | `apps/material-admin` | Material & Taxonomy Manager                                           |
+| **3002**  | **Site Companion**  | `apps/site-companion` | Mobile Companion App (Voice Log)                                      |
+| **3004**  | **Work Orders**     | `apps/work-orders`    | Work Orders Management                                                |
+| **3005**  | **Tenant Portal**   | `apps/tenant-portal`  | Configurable Tenant Data Portal (SolidJS)                             |
+| **5000**  | **Doc Parser**      | `doc-parser`          | Python FastAPI Service for LayoutParser                               |
+| **8082**  | **NocoDB**          | -                     | No-code Database Interface (Internal Tools)                           |
+| **54321** | **Supabase**        | -                     | Local Database (Postgres)                                             |
+| **54323** | **Supabase Studio** | -                     | Local Dashboard UI                                                    |
+| **5080**  | **Agent Zero**      | `agent-zero`          | Agent Zero                                                            |
+
+## Rules
+
+1.  **Strict Ports**: In `vite.config.ts`, always set `server.port` to the assigned value.
+2.  **No Random Ports**: Do not let Vite pick a random port. This breaks CORS configurations.
+3.  **Check this doc**: Before creating a new app, claim the next available port here.
+
+## Troubleshooting
+
+### Windows "Zombie" Processes
+
+If you encounter `EADDRINUSE` or random port assignments (e.g., 3009 instead of 3002), it is likely that a previous Node process is still running in the background.
+
+**Fix**: Run this command in PowerShell to Force-Kill all Node processes:
+
+```powershell
+taskkill /F /IM node.exe
+```
+
+---
+
+## Docker / Compose port mapping (local development)
+
+The repository provides a `docker-compose.yml` (root of `agent-zero`) that maps the service ports for the single "agent-zero" service. By default the compose file maps:
+
+- Container port 80 -> Host 80
+- Container port 9000 -> Host 9000
+- Container port 22 -> Host 22
+
+If you run multiple services from the monorepo in parallel, ensure these host ports are free or modify the `docker-compose.yml` port mappings to avoid conflicts.
+
+Tip: use `docker compose ps` and `docker compose logs -f <service>` to inspect running services and assigned ports.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

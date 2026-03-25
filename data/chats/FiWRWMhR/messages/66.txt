@@ -1,0 +1,19 @@
+d1dac37 (HEAD -> main, origin/main) test: add Test 1.1 prompt and results template
+6090c1b docs: add comprehensive live test plan for Bulwark × BMAD × Agent Zero
+1649d1c feat: initial commit — Bulwark AI v0.2.0-draft
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Files committed ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# test-results/TEST_1.1_PROMPT.md
+test-results/TEST_1.1_RESULTS.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# supabase CLI not found
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Checking common Supabase ports ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Port 54321 (API): HTTP 000
+Port 54321 (API): unreachable
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Port 54323 (Studio): HTTP 000
+Port 54323 (Studio): unreachable
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Port 54322 (DB): HTTP 000
+Port 54322 (DB): unreachable
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Checking via host.docker.internal ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

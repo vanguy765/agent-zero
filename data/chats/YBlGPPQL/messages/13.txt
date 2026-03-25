@@ -1,0 +1,75 @@
+
+======================================================================
+Bulwark AI — Service Manifest Pipeline (Test 2.3)
+Operation ID: e2c214db-fcbe-4504-a871-fa593c3ebdf8
+Manifest:     ./fixtures/services.json
+======================================================================
+
+2026-03-18 04:43:46 | INFO  | TRACE:pipeline:start | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Starting service manifest pipeline
+2026-03-18 04:43:46 | INFO  | TRACE:pipeline:start | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Starting service manifest pipeline
+2026-03-18 04:43:46 | INFO  | TRACE:guard_service:start:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Guarding service 'local_db' for run_pipeline
+2026-03-18 04:43:46 | INFO  | TRACE:guard_service:start:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Guarding service 'local_db' for run_pipeline
+2026-03-18 04:43:46 | DEBUG | TRACE:manifest:loaded | dict, keys=['defaults', 'services', 'version'], len=3, sample['version']=str, len=3
+2026-03-18 04:43:46 | INFO  | GUARD:SERVICE:run_pipeline | local_db — checking health (command: ./fixtures/health_db.sh)
+2026-03-18 04:43:46 | INFO  | GUARD:SERVICE:run_pipeline | local_db — checking health (command: ./fixtures/health_db.sh)
+2026-03-18 04:43:46 | WARNING | GUARD:SERVICE:run_pipeline | local_db — unavailable (severity=critical)
+2026-03-18 04:43:46 | WARNING | GUARD:SERVICE:run_pipeline | local_db — unavailable (severity=critical)
+2026-03-18 04:43:46 | INFO  | TRACE:service:unavailable:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | local_db is DOWN (severity=critical)
+2026-03-18 04:43:46 | INFO  | TRACE:service:unavailable:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | local_db is DOWN (severity=critical)
+2026-03-18 04:43:46 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 1/3: ./fixtures/recover_db.sh
+2026-03-18 04:43:46 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 1/3: ./fixtures/recover_db.sh
+2026-03-18 04:43:46 | INFO  | TRACE:service:recovery:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Attempt 1/3: ./fixtures/recover_db.sh (delay=0.5s)
+2026-03-18 04:43:46 | INFO  | TRACE:service:recovery:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Attempt 1/3: ./fixtures/recover_db.sh (delay=0.5s)
+2026-03-18 04:43:46 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=127, waiting 0.5s
+2026-03-18 04:43:46 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=127, waiting 0.5s
+2026-03-18 04:43:47 | WARNING | GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 1
+2026-03-18 04:43:47 | WARNING | GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 1
+2026-03-18 04:43:47 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 2/3: ./fixtures/recover_db.sh
+2026-03-18 04:43:47 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 2/3: ./fixtures/recover_db.sh
+2026-03-18 04:43:47 | INFO  | TRACE:service:recovery:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Attempt 2/3: ./fixtures/recover_db.sh (delay=1.0s)
+2026-03-18 04:43:47 | INFO  | TRACE:service:recovery:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Attempt 2/3: ./fixtures/recover_db.sh (delay=1.0s)
+2026-03-18 04:43:47 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=127, waiting 1.0s
+2026-03-18 04:43:47 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=127, waiting 1.0s
+2026-03-18 04:43:48 | WARNING | GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 2
+2026-03-18 04:43:48 | WARNING | GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 2
+2026-03-18 04:43:48 | INFO  | GUARD:NOTIFICATION:run_pipeline | local_db — alerting log (escalation_after=2 reached)
+2026-03-18 04:43:48 | INFO  | GUARD:NOTIFICATION:run_pipeline | local_db — alerting log (escalation_after=2 reached)
+2026-03-18 04:43:48 | INFO  | TRACE:notification:log | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Alerting log: local_db (critical)
+2026-03-18 04:43:48 | INFO  | TRACE:notification:log | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Alerting log: local_db (critical)
+2026-03-18 04:43:48 | WARNING | NOTIFICATION:log | service=local_db severity=critical op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Service 'local_db' is DOWN after 2/3 recovery attempts
+2026-03-18 04:43:48 | WARNING | NOTIFICATION:log | service=local_db severity=critical op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Service 'local_db' is DOWN after 2/3 recovery attempts
+2026-03-18 04:43:48 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 3/3: ./fixtures/recover_db.sh
+2026-03-18 04:43:48 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 3/3: ./fixtures/recover_db.sh
+2026-03-18 04:43:48 | INFO  | TRACE:service:recovery:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Attempt 3/3: ./fixtures/recover_db.sh (delay=2.0s)
+2026-03-18 04:43:48 | INFO  | TRACE:service:recovery:local_db | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Attempt 3/3: ./fixtures/recover_db.sh (delay=2.0s)
+2026-03-18 04:43:48 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=127, waiting 2.0s
+2026-03-18 04:43:48 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=127, waiting 2.0s
+2026-03-18 04:43:50 | WARNING | GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 3
+2026-03-18 04:43:50 | WARNING | GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 3
+2026-03-18 04:43:50 | INFO  | GUARD:NOTIFICATION:run_pipeline | local_db — alerting log (escalation_after=2 reached)
+2026-03-18 04:43:50 | INFO  | GUARD:NOTIFICATION:run_pipeline | local_db — alerting log (escalation_after=2 reached)
+2026-03-18 04:43:50 | INFO  | TRACE:notification:log | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Alerting log: local_db (critical)
+2026-03-18 04:43:50 | INFO  | TRACE:notification:log | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Alerting log: local_db (critical)
+2026-03-18 04:43:50 | WARNING | NOTIFICATION:log | service=local_db severity=critical op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Service 'local_db' is DOWN after 3/3 recovery attempts
+2026-03-18 04:43:50 | WARNING | NOTIFICATION:log | service=local_db severity=critical op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Service 'local_db' is DOWN after 3/3 recovery attempts
+2026-03-18 04:43:50 | INFO  | TRACE:pipeline:aborted | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Pipeline aborted: critical service local_db unavailable
+2026-03-18 04:43:50 | INFO  | TRACE:pipeline:aborted | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8 | Pipeline aborted: critical service local_db unavailable
+2026-03-18 04:43:50 | DEBUG | VERIFY:run_pipeline | OK — Pipeline status should be 'aborted' after critical failure
+
+======================================================================
+Pipeline Result:
+{
+  "operation_id": "e2c214db-fcbe-4504-a871-fa593c3ebdf8",
+  "services": {
+    "local_db": {
+      "status": "unavailable",
+      "severity": "critical",
+      "error": "GUARD:run_pipeline | Service 'local_db' unavailable | severity=critical | recovery_attempts=3 | op=e2c214db-fcbe-4504-a871-fa593c3ebdf8"
+    }
+  },
+  "pipeline_status": "aborted",
+  "degraded": false
+}
+======================================================================
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

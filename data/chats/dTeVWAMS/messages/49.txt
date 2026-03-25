@@ -1,0 +1,8 @@
+54e3fd6 (HEAD -> main, tag: v0.2.0, origin/main) docs: add service manifest guide, security considerations, and spec updates
+1cb17cd docs: update 4 files with §10.2 manifest references and test results
+794f6bf test: Test 2.3 Service Manifest Guard — ALL SCENARIOS PASSED
+---
+v0.2.0
+---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > Written 3023 chars to ANNOUNCEMENT_KICKOFF.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

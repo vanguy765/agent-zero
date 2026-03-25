@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+"""parse_document_pipeline.py
+
+Full PDF → Supabase pipeline:
+  1. Upload PDF to project-documents bucket
+  2. Insert project_documents row
+  3. Submit to doc-parser /parse/docling (passes SB creds so doc-parser uploads images)
+  4. Poll /status until complete
+  5. Fetch /results
+  6. Insert document_pages (one per page, with storage_url, thumbnail_url, category)
+  7. Insert document_images (floorplans, site_photos, diagrams)
+  8. Insert ocr_results (one per table, with markdown + structured_data)
+
+Usage:
+  python parse_document_pipeline.py \\
+    --pdf path/to/file.pdf \\
+    --tenant my_tenant \\
+    --project my_project \\
+    [--supabase-url http://host.docker.internal:54321] \\
+    [--supabase-key <service_role_key>] \\
+    [--api-url http://localhost:5000]
+
+Env vars (fallbacks):
+  SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DOC_PARSER_URL
+"""
+
+import argparse
+import json
+import os
+import sys
+import time
+import uuid
+from pathlib import Path
+from dotenv import load_dotenv
+
+import requests
+from supabase import create_client, Client
+
+# ---------------------------------------------------------------------------
+# Load .env from doc-parser directory (same folder as this script)
+# ---------------------------------------------------------------------------
+_here = Path(__file__).parent
+load_dotenv(_here / ".env")
+
+# ---------------------------------------------------------------------------
+# CLI args
+# ---------------------------------------------------------------------------
+
+def parse_args():
+    p = argparse.ArgumentParser(description="PDF → Supabase parse pipeline")
+    p.add_argument("--pdf", required=True, help="Path to PDF file")
+    p.add_argument("--tenant", required=True, help="Tenant name (used for storage paths)")
+    p.add_argument("--project", required=True, help="Project name (used for storage paths)")
+    p.add_argument(
+        "--supabase-url",
+        default=os.getenv("SUPABASE_URL", "http://host.docker.internal:54321"),
+        help="Supabase API URL",
+    )
+    p.add_argument(
+        "--supabase-key",
+        default=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+        help="Supabase service role key (required for storage uploads)",
+    )
+    p.add_argument(
+        "--api-url",
+        default=os.getenv("DOC_PARSER_URL", "http://localhost:5000"),
+        help="Doc-parser API base URL",
+    )
+    p.add_argument(
+        "--poll-interval", type=float, default=3.0,
+        help="Seconds between status polls (default: 3)",
+    )
+    return p.parse_args()
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def log(msg: str):
+    print(f"[pipeline] {msg}", flush=True)
+
+
+def determine_category(page_data: dict) -> str:
+    """Derive dominant page category from doc-parser page result."""
+    fp = len(page_data.get("floorplans", []))
+    tb = len(page_data.get("tables", []))
+    sp = len(page_data.get("site_photos", []))
+    dg = len(page_data.get("diagrams", []))
+    total_images = fp + sp + dg
+    total = total_images + tb
+    if total == 0:
+        return "text"
+    if total_images > 0 and tb > 0:
+        return "mixed"
+    if fp > 0 and fp >= sp and fp >= dg:
+        return "floorplan"
+    if sp > 0 and sp >= fp and sp >= dg:
+        return "site_photo"
+    if dg > 0:
+        return "diagram"
+    if tb > 0:
+        return "table"
+    return "text"
+
+
+def parse_markdown_table(markdown: str) -> dict:
+    """Convert markdown table string to {headers, rows} dict."""
+    lines = [l.strip() for l in markdown.strip().splitlines() if l.strip()]
+    table_lines = [l for l in lines if "|" in l]
+    if not table_lines:
+        return {"headers": [], "rows": [], "raw": markdown}
+
+    def split_row(line):
+        return [c.strip() for c in line.strip("|" ).split("|")]
+
+    headers = split_row(table_lines[0]) if table_lines else []
+    rows = []
+    for line in table_lines[1:]:
+        # Skip separator rows like |---|---|---|
+        if all(c.strip("-: ") == "" for c in split_row(line)):
+            continue
+        rows.append(split_row(line))
+
+    filled = sum(1 for r in rows for c in r if c)
+    total_cells = len(rows) * len(headers) if headers and rows else 1
+    confidence = round(filled / total_cells, 3) if total_cells else 0.0
+
+    return {"headers": headers, "rows": rows, "confidence": confidence}
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: Upload PDF + insert project_documents
+# ---------------------------------------------------------------------------
+
+def upload_pdf(sb: Client, pdf_path: Path, tenant: str, project: str) -> tuple[str, str]:
+    """Upload PDF to storage, return (document_id, file_url)."""
+    storage_path = f"{tenant}/{project}/{pdf_path.name}"
+    log(f"Uploading PDF to project-documents/{storage_path} ...")
+
+    with open(pdf_path, "rb") as f:
+        data = f.read()
+
+    try:
+        sb.storage.from_("project-documents").upload(
+            path=storage_path,
+            file=data,
+            file_options={"content-type": "application/pdf", "upsert": "true"},
+        )
+    except Exception as e:
+        log(f"Storage upload error (may already exist): {e}")
+
+    # Build public-ish URL (signed or path-based)
+    file_url = f"{sb.storage_url}/object/project-documents/{storage_path}"
+
+    # Insert project_documents row
+    doc_id = str(uuid.uuid4())
+    result = sb.table("project_documents").insert({
+        "id": doc_id,
+        "title": pdf_path.stem,
+        "file_url": file_url,
+        "file_type": "application/pdf",
+        "file_size_bytes": pdf_path.stat().st_size,
+        "metadata": {"tenant": tenant, "project": project, "storage_path": storage_path},
+    }).execute()
+
+    if hasattr(result, "error") and result.error:
+        raise RuntimeError(f"project_documents insert failed: {result.error}")
+
+    log(f"project_documents row created: {doc_id}")
+    return doc_id, file_url
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: Submit to doc-parser + poll
+# ---------------------------------------------------------------------------
+
+def submit_and_poll(api_url: str, pdf_path: Path, tenant: str, project: str,
+                    sb_url: str, sb_key: str, poll_interval: float) -> dict:
+    """Submit PDF to /parse/docling, poll until done, return results."""
+    log("Submitting to doc-parser /parse/docling ...")
+
+    with open(pdf_path, "rb") as f:
+        resp = requests.post(
+            f"{api_url}/parse/docling",
+            files={"file": (pdf_path.name, f, "application/pdf")},
+            data={
+                "tenant_name": tenant,
+                "project_name": project,
+                "supabase_url": sb_url,
+                "supabase_key": sb_key,
+            },
+            timeout=30,
+        )
+    resp.raise_for_status()
+    job_id = resp.json()["job_id"]
+    log(f"Job submitted: {job_id}")
+
+    # Poll
+    while True:
+        time.sleep(poll_interval)
+        status_resp = requests.get(f"{api_url}/status/{job_id}", timeout=10)
+        status_resp.raise_for_status()
+        status = status_resp.json()
+        pct = status.get("progress_pct", 0)
+        step = status.get("current_step", "")
+        state = status.get("status", "")
+        log(f"  [{state}] {pct:.0f}% — {step}")
+        if state == "complete":
+            break
+        if state == "error":
+            raise RuntimeError(f"Doc-parser job failed: {status.get('error')}")
+
+    log("Fetching results ...")
+    results_resp = requests.get(f"{api_url}/results/{job_id}", timeout=30)
+    results_resp.raise_for_status()
+    return results_resp.json()
+
+
+# ---------------------------------------------------------------------------
+# Phase 3+: Persist pages, images, OCR
+# ---------------------------------------------------------------------------
+
+def persist_results(sb: Client, document_id: str, results: dict):
+    pages_result = results.get("pages", {})
+    total_pages = results.get("summary", {}).get("pages_count", len(pages_result))
+    log(f"Persisting {total_pages} pages ...")
+
+    page_id_map = {}  # page_number -> document_pages.id
+
+    # ── document_pages ──────────────────────────────────────────────────────
+    for page_no_key, page_data in pages_result.items():
+        page_no = int(page_no_key)
+        category = determine_category(page_data)
+        page_id = str(uuid.uuid4())
+
+        sb.table("document_pages").insert({
+            "id": page_id,
+            "document_id": document_id,
+            "page_number": page_no,
+            "storage_url": page_data.get("page_image_url"),
+            "thumbnail_url": page_data.get("thumbnail_url"),
+            "category": category,
+            "metadata": {
+                "floorplans": len(page_data.get("floorplans", [])),
+                "tables": len(page_data.get("tables", [])),
+                "site_photos": len(page_data.get("site_photos", [])),
+                "diagrams": len(page_data.get("diagrams", [])),
+            },
+        }).execute()
+
+        page_id_map[page_no] = page_id
+        log(f"  Page {page_no}: category={category}, id={page_id}")
+
+    # ── document_images ──────────────────────────────────────────────────────
+    image_count = 0
+    for page_no_key, page_data in pages_result.items():
+        page_no = int(page_no_key)
+
+        # Floorplans (dicts with image_url + LLM data)
+        for fp in page_data.get("floorplans", []):
+            if "error" in fp:
+                continue
+            img_url = fp.get("image_url")
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "floorplan",
+                "caption": fp.get("general_notes", [None])[0] if fp.get("general_notes") else None,
+                "metadata": {k: v for k, v in fp.items() if k != "image_url"},
+            }).execute()
+            image_count += 1
+
+        # Site photos
+        for sp in page_data.get("site_photos", []):
+            img_url = sp.get("image_url") if isinstance(sp, dict) else None
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "site_photo",
+                "metadata": {},
+            }).execute()
+            image_count += 1
+
+        # Diagrams
+        for dg in page_data.get("diagrams", []):
+            img_url = dg.get("image_url") if isinstance(dg, dict) else None
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "diagram",
+                "metadata": {},
+            }).execute()
+            image_count += 1
+
+    log(f"  Inserted {image_count} document_images rows")
+
+    # ── ocr_results ──────────────────────────────────────────────────────────
+    ocr_count = 0
+    for page_no_key, page_data in pages_result.items():
+        page_no = int(page_no_key)
+        page_id = page_id_map.get(page_no)
+
+        for tbl_idx, markdown in enumerate(page_data.get("tables", [])):
+            parsed = parse_markdown_table(markdown)
+            confidence = parsed.pop("confidence", None)
+            sb.table("ocr_results").insert({
+                "document_id": document_id,
+                "page_id": page_id,
+                "table_index": tbl_idx,
+                "markdown": markdown,
+                "structured_data": parsed,
+                "confidence": confidence,
+            }).execute()
+            ocr_count += 1
+
+    log(f"  Inserted {ocr_count} ocr_results rows")
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    args = parse_args()
+
+    pdf_path = Path(args.pdf).resolve()
+    if not pdf_path.exists():
+        log(f"ERROR: PDF not found: {pdf_path}")
+        sys.exit(1)
+
+    if not args.supabase_key:
+        log("ERROR: --supabase-key is required (or set SUPABASE_SERVICE_ROLE_KEY).")
+        log("  Run `supabase status` on Windows to get the service_role_key.")
+        sys.exit(1)
+
+    log(f"PDF:          {pdf_path}")
+    log(f"Tenant:       {args.tenant}")
+    log(f"Project:      {args.project}")
+    log(f"Supabase URL: {args.supabase_url}")
+    log(f"API URL:      {args.api_url}")
+
+    sb: Client = create_client(args.supabase_url, args.supabase_key)
+
+    # Phase 1
+    document_id, file_url = upload_pdf(sb, pdf_path, args.tenant, args.project)
+
+    # Phase 2
+    results = submit_and_poll(
+        args.api_url, pdf_path, args.tenant, args.project,
+        args.supabase_url, args.supabase_key, args.poll_interval,
+    )
+
+    # Save raw results alongside PDF for debugging
+    results_path = pdf_path.parent / f"{pdf_path.stem}_pipeline_results.json"
+    results_path.write_text(json.dumps(results, indent=2))
+    log(f"Raw results saved to {results_path}")
+
+    # Phases 3-5
+    persist_results(sb, document_id, results)
+
+    log("")
+    log(f"Done. document_id = {document_id}")
+    log(f"Summary: {json.dumps(results.get('summary', {}), indent=2)}")
+
+
+if __name__ == "__main__":
+    main()
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

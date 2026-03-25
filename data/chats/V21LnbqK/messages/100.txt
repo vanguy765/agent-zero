@@ -1,0 +1,34 @@
+<>:30: SyntaxWarning: invalid escape sequence '\|'
+<>:37: SyntaxWarning: invalid escape sequence '\|'
+<ipython-input-1-89e03153b0f7>:30: SyntaxWarning: invalid escape sequence '\|'
+  result = subprocess.run(['grep', '-n', 'document_pages\|project_documents\|save_parsed\|save_result\|insert.*page\|upsert.*page',
+<ipython-input-1-89e03153b0f7>:37: SyntaxWarning: invalid escape sequence '\|'
+  result2 = subprocess.run(['grep', '-rn', 'document_pages\|project_documents',
+document_images total rows: 0-355/356
+  thumbnail: 0-28/29
+  floorplan: 0-16/17
+  floorplan_dia: 0-27/28
+  diagram: 0-36/37
+  photo: */0
+  table: 0-23/24
+  spec_table: 0-18/19
+
+document_pages OPTIONS: 200
+project_documents OPTIONS: 200
+
+hybrid.py references to document_pages/project_documents:
+  (none found)
+
+All doc-parser references to document_pages/project_documents:
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:6:  2. Insert project_documents row
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:10:  6. Insert document_pages (one per page, with storage_url, thumbnail_url, category)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:132:# Phase 1: Upload PDF + insert project_documents
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:155:    # Insert project_documents row
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:157:    result = sb.table("project_documents").insert({
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:167:        raise RuntimeError(f"project_documents insert failed: {result.error}")
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:169:    log(f"project_documents row created: {doc_id}")
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:228:    page_id_map = {}  # page_number -> document_pages.id
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:230:    # ── document_pages ──────────────────────────────────────────────────────
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/parse_document_pipeline.py:236:        sb.table("document_pages").insert({
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

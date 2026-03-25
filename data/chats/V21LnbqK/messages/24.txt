@@ -1,0 +1,25 @@
+=== Previous run contents ===
+total 620
+drwxr-xr-x 1 root root   4096 Mar 14 00:40 .
+drwxr-xr-x 1 root root   4096 Mar 14 00:32 ..
+-rw-r--r-- 1 root root   6624 Mar 14 00:40 diagnosis.md
+-rw-r--r-- 1 root root 569832 Mar 14 00:38 full_result.json
+-rw-r--r-- 1 root root    162 Mar 14 00:32 job_info.json
+-rw-r--r-- 1 root root  49116 Mar 14 00:38 manifest.json
+drwxr-xr-x 1 root root   4096 Mar 14 00:39 pages
+drwxr-xr-x 1 root root   4096 Mar 14 00:38 tables
+-rw-r--r-- 1 root root   3058 Mar 14 00:38 thumbnails.json
+
+=== Check for full_result.json ===
+-rw-r--r-- 1 root root 557K Mar 14 00:38 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs/20260314_003244/full_result.json
+
+=== Check env for Supabase keys ===
+No SUPABASE env vars found
+
+=== Check for .env files ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/.env.example
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/.env
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/.env
+(venv) root@d2d162d983f0:/a0/usr/workdir#

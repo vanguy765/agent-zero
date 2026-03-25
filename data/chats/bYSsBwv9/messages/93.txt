@@ -1,0 +1,594 @@
+=== Dashboard.tsx ===
+import type { Component } from 'solid-js';
+import { createResource, createSignal, For, Show } from 'solid-js';
+import { A } from '@solidjs/router';
+import type { WorkOrderTemplate, TypeOrder, WOProject, DashboardStats } from '../lib/api';
+import { api } from '../lib/api';
+
+// ─── Sorting helpers ────────────────────────────────────────────────────────
+type SortDir = 'asc' | 'desc';
+
+function useSortable<T>(initial: keyof T) {
+    const [sortKey, setSortKey] = createSignal<keyof T>(initial);
+    const [sortDir, setSortDir] = createSignal<SortDir>('asc');
+
+    const toggle = (key: keyof T) => {
+        if (sortKey() === key) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(() => key);
+            setSortDir('asc');
+        }
+    };
+
+    const sorted = (items: T[]) => {
+        const k = sortKey();
+        const dir = sortDir();
+        return [...items].sort((a, b) => {
+            const av = a[k] as any;
+            const bv = b[k] as any;
+            if (av == null && bv == null) return 0;
+            if (av == null) return 1;
+            if (bv == null) return -1;
+            const cmp = typeof av === 'string'
+                ? av.localeCompare(bv)
+                : av < bv ? -1 : av > bv ? 1 : 0;
+            return dir === 'asc' ? cmp : -cmp;
+        });
+    };
+
+    const icon = (key: keyof T) => {
+        if (sortKey() !== key) return ' \u21d5';
+        return sortDir() === 'asc' ? ' \u2191' : ' \u2193';
+    };
+
+    return { sortKey, sortDir, toggle, sorted, icon };
+}
+
+// ─── Status badge helper ─────────────────────────────────────────────────────
+const STATUS_CLASSES: Record<string, string> = {
+    active:      'badge badge-success',
+    completed:   'badge badge-primary',
+    staged:      'badge badge-secondary',
+    paused:      'badge badge-warning',
+    archived:    'badge badge-secondary',
+    draft:       'badge badge-secondary',
+    inactive:    'badge badge-secondary',
+    frozen:      'badge badge-primary',
+};
+
+const statusBadge = (status: string) => (
+    <span class={STATUS_CLASSES[status] ?? 'badge badge-secondary'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+);
+
+const SortTh: Component<{ label: string; icon: string; onClick: () => void }> = (props) => (
+    <th
+        class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+        onClick={props.onClick}
+    >
+        {props.label}{props.icon}
+    </th>
+);
+
+// ─── Collapse toggle icon ────────────────────────────────────────────────────
+const CollapseIcon: Component<{ open: boolean }> = (props) => (
+    <svg
+        class="w-5 h-5 text-gray-400 transition-transform duration-200"
+        style={{ transform: props.open ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+        fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24"
+    >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+);
+
+// ─── Section wrapper with collapse ──────────────────────────────────────────
+const Section: Component<{
+    title: string;
+    count?: number;
+    linkHref: string;
+    linkLabel: string;
+    children: any;
+}> = (props) => {
+    const [open, setOpen] = createSignal(true);
+    return (
+        <section>
+            <div class="flex items-center justify-between mb-3">
+                <button
+                    class="flex items-center gap-2 group focus:outline-none"
+                    onClick={() => setOpen(o => !o)}
+                    aria-expanded={open()}
+                >
+                    <CollapseIcon open={open()} />
+                    <h2 class="text-xl font-semibold text-gray-800 group-hover:text-primary-700 transition-colors">
+                        {props.title}
+                    </h2>
+                    <Show when={props.count !== undefined}>
+                        <span class="text-sm text-gray-400 font-normal">({props.count})</span>
+                    </Show>
+                </button>
+                <A href={props.linkHref} class="text-sm text-primary-600 hover:underline">{props.linkLabel}</A>
+            </div>
+            <Show when={open()}>
+                {props.children}
+            </Show>
+        </section>
+    );
+};
+
+// ─── Row type definitions ────────────────────────────────────────────────────
+interface TemplateRow {
+    id: string;
+    trade_name: string;
+    version: number;
+    status: string;
+    scope: string;
+    wo_count: number;
+    is_frozen: boolean;
+}
+
+interface ProjectRow {
+    id: string;
+    name: string;
+    project_type: string;
+    status: string;
+    units_total: number;
+    units_completed: number;
+    units_in_progress: number;
+    pct_complete: number;
+}
+
+interface ArchetypeRow {
+    id: string;
+    name: string;
+    code: string;
+    category: string;
+    size: string;
+    brief: string;
+    detail: string;
+    composition: string;
+    is_composite: boolean;
+}
+
+// ─── Label maps ──────────────────────────────────────────────────────────────
+const PROJECT_TYPE_LABELS: Record<string, string> = {
+    residential_house:    'Residential House',
+    commercial_apartment: 'Commercial Apt',
+    office_commercial:    'Office/Commercial',
+    retail:               'Retail',
+    mixed_use:            'Mixed-Use',
+};
+const ptLabel = (t: string) => PROJECT_TYPE_LABELS[t] ?? t;
+
+const CAT_LABELS: Record<string, string> = {
+    interior:         'Interior',
+    exterior:         'Exterior',
+    pre_construction: 'Pre-Construction',
+    common:           'Common',
+};
+
+// ─── Archetype data ──────────────────────────────────────────────────────────
+// Each entry has: size, brief (1-sentence for table), detail (expanded prose for card).
+// Only features that actually exist in the space are mentioned.
+interface ArchetypeInfo {
+    size: string;
+    brief: string;
+    detail: string;
+}
+
+const ARCHETYPE_INFO: Record<string, ArchetypeInfo> = {
+    kitchen: {
+        size: '80\u2013150 sq\u00a0ft',
+        brief: 'Full working kitchen with countertop, cabinets, sink, and appliances.',
+        detail: 'A full working kitchen with upper and lower cabinets, countertop, sink, range, refrigerator, dishwasher, and hood fan. One window provides natural light over the sink area. Overhead lighting consists of one to two LED disc or tube fixtures. A baseboard heater keeps the space comfortable year-round.',
+    },
+    bathroom: {
+        size: '45\u201365 sq\u00a0ft',
+        brief: 'Full bathroom with tub/shower surround, toilet, and vanity.',
+        detail: 'A full bathroom containing a tub and shower with tile or acrylic surround, toilet, lavatory with faucet, and medicine cabinet. Towel bars and a toilet paper holder are standard fixtures. Lighting includes a vanity bar above the mirror and an overhead fixture. A baseboard heater provides warmth. A small frosted window may be present for ventilation.',
+    },
+    bedroom: {
+        size: '100\u2013150 sq\u00a0ft',
+        brief: 'Private sleeping room with closet, window, and baseboard heat.',
+        detail: 'A private sleeping room with one reach-in or walk-in closet, one to two windows with coverings, and a single overhead LED disc fixture. Flooring is LVP or carpet. A baseboard heater\u2014sometimes two units along exterior walls\u2014provides heating. Door hardware includes a privacy lever set.',
+    },
+    living_room: {
+        size: '150\u2013250 sq\u00a0ft',
+        brief: 'Main living area, often open-plan with dining, with patio door access.',
+        detail: 'The primary living area, typically open-plan with the dining space. Two to three windows bring in natural light, and a patio or balcony sliding door is common. One to two overhead LED disc fixtures provide general lighting, supplemented by one to two baseboard heaters along exterior walls. Curtain rods and door hardware are included in the scope.',
+    },
+    dining_room: {
+        size: '80\u2013120 sq\u00a0ft',
+        brief: 'Dining area, frequently open to the living room, with overhead pendant or disc light.',
+        detail: 'A dedicated dining area that frequently flows open to the living room, sharing the same baseboard heating run. One to two windows provide natural light. A single overhead fixture\u2014pendant or LED disc\u2014illuminates the dining table. When open to the living room, flooring and baseboard trim are continuous across both spaces.',
+    },
+    hallway: {
+        size: '30\u201360 sq\u00a0ft',
+        brief: 'Interior corridor connecting rooms, with suite entry door hardware.',
+        detail: 'An interior corridor connecting the suite\u2019s rooms. A single overhead LED disc fixture provides lighting. Where the hallway runs along an exterior wall, one baseboard heater may be present. The suite entry door receives a full hardware set: closer, deadbolt, peephole, passage lever, and door stop.',
+    },
+    closet: {
+        size: '15\u201330 sq\u00a0ft',
+        brief: 'Storage closet with shelving, hanging rod, and bifold or swing door.',
+        detail: 'A dedicated storage closet fitted with wire or melamine shelving and a hanging rod. A small LED strip or disc fixture provides task lighting. The door is typically a bifold or single swing with passage hardware.',
+    },
+    laundry: {
+        size: '30\u201350 sq\u00a0ft',
+        brief: 'In-suite laundry room with washer/dryer hookups and LVP flooring.',
+        detail: 'An in-suite laundry room with electric or gas washer and dryer hookups, LVP flooring, and a single overhead light fixture. A utility sink may be included. A baseboard heater is present when the room is on an exterior wall.',
+    },
+    entry: {
+        size: '20\u201340 sq\u00a0ft',
+        brief: 'Suite entry with full door hardware set and LVP flooring.',
+        detail: 'The suite entry vestibule finished with LVP flooring and a single overhead light. The entry door receives a complete hardware set including closer, deadbolt, peephole, passage lever, and door stop. A baseboard heater is positioned near the door to offset drafts. A coat closet is sometimes present.',
+    },
+    balcony: {
+        size: '30\u201380 sq\u00a0ft',
+        brief: 'Exterior balcony accessed via sliding or patio door.',
+        detail: 'An exterior balcony with concrete or composite decking, accessed through a sliding or patio door. A curtain rod is installed on the interior side of the door. An exterior wall fixture may provide lighting. The balcony itself has no heating.',
+    },
+    patio: {
+        size: '50\u2013150 sq\u00a0ft',
+        brief: 'Ground-level exterior patio accessed via sliding or French door.',
+        detail: 'A ground-level outdoor patio space accessed through a sliding or French door. The patio surface is concrete or paving stone. An exterior light fixture may be present beside the door. No heating is provided in the outdoor area.',
+    },
+    parking: {
+        size: '160\u2013200 sq\u00a0ft',
+        brief: 'Designated parking stall, may include EV charging rough-in.',
+        detail: 'A designated parking stall in a parkade or surface lot. Shared overhead lighting covers the area. An EV charging rough-in conduit may be included depending on project scope. No dedicated heating or windows.',
+    },
+    storage: {
+        size: '30\u201360 sq\u00a0ft',
+        brief: 'Lockable storage locker with wire shelving.',
+        detail: 'A lockable storage locker, typically in a common storage room, fitted with wire shelving. An LED strip or small disc fixture provides lighting. No heating or windows are present.',
+    },
+    common_hallway: {
+        size: '5\u20138\u00a0ft wide',
+        brief: 'Shared building corridor with fire door hardware and multiple overhead lights.',
+        detail: 'A shared building corridor connecting suites and common areas. Multiple overhead LED strip or disc fixtures on a shared circuit provide continuous lighting. Baseboard heaters are spaced along exterior walls. Fire door hardware is installed at stairwell and corridor entries. Suite entry doors open onto this corridor.',
+    },
+    common_lobby: {
+        size: '150\u2013400 sq\u00a0ft',
+        brief: 'Building lobby with mailboxes, intercom, and entry vestibule.',
+        detail: 'The main building lobby finished with LVP or tile flooring. Two or more storefront windows or sidelights provide natural light. Multiple decorative and functional light fixtures illuminate the space. One to two large baseboard heaters or an in-floor heating system maintain comfort at the entry. Mailboxes, an intercom panel, and an entry vestibule are standard features.',
+    },
+    common_laundry: {
+        size: '100\u2013200 sq\u00a0ft',
+        brief: 'Shared laundry room with multiple washer/dryer pairs and utility sink.',
+        detail: 'A shared laundry room serving multiple suites, fitted with multiple washer and dryer pairs, a utility sink, and LVP flooring. Two or more overhead light fixtures provide adequate task lighting. One to two baseboard heaters maintain a comfortable working temperature. Coin or card payment hardware is typically installed.',
+    },
+    demo_zone: {
+        size: 'Varies by scope',
+        brief: 'Pre-construction demolition area requiring hazmat assessment before work begins.',
+        detail: 'A designated pre-construction demolition zone whose size varies with the project scope. Temporary construction lighting is used during the demolition phase. A hazmat assessment\u2014checking for asbestos, lead paint, and other materials\u2014is required before any demolition work begins. Baseboard heaters and permanent fixtures are disconnected prior to demo.',
+    },
+    staging: {
+        size: 'Varies by scope',
+        brief: 'Temporary material and equipment staging area with floor and wall protection.',
+        detail: 'A temporary staging area used to store and organize materials and equipment during construction. Size varies with project needs. Temporary protection is applied to floors and walls to prevent damage. Lighting is temporary construction-grade. No permanent heating or fixtures are active in this zone.',
+    },
+    studio: {
+        size: '300\u2013400 sq\u00a0ft',
+        brief: 'Open-concept studio combining living, kitchen, and bathroom in one unit.',
+        detail: 'A compact open-concept unit combining the living area, kitchen, and bathroom. One reach-in closet serves as the sole storage. Two to three windows provide natural light across the open floor plan. Three to four overhead light fixtures cover the combined living and kitchen area plus the bathroom. Two to three baseboard heaters maintain comfort throughout the unit.',
+    },
+    '1br': {
+        size: '450\u2013550 sq\u00a0ft',
+        brief: 'One-bedroom unit with separate bedroom, living room, kitchen, and bathroom.',
+        detail: 'A one-bedroom unit with a separate bedroom, open living and kitchen area, and a full bathroom. The bedroom has one reach-in closet. Three to four windows are distributed across the unit. Four to five overhead light fixtures cover all rooms. Three to four baseboard heaters provide zone heating throughout.',
+    },
+    '2br': {
+        size: '600\u2013750 sq\u00a0ft',
+        brief: 'Two-bedroom unit with two separate bedrooms, living room, kitchen, and bathroom.',
+        detail: 'A two-bedroom unit with two separate bedrooms each having their own reach-in closet, an open living and kitchen area, and a full bathroom. Four to six windows are distributed across the unit. Five to seven overhead light fixtures cover all rooms. Four to five baseboard heaters provide zone heating, with at least one unit per bedroom.',
+    },
+    '3br': {
+        size: '850\u20131,100 sq\u00a0ft',
+        brief: 'Three-bedroom unit with two bathrooms, living room, and kitchen.',
+        detail: 'A larger three-bedroom unit with three bedrooms each having a reach-in closet, two full bathrooms, and an open living and kitchen area. Six to eight windows are distributed throughout. Seven to ten overhead light fixtures cover all rooms. Five to seven baseboard heaters provide zone heating across the larger floor plan.',
+    },
+};
+
+// ─── Error alert ─────────────────────────────────────────────────────────────
+const ErrorAlert: Component<{ message: string }> = (props) => (
+    <div class="rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+        <svg class="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+        </svg>
+        <span>{props.message}</span>
+    </div>
+);
+
+// ─── Main Dashboard ──────────────────────────────────────────────────────────
+const Dashboard: Component = () => {
+    const [templates]  = createResource<WorkOrderTemplate[]>(() => api.getTemplates('company'));
+    const [typeOrders] = createResource<TypeOrder[]>(() => api.getTypeOrders());
+    const [projects]   = createResource<WOProject[]>(() => api.getProjects());
+    const [stats]      = createResource<DashboardStats>(() => api.getDashboardStats());
+
+    // Expanded archetype detail row
+    const [expandedArchetype, setExpandedArchetype] = createSignal<string | null>(null);
+    const toggleArchetype = (id: string) =>
+        setExpandedArchetype(prev => prev === id ? null : id);
+
+    const templateRows = (): TemplateRow[] => {
+        if (!templates() || !stats()) return [];
+        return (templates() ?? []).map(t => ({
+            id:         t.id,
+            trade_name: t.trade_name,
+            version:    t.version,
+            status:     t.is_frozen ? 'frozen' : (t.is_active ? 'active' : 'inactive'),
+            scope:      t.scope,
+            wo_count:   stats()?.template_wo_counts?.[t.id] ?? 0,
+            is_frozen:  t.is_frozen ?? false,
+        }));
+    };
+
+    const projectRows = (): ProjectRow[] => {
+        if (!projects()) return [];
+        return (projects() ?? []).map(p => {
+            const us        = stats()?.project_unit_stats?.[p.id];
+            const total     = us?.total ?? 0;
+            const completed = us?.completed ?? 0;
+            const inProg    = us?.in_progress ?? 0;
+            return {
+                id:                p.id,
+                name:              p.name,
+                project_type:      ptLabel(p.project_type),
+                status:            p.status,
+                units_total:       total,
+                units_completed:   completed,
+                units_in_progress: inProg,
+                pct_complete:      total > 0 ? Math.round((completed / total) * 100) : 0,
+            };
+        });
+    };
+
+    const archetypeRows = (): ArchetypeRow[] => {
+        if (!typeOrders()) return [];
+        return (typeOrders() ?? []).map(to => {
+            const comps = stats()?.type_order_compositions?.[to.id] ?? [];
+            const composition = comps.length > 0
+                ? comps.map(c => c.quantity > 1 ? `${c.quantity}\u00d7 ${c.name}` : c.name).join(', ')
+                : (to.is_composite ? '(no components)' : '\u2014');
+            const info = ARCHETYPE_INFO[to.code];
+            return {
+                id:           to.id,
+                name:         to.name,
+                code:         to.code,
+                category:     CAT_LABELS[to.category] ?? to.category,
+                size:         info?.size ?? '\u2014',
+                brief:        info?.brief ?? to.description ?? '\u2014',
+                detail:       info?.detail ?? to.description ?? '\u2014',
+                composition,
+                is_composite: to.is_composite,
+            };
+        });
+    };
+
+    const tSort = useSortable<TemplateRow>('trade_name');
+    const pSort = useSortable<ProjectRow>('name');
+    const aSort = useSortable<ArchetypeRow>('name');
+
+    const anyLoading = () => templates.loading || typeOrders.loading || projects.loading || stats.loading;
+    const anyError   = () => templates.error || typeOrders.error || projects.error || stats.error;
+
+    return (
+        <div class="space-y-10">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Overview</h1>
+                <p class="mt-1 text-gray-500">Projects, company WO templates, and space archetypes at a glance.</p>
+            </div>
+
+            <Show when={anyLoading()}>
+                <div class="flex items-center gap-2 text-gray-500">
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600" />
+                    Loading dashboard data\u2026
+                </div>
+            </Show>
+
+            <Show when={anyError()}>
+                <ErrorAlert message={`Failed to load dashboard data: ${(anyError() as any)?.message ?? 'API server may be offline.'}`} />
+            </Show>
+
+            {/* ── 1. Projects ─────────────────────────────────────────────── */}
+            <Section title="Projects" count={projectRows().length || undefined} linkHref="/projects" linkLabel="View all \u2192">
+                <div class="card overflow-hidden p-0">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <SortTh label="Project" icon={pSort.icon('name')} onClick={() => pSort.toggle('name')} />
+                                    <SortTh label="Type" icon={pSort.icon('project_type')} onClick={() => pSort.toggle('project_type')} />
+                                    <SortTh label="Status" icon={pSort.icon('status')} onClick={() => pSort.toggle('status')} />
+                                    <SortTh label="Units" icon={pSort.icon('units_total')} onClick={() => pSort.toggle('units_total')} />
+                                    <SortTh label="% Complete" icon={pSort.icon('pct_complete')} onClick={() => pSort.toggle('pct_complete')} />
+                                    <th class="px-4 py-3" />
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <Show when={!projects.loading} fallback={<tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">Loading\u2026</td></tr>}>
+                                    <Show when={!projects.error} fallback={<tr><td colspan="6" class="px-4 py-6"><ErrorAlert message="Could not load projects." /></td></tr>}>
+                                        <Show when={projectRows().length > 0} fallback={<tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">No projects found.</td></tr>}>
+                                            <For each={pSort.sorted(projectRows())}>{(row) => (
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                                        <A href={`/projects/${row.id}`} class="hover:text-primary-600 hover:underline">{row.name}</A>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-600 text-sm">{row.project_type}</td>
+                                                    <td class="px-4 py-3">{statusBadge(row.status)}</td>
+                                                    <td class="px-4 py-3 text-gray-700 text-sm">
+                                                        <Show when={row.units_total > 0} fallback={<span class="text-gray-400">\u2014</span>}>
+                                                            <span class="font-semibold text-green-600">{row.units_completed}</span>
+                                                            <span class="text-gray-400"> / {row.units_total}</span>
+                                                            <Show when={row.units_in_progress > 0}>
+                                                                <span class="text-yellow-500 text-xs ml-1">({row.units_in_progress} active)</span>
+                                                            </Show>
+                                                        </Show>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <Show when={row.units_total > 0} fallback={<span class="text-gray-400 text-sm">\u2014</span>}>
+                                                            <div class="flex items-center gap-2">
+                                                                <div class="flex-1 bg-gray-200 rounded-full h-2 min-w-16">
+                                                                    <div class="bg-primary-600 h-2 rounded-full transition-all" style={{ width: `${row.pct_complete}%` }} />
+                                                                </div>
+                                                                <span class="text-xs font-medium text-gray-700 w-9 text-right">{row.pct_complete}%</span>
+                                                            </div>
+                                                        </Show>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        <A href={`/projects/${row.id}`} class="text-xs text-primary-600 hover:underline">Details \u2192</A>
+                                                    </td>
+                                                </tr>
+                                            )}</For>
+                                        </Show>
+                                    </Show>
+                                </Show>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </Section>
+
+            {/* ── 2. Company WO Templates ──────────────────────────────────── */}
+            <Section title="Company WO Templates" count={templateRows().length || undefined} linkHref="/templates/company" linkLabel="View all \u2192">
+                <div class="card overflow-hidden p-0">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <SortTh label="Trade" icon={tSort.icon('trade_name')} onClick={() => tSort.toggle('trade_name')} />
+                                    <SortTh label="Version" icon={tSort.icon('version')} onClick={() => tSort.toggle('version')} />
+                                    <SortTh label="Status" icon={tSort.icon('status')} onClick={() => tSort.toggle('status')} />
+                                    <SortTh label="Work Orders" icon={tSort.icon('wo_count')} onClick={() => tSort.toggle('wo_count')} />
+                                    <th class="px-4 py-3" />
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <Show when={!templates.loading} fallback={<tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">Loading\u2026</td></tr>}>
+                                    <Show when={!templates.error} fallback={<tr><td colspan="5" class="px-4 py-6"><ErrorAlert message="Could not load templates." /></td></tr>}>
+                                        <Show when={templateRows().length > 0} fallback={<tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">No company WO templates found.</td></tr>}>
+                                            <For each={tSort.sorted(templateRows())}>{(row) => (
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                                        <A href={`/templates/${row.id}`} class="hover:text-primary-600 hover:underline">{row.trade_name}</A>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-600">v{row.version}</td>
+                                                    <td class="px-4 py-3">{statusBadge(row.status)}</td>
+                                                    <td class="px-4 py-3 text-gray-700">
+                                                        <span class="font-semibold">{row.wo_count}</span>
+                                                        <span class="text-gray-400 text-xs ml-1">WOs</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        <A href={`/templates/${row.id}`} class="text-xs text-primary-600 hover:underline">Details \u2192</A>
+                                                    </td>
+                                                </tr>
+                                            )}</For>
+                                        </Show>
+                                    </Show>
+                                </Show>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </Section>
+
+            {/* ── 3. Space Archetypes ──────────────────────────────────────── */}
+            <Section title="Space Archetypes" count={archetypeRows().length || undefined} linkHref="/settings/type-orders" linkLabel="Manage \u2192">
+                <div class="card overflow-hidden p-0">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <SortTh label="Name" icon={aSort.icon('name')} onClick={() => aSort.toggle('name')} />
+                                    <SortTh label="Code" icon={aSort.icon('code')} onClick={() => aSort.toggle('code')} />
+                                    <SortTh label="Category" icon={aSort.icon('category')} onClick={() => aSort.toggle('category')} />
+                                    <SortTh label="Size" icon={aSort.icon('size')} onClick={() => aSort.toggle('size')} />
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Composition</th>
+                                    <th class="px-4 py-3" />
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <Show when={!typeOrders.loading} fallback={<tr><td colspan="7" class="px-4 py-6 text-center text-gray-400">Loading\u2026</td></tr>}>
+                                    <Show when={!typeOrders.error} fallback={<tr><td colspan="7" class="px-4 py-6"><ErrorAlert message="Could not load space archetypes." /></td></tr>}>
+                                        <Show when={archetypeRows().length > 0} fallback={<tr><td colspan="7" class="px-4 py-6 text-center text-gray-400">No space archetypes found.</td></tr>}>
+                                            <For each={aSort.sorted(archetypeRows())}>{(row) => (
+                                                <>
+                                                    <tr
+                                                        id={`archetype-row-${row.id}`}
+                                                        class="hover:bg-gray-50 transition-colors cursor-pointer"
+                                                        onClick={() => toggleArchetype(row.id)}
+                                                    >
+                                                        <td class="px-4 py-3 font-medium text-gray-900">
+                                                            <div class="flex items-center gap-1.5">
+                                                                <svg
+                                                                    class="w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform duration-150"
+                                                                    style={{ transform: expandedArchetype() === row.id ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                                                                    fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+                                                                >
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                                {row.name}
+                                                            </div>
+                                                        </td>
+                                                        <td class="px-4 py-3">
+                                                            <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">{row.code}</code>
+                                                        </td>
+                                                        <td class="px-4 py-3">
+                                                            <span class="badge badge-secondary text-xs">{row.category}</span>
+                                                        </td>
+                                                        <td class="px-4 py-3 text-gray-600 text-sm whitespace-nowrap">{row.size}</td>
+                                                        <td class="px-4 py-3 text-gray-600 text-xs max-w-xs">
+                                                            <span class="line-clamp-2 leading-relaxed">{row.brief}</span>
+                                                        </td>
+                                                        <td class="px-4 py-3 text-gray-500 text-sm max-w-xs">
+                                                            <Show when={row.is_composite} fallback={<span class="text-gray-400 italic text-xs">Atomic</span>}>
+                                                                <span class="text-xs">{row.composition}</span>
+                                                            </Show>
+                                                        </td>
+                                                        <td class="px-4 py-3 text-right">
+                                                            <span class="text-xs text-primary-600">
+                                                                {expandedArchetype() === row.id ? 'Hide \u2191' : 'Details \u2193'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <Show when={expandedArchetype() === row.id}>
+                                                        <tr class="bg-blue-50 border-l-4 border-primary-400">
+                                                            <td colspan="7" class="px-6 py-4">
+                                                                <div class="flex gap-6">
+                                                                    <div class="flex-1">
+                                                                        <p class="text-sm font-semibold text-gray-700 mb-1">{row.name}</p>
+                                                                        <p class="text-sm text-gray-600 leading-relaxed">{row.detail}</p>
+                                                                    </div>
+                                                                    <div class="shrink-0 text-right space-y-1">
+                                                                        <div class="text-xs text-gray-500">Size</div>
+                                                                        <div class="text-sm font-medium text-gray-700">{row.size}</div>
+                                                                        <Show when={row.is_composite}>
+                                                                            <div class="text-xs text-gray-500 mt-2">Components</div>
+                                                                            <div class="text-xs text-gray-600">{row.composition}</div>
+                                                                        </Show>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </Show>
+                                                </>
+                                            )}</For>
+                                        </Show>
+                                    </Show>
+                                </Show>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </Section>
+        </div>
+    );
+};
+
+export default Dashboard;
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

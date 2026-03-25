@@ -1,0 +1,183 @@
+1	"""Command-line interface for Bulwark linter."""
+     2
+     3	import argparse
+     4	import logging
+     5	import sys
+     6	from typing import List, Optional
+     7
+     8	from bulwark_lint import __version__
+     9	from bulwark_lint.config import LintConfig, load_config, merge_cli_overrides
+    10	from bulwark_lint.discovery import discover_files
+    11	from bulwark_lint.engine import LintEngine
+    12	from bulwark_lint.reporters.terminal import TerminalReporter
+    13	from bulwark_lint.reporters.json_reporter import JsonReporter
+    14
+    15	logger = logging.getLogger("bulwark_lint")
+    16
+    17
+    18	def build_parser() -> argparse.ArgumentParser:
+    19	    """Build the argument parser."""
+    20	    parser = argparse.ArgumentParser(
+    21	        prog="bulwark-lint",
+    22	        description="Bulwark AI Linter — Check code for Guard-Trace-Verify compliance",
+    23	    )
+    24
+    25	    parser.add_argument(
+    26	        "path",
+    27	        nargs="+",
+    28	        help="Files or directories to lint",
+    29	    )
+    30	    parser.add_argument(
+    31	        "--format",
+    32	        choices=["terminal", "json"],
+    33	        default=None,
+    34	        help="Output format (default: terminal)",
+    35	    )
+    36	    parser.add_argument(
+    37	        "--severity",
+    38	        choices=["error", "warning", "info"],
+    39	        default=None,
+    40	        help="Minimum severity to report (default: warning)",
+    41	    )
+    42	    parser.add_argument(
+    43	        "--rules",
+    44	        default=None,
+    45	        help="Comma-separated rule IDs to enable (default: all)",
+    46	    )
+    47	    parser.add_argument(
+    48	        "--exclude",
+    49	        default=None,
+    50	        help="Glob patterns to exclude (comma-separated)",
+    51	    )
+    52	    parser.add_argument(
+    53	        "--fix-hint",
+    54	        action="store_true",
+    55	        default=False,
+    56	        help="Show suggested fixes",
+    57	    )
+    58	    parser.add_argument(
+    59	        "--config",
+    60	        default=None,
+    61	        help="Path to config file (.bulwarklint.json)",
+    62	    )
+    63	    parser.add_argument(
+    64	        "--no-color",
+    65	        action="store_true",
+    66	        default=False,
+    67	        help="Disable colored output",
+    68	    )
+    69	    parser.add_argument(
+    70	        "--stats",
+    71	        action="store_true",
+    72	        default=False,
+    73	        help="Show summary statistics",
+    74	    )
+    75	    parser.add_argument(
+    76	        "--version",
+    77	        action="version",
+    78	        version=f"bulwark-lint {__version__}",
+    79	    )
+    80	    parser.add_argument(
+    81	        "--verbose", "-v",
+    82	        action="store_true",
+    83	        default=False,
+    84	        help="Enable verbose/debug logging",
+    85	    )
+    86
+    87	    return parser
+    88
+    89
+    90	def main(argv: Optional[List[str]] = None) -> int:
+    91	    """Main entry point for the CLI.
+    92
+    93	    Args:
+    94	        argv: Command-line arguments (defaults to sys.argv[1:]).
+    95
+    96	    Returns:
+    97	        Exit code: 0=clean, 1=violations found, 2=error.
+    98	    """
+    99	    parser = build_parser()
+   100	    args = parser.parse_args(argv)
+   101
+   102	    # Configure logging
+   103	    log_level = logging.DEBUG if args.verbose else logging.WARNING
+   104	    logging.basicConfig(
+   105	        level=log_level,
+   106	        format="%(name)s: %(levelname)s: %(message)s",
+   107	        stream=sys.stderr,
+   108	    )
+   109
+   110	    try:
+   111	        # Load config
+   112	        config = load_config(
+   113	            config_path=args.config,
+   114	            start_path=args.path[0] if args.path else ".",
+   115	        )
+   116
+   117	        # Apply CLI overrides
+   118	        rules_filter = None
+   119	        if args.rules:
+   120	            rules_filter = [r.strip() for r in args.rules.split(",")]
+   121
+   122	        exclude_list = None
+   123	        if args.exclude:
+   124	            exclude_list = [e.strip() for e in args.exclude.split(",")]
+   125
+   126	        config = merge_cli_overrides(
+   127	            config,
+   128	            format=args.format,
+   129	            severity=args.severity,
+   130	            rules_filter=rules_filter,
+   131	            exclude=exclude_list,
+   132	            fix_hint=args.fix_hint,
+   133	            no_color=args.no_color,
+   134	            stats=args.stats,
+   135	        )
+   136
+   137	        # Discover files
+   138	        filepaths = discover_files(
+   139	            paths=args.path,
+   140	            extensions=config.extensions,
+   141	            exclude=config.exclude,
+   142	        )
+   143	        files_scanned = len(filepaths)
+   144
+   145	        if files_scanned == 0:
+   146	            logger.warning("No files found to lint")
+   147	            print("No files found to lint.", file=sys.stderr)
+   148	            return 0
+   149
+   150	        # Run engine
+   151	        engine = LintEngine(config)
+   152	        results = engine.lint_files(filepaths)
+   153
+   154	        # Report
+   155	        if config.format == "json":
+   156	            reporter = JsonReporter(
+   157	                fix_hint=config.fix_hint,
+   158	            )
+   159	        else:
+   160	            reporter = TerminalReporter(
+   161	                no_color=config.no_color,
+   162	                fix_hint=config.fix_hint,
+   163	                stats=config.stats,
+   164	            )
+   165
+   166	        reporter.report(results, files_scanned=files_scanned)
+   167
+   168	        # Exit code
+   169	        total_violations = sum(len(v) for v in results.values())
+   170	        return 1 if total_violations > 0 else 0
+   171
+   172	    except KeyboardInterrupt:
+   173	        print("\nInterrupted.", file=sys.stderr)
+   174	        return 2
+   175	    except Exception as exc:
+   176	        logger.error("Fatal error: %s", exc, exc_info=True)
+   177	        print(f"Error: {exc}", file=sys.stderr)
+   178	        return 2
+   179
+   180
+   181	if __name__ == "__main__":
+   182	    sys.exit(main())
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

@@ -1,0 +1,22 @@
+127.0.0.1:54321 - no response
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# ---api error detail---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# *   Trying [::1]:3000...
+* Established connection to localhost (::1 port 3000) from ::1 port 50422
+* using HTTP/1.x
+> GET /work-orders/type-orders HTTP/1.1
+> Host: localhost:3000
+> User-Agent: curl/8.18.0
+> Accept: */*
+>
+* Request completely sent off
+< HTTP/1.1 500 Internal Server Error
+< access-control-allow-origin: *
+< content-type: application/json
+< content-length: 35
+< Date: Wed, 11 Mar 2026 00:32:34 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=5
+<
+{ [35 bytes data]
+* Connection #0 to host localhost:3000 left intact
+{"error":"TypeError: fetch failed"}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

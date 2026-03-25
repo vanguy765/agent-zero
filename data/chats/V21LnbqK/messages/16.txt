@@ -1,0 +1,43 @@
+Pages type: dict
+Page count: 29
+Page keys: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29']
+
+--- Page 1 ---
+Keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  thumbnail_url: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_1.png
+  floorplan_dia_urls: <list len=1>
+    [0]: <string 103 chars> prefix: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_flo...
+  floorplan_urls: <list len=0>
+  site_photos: <list len=0>
+  diagrams: <list len=0>
+  tables: <list len=1>
+    [0]: {'markdown': '{"unit_number": "DUMMY-101", "unit_type": "1B1B", "floor": 1, "bedrooms": 1, "bathrooms": 1, "total_area_s
+  elements_detected: <list len=2>
+    [0]: {'type': 'floorplan', 'pixel_bbox': [61, 54, 3360, 1951], 'bbox': [0.0179, 0.0245, 0.9882, 0.8868], 'label': 'floorplan
+
+--- Page 2 ---
+Keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  thumbnail_url: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_2.png
+  floorplan_dia_urls: <list len=1>
+    [0]: <string 103 chars> prefix: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_flo...
+  floorplan_urls: <list len=0>
+  site_photos: <list len=0>
+  diagrams: <list len=1>
+    [0]: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_2.png
+  tables: <list len=0>
+  elements_detected: <list len=2>
+    [0]: {'type': 'floorplan', 'pixel_bbox': [61, 54, 3360, 1800], 'bbox': [0.0179, 0.0245, 0.9882, 0.8182], 'label': 'floorplan
+
+--- Page 3 ---
+Keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  thumbnail_url: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_3.png
+  floorplan_dia_urls: <list len=1>
+    [0]: <string 103 chars> prefix: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_flo...
+  floorplan_urls: <list len=0>
+  site_photos: <list len=0>
+  diagrams: <list len=2>
+    [0]: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_3.png
+  tables: <list len=0>
+  elements_detected: <list len=3>
+    [0]: {'type': 'floorplan', 'pixel_bbox': [61, 54, 2477, 1950], 'bbox': [0.0179, 0.0245, 0.7285, 0.8864], 'label': 'floorplan_
+(venv) root@d2d162d983f0:/a0/usr/workdir#

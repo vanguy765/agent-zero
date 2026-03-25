@@ -1,0 +1,15 @@
+Top-level keys in result: ['engine', 'pages', 'footer_sample', 'synthesis', 'units', 'confidence', 'summary']
+Engine: docling
+Type of pages: <class 'dict'>
+Number of page entries: 29
+Page keys (first 5): ['14', '15', '23', '24', '27']
+
+Page 14 keys: ['floorplans', 'tables', 'site_photos', 'diagrams', 'page_image_url', 'thumbnail_url']
+Page 14 floorplans count: 0
+Page 14 tables count: 1
+Page 14 images: N/A
+Page 14 page_image: NOT PRESENT
+Page 14 thumbnail: NOT PRESENT
+Page 14 image_url: NOT PRESENT
+Page 14 page_url: NOT PRESENT
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

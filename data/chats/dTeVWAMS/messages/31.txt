@@ -1,0 +1,67 @@
+# Test 2.3 Results — Service Manifest Guard
+
+**Test Date**: 2026-03-17
+**Agent**: Agent Zero (Claude Opus 4.6)
+**Working Directory**: `/a0/usr/workdir/bulwark-ai`
+**Implementation**: `test-results/service_manifest_pipeline.py`
+
+---
+
+## Summary
+
+| Metric | Result |
+|---|---|
+| **Implementation** | ✅ Complete |
+| **Linter (BLW001–BLW005)** | ✅ 0 violations (after 1 fix cycle) |
+| **Scenario 1 — Happy Path** | ✅ Pass |
+| **Scenario 2 — Recovery Path** | ✅ Pass |
+| **Scenario 3 — Degraded Path** | ✅ Pass |
+| **Overall** | ✅ **PASS** |
+
+---
+
+## Implementation Details
+
+### Architecture
+
+The `service_manifest_pipeline.py` module implements SPEC.md §10.2 (Service Manifest & Recovery Orchestration) using the Guard-Trace-Verify (GTV) methodology:
+
+- **`_load_manifest()`** — Loads and validates `services.json` with full guard coverage (M1 compliance)
+- **`_run_health_check()`** — Executes shell-based health check commands with timeout handling
+- **`guard_service()`** — Declarative guard function implementing severity-driven behavior:
+  - `critical` → raises `GuardError` after exhausting recovery attempts
+  - `warning` → returns `False` for graceful degradation
+  - `info` → returns `None` (silent skip)
+- **`run_pipeline()`** — Orchestrates all service guards with proper GTV instrumentation
+- **`trace_event()` / `trace_recovery()`** — Structured trace helpers for boundary logging
+- **`_send_notifications()`** — Pluggable notification channel registry (N1–N4 compliance)
+
+### GTV Coverage
+
+| Pattern | Usage |
+|---|---|
+| **Guard** | All function inputs validated via `guard_type`, `guard_not_none`, `guard_not_empty`, `guard_keys`, `guard` |
+| **Trace** | `trace_event` at every processing boundary; `trace_recovery` for recovery attempts; `trace` for data shapes |
+| **Verify** | Pipeline outcome consistency verified via `verify()` |
+| **Custom Errors** | `GuardError` for critical failures; `VerifyError` available for verification failures |
+
+---
+
+## Linter Results
+
+### Initial Scan
+```json
+{
+  "total_violations": 1,
+  "violations": [
+    {
+      "rule_id": "BLW001",
+      "message": "_send_log_notification() has parameters but no guard calls",
+      "line": 99
+\n=== Implementation stats ===
+639 test-results/service_manifest_pipeline.py
+9
+47
+21
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

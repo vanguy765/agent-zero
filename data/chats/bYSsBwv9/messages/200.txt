@@ -1,0 +1,53 @@
+=== Removing backup directories ===
+=== Removing verify_images directory ===
+=== Removing mock_supabase directory ===
+=== Removing test/result files ===
+=== Removing nocodb logs ===
+
+=== Remaining doc-parser files ===
+total 28232
+drwxrwxrwx 1 root root    4096 Mar 11 04:43 .
+drwxrwxrwx 1 root root    4096 Mar 11 04:41 ..
+-rwxrwxrwx 1 root root    1993 Feb 17 02:18 benchmark_script.py
+-rwxrwxrwx 1 root root    3810 Feb 24 06:05 benchmark_vision.py
+-rwxrwxrwx 1 root root    2475 Feb 24 04:38 compare_methods.py
+-rw-r--r-- 1 root root    8736 Mar  4 04:01 confidence.py
+-rw-r--r-- 1 root root    3080 Mar  7 04:54 cv2_detect.py
+-rw-r--r-- 1 root root    8578 Mar  6 06:20 CV2_INTEGRATION_STATUS.md
+-rwxrwxrwx 1 root root    1561 Feb 24 06:16 decode_docling_images.py
+-rwxrwxrwx 1 root root 8770689 Feb 17 02:18 demo.pdf
+-rwxrwxrwx 1 root root   59125 Mar  8 22:47 detection.py
+-rwxrwxrwx 1 root root     873 Feb 17 02:18 docker-compose.yml
+-rwxrwxrwx 1 root root     917 Feb 26 04:07 Dockerfile
+-rwxrwxrwx 1 root root   13200 Feb 24 05:45 docker_logs.txt
+-rwxrwxrwx 1 root root     153 Mar  5 23:10 .env
+-rwxrwxrwx 1 root root    6038 Feb 26 04:10 error.log
+-rwxrwxrwx 1 root root    2774 Feb 25 23:20 filter_floorplans.py
+-rwxrwxrwx 1 root root 8770689 Mar  5 23:59 full_doc.pdf
+-rwxrwxrwx 1 root root   71321 Mar  9 19:49 hybrid.py
+-rw-r--r-- 1 root root   19938 Mar  4 03:55 job_manager.py
+-rw-r--r-- 1 root root    9672 Mar  3 04:06 models.py
+-rwxrwxrwx 1 root root   51370 Mar  6 01:06 old_server.py
+-rw-r--r-- 1 root root   85335 Mar  6 02:06 page_8_largest_img.png
+-rw-r--r-- 1 root root 8744515 Mar  6 00:00 page_8.pdf
+-rw-r--r-- 1 root root 1985631 Mar  6 02:06 page_8_render.png
+-rwxrwxrwx 1 root root    6562 Feb 25 23:54 patch_server_script.py
+-rwxrwxrwx 1 root root    6547 Feb 24 04:37 preparse.py
+-rwxrwxrwx 1 root root    9866 Feb 17 02:18 preparse.txt
+-rwxrwxrwx 1 root root   12721 Mar  6 04:26 prompts.py
+drwxrwxrwx 1 root root    4096 Mar  9 19:49 __pycache__
+-rwxrwxrwx 1 root root    3539 Feb 26 04:33 README.md
+-rwxrwxrwx 1 root root     635 Mar  3 04:07 requirements.txt
+-rwxrwxrwx 1 root root   26076 Mar  8 00:08 server.py
+-rwxrwxrwx 1 root root    2789 Feb 25 23:02 slice_cv.py
+-rwxrwxrwx 1 root root    2774 Feb 25 22:38 slice_surya.py
+drwxrwxrwx 1 root root    4096 Feb 17 02:18 templates
+-rwxrwxrwx 1 root root    2032 Feb 17 02:18 test_api.js
+-rwxrwxrwx 1 root root    2553 Feb 17 02:18 test_api.py
+-rwxrwxrwx 1 root root     483 Mar  6 00:41 test_fitz.py
+-rw-r--r-- 1 root root   20851 Mar  6 01:59 test_result_docker.json
+-rw-r--r-- 1 root root   44146 Mar  6 04:34 test_result_page_render.json
+-rw-r--r-- 1 root root   32995 Mar  6 02:50 test_result_patched2.json
+-rw-r--r-- 1 root root   29927 Mar  6 02:22 test_result_patched.json
+-rwxrwxrwx 1 root root    1308 Feb 17 02:18 verify_env.py
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

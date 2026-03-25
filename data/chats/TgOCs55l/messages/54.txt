@@ -1,0 +1,397 @@
+=== doc-parser README (full) ===
+# Document Parser API
+
+This service provides a multi-stage document parsing API using **IBM Docling**, **Tesseract OCR**, and **Claude 3.5 Sonnet**. It extracts text, tables, and structured data from architectural PDFs, rendering parsed data to structured JSON and optionally streaming images to a Supabase storage bucket.
+
+---
+
+## Getting Started
+
+The service runs as a FastAPI server on port **5000**.
+
+### 1. Configure Environment
+Ensure your `.env` contains the required keys:
+```
+OPENROUTER_API_KEY=...
+```
+
+### 2. Start the Service
+```bash
+cd doc-parser
+docker-compose up -d --build doc-parser
+```
+This builds an environment with Deep Learning models (PyTorch, Docling) cached in the docker layers to start up fast.
+
+Or run directly (inside the container / venv):
+```bash
+python server.py
+# or
+uvicorn server:app --host 0.0.0.0 --port 5000
+```
+
+---
+
+## API Capabilities
+
+All heavy processing is **asynchronous** — jobs are submitted and polled. The service never blocks on a long-running request.
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/parse/docling` | Submit PDF using the Docling-only engine. Returns `job_id`. |
+| `POST` | `/parse/hybrid` | Submit PDF using the Hybrid engine (Docling + Claude vision). Returns `job_id`. |
+| `GET` | `/status/{job_id}` | Lightweight status poll. Safe to call every 2–5 s. Never includes result data. |
+| `GET` | `/results/{job_id}` | Full extraction results. Fetch once after status is `completed`. |
+| `GET` | `/results/{job_id}?summary=true` | Lightweight result preview (counts only, no unit detail). |
+| `GET` | `/health` | Dependency check: Docling, Tesseract, LiteLLM availability + running job counts. |
+| `GET` | `/jobs` | List all jobs. Optional `?status=` filter (`queued`, `processing`, `completed`, `failed`). |
+| `DELETE` | `/jobs/{job_id}` | Delete a completed or failed job and its stored results. |
+| `GET` | `/result/{job_id}` | **Legacy alias** — redirects to `/results/{job_id}`. |
+
+### POST /parse/docling and /parse/hybrid — Form Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | file | ✅ | The PDF to parse |
+| `provider` | string | — | LLM provider (default: `anthropic/claude-3.5-sonnet`) |
+| `supabase_url` | string | — | Supabase URL — enables cloud image upload |
+| `supabase_key` | string | — | Supabase service key |
+| `tenant_name` | string | — | Used for storage bucket path prefixes |
+| `project_name` | string | — | Used for storage bucket path prefixes |
+
+### Job Status Values
+
+| Status | Meaning |
+|--------|---------|
+| `queued` | Job accepted, waiting for a worker |
+| `processing` | Actively running (check `progress.phase` for detail) |
+| `completed` | Done — safe to call `/results/{job_id}` |
+| `failed` | Processing error — see `error` field |
+| `timeout` | Exceeded processing timeout |
+
+### Processing Phases (visible in `/status` response)
+
+`docling_conversion` → `classification` → `llm_analysis` → `synthesis`
+
+---
+
+## Typical API Workflow
+
+### Step 1 — Submit the PDF
+```bash
+curl -X POST http://localhost:5000/parse/docling \
+  -F "file=@drawing.pdf" \
+  -F "tenant_name=acme" \
+  -F "project_name=site_a"
+```
+```json
+{
+  "job_id": "ba09fac4-8299-474c-8955-bb0bcce3b39f6",
+  "status": "queued",
+  "engine": "docling",
+  "file": "drawing.pdf"
+}
+```
+
+### Step 2 — Poll for Status (every 5–10 s)
+```bash
+curl http://localhost:5000/status/ba09fac4-8299-474c-8955-bb0bcce3b39f6
+```
+```json
+{
+  "status": "processing",
+  "progress": {
+    "phase": "llm_analysis",
+    "current_step": "analyzing_floorplan_1_of_2",
+    "current_page": 3,
+    "total_pages": 8,
+    "floorplans_found": 2,
+    "tables_found": 1
+  }
+}
+```
+
+### Step 3 — Fetch Results (once `status == "completed"`)
+```bash
+curl http://localhost:5000/results/ba09fac4-8299-474c-8955-bb0bcce3b39f6
+```
+```json
+{
+  "job_id": "ba09fac4-...",
+  "status": "completed",
+  "result": {
+    "engine": "docling",
+    "units": [ ... ],
+    "summary": {
+      "units_count": 4,
+      "pages_count": 8,
+      "floorplans_count": 2,
+      "tables_count": 1,
+      "total_doors": 18,
+      "total_windows": 24
+    },
+    "confidence": {
+      "overall_score": 0.87,
+      "tier": "high"
+    }
+  }
+}
+```
+
+### Optional — Lightweight Preview
+```bash
+curl "http://localhost:5000/results/ba09fac4-...?summary=true"
+```
+
+### Optional — List / Clean Up Jobs
+```bash
+# List all completed jobs
+curl "http://localhost:5000/jobs?status=completed"
+
+# Delete a job
+curl -X DELETE http://localhost:5000/jobs/ba09fac4-...
+```
+
+---
+
+## CLI Tools
+
+### `process_document.py` — Recommended CLI Client
+
+Full CLI wrapper for the API. Submits a PDF, polls until done, prints a summary, and optionally saves the full JSON result.
+
+```bash
+# Basic usage (Docling engine)
+python process_document.py --pdf drawing.pdf
+
+# Hybrid engine, save results
+python process_document.py --pdf drawing.pdf --engine hybrid --output results.json
+
+# With Supabase image upload
+python process_document.py --pdf drawing.pdf \
+    --tenant acme --project site_a \
+    --supabase-url http://host.docker.internal:54321 \
+    --supabase-key eyJhbGci...
+
+# Custom API URL and faster polling
+python process_document.py --pdf drawing.pdf --api-url http://localhost:5000 --poll-interval 3
+```
+
+**Arguments:**
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--pdf` | *(required)* | Path to the PDF file |
+| `--engine` | `docling` | `docling` or `hybrid` |
+| `--provider` | `anthropic/claude-3.5-sonnet` | LLM provider string |
+| `--tenant` | — | Tenant name for Supabase paths |
+| `--project` | — | Project name for Supabase paths |
+| `--supabase-url` | — | Supabase URL (enables image upload) |
+| `--supabase-key` | — | Supabase service key |
+| `--api-url` | `http://localhost:5000` | API base URL |
+| `--output` | — | Save full JSON result to this file |
+| `--poll-interval` | `5` | Seconds between status polls |
+
+---
+
+### `benchmark_script.py` — Timing Benchmark
+
+Submits a PDF to one engine, polls to completion, and reports timing + extraction summary.
+
+```bash
+# Benchmark with default Docling engine
+python benchmark_script.py drawing.pdf
+
+# Benchmark hybrid engine, save result
+python benchmark_script.py drawing.pdf --engine hybrid --output bench.json
+
+# Use a different LLM provider
+python benchmark_script.py drawing.pdf --provider openai/gpt-4o
+```
+
+**Arguments:** `file` (positional), `--engine`, `--provider`, `--api-url`, `--output`
+
+---
+
+### `compare_methods.py` — Engine Comparison
+
+Submits the same PDF to **both** engines simultaneously, polls both to completion, and prints a side-by-side comparison of timing, unit counts, and confidence scores.
+
+```bash
+# Compare both engines
+python compare_methods.py drawing.pdf
+
+# Save both JSON results
+python compare_methods.py drawing.pdf --outdir results/
+
+# Use a different provider for both
+python compare_methods.py drawing.pdf --provider openai/gpt-4o
+```
+
+**Arguments:** `file` (positional), `--provider`, `--api-url`, `--outdir`
+
+---
+
+### Standalone CV / Preprocessing Tools
+
+These scripts run **without the API server** — useful for testing individual pipeline components.
+
+#### `preparse.py` — PDF Page Preprocessor
+```bash
+python preparse.py drawing.pdf
+# Processes page 1, outputs to output/cli_test/
+# Extracts: raw_text.txt, table_N.csv, table_N_img.png, floorplan_crop.png
+```
+
+#### `slice_cv.py` — OpenCV Drawing Slicer
+```bash
+python slice_cv.py page_image.png
+python slice_cv.py page_image.png --output slicing_tests/cv_output
+# Detects rectangular borders and slices into isolated crop images
+```
+
+#### `slice_surya.py` — Surya AI Layout Slicer
+```bash
+python slice_surya.py page_image.png
+python slice_surya.py page_image.png --output slicing_tests/surya_output
+# Uses Surya layout AI to detect and slice document regions
+```
+
+#### `cv2_detect.py` — Element Detector
+```bash
+python cv2_detect.py page_image.png
+# Runs full OpenCV element detection on a single image
+```
+
+---
+
+## How It Works
+
+1. **Extraction (Docling)**: IBM Docling extracts all text, markdown tables, and cropped images from the PDF in a background asyncio thread.
+2. **Deterministic Filtering (Tesseract)**: Uses color variance + PyTesseract text density to classify images as `floorplan`, `site_photo`, or `diagram`.
+3. **AI Estimation (Claude 3.5)**: Claude 3.5 Sonnet analyzes floorplans using a strict JSON schema to extract room areas, perimeters, and door/window counts.
+4. **Server-Side Math (FastAPI)**: Calculates net remaining wall area and gross square footages based on predefined architectural deductions and assumed 8 ft walls.
+5. **Cross-Page Synthesis**: When multiple floorplans are found, a synthesis pass correlates data across pages.
+6. **Confidence Scoring**: Each result includes an `overall_score` and `tier` (low / medium / high) based on extraction completeness.
+
+=== apps/api README (full) ===
+# API — The Brain
+
+Central backend API powering the voicelog-scaffold construction renovation platform.
+
+> `Port: 3000` | `Framework: Hono (OpenAPIHono) on Node.js` | Part of [voicelog-scaffold](../../docs/general/platform_analysis.md)
+
+---
+
+## Overview
+
+The API is the central nervous system of the platform — every frontend app, AI agent, and external integration communicates through it. Built on **Hono** with full **OpenAPI** spec generation, it provides type-safe routes, Swagger UI documentation, and an A2A (Agent-to-Agent) JSON-RPC endpoint for AI interoperability.
+
+## Role in the Platform
+
+- **Single source of truth** for all business logic and data access
+- **Gateway** between frontends and Supabase (PostgreSQL)
+- **AI orchestration hub** — processes voice recordings, parses PDFs, and hosts the A2A protocol
+- **Placeholder recovery engine** — auto-generates smart defaults for missing entities and queues them for review
+
+## Features
+
+- 12 route modules covering work orders, materials, taxonomy, projects, units, voice, delivery, todos, A2A, documents, entity creation, and reviews
+- OpenAPI spec auto-generation with Swagger UI at `/ui`
+- A2A Protocol: JSON-RPC endpoint at `/a2a`, agent card at `/.well-known/agent.json`
+- PDF parsing via `pdfjs-dist` and Claude AI
+- Placeholder recovery system with review queue
+- 50+ utility scripts for seeding, migration, and testing
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Hono (OpenAPIHono) |
+| Runtime | Node.js with tsx (watch mode) |
+| Database | Supabase (PostgreSQL) via `@supabase/supabase-js` |
+| AI | `@anthropic-ai/sdk` (Claude) |
+| PDF | `pdfjs-dist`, `@napi-rs/canvas` |
+| Validation | Zod (via `@repo/schemas`) |
+
+## Project Structure
+
+```
+apps/api/
+├── src/
+│   ├── index.ts                    # App entry + route mounting
+│   ├── routes/
+│   │   ├── work-orders.ts          # Work order CRUD + lifecycle
+│   │   ├── materials.ts            # Supplier/product catalog
+│   │   ├── taxonomy.ts             # Category management
+│   │   ├── project-definitions.ts  # JSONB scope trees
+│   │   ├── units.ts                # Unit management
+│   │   ├── voice.ts                # Audio → transcription → extraction
+│   │   ├── delivery.ts             # Delivery tracking
+│   │   ├── todos.ts                # Simple CRUD (reference)
+│   │   ├── a2a.ts                  # Agent-to-Agent JSON-RPC
+│   │   ├── documents.ts            # Document upload/management
+│   │   ├── entity-creation.ts      # Placeholder generation
+│   │   └── reviews.ts              # Review queue management
+│   ├── services/
+│   │   ├── a2a/
+│   │   │   ├── agentCard.ts        # A2A agent card definition
+│   │   │   ├── skillRouter.ts      # Skill dispatch
+│   │   │   ├── taskStore.ts        # Task persistence
+│   │   │   ├── types.ts            # A2A type definitions
+│   │   │   └── skills/
+│   │   │       ├── documents.ts    # Document skill
+│   │   │       ├── progress.ts     # Progress skill
+│   │   │       ├── units.ts        # Units skill
+│   │   │       └── workOrders.ts   # Work orders skill
+│   │   ├── claudePdfParser.ts      # Claude-powered PDF extraction
+│   │   ├── pdfParser.ts            # PDF.js-based parsing
+│   │   ├── placeholderGenerator.ts # Smart default entity creation
+│   │   └── reviewService.ts        # Review queue business logic
+│   └── middleware/
+│       ├── auth.ts                 # Authentication middleware
+│       └── supabase.ts             # Supabase client middleware
+├── scripts/                        # 50+ utility scripts (see scripts/README.md)
+├── package.json
+└── tsconfig.json
+```
+
+## Getting Started
+
+```bash
+# From monorepo root
+pnpm install
+
+# Start the API in watch mode
+cd apps/api
+pnpm dev
+```
+
+The API starts on `http://localhost:3000`.
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `pnpm dev` | Start with `tsx watch src/index.ts` (hot reload) |
+| `pnpm build` | TypeScript compilation |
+
+See [`scripts/README.md`](scripts/README.md) for the full catalog of 50+ utility scripts.
+
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /ui` | Swagger UI — interactive API documentation |
+| `GET /doc` | OpenAPI JSON spec |
+| `POST /a2a` | A2A JSON-RPC endpoint |
+| `GET /.well-known/agent.json` | A2A agent card |
+
+## Related Documentation
+
+- [Platform Analysis](../../docs/general/platform_analysis.md) — Full architecture context
+- [Port Allocation](../../docs/ports.md) — Service port assignments
+- [A2A Protocol](../../docs/a2a/README.md) — Agent-to-Agent integration
+- [Scripts README](scripts/README.md) — Utility script catalog
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

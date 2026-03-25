@@ -1,0 +1,77 @@
+=== doc-parser README — Getting Started section ===
+## Getting Started
+
+The service runs as a FastAPI server on port **5000**.
+
+### 1. Configure Environment
+Ensure your `.env` contains the required keys:
+```
+OPENROUTER_API_KEY=...
+```
+
+### 2. Start the Service
+```bash
+cd doc-parser
+docker-compose up -d --build doc-parser
+```
+This builds an environment with Deep Learning models (PyTorch, Docling) cached in the docker layers to start up fast.
+
+> ⚠️ **Do not run directly.** The service requires PyTorch, Docling, and Tesseract — all pre-installed in the Docker image. Running `python server.py` outside the container will fail and may corrupt the local environment. Always use `docker-compose up`.
+
+---
+
+=== apps/api README — API Endpoints section ===
+## API Endpoints
+
+### Core
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /ui` | Swagger UI — interactive API documentation |
+| `GET /doc` | OpenAPI JSON spec |
+| `POST /a2a` | A2A JSON-RPC endpoint |
+| `GET /.well-known/agent.json` | A2A agent card |
+
+### Doc-Parser Routes (`/api/doc-parser/*`)
+
+All routes are in `src/routes/doc-parser-routes.ts`. The Hono layer adds DB persistence, blocking pipelines, and read endpoints on top of the raw doc-parser FastAPI service.
+
+**Pipeline — blocking (submit + poll + persist)**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/doc-parser/pipeline` | Parse entire PDF, persist all pages + OCR to DB |
+| `POST` | `/api/doc-parser/pipeline/page` | Single-page — extract page N via `pdf-lib`, parse, upsert |
+| `POST` | `/api/doc-parser/pipeline/reprocess` | Idempotent re-run — safe to call multiple times |
+
+**Job Control — async (caller manages polling)**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/doc-parser/parse` | Submit job, return `job_id` immediately |
+| `GET` | `/api/doc-parser/status/:jobId` | Lightweight poll — safe every 2–5 s |
+| `GET` | `/api/doc-parser/results/:jobId` | Full results — fetch once after `completed` |
+| `GET` | `/api/doc-parser/health` | Health check including doc-parser reachability |
+
+**Read Endpoints — DB queries (no doc-parser call)**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/doc-parser/documents/:documentId/pages` | List all parsed pages. Query: `?category=`, `?limit=`, `?offset=` |
+| `GET` | `/api/doc-parser/documents/:documentId/pages/:pageNumber` | Get one page — storage URL, thumbnail, category, raw text |
+| `GET` | `/api/doc-parser/documents/:documentId/ocr` | List OCR/table results. Query: `?page_number=`, `?limit=`, `?offset=` |
+| `GET` | `/api/doc-parser/documents/:documentId/ocr/:pageNumber` | OCR for a single page |
+
+**Document Manager — project/org scope**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/doc-parser/projects/:projectId/documents` | List all documents for a project (page count, OCR count, parsed status) |
+| `GET` | `/api/doc-parser/projects/:projectId/documents/:documentId` | Full document detail — metadata + page list + category breakdown |
+
+## Related Documentation
+
+=== doc-parser-routes mounted in index.ts? ===
+34:import { docParserRoutes } from './routes/doc-parser-routes';
+62:app.route('/doc-parser', docParserRoutes);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

@@ -1,0 +1,37 @@
+
+/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts
+  11:1  warning  BLW001  function-needs-guard     handleCreateUser() has parameters but no guard calls
+         💡 Consider adding: guardType(req, "type", "handleCreateUser", "req"); guardType(env, "type", "handleCreateUser", "env")
+  11:1  warning  BLW002  verify-after-mutation     handleCreateUser() has database mutation but no verify call
+         💡 Consider adding: verify(result.rowCount === 1, "handleCreateUser", "expected 1 affected row")
+  11:1  info     BLW003  trace-at-boundary     handleCreateUser() appears to be a phase boundary but has no trace call
+         💡 Consider adding: const result = trace("afterHandleCreateUser", data);
+  19:1  warning  BLW004  no-bare-assert     handleCreateUser() uses throw new Error for validation instead of guard()
+         💡 Replace throw with: guard(condition, "handleCreateUser", "description") which throws GuardError
+  23:1  warning  BLW004  no-bare-assert     handleCreateUser() uses throw new Error for validation instead of guard()
+         💡 Replace throw with: guard(condition, "handleCreateUser", "description") which throws GuardError
+  33:1  warning  BLW001  function-needs-guard     syncUserToExternalApi() has parameters but no guard calls
+         💡 Consider adding: guardType(userId, "type", "syncUserToExternalApi", "userId"); guardType(apiKey, "type", "syncUserToExternalApi", "apiKey")
+  33:1  warning  BLW002  verify-after-mutation     syncUserToExternalApi() has database query, HTTP POST (+1 more) but no verify call
+         💡 Consider adding: verify(result !== null, "syncUserToExternalApi", "query returned no results")
+  44:1  warning  BLW004  no-bare-assert     syncUserToExternalApi() uses throw new Error for validation instead of guard()
+         💡 Replace throw with: guard(condition, "syncUserToExternalApi", "description") which throws GuardError
+  49:1  warning  BLW001  function-needs-guard     parseUserPayload() has parameters but no guard calls
+         💡 Consider adding: guardType(rawData, "type", "parseUserPayload", "rawData"); guardType(format, "type", "parseUserPayload", "format")
+  49:1  info     BLW003  trace-at-boundary     parseUserPayload() appears to be a phase boundary but has no trace call
+         💡 Consider adding: const result = trace("afterParseUserPayload", data);
+  61:1  warning  BLW004  no-bare-assert     parseUserPayload() uses throw new Error for validation instead of guard()
+         💡 Replace throw with: guard(condition, "parseUserPayload", "description") which throws GuardError
+  66:1  warning  BLW001  function-needs-guard     exportUsersToFile() has parameters but no guard calls
+         💡 Consider adding: guardType(users, "type", "exportUsersToFile", "users"); guardType(outputPath, "type", "exportUsersToFile", "outputPath")
+  66:1  warning  BLW002  verify-after-mutation     exportUsersToFile() has file write but no verify call
+         💡 Consider adding: verify_file_written(filepath, "exportUsersToFile", "file write failed")
+  74:1  warning  BLW001  function-needs-guard     notifyUserCreated() has parameters but no guard calls
+         💡 Consider adding: guardType(user, "type", "notifyUserCreated", "user"); guardType(adminEmail, "type", "notifyUserCreated", "adminEmail")
+  74:1  warning  BLW002  verify-after-mutation     notifyUserCreated() has notification send but no verify call
+         💡 Consider adding: verify(sent === true, "notifyUserCreated", "notification send failed")
+
+✖ 15 problems (0 errors, 13 warnings, 2 info)
+
+Files scanned: 1
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

@@ -1,0 +1,116 @@
+=== Lines around section 10.2 start ===
+
+- Recovery commands run with the **current process permissions** — no privilege escalation
+- The command string is logged in full — operators can audit what was executed
+- In production, recovery commands SHOULD be restricted to known scripts in configured paths
+- A **dry-run mode** (log what would execute without running it) is RECOMMENDED for initial deployment
+
+### 10.2 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+
+An Idempotency Guard prevents duplicate execution when operations are retried.
+
+#### When to Use
+
+- AI agent retry loops (agent fails, framework re-executes)
+- Scheduled tasks that may overlap
+- API endpoints that may receive duplicate requests
+- Pipeline stages that may be re-run after partial failure
+
+#### Why This Is an Extension, Not Core
+
+Idempotency Guards are **invasive** — they change function signatures, require storage infrastructure (database columns, Redis keys), and force callers to provide idempotency keys. This breaks the core standard's principle of **additive adoption** (§1.4, principle 4). Guard, Trace, and Verify can be added to any function without changing its interface. Idempotency cannot.
+
+#### Pattern
+
+```python
+def create_order(order_data, idempotency_key):
+    # GUARD:IDEMPOTENT — check for duplicate execution
+    existing = db.query("SELECT id FROM orders WHERE idempotency_key = ?", idempotency_key)
+    if existing:
+        log.info(f"GUARD:IDEMPOTENT:create_order | duplicate detected, key={idempotency_key}, returning existing")
+        return existing[0]
+    
+    # ... proceed with creation
+```
+
+### 10.3 Confidence Annotation (FUTURE, not yet recommended)
+
+Confidence annotations would allow AI agents to self-label code sections with their certainty level.
+
+#### Why This Is Deferred
+
+Current AI models are poorly calibrated at self-assessment. They tend to either mark everything as high confidence (overconfident) or everything as low confidence (useless). This extension becomes valuable when AI models improve at expressing calibrated uncertainty.
+
+#### Proposed Format (for future use)
+
+```python
+# CONFIDENCE: LOW — API response shape inferred from function name, not documentation
+# CONFIDENCE: HIGH — standard library pattern, well-established
+# CONFIDENCE: MEDIUM — based on similar patterns in training data
+```
+
+---
+\n=== Lines around section 10.3 start ===
+    
+    # ... proceed with creation
+```
+
+### 10.3 Confidence Annotation (FUTURE, not yet recommended)
+
+Confidence annotations would allow AI agents to self-label code sections with their certainty level.
+
+#### Why This Is Deferred
+
+Current AI models are poorly calibrated at self-assessment. They tend to either mark everything as high confidence (overconfident) or everything as low confidence (useless). This extension becomes valuable when AI models improve at expressing calibrated uncertainty.
+
+#### Proposed Format (for future use)
+
+```python
+# CONFIDENCE: LOW — API response shape inferred from function name, not documentation
+# CONFIDENCE: HIGH — standard library pattern, well-established
+# CONFIDENCE: MEDIUM — based on similar patterns in training data
+```
+
+---
+
+## 11. Versioning and Evolution
+
+This specification follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR**: Breaking changes to layer definitions or diagnostic format
+- **MINOR**: New optional recommendations, additional failure modes, new language guidelines
+- **PATCH**: Clarifications, typo fixes, example improvements
+
+---
+\n=== End of file ===
+
+This appendix documents the reasoning behind major design choices. For a more detailed, beginner-friendly explanation, see [GUIDE.md](GUIDE.md).
+
+### B.1 Why Convention Over Library?
+
+A library creates a dependency. Dependencies get abandoned, compromised, or version-locked. A convention is forever. You can implement Bulwark AI in any language, any project, any era — because it's just `if/raise`, `log()`, and `if/raise` again. No package manager required.
+
+### B.2 Why Three Layers Instead of One?
+
+Input validation (Guard) catches bad data coming in. But it doesn't tell you *where* in a pipeline the data went wrong (Trace), and it doesn't confirm that your writes actually worked (Verify). Each layer addresses a different failure mode. Combining them creates a complete defensive membrane.
+
+### B.3 Why Structured Diagnostic Messages?
+
+Unstructured errors like `KeyError: 'pages'` require a human to read the stack trace, understand the context, and figure out the fix. Structured messages like `GUARD:process_pages | missing 'pages', available: ['result', 'metadata']` can be parsed by an AI agent to self-correct in one iteration. This is the key insight: **error messages are an API for the next debugging agent** (human or AI).
+
+### B.4 Why Not Always Full Verification?
+
+Because physics. A read-back query takes 1-5ms. At 10,000 operations per second, that's 10-50 seconds of additional database time per second — impossible. The standard requires verification but allows the strategy to adapt. See §3.3.5 and §6.4.
+
+### B.5 Why Are Guards Always On But Traces Are Configurable?
+
+Cost. A Guard (`isinstance(data, dict)`) takes 50 nanoseconds. A Trace (format string + log write) takes 5-50 microseconds. At high throughput, Trace log volume becomes significant — not the CPU cost, but the I/O and storage cost of millions of log lines per hour. Guards have no such scaling concern.
+
+### B.6 Why Is Idempotency an Extension, Not Core?
+
+Adoption friction. Guard, Trace, and Verify can be added to any existing function without changing its signature, its callers, or its infrastructure. Idempotency requires a new parameter, a storage mechanism, and a policy decision. It's important, but it's a different *kind* of thing — an architectural pattern, not a defensive annotation.
+
+---
+
+*Bulwark AI is an open standard. Contributions welcome at github.com/bulwark-ai/bulwark-ai*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

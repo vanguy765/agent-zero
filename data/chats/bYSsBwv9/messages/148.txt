@@ -1,0 +1,79 @@
+=== tenant-portal package.json ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# {
+  "name": "tenant-portal",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 3005",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@supabase/supabase-js": "^2.91.1",
+    "solid-js": "^1.9.10"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest",
+    "vite": "^5.0.0",
+    "vite-plugin-solid": "^2.8.0"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === kill-dev-servers.ps1 ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# # Kill All Dev Servers
+# Kills any Node.js processes listening on monorepo app ports (3000-3005)
+# Safe to run anytime before `pnpm dev`
+
+$ports = @(3000, 3001, 3002, 3003, 3004, 3005)
+$killed = 0
+
+foreach ($port in $ports) {
+    $connections = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+    foreach ($conn in $connections) {
+        $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+        if ($proc) {
+            Write-Host "Killing $($proc.ProcessName) (PID $($proc.Id)) on port $port"
+            Stop-Process -Id $proc.Id -Force
+            $killed++
+        }
+    }
+}
+
+if ($killed -eq 0) {
+    Write-Host "No processes found on ports 3000-3005. All clear!"
+} else {
+    Write-Host "`nKilled $killed process(es). Ready to start fresh."
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === turbo.json / pnpm-workspace ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# {
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#     "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts",
+    "db:migrate": "supabase migration up --local && pnpm db:types",
+    "db:reset": "supabase db reset && pnpm db:types"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

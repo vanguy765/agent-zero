@@ -1,0 +1,16 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	test-results/TEST_2.3_RESULTS.md
+	test-results/service_manifest_pipeline.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+---
+205b521 (HEAD -> main, origin/main) feat: add Test 2.3 Service Manifest Guard fixtures and prompt
+365deb6 feat: add Service Manifest (§10.2) and Cross-Model Validation addendum
+fc13937 Update PROJECT_STATUS.md with Round 2 test results (Tests 2.1, 2.2)
+c2b475a Test 2.2: Error Recovery Chain - ALL SCENARIOS PASSED (100% weighted score)
+9c39854 test: Test 2.1 complete — 14/14 pattern quality, 8/8 coherence, 75% self-correction
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

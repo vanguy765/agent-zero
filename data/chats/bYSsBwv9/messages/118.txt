@@ -1,0 +1,120 @@
+apps/api/src/routes/work-orders.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# apps/api/src/routes/reviews.ts
+apps/api/src/routes/voice.ts
+apps/api/src/routes/work-orders.ts
+apps/api/src/services/a2a/agentCard.ts
+apps/api/src/services/a2a/skillRouter.ts
+apps/api/src/services/reviewService.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work-orders route (first 80 lines) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+import {
+    buildDraftRooms,
+    buildDraftTemplate,
+    findSimilarTemplate,
+    logEntityCreation,
+} from '../services/placeholderGenerator';
+import {
+    createReviewsBatch,
+    type CreateReviewInput,
+} from '../services/reviewService';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+if (process.env.REQUIRE_AUTH === 'true') {
+    workOrdersRoute.use('*', authMiddleware);
+}
+// workOrdersRoute.use('*', authMiddleware);
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// UNITS ENDPOINTS
+// ============================================================================
+
+// LIST ALL UNITS
+workOrdersRoute.get('/units', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .order('floor', { ascending: true })
+        .order('unit_number', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET UNIT BY ID
+workOrdersRoute.get('/units/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Dashboard.tsx location ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# apps/work-orders/src/pages/Dashboard.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work-orders src structure ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# App.css  App.tsx  assets  components  index.css  index.tsx  lib  pages
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# CompanyTemplates.tsx  ProjectDocuments.tsx.bak	Templates.tsx
+Dashboard.tsx	      ProjectOutcomes.tsx	Trades.tsx
+LoginPage.tsx	      Projects.tsx		TypeOrders.tsx
+NewProject.tsx	      ProjectTemplates.tsx	Units.tsx
+ProjectDetail.tsx     TemplateDetail.tsx	WorkOrderDetail.tsx
+ProjectDocuments.tsx  TemplateEditor.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work-orders route (dashboard-stats section) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 1330:// GET /dashboard-stats - Aggregated stats for the overview dashboard
+1331:workOrdersRoute.get('/dashboard-stats', async (c) => {
+1350:    // 2. Unit stats per project
+1396:        project_unit_stats: projectUnitStats,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === dashboard-stats in API ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# apps/api/src/routes/reviews.ts:58:// REVIEW SUMMARY (for dashboard badge)
+apps/api/src/routes/voice.ts:28:    // We expect a user_id to assign the task to, otherwise we can't notify the dashboard
+apps/api/src/routes/voice.ts:48:    // Insert this task for EVERY user in the system so that whoever is looking at the dashboard sees it.
+apps/api/src/routes/work-orders.ts:1330:// GET /dashboard-stats - Aggregated stats for the overview dashboard
+apps/api/src/routes/work-orders.ts:1331:workOrdersRoute.get('/dashboard-stats', async (c) => {
+apps/api/src/services/a2a/agentCard.ts:97:            tags: ['progress', 'summary', 'dashboard', 'statistics'],
+apps/api/src/services/a2a/skillRouter.ts:54:                ['get_project_progress', ['progress', 'summary', 'dashboard', 'statistics', 'completion rate']],
+apps/api/src/services/reviewService.ts:286: * Get review summary counts for dashboard badge.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work-orders api.ts (dashboard section) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

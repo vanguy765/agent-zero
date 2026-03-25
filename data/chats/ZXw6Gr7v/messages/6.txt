@@ -1,0 +1,22 @@
+303:                {"type": "image_url", "image_url": {
+466:                    "image_url": path,
+513:                    "image_url": path,
+660:        thumbnail_urls: Dict[int, str] = {}
+679:                    thumbnail_urls[page_no] = url
+687:                thumbnail_urls[page_no] = local_path
+689:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+1279:                    "image_url": tbl_img_url,
+1305:                "image_url": tbl_img_url,
+1442:                    unit["image_url"] = crop_url
+1456:                    "image_url": crop_url,
+1465:                    "image_url": crop_url,
+1513:            thumbnail_urls=thumbnail_urls,
+1552:    thumbnail_urls: Dict[int, str],
+1569:            "thumbnail_url": thumbnail_urls.get(page_no, ""),
+1592:                    "image_url": t.get("image_url", ""),
+1602:        # Ensure image_url is set
+1603:        if not unit.get("image_url"):
+1607:                unit["image_url"] = urls_for_page[0] if urls_for_page else ""
+1630:        "thumbnails_count": len(thumbnail_urls),
+1654:        "thumbnails": dict(thumbnail_urls),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

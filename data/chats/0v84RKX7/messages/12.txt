@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 1,
+  "violations": [
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "_describe_shape() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py",
+      "line": 110,
+      "function_name": "_describe_shape"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 1,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,14 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### TD-6: No .gitignore
+No `.gitignore` file for the repository. Needs to exclude:
+- `node_modules/`, `venv/`, `__pycache__/`
+- `.env` files, IDE settings
+- Compiled JavaScript (or include it — decision needed)
+
+### TD-7: GUIDE.md Line Count
+GUIDE.md is 1,570 lines. While comprehensive, it may benefit from being
+split into multiple guides (Quick Start, Deep Dive, Patterns Cookbook)
+if it continues to grow.
+
+---
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

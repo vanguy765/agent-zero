@@ -1,0 +1,9 @@
+485:        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+488:                lambda: sb_client.table("document_images").insert({
+499:        except Exception as db_err:
+500:            logger.warning(f"DB record insert failed for {filename}: {db_err}")
+536:        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+539:                lambda: sb_client.table("document_images").insert({
+547:        except Exception as db_err:
+548:            logger.warning(f"DB record insert failed for {filename}: {db_err}")
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

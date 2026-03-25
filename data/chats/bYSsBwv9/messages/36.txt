@@ -1,0 +1,11 @@
+3:const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/work-orders';
+362:  private baseUrl: string;
+364:  constructor(baseUrl: string) {
+365:    this.baseUrl = baseUrl;
+370:    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+641:    const response = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+729:    return this.baseUrl.replace('/work-orders', '');
+734:    const response = await fetch(`${this.docParserBaseUrl}${endpoint}`, {
+765:    status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+856:export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

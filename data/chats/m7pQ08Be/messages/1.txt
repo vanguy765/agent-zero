@@ -1,0 +1,46 @@
+============================================================
+Bulwark AI — Python Reference Implementation Self-Test
+============================================================
+
+--- Guard Tests ---
+[PASS] guard(True) — no error
+2026-03-15 01:26:59 | ERROR | GUARD:test_func | expected X, got Y
+[PASS] guard(False) — caught: GUARD:test_func | expected X, got Y
+2026-03-15 01:26:59 | ERROR | GUARD:test_keys | 'input' missing keys: ['c'], available: ['a', 'b']
+[PASS] guard_keys — caught: GUARD:test_keys | 'input' missing keys: ['c'], available: ['a', 'b']
+
+--- Trace Tests ---
+2026-03-15 01:26:59 | INFO  | TRACE:test_dict | dict, keys=['meta', 'pages'], len=2, sample['pages']=list, len=2, items=dict, keys=['id'], len=1
+[PASS] trace returned data unchanged: dict
+2026-03-15 01:26:59 | INFO  | TRACE:test_list | list, len=5, items=int
+2026-03-15 01:26:59 | INFO  | TRACE:test_string | str, len=11
+2026-03-15 01:26:59 | INFO  | TRACE:test_none | NoneType
+2026-03-15 01:26:59 | INFO  | TRACE:test_empty_list | list, len=0 (EMPTY)
+[PASS] all trace variants completed
+
+--- Verify Tests ---
+[PASS] verify(True) — no error
+2026-03-15 01:26:59 | ERROR | VERIFY:test_save | INSERT expected 10 rows, affected 0
+[PASS] verify(False) — caught: VERIFY:test_save | INSERT expected 10 rows, affected 0
+
+--- Shape Description Tests ---
+  None                                     -> NoneType
+  42                                       -> int
+  'hello'                                  -> str, len=5
+  [1, 2, 3]                                -> list, len=3, items=int
+  []                                       -> list, len=0 (EMPTY)
+  {'a': 1, 'b': [1, 2]}                    -> dict, keys=['a', 'b'], len=2, sample['a']=int
+  {'result': {'pages': [{'id': 1}]}}       -> dict, keys=['result'], len=1, sample['result']=dict, keys=['pages'], len=1, sample['pages']=list, len=1
+
+--- Pipeline Test ---
+2026-03-15 01:26:59 | INFO  | PIPELINE:test_pipeline | starting with 2 stages
+2026-03-15 01:26:59 | INFO  | TRACE:test_pipeline:input | list, len=3, items=int
+2026-03-15 01:26:59 | INFO  | TRACE:test_pipeline.double:output | list, len=3, items=int
+2026-03-15 01:26:59 | INFO  | TRACE:test_pipeline.to_dict:output | dict, keys=['count', 'results'], len=2, sample['results']=list, len=3, items=int
+2026-03-15 01:26:59 | INFO  | PIPELINE:test_pipeline | completed all 2 stages
+[PASS] pipeline result: {'results': [2, 4, 6], 'count': 3}
+
+============================================================
+All self-tests passed. Bulwark AI is operational.
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

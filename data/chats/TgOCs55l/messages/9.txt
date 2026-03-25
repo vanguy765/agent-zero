@@ -1,0 +1,81 @@
+**Stack:** Hono API · SolidJS frontends · Supabase (Postgres + Auth + Realtime) · Python doc-parser
+
+---
+
+## Architecture
+
+```
+voicelog-scaffold/
+├── apps/
+│   ├── api/              # Hono backend (The Brain) — port 3000
+│   ├── web-dashboard/    # SolidJS admin — port 3001
+│   ├── site-companion/   # SolidJS PWA (field workers) — port 3002
+│   ├── material-admin/   # Material & taxonomy manager — port 3003
+│   ├── work-orders/      # Work orders management — port 3004
+│   └── tenant-portal/    # Tenant data portal — port 3005
+├── doc-parser/           # Python FastAPI AI service — port 5000
+├── packages/
+│   ├── schemas/          # Zod schemas — THE source of truth
+│   ├── db/               # Auto-generated Supabase TypeScript types
+│   └── ui/               # Shared design system
+└── supabase/             # Migrations, seed, config
+```
+
+**Development workflow:** Schema-first. Define data in `packages/schemas` → API route → UI.
+
+---
+
+## Port Assignments
+
+| Port  | Service         |
+|-------|-----------------|
+| 3000  | API (Hono)      |
+| 3001  | Web Dashboard   |
+| 3002  | Site Companion  |
+| 3003  | Material Admin  |
+| 3004  | Work Orders     |
+--
+| 5000  | Doc Parser      |
+| 8082  | NocoDB          |
+| 54321 | Supabase API    |
+| 54323 | Supabase Studio |
+| 5080  | Agent Zero      |
+
+---
+
+## Local Supabase Credentials
+
+> These are standard local Supabase dev credentials. Run `npx supabase status` to confirm.
+
+| Key          | Value                                                                                                                                                                    |
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| URL          | `http://127.0.0.1:54321`                                                                                                                                                 |
+| Anon Key     | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0` |
+| Service Role | Run `npx supabase status` to get — needed for admin operations and doc-parser uploads                                                                                    |
+| Studio UI    | `http://localhost:54323`                                                                                                                                                 |
+
+---
+
+## API Keys
+
+| Key            | Location                   |
+|----------------|----------------------------|
+| OpenRouter     | `doc-parser/.env`          |
+
+---
+
+## Seed User Credentials
+
+| App                              | Email               | Password    |
+|----------------------------------|---------------------|-------------|
+| Web Dashboard (3001), Work Orders (3004) | `alice@example.com` | `password123`  |
+| Tenant Portal (3005)             | `eric@example.com`  | `password123$` |
+
+> If Supabase is reset (`supabase db reset`), re-run `apps/api/scripts/create_user.ts` to recreate users.
+
+---
+
+## Environment Flags
+
+| Variable         | Location            | Effect                                                          |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

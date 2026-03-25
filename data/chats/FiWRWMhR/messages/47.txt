@@ -1,0 +1,32 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+### Medium Priority
+4. **BMAD Integration** — Skill-based integration spec. See OQ-3.
+5. **Language Examples** — Go, Bash implementations or examples.
+6. **TypeScript Example** — Real-world example like Python pipeline.
+7. **GitHub Repository** — LICENSE (MIT likely), CONTRIBUTING.md, .gitignore, CI.
+
+### Lower Priority
+8. **Launch Execution** — Hacker News, dev.to, Reddit. Strategy outlined.
+9. **VS Code Extension** — Inline warnings for missing Bulwark patterns.
+10. **Cursor/Copilot Rules** — Auto-inject Bulwark into AI-generated code.
+
+---
+--
+- OQ-1: Linter architecture (standalone CLI? AST vs regex? language?)
+- OQ-2: License selection (MIT likely)
+- OQ-3: BMAD integration depth
+- OQ-4: Compliance badge (defer until linter exists)
+- OQ-5: AI-generated vs hand-written code (same standard for both)
+- OQ-6: Recovery command security implications
+- OQ-7: Spec vs implementation versioning strategy
+
+---
+
+## Environment Notes
+
+- All files at `/a0/usr/workdir/bulwark-ai/`
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Check if .bmad directory exists ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# No .bmad directory yet
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

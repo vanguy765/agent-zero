@@ -1,0 +1,7 @@
+9:[![Spec](https://img.shields.io/badge/spec-v0.2.0--draft-blue)](SPEC.md)
+106:## What's New in v0.2.0
+147:### 🏥 Availability Guards (Extension)
+153:    """Availability Guard: verify the API is reachable before starting work."""
+165:Availability Guards are an extension — useful in practice, but not required for Bulwark compliance. See the [Guide](GUIDE.md#52-availability-guards) for details.
+299:Guards are O(1) type checks — nanoseconds. Traces log a shape string — microseconds. Verifies may add one lightweight query. With v0.2.0's verify strategies, you can sample or adapt verification for high-throughput systems. Unmeasurable for 99% of applications.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

@@ -1,0 +1,316 @@
+### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+
+A Service Manifest centralizes dependency health checks, recovery procedures, severity classifications, and notification channels into a single declarative configuration. Instead of hard-coding recovery parameters in each `guard_available()` call, the manifest externalizes this knowledge — enabling operations teams to manage recovery without modifying application code.
+
+#### Motivation
+
+The Recovery sub-pattern (§10.1.2) solves the mechanics of automated recovery: detect, execute command, retry with backoff. But in systems with multiple dependencies, this creates a maintenance problem:
+
+- Recovery parameters are **scattered** across guard calls in different modules
+- Adding a new service requires **code changes**, not configuration changes
+- There is no **severity model** — a failing cache and a failing database trigger identical behavior
+- There is no **notification layer** — failures are logged but not communicated
+
+The Service Manifest addresses all four problems by introducing a configuration-driven orchestration layer.
+
+#### When to Use
+
+- Systems with **3+ external dependencies** (databases, caches, APIs, message queues)
+- **AI agent workflows** where the agent cannot manually intervene on failures
+- **Unattended environments** (CI/CD, scheduled jobs, overnight batch processing)
+- Teams where **developers and operations** manage different concerns
+
+#### When NOT to Use
+
+- **Single-dependency applications** — use `guard_available()` directly (§10.1)
+- **Serverless functions** — cold start latency makes health-check-at-init impractical
+- **Systems where all dependencies are managed by the platform** (e.g., fully managed cloud services with built-in health monitoring)
+
+#### 10.2.1 Manifest Schema
+
+The manifest is a JSON file (default: `services.json`) with the following structure:
+
+```json
+{
+  "version": "1.0",
+  "defaults": {
+    "max_retries": 3,
+    "retry_delay": 5.0,
+    "backoff_multiplier": 2.0,
+    "notification": {
+      "on_failure": false,
+      "channels": []
+    }
+  },
+  "services": {
+    "local_db": {
+      "description": "PostgreSQL primary database",
+      "health_check": {
+        "command": "pg_isready -h localhost -p 5432",
+        "timeout": 5
+      },
+      "recovery": {
+        "command": "systemctl restart postgresql",
+        "max_retries": 3,
+        "retry_delay": 5.0,
+        "backoff_multiplier": 2.0
+      },
+      "severity": "critical",
+      "notification": {
+        "on_failure": true,
+        "channels": ["slack", "email"],
+        "escalation_after": 2
+      }
+    },
+    "redis_cache": {
+      "description": "Redis session and cache store",
+      "health_check": {
+        "command": "redis-cli ping",
+        "timeout": 3
+      },
+      "recovery": {
+        "command": "docker compose up -d redis",
+        "max_retries": 2,
+        "retry_delay": 3.0,
+        "backoff_multiplier": 1.5
+      },
+      "severity": "warning",
+      "notification": {
+        "on_failure": false
+      }
+    },
+    "payment_api": {
+      "description": "Stripe payment gateway",
+      "health_check": {
+        "url": "https://api.stripe.com/v1/health",
+        "timeout": 10
+      },
+      "recovery": null,
+      "severity": "critical",
+      "notification": {
+        "on_failure": true,
+        "channels": ["pagerduty"],
+        "escalation_after": 0
+      }
+    }
+  }
+}
+```
+
+##### Schema Field Reference
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `version` | `string` | Yes | Manifest schema version for forward compatibility. |
+| `defaults` | `object` | No | Default values inherited by all services unless overridden. |
+| `services` | `object` | Yes | Map of service identifiers to service configurations. |
+| `services.<id>.description` | `string` | No | Human-readable description for diagnostics and documentation. |
+| `services.<id>.health_check.command` | `string` | * | Shell command returning exit code 0 when healthy. |
+| `services.<id>.health_check.url` | `string` | * | HTTP(S) endpoint; healthy if status < 500. |
+| `services.<id>.health_check.timeout` | `number` | Yes | Seconds before health check is considered failed. |
+| `services.<id>.recovery` | `object \| null` | Yes | Recovery configuration, or `null` for detection-only. |
+| `services.<id>.recovery.command` | `string` | Yes | Shell command or script path to execute for recovery. |
+| `services.<id>.recovery.max_retries` | `int` | No | Override default max retries. |
+| `services.<id>.recovery.retry_delay` | `float` | No | Override default retry delay (seconds). |
+| `services.<id>.recovery.backoff_multiplier` | `float` | No | Override default backoff multiplier. |
+| `services.<id>.severity` | `string` | Yes | One of: `"critical"`, `"warning"`, `"info"`. Drives notification and failure behavior. |
+| `services.<id>.notification` | `object` | No | Notification configuration for this service. |
+| `services.<id>.notification.on_failure` | `bool` | No | Whether to send notifications on unrecoverable failure. |
+| `services.<id>.notification.channels` | `list[string]` | No | Notification channel identifiers (e.g., `"slack"`, `"email"`, `"pagerduty"`). |
+| `services.<id>.notification.escalation_after` | `int` | No | Send notification after this many failed recovery attempts (0 = immediate). |
+
+\* Either `command` or `url` is required for `health_check`, not both.
+
+#### 10.2.2 Severity Model
+
+Severity classifies the **impact** of a service being unavailable and drives both recovery urgency and notification behavior:
+
+| Severity | Meaning | Recovery Behavior | Notification Default |
+|----------|---------|-------------------|---------------------|
+| `critical` | Application cannot function without this service | Full retry with backoff; fail loudly on exhaustion | Notify immediately or after `escalation_after` attempts |
+| `warning` | Application can degrade gracefully without this service | Retry if configured; log warning on exhaustion | No notification by default |
+| `info` | Nice-to-have dependency; absence is expected in some environments | Single check, no retry | No notification |
+
+##### Severity-Driven Guard Behavior
+
+```python
+# Critical: raises GuardError on failure (blocks execution)
+guard_service("local_db", "run_pipeline", operation_id)
+
+# Warning: logs warning, returns False (caller decides)
+available = check_service("redis_cache", "run_pipeline", operation_id)
+if not available:
+    trace_event("service:degraded", "redis_cache unavailable, using fallback", operation_id)
+    use_fallback_cache()
+
+# Info: silent check, no logging on absence
+if check_service("metrics_collector", "run_pipeline", operation_id):
+    push_metrics(result)
+```
+
+#### 10.2.3 Declarative Guard Function
+
+The manifest enables a simplified guard interface:
+
+```python
+def guard_service(service_name: str, func_name: str, operation_id: str,
+                  manifest_path: str = "services.json") -> None:
+    """Guard that a named service is available, with manifest-driven recovery.
+
+    Reads service configuration from the manifest, executes health check,
+    attempts recovery if configured, sends notifications based on severity,
+    and raises GuardError if the service cannot be restored.
+    """
+    manifest = _load_manifest(manifest_path)
+    guard_condition(service_name in manifest["services"], func_name,
+                    f"Service '{service_name}' not found in manifest")
+
+    svc = manifest["services"][service_name]
+    defaults = manifest.get("defaults", {})
+
+    # Phase 1: Detection
+    if _run_health_check(svc["health_check"]):
+        trace_event(f"service:healthy:{service_name}",
+                    f"{service_name} is available", operation_id)
+        return
+
+    trace_event(f"service:unavailable:{service_name}",
+                f"{service_name} is DOWN (severity={svc['severity']})", operation_id)
+
+    # Phase 2: Recovery (if configured)
+    recovery = svc.get("recovery")
+    if recovery:
+        max_retries = recovery.get("max_retries", defaults.get("max_retries", 3))
+        retry_delay = recovery.get("retry_delay", defaults.get("retry_delay", 5.0))
+        backoff = recovery.get("backoff_multiplier", defaults.get("backoff_multiplier", 2.0))
+
+        for attempt in range(1, max_retries + 1):
+            delay = retry_delay * (backoff ** (attempt - 1))
+            trace_recovery(f"service:recovery:{service_name}",
+                          f"Attempt {attempt}/{max_retries}: {recovery['command']}",
+                          delay, operation_id)
+
+            subprocess.run(recovery["command"], shell=True, timeout=30)
+            time.sleep(delay)
+
+            if _run_health_check(svc["health_check"]):
+                trace_event(f"service:recovered:{service_name}",
+                            f"{service_name} recovered after {attempt} attempt(s)",
+                            operation_id)
+                return
+
+            # Phase 3: Escalation notification (mid-recovery)
+            notif = svc.get("notification", defaults.get("notification", {}))
+            escalation_after = notif.get("escalation_after", max_retries)
+            if notif.get("on_failure") and attempt >= escalation_after:
+                _send_notifications(notif["channels"], service_name, svc["severity"],
+                                    attempt, max_retries, operation_id)
+
+    # Phase 4: Final failure
+    raise GuardError(
+        f"GUARD:{func_name} | Service '{service_name}' unavailable | "
+        f"severity={svc['severity']} | "
+        f"recovery_attempts={recovery['max_retries'] if recovery else 0} | "
+        f"op={operation_id}"
+    )
+```
+
+#### 10.2.4 Notification Channels
+
+Notification channels are identified by string keys in the manifest. The implementation maps these keys to concrete delivery mechanisms:
+
+```python
+# Channel registry — extend with custom channels as needed
+NOTIFICATION_CHANNELS = {
+    "slack": send_slack_notification,
+    "email": send_email_notification,
+    "pagerduty": send_pagerduty_notification,
+    "webhook": send_webhook_notification,
+    "log": send_log_notification,       # Always available, no external dependency
+}
+
+def _send_notifications(channels, service_name, severity, attempt, max_attempts, op_id):
+    """Dispatch notifications to all configured channels."""
+    for channel in channels:
+        handler = NOTIFICATION_CHANNELS.get(channel)
+        if handler:
+            trace_event(f"notification:{channel}",
+                        f"Alerting {channel}: {service_name} ({severity})", op_id)
+            try:
+                handler(
+                    service=service_name,
+                    severity=severity,
+                    message=f"Service '{service_name}' is DOWN after {attempt}/{max_attempts} recovery attempts",
+                    operation_id=op_id,
+                )
+            except Exception as e:
+                # Notification failure MUST NOT block the guard flow
+                trace_event(f"notification:error:{channel}",
+                            f"Failed to notify via {channel}: {e}", op_id)
+        else:
+            trace_event(f"notification:unknown:{channel}",
+                        f"No handler registered for channel '{channel}'", op_id)
+```
+
+##### Notification MUST Rules
+
+- **N1: Notification failure MUST NOT block guard execution.** A failing Slack webhook must not prevent the application from handling the original service failure.
+- **N2: Notifications MUST be traced.** Every notification attempt (success or failure) MUST produce a trace event with the channel, service, and operation ID.
+- **N3: The `log` channel MUST always be available.** It requires no external dependencies and serves as the fallback notification mechanism.
+- **N4: Notification content MUST include the operation ID.** This enables correlation between the notification and the full trace log.
+
+#### 10.2.5 Manifest MUST Rules
+
+- **M1: The manifest MUST be validated at load time.** Missing required fields, unknown severity values, or invalid health check configurations MUST raise a `GuardError` immediately — not at first use.
+- **M2: The manifest MUST be read-only at runtime.** Guards MUST NOT modify the manifest. Configuration changes require a file update and reload.
+- **M3: Service identifiers MUST be stable.** Renaming a service ID is a breaking change — all `guard_service()` calls reference the ID.
+- **M4: Health check commands MUST be idempotent.** They MUST NOT modify system state. `pg_isready` is correct; `pg_ctl restart` is not a health check.
+- **M5: Recovery commands MUST follow §10.1.2 Recovery MUST Rules (R1–R6).** The manifest does not override the safety constraints of the Recovery sub-pattern.
+- **M6: The manifest SHOULD be environment-specific.** Use `services.dev.json`, `services.staging.json`, `services.prod.json` to reflect different infrastructure per environment.
+
+#### 10.2.6 Separation of Concerns
+
+The manifest creates a clean boundary between development and operations:
+
+| Concern | Owner | Artifact |
+|---------|-------|----------|
+| Which services to guard | Developer | `guard_service("local_db", ...)` in source code |
+| How to check and recover services | Operations | `services.json` manifest file |
+| When to notify and who to alert | Operations | `notification` block in manifest |
+| How notifications are delivered | Platform team | Channel handler implementations |
+
+This separation means:
+- Developers write `guard_service("local_db", "run_pipeline", op_id)` and never think about recovery commands
+- Operations teams update `services.json` when infrastructure changes — no code deployments required
+- Platform teams register new notification channels without touching application or operations code
+
+#### 10.2.7 Diagnostic Format
+
+Manifest-driven guards produce structured diagnostics following the existing Bulwark format:
+
+```
+GUARD:SERVICE:run_pipeline | local_db — checking health (command: pg_isready -h localhost -p 5432)
+GUARD:SERVICE:run_pipeline | local_db — healthy ✓
+```
+
+Recovery flow:
+
+```
+GUARD:SERVICE:run_pipeline | local_db — unavailable (severity=critical)
+GUARD:RECOVERY:run_pipeline | local_db — attempt 1/3: systemctl restart postgresql
+GUARD:RECOVERY:run_pipeline | local_db — command exit=0, waiting 5.0s
+GUARD:SERVICE:run_pipeline | local_db — still unavailable after attempt 1
+GUARD:RECOVERY:run_pipeline | local_db — attempt 2/3: systemctl restart postgresql
+GUARD:RECOVERY:run_pipeline | local_db — command exit=0, waiting 10.0s
+GUARD:NOTIFICATION:run_pipeline | local_db — alerting slack (escalation_after=2 reached)
+GUARD:NOTIFICATION:run_pipeline | local_db — alerting email (escalation_after=2 reached)
+GUARD:SERVICE:run_pipeline | local_db — recovered after 2 attempts ✓
+```
+
+Total failure:
+
+```
+GUARD:SERVICE:run_pipeline | local_db — unavailable (severity=critical)
+GUARD:RECOVERY:run_pipeline | local_db — attempt 1/3: systemctl restart postgresql
+...
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

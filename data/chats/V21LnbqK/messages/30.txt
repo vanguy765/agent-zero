@@ -1,0 +1,12 @@
+=== Before patch - showing target lines ===
+460:        url_response = path  # Return storage path; frontend constructs authenticated URL
+507:        url_response = path  # Return storage path; frontend constructs authenticated URL
+
+=== Applying patch ===
+
+=== After patch - verifying ===
+460:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)  # Return full public URL
+477:        return url_response
+507:        url_response = sb_client.storage.from_("project-documents").get_public_url(path)  # Return full public URL
+522:        return url_response
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

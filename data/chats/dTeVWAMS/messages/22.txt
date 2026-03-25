@@ -1,0 +1,152 @@
+=== SPEC.md Section 10 structure ===
+722:## 10. Extension Layers
+726:### 10.1 Availability Guard (RECOMMENDED for external dependencies)
+730:#### When to Use
+737:#### When NOT to Use
+742:#### 10.1.1 Detection
+746:##### Pattern
+749:# ✅ RIGHT: Check at initialization
+758:# ❌ WRONG: Check on every call
+764:##### Diagnostic Format
+771:#### 10.1.2 Recovery (OPTIONAL)
+775:##### Motivation
+789:##### Recovery Parameters
+798:##### Recovery Behavior
+811:##### Recovery MUST Rules
+820:##### Pattern
+823:# Detection only (no recovery) — existing behavior, unchanged
+830:# Detection with recovery — new capability
+841:# Recovery with a multi-step script
+852:##### Diagnostic Format
+879:##### Security Considerations
+886:### 10.2 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+890:#### When to Use
+897:#### Why This Is an Extension, Not Core
+901:#### Pattern
+914:### 10.3 Confidence Annotation (FUTURE, not yet recommended)
+918:#### Why This Is Deferred
+922:#### Proposed Format (for future use)
+925:# CONFIDENCE: LOW — API response shape inferred from function name, not documentation
+926:# CONFIDENCE: HIGH — standard library pattern, well-established
+927:# CONFIDENCE: MEDIUM — based on similar patterns in training data
+\n=== SPEC.md around line 800-850 (Recovery section end) ===
+
+##### Recovery MUST Rules
+
+- **R1: Recovery MUST be optional.** Omitting `recovery_command` MUST produce identical behavior to the pre-recovery Availability Guard. No existing code breaks.
+- **R2: Recovery MUST be bounded.** The guard MUST NOT retry indefinitely. `max_retries` MUST be enforced.
+- **R3: Recovery MUST be logged.** Every recovery attempt MUST produce a diagnostic trace including: attempt number, max attempts, command executed, command exit code, and elapsed time.
+- **R4: Recovery commands MUST be explicit.** The guard MUST NOT infer or construct recovery commands. The caller provides the exact command.
+- **R5: Recovery MUST NOT escalate privileges.** The command runs with the current process permissions. No `sudo` injection, no privilege elevation.
+- **R6: Recovery failure MUST include full context.** The final failure diagnostic MUST include: dependency name, all attempts made, total time elapsed, last command exit code, and the original availability check result.
+
+##### Pattern
+
+```python
+# Detection only (no recovery) — existing behavior, unchanged
+guard_available(
+    check=lambda: requests.head(url, timeout=5).status_code < 500,
+    function_name="app_startup",
+    dependency="payment-service",
+)
+
+# Detection with recovery — new capability
+guard_available(
+    check=lambda: requests.head(url, timeout=5).status_code < 500,
+    function_name="app_startup",
+    dependency="payment-service",
+    recovery_command="docker compose up -d payment-service",
+    max_retries=3,
+    retry_delay=5.0,
+    backoff_multiplier=2.0,
+)
+
+# Recovery with a multi-step script
+guard_available(
+    check=lambda: requests.head(url, timeout=5).status_code < 500,
+    function_name="pipeline_start",
+    dependency="full-stack",
+    recovery_command="/scripts/reset-and-start.sh",
+    max_retries=2,
+    retry_delay=10.0,
+)
+```
+
+##### Diagnostic Format
+
+Recovery attempts produce structured log lines:
+
+```
+GUARD:AVAILABLE:app_startup | payment-service — unavailable, attempting recovery
+GUARD:RECOVERY:app_startup | payment-service — executing "docker compose up -d payment-service" (attempt 1/3)
+GUARD:RECOVERY:app_startup | payment-service — command exited with code 0, waiting 5.0s
+GUARD:AVAILABLE:app_startup | payment-service — OK (recovered after 1 attempt, 8.2s elapsed)
+```
+
+Recovery failure:
+
+```
+GUARD:AVAILABLE:app_startup | payment-service — unavailable, attempting recovery
+GUARD:RECOVERY:app_startup | payment-service — executing "docker compose up -d payment-service" (attempt 1/3)
+GUARD:RECOVERY:app_startup | payment-service — command exited with code 0, waiting 5.0s
+GUARD:AVAILABLE:app_startup | payment-service — still unavailable after attempt 1
+GUARD:RECOVERY:app_startup | payment-service — executing "docker compose up -d payment-service" (attempt 2/3)
+\n=== SPEC.md total lines ===
+1013 SPEC.md
+\n=== LIVE_TEST_PLAN.md structure ===
+1:# Bulwark × BMAD × Agent Zero — Live Test Plan
+10:## 1. Executive Summary
+12:### What We're Testing
+23:### The Self-Correction Loop
+60:### Confidence Assessment
+73:## 2. Test Scenarios
+75:### Round 1: Single Function (Baseline)
+79:#### Test 1.1: Greenfield Function Generation
+110:#### Test 1.2: Remediation of Existing Code
+136:#### Test 1.3: False Positive Handling
+156:### Round 2: Module-Level (Integration)
+160:#### Test 2.1: Three-Function Pipeline
+178:#### Test 2.2: Error Recovery Chain
+191:### Round 3: Real Codebase (Production)
+195:#### Test 3.1: TypeScript/SolidJS Component
+205:#### Test 3.2: Hono API Route Handler
+218:## 3. Environment Setup
+220:### Pre-Test Checklist
+223:# 1. Verify linter is accessible
+227:# 2. Set environment
+230:# 3. Verify BMAD skill is loadable
+233:# 4. Prepare test output directory
+237:### Agent Configuration
+242:## Bulwark Compliance Instructions
+267:## 4. Metrics Framework
+269:### 4.1 Primary Metrics (Per Test)
+271:#### A. Compliance Metrics
+281:#### B. Pattern Quality Metrics
+291:#### C. Efficiency Metrics
+300:#### D. Rule-Level Breakdown
+310:### 4.2 Aggregate Metrics (Across All Tests)
+319:### 4.3 Qualitative Observations
+336:## 5. Test Results Template
+338:### Test [ID]: [Name]
+344:#### Raw Results
+363:#### Rule Breakdown
+373:#### Qualitative Notes
+379:#### Generated Code Sample
+382:# [Paste the final code output]
+385:#### Linter Output (Final Pass)
+393:## 6. Analysis Framework
+395:### Failure Mode Taxonomy
+410:### Improvement Cycle
+428:### Improvement Priority Matrix
+438:## 7. Success Criteria
+440:### Minimum Viable (v0.2.0 Release Gate)
+448:### Target (v1.0.0 Release Gate)
+459:### Stretch (v2.0.0)
+469:## 8. Signals to Watch During Testing
+471:### Good Signs ✅
+483:### Warning Signs ⚠️
+498:## 9. Version History
+506:## 10. Appendix: Quick Reference
+508:### Bulwark Rules
+518:### Key File Locations
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,96 @@
+
+/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py
+  47:1  warning  BLW001  function-needs-guard     _type_name() has parameters but no guard calls
+  120:1  warning  BLW001  function-needs-guard     describe_shape() has parameters but no guard calls
+  340:1  warning  BLW001  function-needs-guard     test() has parameters but no guard calls
+  512:1  warning  BLW001  function-needs-guard     execute() has parameters but no guard calls
+  527:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  528:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  529:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  530:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  531:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+
+✖ 9 problems (0 errors, 9 warnings, 0 info)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === JSON SUMMARY ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+    print(f"Files: {data['summary']['files_scanned']}")
+                    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'files_scanned'
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === RUNNING TESTS ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+--- calculate_tax: Normal Cases ---
+  [PASS] 100 * 0.1 = 10.0
+  [PASS] 99.99 * 0.0825 = 8.25 (rounding)
+
+--- calculate_tax: Zero/Edge Cases ---
+  [PASS] 0 * 0.1 = 0.0
+  [PASS] 100 * 0 = 0.0
+  [PASS] 0 * 0 = 0.0
+  [PASS] 100 * 1.0 = 100.0 (max rate)
+
+--- calculate_tax: Guard Rejection Cases ---
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_tax | 'amount' value -50 below minimum 0
+  [PASS] Rejects negative amount
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_tax | 'rate' value 1.5 above maximum 1
+  [PASS] Rejects rate > 1
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_tax | 'rate' value -0.1 below minimum 0
+  [PASS] Rejects negative rate
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_tax | 'amount' expected int/float, got str
+  [PASS] Rejects string amount
+
+--- calculate_invoice_total: Guard Rejection Cases ---
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_invoice_total | 'items' is empty (list, len=0)
+  [PASS] Rejects empty items list
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_invoice_total | 'items[0]' expected dict, got str
+  [PASS] Rejects non-dict item
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_invoice_total | 'items[0]' missing keys: ['quantity', 'unit_price'], available: ['name']
+  [PASS] Rejects item with missing keys
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_invoice_total | 'db' is None
+  [PASS] Rejects None db
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_invoice_total | 'tax_rate' value 1.5 above maximum 1
+  [PASS] Rejects tax_rate > 1
+2026-03-16 17:07:04 | ERROR | GUARD:calculate_invoice_total | 'items[0]['quantity']' value 0 below minimum 1
+  [PASS] Rejects zero quantity
+
+--- calculate_invoice_total: Verify on Failed DB Write ---
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:input_items | list, len=1, items=dict, keys=['name', 'quantity', 'unit_price'], len=3, sample['name']=str, len=6
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:input_tax_rate | float
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:before_db_write | dict, keys=['item_count', 'subtotal', 'tax', 'total'], len=4, sample['subtotal']=float
+2026-03-16 17:07:04 | ERROR | VERIFY:calculate_invoice_total | INSERT expected 1 row affected, got 0
+  [PASS] Verify fires on failed DB write (rowcount=0)
+
+--- calculate_invoice_total: Happy Path ---
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:input_items | list, len=2, items=dict, keys=['name', 'quantity', 'unit_price'], len=3, sample['name']=str, len=8
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:input_tax_rate | float
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:before_db_write | dict, keys=['item_count', 'subtotal', 'tax', 'total'], len=4, sample['subtotal']=float
+2026-03-16 17:07:04 | DEBUG | VERIFY:calculate_invoice_total | OK -- INSERT expected 1 row affected, got 1
+2026-03-16 17:07:04 | DEBUG | VERIFY:calculate_invoice_total | OK -- INSERT expected lastrowid, got 1
+2026-03-16 17:07:04 | DEBUG | TRACE:calculate_invoice_total:output | dict, keys=['invoice_id', 'status', 'subtotal', 'tax', 'total'], len=5, sample['invoice_id']=int
+  [PASS] Happy path with real SQLite DB
+
+============================================================
+Results: 18/18 passed, 0 failed
+All tests passed!
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > 1. {'rule_id': 'BLW001', 'rule_name': 'function-needs-guard', 'severity': 'warning', 'message': '_type_name() has parameters but no guard calls', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 47, 'function_name': '_type_name'}
+
+2. {'rule_id': 'BLW001', 'rule_name': 'function-needs-guard', 'severity': 'warning', 'message': 'describe_shape() has parameters but no guard calls', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 120, 'function_name': 'describe_shape'}
+
+3. {'rule_id': 'BLW001', 'rule_name': 'function-needs-guard', 'severity': 'warning', 'message': 'test() has parameters but no guard calls', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 340, 'function_name': 'test'}
+
+4. {'rule_id': 'BLW001', 'rule_name': 'function-needs-guard', 'severity': 'warning', 'message': 'execute() has parameters but no guard calls', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 512, 'function_name': 'execute'}
+
+5. {'rule_id': 'BLW004', 'rule_name': 'no-bare-assert', 'severity': 'warning', 'message': '_invoice_happy_path() uses bare assert for validation instead of guard()', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 527, 'function_name': '_invoice_happy_path'}
+
+6. {'rule_id': 'BLW004', 'rule_name': 'no-bare-assert', 'severity': 'warning', 'message': '_invoice_happy_path() uses bare assert for validation instead of guard()', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 528, 'function_name': '_invoice_happy_path'}
+
+7. {'rule_id': 'BLW004', 'rule_name': 'no-bare-assert', 'severity': 'warning', 'message': '_invoice_happy_path() uses bare assert for validation instead of guard()', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 529, 'function_name': '_invoice_happy_path'}
+
+8. {'rule_id': 'BLW004', 'rule_name': 'no-bare-assert', 'severity': 'warning', 'message': '_invoice_happy_path() uses bare assert for validation instead of guard()', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 530, 'function_name': '_invoice_happy_path'}
+
+9. {'rule_id': 'BLW004', 'rule_name': 'no-bare-assert', 'severity': 'warning', 'message': '_invoice_happy_path() uses bare assert for validation instead of guard()', 'filepath': '/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py', 'line': 531, 'function_name': '_invoice_happy_path'}
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,62 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# pages type: <class 'dict'>
+tables type: <class 'list'>
+
+First page key: 1
+{
+  "thumbnail_url": "",
+  "floorplan_dia_urls": [],
+  "floorplan_urls": [],
+  "site_photos": [],
+  "diagrams": [],
+  "tables": [
+    {
+      "markdown": "{\"unit_number\": \"DUMMY-101\", \"unit_type\": \"1B1B\", \"floor\": 1, \"bedrooms\": 1, \"bathrooms\": 1, \"total_area_sf\": 800, \"rooms\": [], \"doors\": [], \"windows\": [], \"fixtures\": [], \"upgrades\": [], \"general_notes\": [\"AI intercepted for development\"]}",
+      "url": null,
+      "image_url": "",
+      "source": "cv2_grid_fallback"
+    }
+  ],
+  "elements_detected": [
+    {
+      "type": "floorplan",
+      "pixel_bbox": [
+        61,
+        54,
+        3360,
+        1951
+      ],
+      "bbox": [
+        0.0179,
+        0.0245,
+        0.9882,
+        0.8868
+      ],
+      "label": "floorplan (layout-derived, 3299x1897px)",
+      "confidence": 0.76
+    },
+    {
+      "type": "title_block",
+      "pixel_bbox": [
+        61,
+        1951,
+        3360,
+        2156
+      ],
+      "bbox": [
+        0.0179,
+        0.8868,
+        0.9882,
+        0.98
+      ],
+      "label": "title_block (3299x205px)",
+      "confidence": 0.88,
+      "template_match": false
+    }
+  ]
+}
+
+First table:
+{
+  "page_no": 14,
+  "markdown": "| BH    | Unit 308                                                                      | ENTRY                                                                    | KITCHEN                                                                  | BATHRM                                                                   | LIVING                                                                   | STRGE                                                                    |\n|-------|-------------------------------------------------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------------|\n| 1.0   | FINISHES                                                                      | FINISHES                                                                 | FINISHES                                                                 | FINISHES                                                                 | FINISHES                                                                 | FINISHES                                                                 |\n|       | Ceiling
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

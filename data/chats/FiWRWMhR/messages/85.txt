@@ -1,0 +1,5 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > ✅ BLW002 updated to hybrid approach
+  - Mutation detection: original body (preserves string content like HTTP methods)
+  - Verify detection: clean_body (prevents FPs from verify in strings)
+  - Docstring FP prevention: handled by languages.py (no longer extracts functions from docstrings)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

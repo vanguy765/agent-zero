@@ -1,0 +1,27 @@
+Pages type: <class 'dict'>, count: 29
+Page keys (first 5): ['1', '2', '3', '4', '5']
+
+Page 1 keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  thumbnail_url: http://host.docker.internal:54321/storage/v1/object/sign/project-documents/default/unassigned/doc-parser/job_39c67e14-51f2-4eca-9105-5bc3e3a7736b_thum
+  floorplan_dia_urls: ['http://host.docker.internal:54321/storage/v1/object/sign/project-documents/default/unassigned/doc-parser/job_39c67e14-51f2-4eca-9105-5bc3e3a7736b_fl
+  floorplan_urls: None/empty
+  site_photos: None/empty
+  diagrams: None/empty
+  tables: [{'markdown': '{"unit_number": "DUMMY-101", "unit_type": "1B1B", "floor": 1, "bedrooms": 1, "bathrooms": 1, "total_area_sf": 800, "rooms": [], "doors"
+  elements_detected: [{'type': 'floorplan', 'pixel_bbox': [61, 54, 3360, 1951], 'bbox': [0.0179, 0.0245, 0.9882, 0.8868], 'label': 'floorplan (layout-derived, 3299x1897px)
+
+Thumbnails type: <class 'dict'>, count: 29
+  First thumbnail (1): http://host.docker.internal:54321/storage/v1/object/sign/project-documents/default/unassigned/doc-parser/job_39c67e14-51f2-4eca-9105-5bc3e3a7736b_thum
+
+Tables type: <class 'list'>, count: 27
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+Cell In[1], line 30
+     28 print(f'\nTables type: {type(tables)}, count: {len(tables)}')
+     29 if tables:
+---> 30     ttk = list(tables.keys())[0]
+     31     tv = tables[ttk]
+     32     if isinstance(tv, dict):
+
+AttributeError: 'list' object has no attribute 'keys'
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

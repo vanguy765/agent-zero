@@ -1,0 +1,18 @@
+PROJECT_STATUS.md                         |  12 +-
+ test-results/TEST_2.3_RESULTS.md          | 228 +++++++++++
+ test-results/service_manifest_pipeline.py | 639 ++++++++++++++++++++++++++++++
+ 3 files changed, 876 insertions(+), 3 deletions(-)
+[main 794f6bf] test: Test 2.3 Service Manifest Guard — ALL SCENARIOS PASSED
+ 3 files changed, 876 insertions(+), 3 deletions(-)
+ create mode 100644 test-results/TEST_2.3_RESULTS.md
+ create mode 100644 test-results/service_manifest_pipeline.py
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 9.17 KiB | 626.00 KiB/s, done.
+Total 6 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/vanguy765/bulwark-ai.git
+   205b521..794f6bf  main -> main
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

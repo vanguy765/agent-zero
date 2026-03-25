@@ -1,0 +1,11 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 54:def guard_type(value: Any, expected_type, function_name: str,
+65:def guard_not_none(value: Any, function_name: str,
+75:def guard_not_empty(value: Any, function_name: str,
+87:def guard_range(value, min_val=None, max_val=None,
+105:def guard_keys(data: dict, required_keys: set, function_name: str,
+148:def trace(label: str, data: Any) -> Any:
+157:def verify(condition: bool, function_name: str, message: str) -> None:
+182:def calculate_tax(amount: float, rate: float) -> float:
+227:def calculate_invoice_total(items: list[dict], tax_rate: float, db) -> dict:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === LINTER OUTPUT ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

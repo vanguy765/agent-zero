@@ -1,0 +1,11 @@
+344:export interface DashboardStats {
+851:  async getDashboardStats(): Promise<DashboardStats> {
+852:    return this.request<DashboardStats>('/dashboard-stats');
+==API ROUTE==
+1330:// GET /dashboard-stats - Aggregated stats for the overview dashboard
+1331:workOrdersRoute.get('/dashboard-stats', async (c) => {
+1372:        .from('type_order_compositions')
+1394:        template_wo_counts: templateWoCounts,
+1396:        project_unit_stats: projectUnitStats,
+1397:        type_order_compositions: typeOrderCompositions,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

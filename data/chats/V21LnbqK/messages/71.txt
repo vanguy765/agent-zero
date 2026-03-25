@@ -1,0 +1,23 @@
+=== SESSION_START.md ===
+52 /a0/usr/projects/timesheet_app/voicelog-scaffold/SESSION_START.md
+
+=== AGENTS.md top ===
+# Construction Voice Platform — Agent Context
+
+> **🚀 Starting a new session?** Follow the protocol in [`SESSION_START.md`](./SESSION_START.md) — read all docs, run pre-flight, report status before doing any work.
+
+This file is the single source of truth for all AI agents working on this project.
+It is synced to agent-specific files (CLAUDE.md, .cursorrules, etc.) via:
+```powershell
+powershell -File scripts/sync-agent-context.ps1
+
+=== Pre-flight section in AGENTS.md ===
+1
+
+=== preflight.py ===
+88 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/preflight.py
+
+=== All files ===
+-rwxr-xr-x 1 root root 3093 Mar 14 03:15 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/preflight.py
+-rw-r--r-- 1 root root 2188 Mar 14 03:16 /a0/usr/projects/timesheet_app/voicelog-scaffold/SESSION_START.md
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

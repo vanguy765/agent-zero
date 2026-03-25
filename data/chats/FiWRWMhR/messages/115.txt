@@ -1,0 +1,26 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#             filepath=filepath,
+            clean_body=clean_body,
+        ))
+
+    return functions
+
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === INSERTING FILTER ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === VERIFY ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#             filepath=filepath,
+            clean_body=clean_body,
+        ))
+
+
+    # Exclude functions inside `if __name__` blocks (F-LNT-2/3/4)
+    main_guard_line = _find_main_guard_line(clean_source, source)
+    if main_guard_line is not None:
+        functions = [f for f in functions if f.start_line < main_guard_line]
+    return functions
+
+
+# ---------------------------------------------------------------------------
+# TypeScript / JavaScript function extraction
+# ---------------------------------------------------------------------------
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

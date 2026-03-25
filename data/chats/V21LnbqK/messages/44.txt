@@ -1,0 +1,73 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/docs/workorders/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf
+/a0/usr/projects/timesheet_app/voicelog-scaffold/tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf
+
+=== Check test scripts ===
+total 20
+drwxr-xr-x 1 root root  4096 Mar 14 00:43 .
+drwxrwxrwx 1 root root  4096 Mar 14 01:13 ..
+drwxr-xr-x 1 root root  4096 Mar 13 02:53 artifacts
+-rwxr-xr-x 1 root root 10680 Mar 14 00:42 save_parsed_pages.py
+-rwxr-xr-x 1 root root  8083 Mar 14 00:43 verify_image_urls.py
+
+=== How save_parsed_pages.py works ===
+#!/usr/bin/env python3
+"""
+save_parsed_pages.py — Submit a PDF to doc-parser, poll for completion,
+fetch results, and save all artifacts to disk.
+
+Usage:
+    python save_parsed_pages.py \
+        --pdf /path/to/document.pdf \
+        --supabase-url http://host.docker.internal:54321 \
+        --supabase-key <service_role_key> \
+        --project-name test-project \
+        --tenant-name test-tenant \
+        --engine hybrid
+
+Output structure:
+    <output-dir>/
+    ├── full_result.json          # Complete raw API response
+    ├── manifest.json             # Index of all saved files
+    ├── pages/
+    │   ├── page_NNN.json         # Per-page metadata
+    │   ├── page_NNN.png          # Full page render (from Supabase storage)
+    │   ├── page_NNN_thumb.png    # Thumbnail (from Supabase storage)
+    │   ├── page_NNN_text.txt     # Raw text (if available)
+    │   └── ...
+    └── tables/
+        └── page_NNN_table_MMM.md # Extracted table markdown
+"""
+
+import argparse
+import json
+import os
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+import requests
+
+DOC_PARSER_BASE = os.environ.get("DOC_PARSER_URL", "http://doc-parser:5000")
+STORAGE_BUCKET = "project-documents"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Parse a PDF via doc-parser and save all artifacts to disk."
+    )
+    parser.add_argument("--pdf", required=True, help="Path to the PDF file")
+    parser.add_argument("--supabase-url", required=True, help="Supabase URL")
+    parser.add_argument("--supabase-key", required=True, help="Supabase service role key")
+    parser.add_argument("--project-name", default="test-project", help="Project name for storage path")
+    parser.add_argument("--tenant-name", default="test-tenant", help="Tenant name for storage path")
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory (default: auto-timestamped under artifacts/runs/)",
+    )
+    parser.add_argument("--engine", default="hybrid", choices=["hybrid", "docling"], help="Parse engine")
+    parser.add_argument("--timeout", type=int, default=900, help="Max seconds to wait for parsing")
+    parser.add_argument("--poll-interval", type=int, default=10, help="Seconds between status polls")
+    return parser.parse_args()
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

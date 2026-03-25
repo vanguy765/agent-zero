@@ -1,0 +1,205 @@
+=== Lines 420-470 ===
+  async getTemplates(scope?: 'system' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+    const query = scope ? `?scope=${scope}` : '';
+    return this.request<WorkOrderTemplate[]>(`/templates${query}`);
+  }
+
+  async getTemplate(id: string): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>(`/templates/${id}`);
+  }
+
+  async createTemplate(data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>('/templates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTemplate(id: string, data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>(`/templates/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTemplate(id: string): Promise<{ success: boolean }> {
+    return this.request(`/templates/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Template Inheritance / Assignment
+  async getSystemTemplates(): Promise<WorkOrderTemplate[]> {
+    return this.request<WorkOrderTemplate[]>('/templates/system');
+  }
+
+  async getCompanyTemplates(): Promise<WorkOrderTemplate[]> {
+    return this.request<WorkOrderTemplate[]>('/templates/company');
+  }
+
+  async getProjectTemplates(projectId: string): Promise<WorkOrderTemplate[]> {
+    return this.request<WorkOrderTemplate[]>(`/templates/project/${projectId}`);
+  }
+
+  async assignTemplateToCompany(systemTemplateId: string, organizationId: string): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>('/templates/assign-to-company', {
+      method: 'POST',
+      body: JSON.stringify({ app_template_id: systemTemplateId, organization_id: organizationId }),
+    });
+  }
+
+  async assignTemplateToProject(companyTemplateId: string, projectId: string, organizationId: string): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>('/templates/assign-to-project', {
+
+=== Lines 538-578 ===
+  async getProjects(): Promise<WOProject[]> {
+    return this.request<WOProject[]>('/projects');
+  }
+
+  async getProject(id: string): Promise<WOProject> {
+    return this.request<WOProject>(`/projects/${id}`);
+  }
+
+  async createProject(data: Partial<WOProject>): Promise<WOProject> {
+    return this.request<WOProject>('/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProject(id: string, data: Partial<WOProject>): Promise<WOProject> {
+    return this.request<WOProject>(`/projects/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProject(id: string): Promise<{ success: boolean }> {
+    return this.request(`/projects/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Template Libraries (Legacy)
+  async getTemplateLibraries(params?: {
+    project_type?: string;
+    scope?: 'system' | 'company';
+  }): Promise<TemplateLibrary[]> {
+    const query = params ? new URLSearchParams(params as any).toString() : '';
+    return this.request<TemplateLibrary[]>(
+      `/template-libraries${query ? `?${query}` : ''}`
+    );
+  }
+
+  async getTemplateLibrary(id: string): Promise<TemplateLibrary> {
+    return this.request<TemplateLibrary>(`/template-libraries/${id}`);
+
+=== Lines 608-648 ===
+  async getTypeOrders(category?: string): Promise<TypeOrder[]> {
+    const q = category ? `?category=${category}` : '';
+    return this.request<TypeOrder[]>(`/type-orders${q}`);
+  }
+
+  async getTypeOrderCompositions(typeOrderId: string): Promise<any[]> {
+    return this.request<any[]>(`/type-orders/${typeOrderId}/compositions`);
+  }
+
+  async getTypeOrderDefaultWorkOrders(typeOrderId: string): Promise<any[]> {
+    return this.request<any[]>(`/type-orders/${typeOrderId}/default-work-orders`);
+  }
+
+  async updateTypeOrderDefaultWorkOrders(typeOrderId: string, templateIds: string[]): Promise<void> {
+    return this.request(`/type-orders/${typeOrderId}/default-work-orders`, {
+      method: 'PUT',
+      body: JSON.stringify({ templateIds })
+    });
+  }
+
+  // BOM Action Requests
+  async getBomActionRequests(projectId: string): Promise<BomActionRequest[]> {
+    return this.request<BomActionRequest[]>(`/bom-action-requests/project/${projectId}`);
+  }
+
+  async updateBomActionRequest(id: string, updates: Partial<BomActionRequest>): Promise<BomActionRequest> {
+    return this.request<BomActionRequest>(`/bom-action-requests/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  // Documents
+  async getProjectDocuments(projectId: string): Promise<ProjectDocument[]> {
+    return this.request<ProjectDocument[]>(`/projects/${projectId}/documents`);
+  }
+
+  async uploadDocument(projectId: string, file: File, title?: string, description?: string): Promise<ProjectDocument> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (title) formData.append('title', title);
+
+=== Lines 860-880 ===
+  async getDashboardStats(): Promise<DashboardStats> {
+    return this.request<DashboardStats>('/dashboard-stats');
+  }
+}
+
+
+export const api = new ApiClient(API_URL);
+
+
+=== Lines 361-381 ===
+class ApiClient {
+  private baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          ...options?.headers,
+        },
+      });
+
+=== Lines 370-400 ===
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+          ...options?.headers,
+        },
+      });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`API Error: ${response.status} - ${error}`);
+      }
+      return response.json();
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        throw new Error('Request timed out – API server may be offline.');
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  // Units
+  async getUnits(): Promise<Unit[]> {
+    return this.request<Unit[]>('/units');
+  }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

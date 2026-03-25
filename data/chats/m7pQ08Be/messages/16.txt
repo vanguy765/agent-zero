@@ -1,0 +1,36 @@
+703:## 5. Runtime Modes: Not Everything Costs the Same
+---
+759:## 6. How to Add Bulwark to Your Project
+---
+763:### Step 1: Copy the Helper Functions
+---
+15:5. [Runtime Modes: Not Everything Costs the Same](#5-runtime-modes-not-everything-costs-the-same)
+703:## 5. Runtime Modes: Not Everything Costs the Same
+---
+7:---
+21:---
+31:---
+98:---
+106:---
+207:---
+312:---
+402:---
+412:---
+434:---
+474:---
+527:---
+573:---
+622:---
+701:---
+757:---
+850:---
+856:---
+897:---
+948:---
+981:---
+1031:---
+1088:---
+1114:---
+1130:---
+1148:---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,45 @@
+16:**Stack:** Hono API · SolidJS frontends · Supabase (Postgres + Auth + Realtime) · Python doc-parser
+25:│   ├── api/              # Hono backend (The Brain) — port 3000
+26:│   ├── web-dashboard/    # SolidJS admin — port 3001
+27:│   ├── site-companion/   # SolidJS PWA (field workers) — port 3002
+28:│   ├── material-admin/   # Material & taxonomy manager — port 3003
+29:│   ├── work-orders/      # Work orders management — port 3004
+30:│   └── tenant-portal/    # Tenant data portal — port 3005
+31:├── doc-parser/           # Python FastAPI AI service — port 5000
+43:## ⛔ Critical Agent Rules — doc-parser
+45:**doc-parser is a standalone Docker container. It is NOT a local process inside the Agent Zero container.**
+50:| ❌ NEVER install Python packages in `doc-parser/` | No pip, no venv, no requirements.txt installs from this container |
+51:| ❌ NEVER look for or activate a venv in `doc-parser/` | There is no venv there — it lives inside the Docker image |
+52:| ✅ If port 5000 is unreachable | `notify_user` type=warning and ask user to run `docker-compose up` in `doc-parser/` **on Windows** |
+53:| ✅ To interact with doc-parser | Use HTTP via `http://doc-parser:5000` (shared `agent-zero-network`) or `http://localhost:5000` |
+64:| 3000  | API (Hono)      |
+70:| 5000  | Doc Parser      |
+86:| Service Role | Run `npx supabase status` to get — needed for admin operations and doc-parser uploads                                                                                    |
+95:| OpenRouter     | `doc-parser/.env`          |
+114:| `PROGRAM_STATUS=develop_without_ai` | root `.env`, `doc-parser/.env` | Skips Claude API calls in doc-parser; returns mocked JSON |
+124:cd doc-parser
+139:### Hono API — doc-parser routes (`/api/doc-parser/*`)
+141:The Hono API (port 3000) wraps the doc-parser with Supabase integration.
+142:All routes accept/return JSON. `document_id` must exist in `project_documents`.
+148:| `POST` | `/api/doc-parser/pipeline` | **Full pipeline** — parse entire PDF, persist all pages + OCR to DB. Blocks until complete. |
+149:| `POST` | `/api/doc-parser/pipeline/page` | **Single-page pipeline** — extract page N via `pdf-lib`, parse, upsert that page only. Body: `{ document_id, page_number, engine? }` |
+150:| `POST` | `/api/doc-parser/pipeline/reprocess` | **Idempotent re-run** — same as `/pipeline` but safe to call multiple times (upsert). Adds `reprocessed: true` in response. |
+156:| `POST` | `/api/doc-parser/parse` | Submit job, return `job_id` immediately (caller polls) |
+157:| `GET`  | `/api/doc-parser/status/:jobId` | Lightweight poll — safe every 2-5s |
+158:| `GET`  | `/api/doc-parser/results/:jobId` | Full results — fetch once after `completed` |
+159:| `GET`  | `/api/doc-parser/health` | Health check including doc-parser reachability |
+161:#### Read endpoints (DB queries — no doc-parser call)
+165:| `GET`  | `/api/doc-parser/documents/:documentId/pages` | List all parsed pages. Query params: `?category=floorplan\|table\|site_photo\|diagram\|mixed\|text`, `?limit=`, `?offset=` |
+166:| `GET`  | `/api/doc-parser/documents/:documentId/pages/:pageNumber` | Get one page by 1-indexed page number (storage_url, thumbnail, category, raw_text, metadata) |
+167:| `GET`  | `/api/doc-parser/documents/:documentId/ocr` | List OCR/table results. Query params: `?page_number=N`, `?limit=`, `?offset=` |
+168:| `GET`  | `/api/doc-parser/documents/:documentId/ocr/:pageNumber` | OCR results for a single page — returns page metadata + all OCR/table rows for that page |
+174:| `GET`  | `/api/doc-parser/projects/:projectId/documents` | List all documents for a project — id, title, description, file_url, page_count, ocr_table_count, parsed status. Query: `?limit=`, `?offset=` |
+175:| `GET`  | `/api/doc-parser/projects/:projectId/documents/:documentId` | Full document detail — metadata + page list with thumbnails + category breakdown + OCR table count |
+177:> **Note:** `/pipeline/page` requires `pdf-lib`. Run `pnpm install` on Windows after any container-side `package.json` change.
+180:curl -X POST http://localhost:3000/api/doc-parser/pipeline \
+182:  -d '{"document_id": "<uuid>", "engine": "hybrid"}'
+183:# Returns: { document_id, job_id, pages_persisted, ocr_tables_persisted, summary }
+211:cd doc-parser && docker compose up -d
+215:# Kill zombie Node processes on ports 3000-3005
+236:| `docs/ports.md` | Port allocation contract |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

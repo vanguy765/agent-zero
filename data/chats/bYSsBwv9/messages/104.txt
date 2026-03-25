@@ -1,0 +1,74 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing templates with verbose ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# *   Trying [::1]:3000...
+< HTTP/1.1 500 Internal Server Error
+{ [2 bytes data]
+{}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing dashboard-stats with verbose ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# *   Trying [::1]:3000...
+< HTTP/1.1 500 Internal Server Error
+{ [2 bytes data]
+{}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API index.ts (first 60 lines) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+console.log('[API] DOC_PARSER_URL is:', process.env.DOC_PARSER_URL);
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+import { tradesRoute } from './routes/trades';
+import { projectOutcomesRoute } from './routes/project-outcomes';
+import { typeOrdersRoute } from './routes/type-orders';
+import { bomActionRequestsRoute } from './routes/bom-action-requests';
+
+import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+import { docParserRoutes } from './routes/doc-parser-routes';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+app.route('/work-orders/trades', tradesRoute);
+app.route('/work-orders/project-outcomes', projectOutcomesRoute);
+app.route('/work-orders/type-orders', typeOrdersRoute);
+app.route('/work-orders/bom-action-requests', bomActionRequestsRoute);
+
+app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

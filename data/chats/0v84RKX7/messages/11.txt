@@ -1,0 +1,155 @@
+============================================================
+Function: guard_condition() at line 58-63
+Params: condition: bool, function_name: str, message: str
+Body lines: 5
+Clean body has 'guard': True
+Clean body (first 5 lines):
+      """                                                              """
+      if not condition:
+          diag = f"                                 "
+          log.error(diag)
+          raise GuardError(diag)
+
+============================================================
+Function: guard_type() at line 66-74
+Params: value: Any, expected_type: type, function_name: str,
+               param_name: str = "     "
+Body lines: 8
+Clean body has 'guard': True
+Clean body (first 5 lines):
+                 param_name: str = "     ") -> None:
+      """                                         """
+      guard_condition(
+          isinstance(value, expected_type),
+          function_name,
+
+============================================================
+Function: guard_keys() at line 77-87
+Params: data: dict, required_keys: set, function_name: str,
+               param_name: str = "     "
+Body lines: 10
+Clean body has 'guard': True
+Clean body (first 5 lines):
+                 param_name: str = "     ") -> None:
+      """                                                   """
+      guard_type(data, dict, function_name, param_name)
+      missing = required_keys - set(data.keys())
+      guard_condition(
+
+============================================================
+Function: guard_not_empty() at line 90-103
+Params: value: Any, function_name: str,
+                    param_name: str = "     "
+Body lines: 13
+Clean body has 'guard': True
+Clean body (first 5 lines):
+                      param_name: str = "     ") -> None:
+      """                                                            """
+      guard_condition(
+          value is not None,
+          function_name,
+
+============================================================
+Function: _describe_shape() at line 110-128
+Params: data: Any
+Body lines: 18
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      """                                                               """
+      if data is None:
+          return "        "
+      t = type(data).__name__
+      if isinstance(data, dict):
+
+============================================================
+Function: trace_data() at line 131-135
+Params: label: str, data: Any, operation_id: str
+Body lines: 4
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      """                                                                        """
+      shape = _describe_shape(data)
+      log.info(f"                                           ")
+      return data
+
+============================================================
+Function: trace_event() at line 138-140
+Params: label: str, message: str, operation_id: str
+Body lines: 2
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      """                                                                 """
+      log.info(f"                                             ")
+
+============================================================
+Function: verify_condition() at line 147-154
+Params: condition: bool, function_name: str,
+                     message: str
+Body lines: 7
+Clean body has 'guard': False
+Clean body (first 5 lines):
+                       message: str) -> None:
+      """                                                                """
+      if not condition:
+          diag = f"                                  "
+          log.error(diag)
+
+============================================================
+Function: verify_file_written() at line 157-175
+Params: filepath: str, function_name: str,
+                        min_size: int = 1
+Body lines: 18
+Clean body has 'guard': False
+Clean body (first 5 lines):
+                          min_size: int = 1) -> None:
+      """                                                      """
+      if not os.path.exists(filepath):
+          diag = (f"                         "
+                  f"                                            ")
+
+============================================================
+Function: ingest_csv() at line 182-184
+Params: filepath: str,
+    operation_id: str | None = None,
+Body lines: 2
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      filepath: str,
+      operation_id: str | None = None,
+
+============================================================
+Function: transform_records() at line 265-268
+Params: records: list[dict],
+    schema: dict,
+    operation_id: str,
+Body lines: 3
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      records: list[dict],
+      schema: dict,
+      operation_id: str,
+
+============================================================
+Function: load_to_database() at line 350-353
+Params: records: list[dict],
+    db_config: dict,
+    operation_id: str,
+Body lines: 3
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      records: list[dict],
+      db_config: dict,
+      operation_id: str,
+
+============================================================
+Function: run_pipeline() at line 448-451
+Params: filepath: str,
+    schema: dict,
+    db_config: dict,
+Body lines: 3
+Clean body has 'guard': False
+Clean body (first 5 lines):
+      filepath: str,
+      schema: dict,
+      db_config: dict,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

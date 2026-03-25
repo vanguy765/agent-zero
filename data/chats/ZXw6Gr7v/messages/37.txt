@@ -1,0 +1,36 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > [
+    {
+        "page_number": 1,
+        "storage_url": null,
+        "thumbnail_url": "default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_thumb_page_1.png",
+        "category": "text"
+    },
+    {
+        "page_number": 2,
+        "storage_url": null,
+        "thumbnail_url": "default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_thumb_page_2.png",
+        "category": "text"
+    },
+    {
+        "page_number": 3,
+        "storage_url": null,
+        "thumbnail_url": "default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_thumb_page_3.png",
+        "category": "text"
+    },
+    {
+        "page_number": 4,
+        "storage_url": null,
+        "thumbnail_url": "default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_thumb_page_4.png",
+        "category": "text"
+    },
+    {
+        "page_number": 5,
+        "storage_url": null,
+        "thumbnail_url": "default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_thumb_page_5.png",
+        "category": "text"
+    }
+]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Count of pages with NULL storage_url ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > Content-Range: 0-28/29
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,21 @@
+=== Check if doc-parser hostname resolves ===
+172.21.0.3      doc-parser
+
+=== Check localhost:5000 ===
+{"status":"healthy","version":"2.0.0","engines":["docling","hybrid"],"dependencies":{"docling":false,"tesseract":true,"litellm":false},"jobs":{"running":0,"queued":0,"total":0},"config":{"store_backend":"memory","default_provider":"anthropic/claude-3.5-sonnet","processing_timeout_s":1800}}
+
+=== Purge any artifacts from failed run ===
+Cleaned
+
+=== Check save_parsed_pages.py DOC_PARSER_URL usage ===
+3:save_parsed_pages.py — Submit a PDF to doc-parser, poll for completion,
+9:        --supabase-url http://host.docker.internal:54321 \
+39:DOC_PARSER_BASE = os.environ.get("DOC_PARSER_URL", "http://doc-parser:5000")
+45:        description="Parse a PDF via doc-parser and save all artifacts to disk."
+48:    parser.add_argument("--supabase-url", required=True, help="Supabase URL")
+63:def submit_job(pdf_path: str, engine: str, supabase_url: str, supabase_key: str,
+65:    """Submit PDF to doc-parser, return job_id."""
+66:    url = f"{DOC_PARSER_BASE}/parse/{engine}"
+70:            "supabase_url": supabase_url,
+88:    url = f"{DOC_PARSER_BASE}/status/{job_id}"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

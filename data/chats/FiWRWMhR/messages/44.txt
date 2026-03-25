@@ -1,0 +1,12 @@
+<>:35: SyntaxWarning: invalid escape sequence '\|'
+<ipython-input-1-d7b01b1410b1>:35: SyntaxWarning: invalid escape sequence '\|'
+  result = subprocess.run(["grep", "-A2", "TD-6\|TD-7", path], capture_output=True, text=True)
+✅ PROJECT_STATUS.md updated
+### TD-6: ~~No .gitignore~~ ✅ RESOLVED
+~~No `.gitignore` file for the repository.~~ Added comprehensive `.gitignore` (83 lines) covering Python, Node/TypeScript, Go, IDE/editor files, OS artifacts, CI build outputs, and secrets. Compiled JavaScript kept (not excluded).
+
+### TD-7: ~~GUIDE.md Line Count~~ ✅ RESOLVED
+~~GUIDE.md is 1,570 lines. May benefit from being split.~~ Created `QUICKSTART.md` (261 lines) as a lean 5-minute on-ramp. GUIDE.md retained as comprehensive single source of truth with cross-reference to QUICKSTART.md added at the top.
+
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

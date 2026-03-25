@@ -1,0 +1,624 @@
+/**
+ * Bulwark AI — TypeScript Reference Implementation
+ *
+ * Zero-dependency defensive coding primitives for AI-generated code.
+ * Implements the Guard-Trace-Verify standard using only built-in features.
+ *
+ * Version: 0.1.0-draft
+ * License: MIT
+ * Usage:  Copy this file into your project. No npm install needed.
+ */
+
+// ===========================================================================
+// Configuration
+// ===========================================================================
+
+const BULWARK_ENABLED = process.env.BULWARK_ENABLED !== "0";
+
+type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+
+function bulwarkLog(level: LogLevel, message: string): void {
+  const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+  const prefix = `${timestamp} | ${level.padEnd(5)} |`;
+  switch (level) {
+    case "ERROR":
+      console.error(`${prefix} ${message}`);
+      break;
+    case "WARN":
+      console.warn(`${prefix} ${message}`);
+      break;
+    default:
+      console.log(`${prefix} ${message}`);
+  }
+}
+
+// ===========================================================================
+// LAYER 1: GUARD — Validate before processing
+// ===========================================================================
+
+/**
+ * Error thrown when a Guard validation fails.
+ * Contains a structured diagnostic message.
+ */
+export class GuardError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GuardError";
+  }
+}
+
+/**
+ * Core guard primitive. Throws GuardError if condition is false.
+ *
+ * @param condition     - The boolean condition that must be true
+ * @param functionName  - Name of the function performing the guard
+ * @param message       - Diagnostic message (expected vs actual)
+ *
+ * @example
+ * guard(typeof data === "object", "process", `expected object, got ${typeof data}`);
+ */
+export function guard(
+  condition: boolean,
+  functionName: string,
+  message: string
+): asserts condition {
+  if (!BULWARK_ENABLED) return;
+  if (!condition) {
+    const diag = `GUARD:${functionName} | ${message}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+}
+
+/**
+ * Guard that validates the runtime type of a value.
+ *
+ * @example
+ * guardType(response, "object", "fetchPages", "apiResponse");
+ */
+export function guardType(
+  value: unknown,
+  expectedType: string,
+  functionName: string,
+  paramName: string = "input"
+): void {
+  const actualType = value === null ? "null" : Array.isArray(value) ? "array" : typeof value;
+  guard(
+    actualType === expectedType,
+    functionName,
+    `'${paramName}' expected ${expectedType}, got ${actualType}`
+  );
+}
+
+/**
+ * Guard that validates required keys exist in an object.
+ *
+ * @example
+ * guardKeys(response, ["pages", "metadata"], "processDoc", "apiResponse");
+ */
+export function guardKeys(
+  data: unknown,
+  requiredKeys: string[],
+  functionName: string,
+  paramName: string = "input"
+): void {
+  guard(
+    data !== null && data !== undefined && typeof data === "object",
+    functionName,
+    `'${paramName}' expected object, got ${data === null ? "null" : typeof data}`
+  );
+
+  const obj = data as Record<string, unknown>;
+  const available = Object.keys(obj);
+  const missing = requiredKeys.filter((k) => !(k in obj));
+
+  guard(
+    missing.length === 0,
+    functionName,
+    `'${paramName}' missing keys: [${missing.join(", ")}], available: [${available.join(", ")}]`
+  );
+}
+
+/**
+ * Guard that validates a value is not null or undefined.
+ *
+ * @example
+ * guardNotNone(userId, "getUser", "userId");
+ */
+export function guardNotNone(
+  value: unknown,
+  functionName: string,
+  paramName: string = "input"
+): void {
+  guard(
+    value !== null && value !== undefined,
+    functionName,
+    `'${paramName}' is ${value === null ? "null" : "undefined"}`
+  );
+}
+
+/**
+ * Guard that validates a collection is not empty.
+ *
+ * @example
+ * guardNotEmpty(pages, "processPages", "pagesList");
+ */
+export function guardNotEmpty(
+  value: unknown,
+  functionName: string,
+  paramName: string = "input"
+): void {
+  guardNotNone(value, functionName, paramName);
+
+  if (Array.isArray(value)) {
+    guard(
+      value.length > 0,
+      functionName,
+      `'${paramName}' is empty (array, length=0)`
+    );
+  } else if (typeof value === "string") {
+    guard(
+      value.length > 0,
+      functionName,
+      `'${paramName}' is empty (string, length=0)`
+    );
+  } else if (typeof value === "object" && value !== null) {
+    guard(
+      Object.keys(value as Record<string, unknown>).length > 0,
+      functionName,
+      `'${paramName}' is empty (object, 0 keys)`
+    );
+  }
+}
+
+/**
+ * Guard that validates a numeric value is within bounds.
+ *
+ * @example
+ * guardRange(pageCount, { min: 1, max: 10000 }, "parse", "pageCount");
+ */
+export function guardRange(
+  value: number,
+  bounds: { min?: number; max?: number },
+  functionName: string,
+  paramName: string = "input"
+): void {
+  if (bounds.min !== undefined) {
+    guard(
+      value >= bounds.min,
+      functionName,
+      `'${paramName}' value ${value} below minimum ${bounds.min}`
+    );
+  }
+  if (bounds.max !== undefined) {
+    guard(
+      value <= bounds.max,
+      functionName,
+      `'${paramName}' value ${value} above maximum ${bounds.max}`
+    );
+  }
+}
+
+// ===========================================================================
+// LAYER 2: TRACE — Log shape at phase boundaries
+// ===========================================================================
+
+/**
+ * Describe the structural shape of data without exposing content.
+ *
+ * @returns Shape description string like:
+ *   "object, keys=[id,name,pages], len=3"
+ *   "array, len=47, items=object{keys=[id,content]}"
+ *   "string, len=4096"
+ *   "null"
+ */
+export function describeShape(data: unknown, maxDepth: number = 2, _depth: number = 0): string {
+  if (data === null) return "null";
+  if (data === undefined) return "undefined";
+
+  if (Array.isArray(data)) {
+    let shape = `array, len=${data.length}`;
+    if (data.length === 0) {
+      shape += " (EMPTY)";
+    } else if (_depth < maxDepth) {
+      const itemShape = describeShape(data[0], maxDepth, _depth + 1);
+      shape += `, items=${itemShape}`;
+    }
+    return shape;
+  }
+
+  if (typeof data === "object") {
+    const keys = Object.keys(data as Record<string, unknown>).sort();
+    let shape = `object, keys=[${keys.join(",")}], len=${keys.length}`;
+    if (_depth < maxDepth && keys.length > 0) {
+      const firstKey = keys[0];
+      const firstShape = describeShape(
+        (data as Record<string, unknown>)[firstKey],
+        maxDepth,
+        _depth + 1
+      );
+      shape += `, sample['${firstKey}']=${firstShape}`;
+    }
+    return shape;
+  }
+
+  if (typeof data === "string") {
+    return `string, len=${data.length}`;
+  }
+
+  return typeof data;
+}
+
+/**
+ * Log the shape of data at a phase boundary. Non-destructive pass-through.
+ *
+ * @param label - Human-readable label for this phase boundary
+ * @param data  - The data to trace (returned unchanged)
+ * @param level - Log level (default "INFO")
+ * @returns The data, unchanged
+ *
+ * @example
+ * const raw = trace("afterFetch", await fetchDocument(url));
+ * const parsed = trace("afterParse", parseResponse(raw));
+ */
+export function trace<T>(label: string, data: T, level: LogLevel = "INFO"): T {
+  if (BULWARK_ENABLED) {
+    const shape = describeShape(data);
+    bulwarkLog(level, `TRACE:${label} | ${shape}`);
+  }
+  return data;
+}
+
+/**
+ * Trace at WARN level — use when shape is unexpected but non-fatal.
+ */
+export function traceWarn<T>(label: string, data: T): T {
+  return trace(label, data, "WARN");
+}
+
+// ===========================================================================
+// LAYER 3: VERIFY — Confirm side effects actually happened
+// ===========================================================================
+
+/**
+ * Error thrown when a Verify confirmation fails.
+ */
+export class VerifyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "VerifyError";
+  }
+}
+
+/**
+ * Core verify primitive. Throws VerifyError if condition is false.
+ *
+ * @param condition     - The boolean condition that must be true
+ * @param functionName  - Name of the function performing the verify
+ * @param message       - Diagnostic message (expected vs actual)
+ *
+ * @example
+ * verify(result.rowCount === 10, "save", `INSERT expected 10 rows, affected ${result.rowCount}`);
+ */
+export function verify(
+  condition: boolean,
+  functionName: string,
+  message: string
+): asserts condition {
+  if (!BULWARK_ENABLED) return;
+  if (!condition) {
+    const diag = `VERIFY:${functionName} | ${message}`;
+    bulwarkLog("ERROR", diag);
+    throw new VerifyError(diag);
+  }
+}
+
+/**
+ * Verify that a database operation affected the expected number of rows.
+ *
+ * @example
+ * const result = await db.query("INSERT INTO users ...", records);
+ * verifyRowcount(result, records.length, "saveUsers");
+ */
+export function verifyRowcount(
+  result: Record<string, unknown>,
+  expected: number,
+  functionName: string,
+  operation: string = "INSERT"
+): void {
+  // Try common property names for affected row count
+  const actual =
+    (result.rowCount as number | undefined) ??
+    (result.rowcount as number | undefined) ??
+    (result.affectedRows as number | undefined) ??
+    (result.changes as number | undefined) ??
+    (result.count as number | undefined);
+
+  if (actual !== undefined && actual !== null) {
+    verify(
+      actual === expected,
+      functionName,
+      `${operation} expected ${expected} rows, affected ${actual}`
+    );
+  } else {
+    bulwarkLog(
+      "WARN",
+      `VERIFY:${functionName} | ${operation} rowcount unavailable — ` +
+        `manual verification recommended. Result keys: [${Object.keys(result).join(", ")}]`
+    );
+  }
+}
+
+/**
+ * Verify that an HTTP response has the expected status code.
+ * Works with fetch Response, axios response, or any object with a status property.
+ *
+ * @example
+ * const resp = await fetch(url, { method: "POST", body: JSON.stringify(data) });
+ * verifyResponseOk(resp, "createResource", 201);
+ */
+export function verifyResponseOk(
+  response: Record<string, unknown>,
+  functionName: string,
+  expectedStatus: number = 200
+): void {
+  const status =
+    (response.status as number | undefined) ??
+    (response.statusCode as number | undefined);
+
+  verify(
+    status !== undefined && status !== null,
+    functionName,
+    `response object has no status property, available: [${Object.keys(response).join(", ")}]`
+  );
+
+  verify(
+    status === expectedStatus,
+    functionName,
+    `HTTP expected status ${expectedStatus}, got ${status}`
+  );
+}
+
+/**
+ * Verify that a file write operation produced a non-empty file.
+ * Node.js only — uses fs module.
+ *
+ * @example
+ * fs.writeFileSync(path, JSON.stringify(data));
+ * verifyFileWritten(path, "exportResults");
+ */
+export function verifyFileWritten(
+  filepath: string,
+  functionName: string,
+  minSize: number = 1
+): void {
+  // Dynamic import to keep this file usable in browser contexts
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const fs = require("fs");
+
+  verify(
+    fs.existsSync(filepath),
+    functionName,
+    `file '${filepath}' does not exist after write`
+  );
+
+  const stats = fs.statSync(filepath);
+  verify(
+    stats.size >= minSize,
+    functionName,
+    `file '${filepath}' expected size >= ${minSize} bytes, actual: ${stats.size} bytes`
+  );
+}
+
+// ===========================================================================
+// DECORATORS — For class-based usage (TypeScript 5+ decorators)
+// ===========================================================================
+
+/**
+ * Method decorator that traces input/output shapes.
+ *
+ * @example
+ * class Pipeline {
+ *   @Traced("parseStage")
+ *   parse(rawData: unknown): ParsedData { ... }
+ * }
+ */
+export function Traced(label?: string) {
+  return function (
+    target: unknown,
+    context: ClassMethodDecoratorContext
+  ) {
+    const methodName = String(context.name);
+    const traceLabel = label || methodName;
+
+    return function (this: unknown, ...args: unknown[]) {
+      if (args.length > 0) {
+        trace(`${traceLabel}:input`, args[0]);
+      }
+      const result = (target as Function).apply(this, args);
+      trace(`${traceLabel}:output`, result);
+      return result;
+    };
+  };
+}
+
+// ===========================================================================
+// PIPELINE UTILITIES
+// ===========================================================================
+
+interface PipelineStage {
+  name: string;
+  func: (data: unknown) => unknown;
+  inputType?: string;
+  requiredKeys?: string[];
+  notEmpty?: boolean;
+}
+
+/**
+ * A simple pipeline runner with built-in Guard-Trace-Verify.
+ *
+ * @example
+ * const pipeline = new BulwarkPipeline("documentProcessing");
+ * pipeline
+ *   .addStage("fetch", fetchDocument, { inputType: "string" })
+ *   .addStage("parse", parseResponse, { inputType: "object", requiredKeys: ["pages"] })
+ *   .addStage("transform", transformPages, { inputType: "array", notEmpty: true });
+ * const result = pipeline.run(documentUrl);
+ */
+export class BulwarkPipeline {
+  private name: string;
+  private stages: PipelineStage[] = [];
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  addStage(
+    name: string,
+    func: (data: unknown) => unknown,
+    opts: {
+      inputType?: string;
+      requiredKeys?: string[];
+      notEmpty?: boolean;
+    } = {}
+  ): BulwarkPipeline {
+    this.stages.push({
+      name,
+      func,
+      inputType: opts.inputType,
+      requiredKeys: opts.requiredKeys,
+      notEmpty: opts.notEmpty,
+    });
+    return this;
+  }
+
+  run(initialInput: unknown): unknown {
+    let data = initialInput;
+    bulwarkLog("INFO", `PIPELINE:${this.name} | starting with ${this.stages.length} stages`);
+    trace(`${this.name}:input`, data);
+
+    for (const stage of this.stages) {
+      const stageLabel = `${this.name}.${stage.name}`;
+
+      // GUARD
+      if (stage.inputType) {
+        guardType(data, stage.inputType, stageLabel, "stageInput");
+      }
+      if (stage.requiredKeys) {
+        guardKeys(data, stage.requiredKeys, stageLabel, "stageInput");
+      }
+      if (stage.notEmpty) {
+        guardNotEmpty(data, stageLabel, "stageInput");
+      }
+
+      // EXECUTE
+      data = stage.func(data);
+
+      // TRACE
+      trace(`${stageLabel}:output`, data);
+    }
+
+    bulwarkLog("INFO", `PIPELINE:${this.name} | completed all ${this.stages.length} stages`);
+    return data;
+  }
+}
+
+// ===========================================================================
+// SELF-TEST
+// ===========================================================================
+
+function selfTest(): void {
+  console.log("=".repeat(60));
+  console.log("Bulwark AI — TypeScript Reference Implementation Self-Test");
+  console.log("=".repeat(60));
+
+  // Test Guard
+  console.log("\n--- Guard Tests ---");
+  try {
+    guard(true, "test", "this should pass");
+    console.log("[PASS] guard(true) — no error");
+  } catch {
+    console.log("[FAIL] guard(true) raised unexpectedly");
+  }
+
+  try {
+    guard(false, "testFunc", "expected X, got Y");
+    console.log("[FAIL] guard(false) should have thrown");
+  } catch (e) {
+    console.log(`[PASS] guard(false) — caught: ${(e as Error).message}`);
+  }
+
+  try {
+    guardKeys({ a: 1, b: 2 }, ["a", "c"], "testKeys");
+    console.log("[FAIL] guardKeys should have thrown for missing 'c'");
+  } catch (e) {
+    console.log(`[PASS] guardKeys — caught: ${(e as Error).message}`);
+  }
+
+  // Test Trace
+  console.log("\n--- Trace Tests ---");
+  const result = trace("testDict", { pages: [{ id: 1 }, { id: 2 }], meta: "info" });
+  console.log(`[PASS] trace returned data unchanged: ${typeof result}`);
+
+  trace("testArray", [1, 2, 3, 4, 5]);
+  trace("testString", "hello world");
+  trace("testNull", null);
+  trace("testEmptyArray", []);
+  console.log("[PASS] all trace variants completed");
+
+  // Test Verify
+  console.log("\n--- Verify Tests ---");
+  try {
+    verify(true, "test", "this should pass");
+    console.log("[PASS] verify(true) — no error");
+  } catch {
+    console.log("[FAIL] verify(true) raised unexpectedly");
+  }
+
+  try {
+    verify(false, "testSave", "INSERT expected 10 rows, affected 0");
+    console.log("[FAIL] verify(false) should have thrown");
+  } catch (e) {
+    console.log(`[PASS] verify(false) — caught: ${(e as Error).message}`);
+  }
+
+  // Test describeShape
+  console.log("\n--- Shape Description Tests ---");
+  const cases: unknown[] = [
+    null,
+    42,
+    "hello",
+    [1, 2, 3],
+    [],
+    { a: 1, b: [1, 2] },
+    { result: { pages: [{ id: 1 }] } },
+  ];
+  for (const c of cases) {
+    const repr = JSON.stringify(c) ?? "undefined";
+    console.log(`  ${repr.slice(0, 40).padEnd(40)} -> ${describeShape(c)}`);
+  }
+
+  // Test Pipeline
+  console.log("\n--- Pipeline Test ---");
+  const pipeline = new BulwarkPipeline("testPipeline");
+  pipeline
+    .addStage("double", (x) => (x as number[]).map((i) => i * 2), {
+      inputType: "array",
+      notEmpty: true,
+    })
+    .addStage("toObject", (x) => ({ results: x, count: (x as unknown[]).length }), {
+      inputType: "array",
+    });
+  const pipeResult = pipeline.run([1, 2, 3]);
+  console.log(`[PASS] pipeline result: ${JSON.stringify(pipeResult)}`);
+
+  console.log("\n" + "=".repeat(60));
+  console.log("All self-tests passed. Bulwark AI is operational.");
+  console.log("=".repeat(60));
+}
+
+// Run self-test if executed directly
+if (require.main === module) {
+  selfTest();
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

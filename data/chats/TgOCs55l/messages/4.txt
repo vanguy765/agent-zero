@@ -1,0 +1,83 @@
+=== benchmark_script.py ===
+import argparse
+from pathlib import Path
+
+# Configuration
+API_URL = "http://localhost:5000/benchmark"
+
+--
+    parser = argparse.ArgumentParser(description="Run PDF Benchmark")
+    parser.add_argument("file", help="Path to PDF file")
+    parser.add_argument("--provider", default="mock", help="Provider (mock, docling, openai/gpt-4o, etc)")
+    parser.add_argument("--type", default="table", help="Extraction type (table, floorplan, text)")
+    parser.add_argument("--page", type=int, default=1, help="Page number")
+    parser.add_argument("--output", help="Output JSON file")
+    
+    args = parser.parse_args()
+    
+    result = run_benchmark(args.file, args.provider, args.type, args.page)
+    
+--
+if __name__ == "__main__":
+    main()
+
+=== cv2_detect.py ===
+if __name__ == "__main__":
+    img = sys.argv[1] if len(sys.argv) > 1 else \
+        "voicelog-scaffold/doc-parser/verify_images/original_page_1.png"
+    detect_all_elements(img)
+
+=== slice_cv.py ===
+import argparse
+
+def slice_image_cv(image_path, output_dir, min_area=10000):
+    """
+    Uses OpenCV to find clear rectangular borders in an architectural drawing
+    and slice them into isolated crop images.
+--
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Slice architectural drawing using OpenCV")
+    parser.add_argument("image_path", help="Path to full page image")
+    parser.add_argument("--output", default="slicing_tests/cv_output", help="Output directory")
+    args = parser.parse_args()
+    
+    slice_image_cv(args.image_path, args.output)
+
+=== slice_surya.py ===
+import argparse
+from PIL import Image
+from surya.foundation import FoundationPredictor
+from surya.layout import LayoutPredictor
+from surya.settings import settings
+
+--
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Slice architectural drawing using Surya Layout AI")
+    parser.add_argument("image_path", help="Path to full page image")
+    parser.add_argument("--output", default="slicing_tests/surya_output", help="Output directory")
+    args = parser.parse_args()
+    
+    slice_image_surya(args.image_path, args.output)
+
+=== compare_methods.py ===
+import argparse
+import time
+
+API_URL_DIRECT = "http://localhost:5000/parse/direct"
+API_URL_PREPARSE = "http://localhost:5000/parse/preparse"
+
+--
+    parser = argparse.ArgumentParser(description="Compare PDF Parsing Strategies")
+    parser.add_argument("file", help="Path to PDF file (e.g., demo.pdf)")
+    parser.add_argument("--page", type=int, default=1, help="Page number to parse")
+    parser.add_argument("--outdir", default="output", help="Base output directory")
+    
+    args = parser.parse_args()
+    
+    if not os.path.exists(args.file):
+        print(f"Error: Input file {args.file} not found.")
+--
+if __name__ == "__main__":
+    main()
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

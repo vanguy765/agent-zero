@@ -1,0 +1,118 @@
+./linter/bulwark_lint/reporters/__pycache__/json_reporter.cpython-313.pyc
+./linter/bulwark_lint/reporters/__pycache__/terminal.cpython-313.pyc
+./linter/bulwark_lint/reporters/__pycache__/__init__.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/base.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/blw001_guard_present.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/blw002_verify_after_mutation.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/blw003_trace_at_boundary.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/blw004_no_bare_assert.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/blw005_custom_error_types.cpython-313.pyc
+./linter/bulwark_lint/rules/__pycache__/__init__.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/cli.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/config.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/discovery.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/engine.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/languages.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/__init__.cpython-313.pyc
+./linter/bulwark_lint/__pycache__/__main__.cpython-313.pyc
+./linter/tests/__pycache__/test_discovery.cpython-313-pytest-9.0.2.pyc
+./linter/tests/__pycache__/test_discovery.cpython-313.pyc
+./linter/tests/__pycache__/test_engine.cpython-313-pytest-9.0.2.pyc
+./linter/tests/__pycache__/test_engine.cpython-313.pyc
+./linter/tests/__pycache__/test_rules.cpython-313-pytest-9.0.2.pyc
+./linter/tests/__pycache__/test_rules.cpython-313.pyc
+./linter/tests/__pycache__/__init__.cpython-313.pyc
+./reference/__pycache__/bulwark.cpython-313.pyc
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Check .gitignore covers these ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# # ============================================
+# Bulwark AI — .gitignore
+# ============================================
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+venv/
+.venv/
+env/
+.env
+*.env.local
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# ----- Node / TypeScript -----
+node_modules/
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Empty directories ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ./examples/bash
+./examples/go
+./examples/typescript
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Total file count ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 49
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Full clean tree (excluding artifacts) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ./.bmad/skills/bulwark-defensive-coding.md
+./checklists/bulwark-checklist.md
+./CONTINUATION_PROMPT.md
+./DECISIONS.md
+./examples/python/document_pipeline.py
+./.gitignore
+./GUIDE.md
+./guides/bulwark-x-pydantic.md
+./guides/bulwark-x-zod.md
+./LICENSE
+./linter/bulwark_lint/cli.py
+./linter/bulwark_lint/config.py
+./linter/bulwark_lint/discovery.py
+./linter/bulwark_lint/engine.py
+./linter/bulwark_lint/__init__.py
+./linter/bulwark_lint/languages.py
+./linter/bulwark_lint/__main__.py
+./linter/bulwark_lint/reporters/__init__.py
+./linter/bulwark_lint/reporters/json_reporter.py
+./linter/bulwark_lint/reporters/terminal.py
+./linter/bulwark_lint/rules/base.py
+./linter/bulwark_lint/rules/blw001_guard_present.py
+./linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+./linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+./linter/bulwark_lint/rules/blw004_no_bare_assert.py
+./linter/bulwark_lint/rules/blw005_custom_error_types.py
+./linter/bulwark_lint/rules/__init__.py
+./linter/pyproject.toml
+./linter/README.md
+./linter/tests/fixtures/sample_guarded.py
+./linter/tests/fixtures/sample_guarded.ts
+./linter/tests/fixtures/sample_unguarded.py
+./linter/tests/fixtures/sample_unguarded.ts
+./linter/tests/__init__.py
+./linter/tests/test_discovery.py
+./linter/tests/test_engine.py
+./linter/tests/test_rules.py
+./MARKETING_SEEDS.md
+./PROJECT_STATUS.md
+./prompts/bulwark-remediation-agent.md
+./prompts/bulwark-system-prompt.md
+./QUICKSTART.md
+./README.md
+./reference/bulwark.js
+./reference/bulwark.py
+./reference/bulwark.ts
+./reference/package.json
+./reference/package-lock.json
+./SPEC.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Removing build artifacts ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,173 @@
+# Test 2.1: Three-Function Pipeline — Cross-Function GTV Coherence
+
+> **Test Category**: Round 2 (Module-Level Integration) | **Focus**: Trace Correlation & Guard Consistency
+> **Expected Duration**: ~10 minutes
+
+---
+
+## Context
+
+You are a developer agent working on the **Bulwark AI** project.
+
+Before writing any code:
+1. Load the BMAD skill: `.bmad/skills/bulwark-defensive-coding.md`
+2. Read the spec: `SPEC.md` (specifically the Guard, Trace, and Verify sections)
+
+## Task
+
+Write a Python module at `/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py`
+containing a three-function data pipeline with **correlated traces**.
+
+---
+
+### Function 1: `ingest_csv(filepath: str, operation_id: str | None = None) -> tuple[list[dict], str]`
+
+Reads and validates a CSV file.
+
+**Requirements**:
+- Generate `operation_id` (UUID4) if not provided; reuse if given
+- Guard: filepath must be a non-empty string
+- Guard: file must exist and be readable
+- Guard: file must not be empty
+- Trace input: log filepath, file size, operation_id
+- Parse CSV using `csv.DictReader`
+- Guard: parsed records must not be empty
+- Trace output: log record count, column names, operation_id
+- Return `(records, operation_id)`
+
+### Function 2: `transform_records(records: list[dict], schema: dict, operation_id: str) -> list[dict]`
+
+Normalizes and transforms records according to a schema mapping.
+
+**Requirements**:
+- Guard: records must be a non-empty list of dicts
+- Guard: schema must be a non-empty dict mapping `{old_field: new_field}`
+- Guard: all schema source fields must exist in the first record
+- Trace input: log record count, schema keys, operation_id
+- Apply field renaming per schema
+- Strip whitespace from all string values
+- Trace output: log transformed record count, new field names, operation_id
+- Return transformed records
+
+### Function 3: `load_to_database(records: list[dict], db_config: dict, operation_id: str) -> int`
+
+Bulk inserts records into a database table.
+
+**Requirements**:
+- Guard: records must be a non-empty list of dicts
+- Guard: db_config must contain keys: `host`, `table_name`
+- Guard: all records must have consistent keys
+- Trace input: log record count, target table, operation_id
+- Simulate bulk insert (use a mock — write records to a JSON file at
+  `/a0/usr/workdir/bulwark-ai/test-results/pipeline_output.json`)
+- Verify: confirm the output file exists and contains the expected record count
+- Trace output: log inserted count, operation_id
+- Return count of inserted records
+
+---
+
+### Pipeline Orchestrator: `run_pipeline(filepath: str, schema: dict, db_config: dict) -> dict`
+
+Orchestrates the full pipeline with a shared `operation_id`.
+
+**Requirements**:
+- Generate a single `operation_id` for the entire pipeline run
+- Call each function in sequence, passing the `operation_id` through
+- Guard: all inputs valid
+- Trace: log pipeline start and completion with operation_id
+- Return summary dict:
+  ```python
+  {
+      "operation_id": "...",
+      "records_ingested": N,
+      "records_transformed": N,
+      "records_loaded": N,
+      "status": "verified"
+  }
+  ```
+
+---
+
+## Critical: Cross-Function Trace Correlation
+
+The **same `operation_id`** must flow through all three functions and the
+orchestrator. This enables distributed tracing — if you grep the logs for
+one operation_id, you should see the complete data flow from ingestion
+through transformation to loading.
+
+## Critical: Guard Consistency
+
+The **output contract** of each function must match the **input guard** of
+the next function in the pipeline:
+- `ingest_csv` returns `list[dict]` → `transform_records` guards for `list[dict]`
+- `transform_records` returns `list[dict]` → `load_to_database` guards for `list[dict]`
+
+## Bulwark Patterns Required
+
+- Custom error types: `GuardError`, `VerifyError`
+- All guards use `guard_*()` naming convention (detected by linter)
+- All traces use `trace_*()` naming convention
+- All verifications use `verify_*()` naming convention
+- No bare `assert` statements
+- Structured logging with operation_id in every trace call
+
+## Test Data
+
+Create a test CSV file at `/a0/usr/workdir/bulwark-ai/test-results/test_data.csv`:
+```csv
+first_name,last_name,email,department
+Alice,Smith,alice@example.com,Engineering
+Bob,Jones,bob@example.com,Marketing
+Charlie,Brown,charlie@example.com,Engineering
+Diana,Prince,diana@example.com,Sales
+```
+
+Use this schema for transformation:
+```python
+schema = {
+    "first_name": "given_name",
+    "last_name": "family_name",
+    "email": "email_address",
+    "department": "dept"
+}
+```
+
+## Validation Steps
+
+1. Run the Bulwark linter:
+   ```bash
+   cd /a0/usr/workdir/bulwark-ai
+   python -m bulwark_lint test-results/csv_pipeline.py --format json
+   ```
+
+2. Fix any **true positive** violations. Classify false positives with reasoning.
+
+3. Run the pipeline end-to-end:
+   ```bash
+   cd /a0/usr/workdir/bulwark-ai
+   python test-results/csv_pipeline.py
+   ```
+
+4. Verify:
+   - `pipeline_output.json` exists with 4 records
+   - All records have renamed fields (`given_name`, `family_name`, etc.)
+   - Console output shows correlated traces with the same `operation_id`
+
+## Success Criteria
+
+| Criterion | Weight | Description |
+|-----------|--------|-------------|
+| Guard presence | 20% | All 4 functions have appropriate guards |
+| Trace correlation | 25% | Same operation_id flows through entire pipeline |
+| Guard consistency | 20% | Output/input contracts match between functions |
+| Verify on mutation | 15% | load_to_database verifies the write succeeded |
+| Linter compliance | 10% | Zero true-positive violations |
+| End-to-end execution | 10% | Pipeline runs and produces correct output |
+
+## Environment
+
+- Working directory: `/a0/usr/workdir/bulwark-ai`
+- Linter: `python -m bulwark_lint` (installed in venv)
+- Python: 3.13+ (venv at /opt/venv)
+- No external services needed (file-based mock for DB)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

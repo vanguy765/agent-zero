@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 0,
+  "violations": [],
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Linting Test 1.1 artifact (user_sync.py) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# {
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 0,
+  "violations": [],
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

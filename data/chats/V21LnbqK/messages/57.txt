@@ -1,0 +1,34 @@
+SUCCESS: Added Source Code & Development section to AGENTS.md
+
+--- Updated section ---
+## ⛔ Critical Agent Rules — doc-parser
+
+**doc-parser is a standalone Docker container. It is NOT a local process inside the Agent Zero container.**
+
+| Rule | Detail |
+|------|--------|
+| ❌ NEVER run `server.py` directly | It runs inside its own container, not here |
+| ❌ NEVER install Python packages in `doc-parser/` | No pip, no venv, no requirements.txt installs from this container |
+| ❌ NEVER look for or activate a venv in `doc-parser/` | There is no venv there — it lives inside the Docker image |
+| ✅ If port 5000 is unreachable | `notify_user` type=warning and ask user to run `docker-compose up` in `doc-parser/` **on Windows** |
+| ✅ To interact with doc-parser | Use HTTP via `http://doc-parser:5000` (shared `agent-zero-network`) or `http://localhost:5000` |
+| ✅ To run CLI tools | Use `process_document.py` from this container pointing at the running API |
+
+> **Why this matters:** This mistake has caused repeated harm — installing packages, trying to start the server locally, and wasting session time. When the health check fails, the ONLY correct action is to notify the user to start the container on Windows.
+
+### Source Code & Development (bind mount)
+
+The `doc-parser/` directory is a **bind mount** — source code edited here is instantly live in the container.
+
+| Rule | Detail |
+|------|--------|
+| ✅ Source code IS editable here | Edit `hybrid.py`, `server.py`, etc. directly — changes are instant on disk |
+| ✅ Auto-reload is ON | Container runs `ENV=development` + `reload=True` — file saves trigger server restart |
+| ✅ Edit code here, test via host | If HTTP from A0 container fails, tell user to test from Windows (`localhost:5000`) |
+| ❌ NEVER waste tokens on container networking | A0 and doc-parser may be on **different Docker networks** — do not attempt to fix this |
+| ❌ NEVER run end-to-end pipeline tests from A0 | For full pipeline tests, instruct user to run from Windows host where `localhost:5000` works |
+| ✅ Unit tests / code analysis OK | Reading files, linting, static analysis — all fine from this container |
+
+---
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

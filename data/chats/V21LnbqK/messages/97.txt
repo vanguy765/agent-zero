@@ -1,0 +1,16 @@
+=== HYBRID_PARAMS padding section ===
+267:    CROP_PADDING_DEFAULT: float = 0.03       # 3 %  (~50 px at 200 DPI)
+270:    CROP_PADDING_FLOORPLAN: float = 0.05     # 5 %  (~80 px at 200 DPI)
+273:    CROP_PADDING_INSET: float = 0.04         # 4 %  (~65 px at 200 DPI)
+276:    CROP_PADDING_TABLE: float = 0.02         # 2 %  (~33 px at 200 DPI)
+891:                    crop = crop_element(page_img_tmp, el["bbox"], padding_pct=HYBRID_PARAMS.CROP_PADDING_DEFAULT)
+997:                cropped = crop_element(page_img, bbox, padding_pct=HYBRID_PARAMS.CROP_PADDING_FLOORPLAN)
+1025:                        inset_crop = crop_element(cropped, inset_bbox, padding_pct=HYBRID_PARAMS.CROP_PADDING_INSET)
+1188:            tbl_img = crop_element(pdf_pages[idx], tbl_el["bbox"], padding_pct=HYBRID_PARAMS.CROP_PADDING_TABLE) if tbl_el else pdf_pages[idx]
+
+=== Call sites ===
+891:                    crop = crop_element(page_img_tmp, el["bbox"], padding_pct=HYBRID_PARAMS.CROP_PADDING_DEFAULT)
+997:                cropped = crop_element(page_img, bbox, padding_pct=HYBRID_PARAMS.CROP_PADDING_FLOORPLAN)
+1025:                        inset_crop = crop_element(cropped, inset_bbox, padding_pct=HYBRID_PARAMS.CROP_PADDING_INSET)
+1188:            tbl_img = crop_element(pdf_pages[idx], tbl_el["bbox"], padding_pct=HYBRID_PARAMS.CROP_PADDING_TABLE) if tbl_el else pdf_pages[idx]
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

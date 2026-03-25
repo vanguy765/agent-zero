@@ -35,8 +35,14 @@ usr/**
 # Global rule to include .gitkeep files anywhere
 !**/.gitkeep
 
-# for browser-use
-agent_history.gif
-
 .agent/**
 .claude/**
+
+# Ignore bind mount folders
+data/workdir/bulwark-ai/
+
+# Ignore secrets
+data/secrets.env
+
+# Ignore bind mount folders
+data/workdir/bulwark-ai/

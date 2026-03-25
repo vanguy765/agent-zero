@@ -1,0 +1,44 @@
+=== Results endpoint in server.py ===
+7:- P4: Persistent jobs, separate status/results endpoints, TTL cleanup
+16:  GET  /results/{job_id}    - Full results (fetch-once after completed)
+181:    Returns job_id for async polling via /status and /results endpoints.
+599:    Returns job_id for async polling via /status and /results endpoints.
+674:# GET /results/{job_id} - Full Results (Priority 4a)
+677:@app.get("/results/{job_id}")
+678:async def get_results(
+682:    """Get full extraction results for a completed job.
+706:    # Return summary or full results
+819:    """Delete a job and its results."""
+
+=== How hybrid builds page results ===
+4:  PDF -> Docling (structural decomposition for tables/text - saves tokens)
+7:      -> CV2 element detection on interesting pages (floorplans, photos,
+8:         diagrams, spec-tables, title blocks)
+14:      -> Cross-page synthesis if multiple floorplans
+35:    Detected by: Docling finds tables or text blocks but no pictures, AND
+39:      - If Docling found tables on the page: exported as markdown, uploaded
+41:      - If no Docling tables but grid lines are present (CV2 PAGE_GRID_
+45:        result["tables"] if it has table content.
+57:      - The raw text is NOT saved separately; it lives in result["tables"]
+89:      - result["tables"] holds the Tesseract/Claude OCR version.
+96:    stored in result["pages"][N]["site_photos"]. No LLM analysis.
+101:    stored in result["pages"][N]["diagrams"]. No LLM analysis.
+128:    _detect_inset_diagrams,
+272:    # Inset diagrams detected within a floorplan sheet
+570:    1. Docling Conversion    - structural decomposition (tables, text, pictures)
+574:    4. CV2 Element Detection - detect floorplans, photos, diagrams, spec-tables
+578:    6. Table Extraction      - 6a: Docling markdown tables
+659:        thumbnail_urls: Dict[int, str] = {}
+678:                    thumbnail_urls[page_no] = url
+686:                thumbnail_urls[page_no] = local_path
+688:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+702:        # Collect tables from Docling
+703:        for table in result_doc.tables:
+752:                # Check for image-based tables via grid detection
+772:            job_id, tables_found=len(table_data),
+773:            floorplans_found=len(docling_floorplan_pages),
+778:            f"{len(table_data)} tables, {len(pages_needing_bbox)} pages for bbox"
+994:                    inset_bboxes = _detect_inset_diagrams(cropped)
+1085:        total_diagrams = sum(len(v) for v in diagram_urls.values())
+1090:            f"{total_photos} photos, {total_diagrams} diagrams, "
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

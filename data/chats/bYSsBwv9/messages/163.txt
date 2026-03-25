@@ -1,0 +1,41 @@
+50:function Test-DocParserReady {
+51-    try {
+52-        $r = Invoke-WebRequest -Uri "http://localhost:5000/" `
+53-            -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+54-        return $true  # 200 OK
+55-    }
+56-    catch {
+57-        $code = $_.Exception.Response.StatusCode.value__
+58-        if ($code -eq 404) { return $true }  # 404 = server up, root path just not defined
+59-        return $false  # connection refused / timeout
+60-    }
+61-}
+62-
+63:$docParserUp = Test-DocParserReady
+64-
+65-if ($docParserUp) {
+66-    Write-Host "  doc-parser is already running on :5000" -ForegroundColor Green
+67-}
+68-else {
+69-    $fmt = '{{.Status}}'
+70-    $containerStatus = docker ps -a --filter 'name=doc-parser' --format $fmt 2>$null
+71-    if ($containerStatus -match 'Exited') {
+72-        Write-Host "  doc-parser container is stopped - restarting..." -ForegroundColor Yellow
+73-        Push-Location $docParserDir
+74-        docker compose start
+75-        Pop-Location
+76-    }
+77-    else {
+78-        Write-Host "  doc-parser container not found - starting with docker compose..." -ForegroundColor Yellow
+--
+90:        if (Test-DocParserReady) {
+91-            Write-Host "  doc-parser is ready on :5000" -ForegroundColor Green
+92-            break
+93-        }
+94-        else {
+95-            Write-Host "  Still waiting for doc-parser... ($retries/10)" -ForegroundColor DarkGray
+96-        }
+97-    } while ($retries -lt 10)
+98-    if ($retries -ge 10) {
+99-        Write-Host "  WARNING: doc-parser may not be ready. Continuing anyway." -ForegroundColor Yellow
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

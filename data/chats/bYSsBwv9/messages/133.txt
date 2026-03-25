@@ -1,0 +1,12 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# Scripts created and made executable
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# total 28
+drwxrwxrwx 1 root root 4096 Mar 11 01:11 .
+drwxrwxrwx 1 root root 4096 Mar 11 00:57 ..
+-rwxrwxrwx 1 root root 2543 Feb 23 04:48 apply-migration.ps1
+-rwxr-xr-x 1 root root 1046 Feb 23 23:03 create-sysadmin.sh
+-rwxr-xr-x 1 root root 1235 Mar 11 01:11 dev-health.sh
+-rwxr-xr-x 1 root root 1970 Mar 11 01:11 dev-start.sh
+-rwxrwxrwx 1 root root  832 Feb 22 19:37 kill-dev-servers.ps1
+-rwxrwxrwx 1 root root 1787 Feb 24 22:58 reset-and-start.ps1
+-rwxrwxrwx 1 root root 2706 Mar  6 00:01 test_page_8.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

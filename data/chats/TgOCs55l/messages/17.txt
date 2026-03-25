@@ -1,0 +1,108 @@
+---
+description: Parse Architectural PDFs into structured JSON and mock Supabase storage
+---
+# Document Parser Workflow
+
+This workflow processes architectural PDF documents to extract floorplans, tables, and site photos, perform AI-based structural analysis, and compress the outputs into a mock Supabase storage directory.
+
+## Steps
+
+1. **Start the Docker Container**
+   Ensure the `doc-parser` service is running in Docker.
+// turbo
+   `cd doc-parser && docker-compose up -d --build doc-parser`
+
+2. **Run the Processing Pipeline**
+   Execute the `process_document.py` script and pass the path to the PDF, along with the tenant and project names. This triggers the background docling task, waits for completion, and generates compressed JPEGs and JSON data.
+// turbo
+   `cd doc-parser && python process_document.py --pdf demo.pdf --tenant demo_tenant --project demo_project`
+---MIGRATION---
+-- =============================================================
+-- Migration: Storage Buckets
+-- Description: Create Supabase Storage buckets required by the app.
+--              early-work/20260204000000_document_storage.sql had this
+--              SQL but it was never in the active migrations path, so
+--              the bucket was absent after every db reset.
+-- =============================================================
+
+-- Project-documents bucket (PDFs, drawings, upgrade lists)
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('project-documents', 'project-documents', false, 52428800)  -- 50 MiB
+ON CONFLICT (id) DO NOTHING;
+
+-- -----------------------------------------------
+-- Storage RLS policies
+-- -----------------------------------------------
+
+-- Upload: authenticated users only
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename  = 'objects'
+      AND policyname = 'project_documents_insert'
+  ) THEN
+    CREATE POLICY project_documents_insert
+      ON storage.objects FOR INSERT
+      WITH CHECK (
+        bucket_id = 'project-documents'
+        AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+
+-- Select: authenticated users only
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename  = 'objects'
+      AND policyname = 'project_documents_select'
+  ) THEN
+    CREATE POLICY project_documents_select
+      ON storage.objects FOR SELECT
+      USING (
+        bucket_id = 'project-documents'
+        AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+
+-- Update: authenticated users only
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename  = 'objects'
+      AND policyname = 'project_documents_update'
+  ) THEN
+    CREATE POLICY project_documents_update
+      ON storage.objects FOR UPDATE
+      USING (
+        bucket_id = 'project-documents'
+        AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+
+-- Delete: authenticated users only
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename  = 'objects'
+      AND policyname = 'project_documents_delete'
+  ) THEN
+    CREATE POLICY project_documents_delete
+      ON storage.objects FOR DELETE
+      USING (
+        bucket_id = 'project-documents'
+        AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

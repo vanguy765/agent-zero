@@ -1,0 +1,38 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Frontend dev server status ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# <!doctype html>
+<html lang="en">
+  <head>
+    <script type="module" src="/@vite/client"></script>
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Running node processes ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# root 1301 node /usr/local/bin/pnpm install
+root 4155 node /usr/local/bin/pnpm install
+root 4474 node /usr/local/bin/pnpm install
+root 5258 node node_modules/.bin/../vite/bin/vite.js --port
+root 5271 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@esbuild+linux-x64@0.21.5/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.21.5 --ping
+root 10763 node postgrest-proxy.js
+root 10871 node /usr/local/bin/pnpm --filter
+root 10884 sh -c tsx
+root 10885 node /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/node_modules/.bin/../tsx/dist/cli.mjs watch
+root 10904 /usr/bin/node --require /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/preflight.cjs
+root 10921 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@esbuild+linux-x64@0.27.2/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.27.2 --ping
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing /work-orders/templates?scope=company ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# Got 9 templates
+  - Appliances (active)
+  - Carpentry (active)
+  - Electrical (active)
+  - Flooring (active)
+  - HVAC (active)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing /work-orders/type-orders ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# Got 22 type orders
+  - Kitchen (kitchen)
+  - Bathroom (bathroom)
+  - Bedroom (bedroom)
+  - Living Room (living_room)
+  - Dining Room (dining_room)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing /work-orders/projects ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

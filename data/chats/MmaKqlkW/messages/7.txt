@@ -1,0 +1,108 @@
+total 24
+drwxr-xr-x 1 root root  4096 Mar 16 04:45 .
+drwxr-xr-x 1 root root  4096 Mar 16 04:23 ..
+drwxr-xr-x 1 root root  4096 Mar 16 04:45 __pycache__
+-rw-r--r-- 1 root root  6374 Mar 16 04:38 TEST_1.1_PROMPT.md
+-rw-r--r-- 1 root root  3611 Mar 16 04:24 TEST_1.1_RESULTS.md
+-rw-r--r-- 1 root root 12074 Mar 16 04:45 user_sync.py
+---
+# Test 1.1 Results: Greenfield Function Generation
+
+> **Date**: ___________
+> **Agent**: Claude Opus 4.6 / Agent Zero
+> **Prompt Profile**: ___________
+> **Duration**: ___________ (wall clock, task start → final deliverable)
+
+---
+
+## Compliance Metrics
+
+| ID | Metric | Value | Target | Pass? |
+|----|--------|-------|--------|-------|
+| M-01 | First-Pass Compliance Rate | __% | ≥ 70% | ☐ |
+| M-02 | Self-Correction Success Rate | __% | ≥ 90% | ☐ |
+| M-03 | Avg Correction Cycles | __ | ≤ 1.5 | ☐ |
+| M-04 | Escalation Rate | __% | ≤ 10% | ☐ |
+| M-05 | Regression Rate | __% | ≤ 5% | ☐ |
+
+## Pattern Quality Metrics (0-3 scale)
+
+| ID | Metric | Score | Target | Notes |
+|----|--------|-------|--------|-------|
+| M-06 | Guard Depth | __/3 | ≥ 2.0 | 0=missing, 1=type-only, 2=type+range, 3=type+range+semantic |
+| M-07 | Trace Accuracy | __/3 | ≥ 2.0 | 0=missing, 1=wrong-location, 2=correct, 3=correct+shape-metadata |
+| M-08 | Verify Completeness | __/3 | ≥ 2.0 | 0=missing, 1=truthy-check, 2=specific-field, 3=full-outcome |
+| M-09 | Error Type Correctness | __/3 | ≥ 2.5 | 0=generic, 1=custom-wrong, 2=correct-type, 3=correct+context |
+| M-10 | False Positive Handling | __/3 | ≥ 2.0 | N/A for this test (no expected FPs) |
+
+## Efficiency Metrics
+
+| ID | Metric | Value | Target | Notes |
+|----|--------|-------|--------|-------|
+| M-11 | Time to Compliance | __s | Baseline | Wall clock: first code → clean lint |
+| M-12 | Token Consumption | __ | Baseline | Estimate from conversation length |
+| M-13 | Code Overhead | __% | ≤ 40% | (Bulwark lines) / (total lines) × 100 |
+| M-14 | Linter Invocations | __ | ≤ 3 | Total times linter was called |
+
+## Rule-Level Breakdown
+
+| Rule | Description | First-Pass? | After Fix? | Failure Mode |
+|------|-------------|-------------|------------|-------------|
+| BLW001 | Guards Present | ☐ Pass ☐ Fail | ☐ Pass ☐ Fail | |
+| BLW002 | Verify After Mutation | ☐ Pass ☐ Fail | ☐ Pass ☐ Fail | |
+| BLW003 | Trace at Boundary | ☐ Pass ☐ Fail | ☐ Pass ☐ Fail | |
+| BLW004 | No Bare Assert | ☐ Pass ☐ Fail | ☐ Pass ☐ Fail | |
+| BLW005 | Custom Error Types | ☐ Pass ☐ Fail | ☐ Pass ☐ Fail | |
+
+## Qualitative Observations
+
+| # | Question | Yes/No | Notes |
+|---|----------|--------|-------|
+| 1 | Did the agent load the BMAD skill? | ☐ | |
+| 2 | Did the agent read SPEC.md? | ☐ | |
+| 3 | Did the agent run the linter proactively? | ☐ | |
+| 4 | Did the agent parse JSON output correctly? | ☐ | |
+| 5 | Did the agent explain its fixes? | ☐ | |
+| 6 | Did the agent use the 7-step template? | ☐ | |
+| 7 | Did the code run end-to-end successfully? | ☐ | |
+| 8 | Was the record persisted in Supabase? | ☐ | |
+| 9 | Did the agent set BULWARK_MODE? | ☐ | |
+| 10 | Was code readable after Bulwark patterns? | ☐ | |
+
+## Failure Classification (if any)
+
+| Failure | Category | Code | Description | Suggested Fix |
+|---------|----------|------|-------------|---------------|
+| | ☐ F-SKL ☐ F-LNT ☐ F-PAT ☐ F-CTX ☐ F-DOM ☐ F-LOP ☐ F-FPR ☐ F-SCP | | | |
+
+## Artifacts
+
+### Final Linter Output
+```json
+[paste bulwark-lint JSON output here]
+```
+
+### Final Code
+```python
+# [paste user_sync.py here]
+```
+
+### Test Run Output
+```
+[paste end-to-end test console output here]
+```
+
+### Supabase Verification
+```json
+[paste query result confirming persistence here]
+```
+
+## Summary
+
+**Lint-fix cycles needed**: __
+**What was fixed**: ___________
+**Overall assessment**: ___________
+**Bulwark Readiness Score**: __ (Compliance×0.4 + Quality×0.4 + Efficiency×0.2)
+---
+-rw-r--r-- 1 root root 12074 Mar 16 04:45 /a0/usr/workdir/bulwark-ai/test-results/user_sync.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

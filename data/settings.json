@@ -1,7 +1,7 @@
 {
     "version": "v0.9.8-2",
     "chat_model_provider": "openrouter",
-    "chat_model_name": "anthropic/claude-sonnet-4.6",
+    "chat_model_name": "anthropic/claude-opus-4.6",
     "chat_model_api_base": "",
     "chat_model_kwargs": {
         "temperature": "0"

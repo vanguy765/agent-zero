@@ -1,0 +1,48 @@
+# ✅ Bulwark AI v0.2.0 Documentation Update Complete
+
+Both files have been updated with all requested changes:
+
+## GUIDE.md — 1,401 lines (was 1,150)
+
+### Changes Made:
+
+**1. Section 5.1: Configuring Bulwark AI** (lines 760–888)
+- Environment variables table (`BULWARK_MODE`, `BULWARK_TRACE_LEVEL`, `BULWARK_VERIFY_STRATEGY`, `BULWARK_VERIFY_SAMPLE_RATE`)
+- Code configuration examples for Python and TypeScript
+- Three verify strategies explained (full, sampled, adaptive) with the taxi fleet analogy
+- The `critical` flag — payments, auth, and deletions always get full verification
+- Beginner-friendly tone with analogies throughout
+
+**2. Section 5.2: Availability Guards** (lines 890–988)
+- Restaurant analogy ("check once before you leave, not before every bite")
+- When to use / when NOT to use (startup vs. per-call)
+- Full code examples in Python and TypeScript
+- Explanation of why it's an extension, not core
+
+**3. Step 1 Updated** (lines 996–1024)
+- Renamed to "Copy the Helpers and Configure"
+- Mentions `configure()` in the helper function list
+- Shows startup configuration code for both Python and TypeScript
+- Links back to Section 5.1 for full details
+
+**4. Table of Contents** updated with 5.1 and 5.2 sub-entries
+
+---
+
+## README.md — 339 lines (was 269)
+
+### Changes Made:
+- Version badge updated to `v0.2.0-draft`
+- New **"What's New in v0.2.0"** section with:
+  - Runtime Configuration (env vars + code)
+  - Verify Strategies table (full/sampled/adaptive)
+  - Availability Guards with code example
+- Quick Start updated to show `configure()` call and import
+- FAQ updated with new question about modes vs. strategies
+- Project structure updated to include GUIDE.md
+- Bottom navigation updated with Guide link
+- All new sections link to GUIDE.md for detailed explanations
+
+---
+
+All existing content was preserved — only additions were made. The tone matches the existing beginner-friendly style with analogies and before/after examples.

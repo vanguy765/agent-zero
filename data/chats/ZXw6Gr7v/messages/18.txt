@@ -1,0 +1,13 @@
+181:          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+182:          thumbnail_url: pd?.thumbnail_url ?? null,
+562:          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+563:          thumbnail_url: pd?.thumbnail_url ?? null,
+703:    .select('id, document_id, page_number, storage_url, thumbnail_url, category, raw_text, created_at, updated_at')
+732:// Returns storage_url, thumbnail_url, category, raw_text,
+933:    .select('page_number, category, thumbnail_url, storage_url')
+959:      thumbnail_url: p.thumbnail_url,
+960:      storage_url:   p.storage_url,
+986:    .select('id, page_number, category, storage_url, thumbnail_url, raw_text')
+1018:      storage_url:   pageRow.storage_url,
+1019:      thumbnail_url: pageRow.thumbnail_url,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,12 @@
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4791: ERROR:  role "authenticated" does not exist
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4792: ERROR:  role "service_role" does not exist
+ALTER DEFAULT PRIVILEGES
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4800: ERROR:  role "anon" does not exist
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4801: ERROR:  role "authenticated" does not exist
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4802: ERROR:  role "service_role" does not exist
+ALTER DEFAULT PRIVILEGES
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4810: ERROR:  role "anon" does not exist
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4811: ERROR:  role "authenticated" does not exist
+psql:/a0/usr/projects/timesheet_app/voicelog-scaffold/backups/20260310/schema.sql:4812: ERROR:  role "service_role" does not exist
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---restoring schema---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

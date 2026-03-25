@@ -1,0 +1,15 @@
+
+Success. You can now start the database server using:
+
+    /usr/lib/postgresql/18/bin/pg_ctl -D /tmp/pgdata -l logfile start
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# The database cluster will be initialized with locale "en_US.UTF-8".
+The default database encoding has accordingly been set to "UTF8".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+initdb: error: directory "/tmp/pgdata" exists but is not empty
+initdb: hint: If you want to create a new database system, either remove or empty the directory "/tmp/pgdata" or run initdb with an argument other than "/tmp/pgdata".
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---done---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

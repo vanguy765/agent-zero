@@ -1,0 +1,19 @@
+=== End-to-end test with mock DB ===
+DEBUG | TRACE:fetch_and_save:inputs | {'type': 'dict', 'keys': ['db', 'url'], 'size': 2}
+DEBUG | Starting new HTTPS connection (1): jsonplaceholder.typicode.com:443
+DEBUG | https://jsonplaceholder.typicode.com:443 "GET /users/1 HTTP/1.1" 200 None
+DEBUG | TRACE:fetch_and_save:after_fetch | {'type': 'dict', 'keys': ['address', 'company', 'email', 'id', 'name', 'phone', 'username', 'website'], 'size': 8}
+  [MockDB] Executed: INSERT INTO records VALUES (?)...
+DEBUG | TRACE:fetch_and_save:after_insert | {'type': 'dict', 'keys': ['rowcount'], 'size': 1}
+DEBUG | TRACE:fetch_and_save:verified | rowcount=1
+
+✅ Result: {'status': 'verified', 'rowcount': 1}
+
+=== Verify test: rowcount=0 ===
+DEBUG | TRACE:fetch_and_save:inputs | {'type': 'dict', 'keys': ['db', 'url'], 'size': 2}
+DEBUG | Starting new HTTPS connection (1): jsonplaceholder.typicode.com:443
+DEBUG | https://jsonplaceholder.typicode.com:443 "GET /users/1 HTTP/1.1" 200 None
+DEBUG | TRACE:fetch_and_save:after_fetch | {'type': 'dict', 'keys': ['address', 'company', 'email', 'id', 'name', 'phone', 'username', 'website'], 'size': 8}
+DEBUG | TRACE:fetch_and_save:after_insert | {'type': 'dict', 'keys': ['rowcount'], 'size': 1}
+✅ VerifyError caught: VERIFY:fetch_and_save | INSERT | expected 1 row affected, got 0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

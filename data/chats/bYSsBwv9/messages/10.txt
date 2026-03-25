@@ -1,0 +1,54 @@
+# Port Allocation Contract
+
+To avoid conflicts during development, we strictly assign specific ports to each application in the monorepo.
+
+## Assigned Ports
+
+| Port      | Application         | Path                  | Notes                                                                 |
+| :-------- | :------------------ | :-------------------- | :-------------------------------------------------------------------- |
+| **3000**  | **API**             | `apps/api`            | The Backend (Hono) + A2A Protocol (`/a2a`, `/.well-known/agent.json`) |
+| **3001**  | **Web Dashboard**   | `apps/web-dashboard`  | Admin/Office View (Legacy/Reference)                                  |
+| **3003**  | **Material Admin**  | `apps/material-admin` | Material & Taxonomy Manager                                           |
+| **3002**  | **Site Companion**  | `apps/site-companion` | Mobile Companion App (Voice Log)                                      |
+| **3004**  | **Work Orders**     | `apps/work-orders`    | Work Orders Management                                                |
+| **3005**  | **Tenant Portal**   | `apps/tenant-portal`  | Configurable Tenant Data Portal (SolidJS)                             |
+| **5000**  | **Doc Parser**      | `doc-parser`          | Python FastAPI Service for LayoutParser                               |
+| **8082**  | **NocoDB**          | -                     | No-code Database Interface (Internal Tools)                           |
+| **54321** | **Supabase**        | -                     | Local Database (Postgres)                                             |
+| **54323** | **Supabase Studio** | -                     | Local Dashboard UI                                                    |
+| **5080**  | **Agent Zero**      | `agent-zero`          | Agent Zero                                                            |
+
+## Rules
+
+1.  **Strict Ports**: In `vite.config.ts`, always set `server.port` to the assigned value.
+2.  **No Random Ports**: Do not let Vite pick a random port. This breaks CORS configurations.
+3.  **Check this doc**: Before creating a new app, claim the next available port here.
+
+## Troubleshooting
+
+### Windows "Zombie" Processes
+
+If you encounter `EADDRINUSE` or random port assignments (e.g., 3009 instead of 3002), it is likely that a previous Node process is still running in the background.
+
+**Fix**: Run this command in PowerShell to Force-Kill all Node processes:
+
+```powershell
+taskkill /F /IM node.exe
+```
+
+---
+
+## Docker / Compose port mapping (local development)
+
+The repository provides a `docker-compose.yml` (root of `agent-zero`) that maps the service ports for the single "agent-zero" service. By default the compose file maps:
+
+- Container port 80 -> Host 80
+- Container port 9000 -> Host 9000
+- Container port 22 -> Host 22
+
+If you run multiple services from the monorepo in parallel, ensure these host ports are free or modify the `docker-compose.yml` port mappings to avoid conflicts.
+
+Tip: use `docker compose ps` and `docker compose logs -f <service>` to inspect running services and assigned ports.
+=== WORK-ORDERS SRC ===
+App.css  App.tsx  assets  components  index.css  index.tsx  lib  pages
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

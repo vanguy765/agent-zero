@@ -1,0 +1,78 @@
+* Async version of guardAvailable for checks that return Promises.
+ *
+ * @example
+ * await guardAvailableAsync(
+ *   async () => {
+ *     const r = await fetch("http://api:3000/health", { signal: AbortSignal.timeout(5000) });
+ *     return r.status < 500;
+ *   },
+ *   "appStartup",
+ *   "api-service"
+ * );
+ */
+export async function guardAvailableAsync(
+  check: () => Promise<boolean>,
+  functionName: string,
+  dependency: string,
+  message?: string,
+  recovery?: RecoveryOptions
+): Promise<void> {
+  if (!_config.guardsEnabled) return;
+
+  // --- Initial check ---
+  let available: boolean;
+  let checkError: Error | null = null;
+  try {
+    available = await check();
+  } catch (e) {
+    available = false;
+    checkError = e instanceof Error ? e : new Error(String(e));
+  }
+
+  // Happy path
+  if (available) {
+    bulwarkLog("INFO", `GUARD:AVAILABLE:${functionName} | ${dependency} — OK`);
+    return;
+  }
+
+  // --- Unavailable, no recovery ---
+  if (!recovery?.recoveryCommand) {
+    if (checkError) {
+      const diag =
+        `GUARD:AVAILABLE:${functionName} | ` +
+        `${dependency} — check raised ${checkError.name}: ${checkError.message}`;
+      bulwarkLog("ERROR", diag);
+      throw new GuardError(diag);
+    }
+    const diag =
+      `GUARD:AVAILABLE:${functionName} | ` +
+      `${dependency} — ${message || "not available"}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+
+  // --- Recovery path (async) ---
+  const maxRetries = recovery.maxRetries ?? 3;
+  const retryDelay = recovery.retryDelay ?? 5.0;
+  const backoff = recovery.backoffMultiplier ?? 2.0;
+  const cmd = recovery.recoveryCommand;
+
+  bulwarkLog(
+    "WARN",
+    `GUARD:AVAILABLE:${functionName} | ${dependency} — unavailable, attempting recovery`
+  );
+
+  const startTime = Date.now();
+  let currentDelay = retryDelay;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    bulwarkLog(
+      "INFO",
+      `GUARD:RECOVERY:${functionName} | ${dependency} — executing "${cmd}" (attempt ${attempt}/${maxRetries})`
+    );
+
+    const exitCode = await execCommandAsync(cmd);
+
+    bulwarkLog(
+      "INFO",
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

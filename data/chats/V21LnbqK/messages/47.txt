@@ -1,0 +1,34 @@
+Output directory: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs/20260314_011753
+Submitting /a0/usr/projects/timesheet_app/voicelog-scaffold/tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf to http://doc-parser:5000/parse/hybrid...
+Job submitted: d1628004-de7f-4f16-8b9f-e1f1573a4400
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 15.0% — converting_pdf_with_docling
+  [processing] 25.5% — rendering_pages
+  [processing] 25.5% — rendering_pages
+  [processing] 26.6% — generating_thumbnail_page_3
+
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

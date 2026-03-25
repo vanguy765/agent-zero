@@ -1,0 +1,36 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# kill-dev-servers.ps1 updated
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# # Kill All Dev Servers
+# Kills any Node.js processes listening on monorepo app ports (3000-3005)
+# Safe to run anytime before `pnpm dev`
+
+# Nuclear option first: kill ALL node.exe processes (recommended by docs/ports.md)
+Write-Host "  Force-killing all node.exe processes..." -ForegroundColor DarkGray
+taskkill /F /IM node.exe 2>$null
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "  node.exe processes terminated." -ForegroundColor Green
+} else {
+    Write-Host "  No node.exe processes were running." -ForegroundColor DarkGray
+}
+
+# Also kill by port as a safety net
+$ports = @(3000, 3001, 3002, 3003, 3004, 3005)
+$killed = 0
+
+foreach ($port in $ports) {
+    $connections = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+    foreach ($conn in $connections) {
+        $proc = Get-Process -Id $conn.OwningProcess -ErrorAction SilentlyContinue
+        if ($proc) {
+            Write-Host "  Killing $($proc.ProcessName) (PID $($proc.Id)) on port $port"
+            Stop-Process -Id $proc.Id -Force
+            $killed++
+        }
+    }
+}
+
+if ($killed -gt 0) {
+    Write-Host "  Killed $killed additional process(es) by port scan." -ForegroundColor Yellow
+}
+
+Write-Host "  All clear - ports 3000-3005 are free." -ForegroundColor Green
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders#

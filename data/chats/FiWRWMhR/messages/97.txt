@@ -1,0 +1,19 @@
+# Bulwark AI — Project Status & Context
+
+> **Purpose**: This document provides the full project context for any new
+> contributor (human or AI) picking up development. It captures the evolution
+> narr
+...
+rators (in order of impact)
+1. **Linter CLI**: Automated compliance checking removes friction
+2. **AI prompt integration**: Cursor/Copilot rules that auto-apply Bulwark
+3. **Hacker News launch**: High-signal audience, rewards novel ideas
+4. **Real-world case studies**: Before/after examples showing bugs caught
+5. **GitHub template**: `bulwark-starter` repo with pre-configured setup
+
+---
+
+*This document should be updated at the start of each development session
+to reflect current project state.*
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

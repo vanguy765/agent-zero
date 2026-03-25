@@ -1,0 +1,21 @@
+=== log_shape utility ===
+83:def log_shape(label: str, data):
+
+=== Contract assertions ===
+250:    # ── Contract assertions ──────────────────────────────────────────────
+252:    assert "pages" in results, (
+258:    assert isinstance(pages_result, dict), (
+261:    assert len(pages_result) > 0, (
+
+=== Post-persist verification ===
+410:            f"VERIFICATION FAILED: expected {expected_pages} document_pages rows, "
+414:        log(f"  ⚠️  WARNING: expected {image_count} images, found {actual_images} in DB")
+416:        log(f"  ⚠️  WARNING: expected {ocr_count} OCR rows, found {actual_ocr} in DB")
+418:    log(f"  ✅ Verified: {actual_pages} pages, {actual_images} images, {actual_ocr} OCR rows")
+
+=== Shape logging in main ===
+83:def log_shape(label: str, data):
+251:    log_shape("persist_results input", results)
+461:    log_shape("raw API response", raw_response)
+463:    log_shape("unwrapped results", results)
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

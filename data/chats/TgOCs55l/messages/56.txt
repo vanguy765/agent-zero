@@ -1,0 +1,208 @@
+src/middleware/auth.ts:3:49 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+                                                  ~~~~~~~~~~~~~~
+
+src/middleware/auth.ts:4:24 - error TS2307: Cannot find module '@repo/logger' or its corresponding type declarations.
+
+4 import { logger } from '@repo/logger';
+                         ~~~~~~~~~~~~~~
+
+src/middleware/supabase.ts:3:49 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+                                                  ~~~~~~~~~~~~~~
+
+src/routes/bom-action-requests.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/delivery.ts:2:38 - error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+
+2 import { CreateDeliverySchema } from '@repo/schemas';
+                                       ~~~~~~~~~~~~~~~
+
+src/routes/doc-parser-routes.ts:23:29 - error TS2307: Cannot find module 'pdf-lib' or its corresponding type declarations.
+
+23 import { PDFDocument } from 'pdf-lib';
+                               ~~~~~~~~~
+
+src/routes/doc-parser-routes.ts:24:57 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+24 import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                           ~~~~~~~~~~~~~~
+
+src/routes/documents.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/entity-creation.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/materials.ts:7:8 - error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+
+7 } from '@repo/schemas';
+         ~~~~~~~~~~~~~~~
+
+src/routes/onboard.ts:3:57 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                          ~~~~~~~~~~~~~~
+
+src/routes/project-definitions.ts:40:3 - error TS2345: Argument of type '(c: Context<Env, "/", {}>) => Promise<any>' is not assignable to parameter of type 'Handler<Env, "/", {}, Promise<never>>'.
+  Type 'Promise<any>' is not assignable to type 'Promise<never>'.
+    Type 'any' is not assignable to type 'never'.
+
+40   async (c) => {
+     ~~~~~~~~~~~~~~
+
+src/routes/project-outcomes.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/reviews.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/todos.ts:2:64 - error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+
+2 import { CreateTodoSchema, TodoSchema, UpdateTodoSchema } from '@repo/schemas';
+                                                                 ~~~~~~~~~~~~~~~
+
+src/routes/todos.ts:4:49 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+4 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+                                                  ~~~~~~~~~~~~~~
+
+src/routes/trades.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/type-orders.ts:3:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+3 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/voice.ts:4:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+4 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                             ~~~~~~~~~~~~~~
+
+src/routes/work-orders.ts:11:8 - error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+
+11 } from '@repo/schemas';
+          ~~~~~~~~~~~~~~~
+
+src/routes/work-orders.ts:13:76 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+13 import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                                              ~~~~~~~~~~~~~~
+
+src/services/a2a/agentCard.ts:2:25 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+2 import { API_URL } from '@repo/config';
+                          ~~~~~~~~~~~~~~
+
+src/services/a2a/skillRouter.ts:2:57 - error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+
+2 import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+                                                          ~~~~~~~~~~~~~~
+
+tsconfig.json:2:16 - error TS6053: File '@repo/tsconfig/base.json' not found.
+
+2     "extends": "@repo/tsconfig/base.json",
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts:8:46 - error TS2694: Namespace '"/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/external"' has no exported member 'core'.
+
+8 export declare const zodToOpenAPIRegistry: z.core.$ZodRegistry<ZodOpenApiFullMetadataForRegistry<any>, z.core.$ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>>;
+                                               ~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts:8:106 - error TS2694: Namespace '"/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/external"' has no exported member 'core'.
+
+8 export declare const zodToOpenAPIRegistry: z.core.$ZodRegistry<ZodOpenApiFullMetadataForRegistry<any>, z.core.$ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>>;
+                                                                                                           ~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts:8:140 - error TS2694: Namespace '"/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/external"' has no exported member 'core'.
+
+8 export declare const zodToOpenAPIRegistry: z.core.$ZodRegistry<ZodOpenApiFullMetadataForRegistry<any>, z.core.$ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>>;
+                                                                                                                                             ~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts:20:26 - error TS2614: Module '"zod"' has no exported member 'ZodPipe'. Did you mean to use 'import ZodPipe from "zod"' instead?
+
+20 import type { ZodObject, ZodPipe, ZodType } from 'zod';
+                            ~~~~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts:37:15 - error TS2707: Generic type 'ZodObject<T, UnknownKeys, Catchall, Output, Input>' requires between 1 and 5 type arguments.
+
+37     headers?: ZodObject | HeadersObject;
+                 ~~~~~~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts:41:28 - error TS2707: Generic type 'ZodObject<T, UnknownKeys, Catchall, Output, Input>' requires between 1 and 5 type arguments.
+
+41 type ZodObjectWithEffect = ZodObject | ZodPipe;
+                              ~~~~~~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts:5:15 - error TS2614: Module '"zod"' has no exported member 'core'. Did you mean to use 'import core from "zod"' instead?
+
+5 import type { core } from 'zod';
+                ~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts:51:17 - error TS2707: Generic type 'ZodObject<T, UnknownKeys, Catchall, Output, Input>' requires between 1 and 5 type arguments.
+
+51         schema: ZodObject;
+                   ~~~~~~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts:58:15 - error TS2428: All declarations of 'ZodType' must have identical type parameters.
+
+58     interface ZodType<out Output = unknown, out Input = unknown, out Internals extends core.$ZodTypeInternals<Output, Input> = core.$ZodTypeInternals<Output, Input>> extends core.$ZodType<Output, Input, Internals> {
+                 ~~~~~~~
+
+../../node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/types.d.cts:48:31 - error TS2428: All declarations of 'ZodType' must have identical type parameters.
+
+48 export declare abstract class ZodType<Output = any, Def extends ZodTypeDef = ZodTypeDef, Input = Output> {
+                                 ~~~~~~~
+
+../../node_modules/@hono/swagger-ui/dist/index.d.cts:2:32 - error TS2307: Cannot find module 'swagger-ui-dist' or its corresponding type declarations.
+
+2 import { SwaggerConfigs } from "swagger-ui-dist";
+                                 ~~~~~~~~~~~~~~~~~
+
+
+Found 35 errors in 25 files.
+
+Errors  Files
+     2  src/middleware/auth.ts:3
+     1  src/middleware/supabase.ts:3
+     1  src/routes/bom-action-requests.ts:3
+     1  src/routes/delivery.ts:2
+     2  src/routes/doc-parser-routes.ts:23
+     1  src/routes/documents.ts:3
+     1  src/routes/entity-creation.ts:3
+     1  src/routes/materials.ts:7
+     1  src/routes/onboard.ts:3
+     1  src/routes/project-definitions.ts:40
+     1  src/routes/project-outcomes.ts:3
+     1  src/routes/reviews.ts:3
+     2  src/routes/todos.ts:2
+     1  src/routes/trades.ts:3
+     1  src/routes/type-orders.ts:3
+     1  src/routes/voice.ts:4
+     2  src/routes/work-orders.ts:11
+     1  src/services/a2a/agentCard.ts:2
+     1  src/services/a2a/skillRouter.ts:2
+     1  tsconfig.json:2
+     3  ../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts:8
+     3  ../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts:20
+     3  ../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts:5
+     1  ../../node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/types.d.cts:48
+     1  ../../node_modules/@hono/swagger-ui/dist/index.d.cts:2
+TSC_EXIT:2
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

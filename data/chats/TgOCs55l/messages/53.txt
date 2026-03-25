@@ -1,0 +1,86 @@
+=== Main README first 30 lines ===
+# Construction Voice Platform (Scaffold)
+
+> **Current Status**: 🚧 Clean Scaffold / Starter Kit
+> This repository is a configured foundation for building a high-performance, distributed application suite. It is not yet a feature-complete product.
+
+## What is this?
+
+This is a **Modern Monorepo Architecture** designed for teams building a "Collection of Apps" that share a single data model and "Brain".
+
+It is pre-configured to build:
+1.  **Admin Dashboards**: High-density office interfaces (SolidJS + Vite).
+2.  **Field Companion Apps**: Offline-capable mobile PWAs for workers (SolidJS).
+3.  **Voice-Enabled APIs**: A backend optimized for Audio processing, LLM extraction, and Realtime data (Hono).
+4.  **Native Mobile Apps**: Ready for Flutter integration via OpenAPI generation.
+
+## Why this stack?
+
+*   **Type Safety**: If you change the database, the Mobile App break at *compile time*, not in production.
+*   **Speed**: Uses `pnpm` and `Turborepo` for instant builds.
+*   **Reactivity**: Uses `SolidJS` for raw performance (no Virtual DOM).
+*   **Unified Logic**: Shared `packages/schemas` ensure the API and Frontend always speak the same language.
+
+## Directory Structure
+
+```text
+/
+├── apps/
+│   ├── api/             # Hono Backend (The Brain)
+│   │                    #  - Exposes OpenAPI / Swagger
+│   │                    #  - Handles Voice Processing & Auth
+
+=== doc-parser README first 30 lines ===
+# Document Parser API
+
+This service provides a multi-stage document parsing API using **IBM Docling**, **Tesseract OCR**, and **Claude 3.5 Sonnet**. It extracts text, tables, and structured data from architectural PDFs, rendering parsed data to structured JSON and optionally streaming images to a Supabase storage bucket.
+
+---
+
+## Getting Started
+
+The service runs as a FastAPI server on port **5000**.
+
+### 1. Configure Environment
+Ensure your `.env` contains the required keys:
+```
+OPENROUTER_API_KEY=...
+```
+
+### 2. Start the Service
+```bash
+cd doc-parser
+docker-compose up -d --build doc-parser
+```
+This builds an environment with Deep Learning models (PyTorch, Docling) cached in the docker layers to start up fast.
+
+Or run directly (inside the container / venv):
+```bash
+python server.py
+# or
+uvicorn server:app --host 0.0.0.0 --port 5000
+```
+
+
+=== API README first 20 lines ===
+# API — The Brain
+
+Central backend API powering the voicelog-scaffold construction renovation platform.
+
+> `Port: 3000` | `Framework: Hono (OpenAPIHono) on Node.js` | Part of [voicelog-scaffold](../../docs/general/platform_analysis.md)
+
+---
+
+## Overview
+
+The API is the central nervous system of the platform — every frontend app, AI agent, and external integration communicates through it. Built on **Hono** with full **OpenAPI** spec generation, it provides type-safe routes, Swagger UI documentation, and an A2A (Agent-to-Agent) JSON-RPC endpoint for AI interoperability.
+
+## Role in the Platform
+
+- **Single source of truth** for all business logic and data access
+- **Gateway** between frontends and Supabase (PostgreSQL)
+- **AI orchestration hub** — processes voice recordings, parses PDFs, and hosts the A2A protocol
+- **Placeholder recovery engine** — auto-generates smart defaults for missing entities and queues them for review
+
+## Features
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

@@ -1,0 +1,34 @@
+52
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Directory structure (dirs only) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# .
+./.bmad
+./.bmad/skills
+./checklists
+./examples
+./examples/bash
+./examples/go
+./examples/python
+./examples/typescript
+./guides
+./linter
+./linter/bulwark_lint
+./linter/bulwark_lint/reporters
+./linter/bulwark_lint/rules
+./linter/tests
+./linter/tests/fixtures
+./prompts
+./reference
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# gh CLI not installed
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# No global git config
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# bash: gh: command not found
+No gh auth
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# total 12
+drwx------ 2 root root 4096 Feb  6 13:54 .
+drwx------ 1 root root 4096 Mar 14 04:18 ..
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# No credential helper configured
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

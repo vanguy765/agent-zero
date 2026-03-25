@@ -1,0 +1,61 @@
+54-|----|-------------|-------------|---------|
+55-| **F1** | Silent data shape mismatch | Code assumes a data structure that doesn't match reality | API returns `{result: {pages: [...]}}` but code reads `response["pages"]` |
+56:| **F2** | Unverified side effects | Code reports success without confirming the operation occurred | `db.insert()` returns 200 but 0 rows inserted; code logs "success" |
+57-| **F3** | Placeholder/demo data | Hardcoded test values, example URLs, or stub data left in production code | `api_key = "sk-test-1234"`, `url = "https://example.com/api"` |
+58-| **F4** | Confident wrong assumptions | Code assumes environmental conditions without checking | Assumes path is writable, service is reachable, key exists in dict |
+59-| **F5** | Happy-path-only logic | No handling for empty results, missing keys, null values, or error states | `results = fetch(); process(results[0])` with no empty-check |
+60-| **F6** | Stale pattern application | Uses deprecated APIs, outdated syntax, or patterns from training data | Using `requests.get` without `timeout` parameter (pre-2.28 pattern) |
+61-
+62-### 1.3 Why Existing Approaches Are Insufficient
+63-
+64-| Approach | Limitation |
+65-|----------|------------|
+66-| Design by Contract (Meyer, 1986) | Language-specific (Eiffel); human-focused; no trace/verify layers |
+67-| Type systems | Catch shape errors at compile time but not runtime data mismatches |
+68-| Unit tests | Written by the same AI that wrote the code — same blind spots |
+69-| Linters | Catch style issues, not semantic correctness |
+70-| Code review | Requires human expertise; doesn't scale to AI generation speed |
+71-
+72-Bulwark AI addresses the gap: a **runtime defensive standard** targeting **AI-specific failure modes** that works **across all languages** with **zero dependencies**.
+73-
+74-### 1.4 Design Philosophy
+75-
+76-Bulwark AI is built on five principles:
+--
+90-| **Guard** | A precondition check that validates the shape, type, and presence of data before a function processes it |
+91-| **Trace** | A structured log entry that records the shape (not content) of data at a phase boundary |
+92:| **Verify** | A postcondition check that confirms a side effect (write, send, delete) actually achieved its intended result |
+93-| **Phase boundary** | Any point where data is handed from one processing stage to another |
+94-| **Side effect** | Any operation that modifies state outside the current function scope (DB write, file write, API call, queue publish, email send) |
+95-| **Shape** | The structural description of data: type, length/size, keys/fields, and nested structure — explicitly NOT the content/values |
+96-| **Diagnostic message** | A structured string emitted by a Guard, Trace, or Verify that follows the format specified in §4 |
+97-| **Bulwarked function** | A function that implements all applicable Bulwark layers per the decision rules in §3.4 |
+98-| **Bulwarked pipeline** | A pipeline where every phase boundary has Traces and every function is Bulwarked |
+99-| **Runtime mode** | The environment-specific configuration that controls layer behavior (see §6) |
+100:| **Verify strategy** | The method used to confirm a side effect, chosen based on throughput and criticality (see §3.3.5) |
+101-
+102----
+103-
+104-## 3. The Three Layers
+105-
+106-### 3.1 Layer 1: GUARD
+107-
+108-#### 3.1.1 Purpose
+109-
+110-Guards prevent functions from operating on data that doesn't match their expectations. They convert **silent failures** (F1, F4, F5) into **loud, diagnostic failures** at the earliest possible point.
+111-
+112-**Why this matters:** When an AI agent writes `response["pages"]` but the API actually returns `{"result": {"pages": [...]}}`, the code fails with a generic `KeyError: 'pages'`. That tells you nothing. A Guard fails with `GUARD:process_pages | expected key 'pages', got keys: ['result', 'status']` — which tells you (or the AI agent) exactly how to fix it.
+113-
+114-#### 3.1.2 Applicability Rule
+115-
+116-> **A Guard is REQUIRED on every function that receives data it did not create.**
+117-
+118-This includes:
+119-- Functions receiving API responses
+120-- Functions receiving database query results
+--
+254-#### 3.3.1 Purpose
+255-
+256:Verifies confirm that side effects actually achieved their intended result. They prevent the **phantom success** pattern (F2) where code reports completion without confirming the operation occurred.
+257-
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,23 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === Title rename check ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 387:            {/* ── 2. Company WO Templates ──────────────────────────────────── */}
+388:            <Section title="Company WO Templates" count={templateRows().length || undefined} linkHref="/templates/company" linkLabel="View all →">
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === Table order check (section titles) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 329:            <Section title="Projects" count={projectRows().length || undefined} linkHref="/projects" linkLabel="View all →">
+388:            <Section title="Company WO Templates" count={templateRows().length || undefined} linkHref="/templates/company" linkLabel="View all →">
+431:            <Section title="Space Archetypes" count={archetypeRows().length || undefined} linkHref="/settings/type-orders" linkLabel="Manage →">
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === 1br/2br/3br description keys ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 211:    '1br':
+213:    '2br':
+215:    '3br':
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === scrollToArchetype function ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 237:    const [highlightedArchetype, setHighlightedArchetype] = createSignal<string | null>(null);
+239:    const scrollToArchetype = (id: string) => {
+241:        const el = document.getElementById(`archetype-row-${id}`);
+462:                                                    id={`archetype-row-${row.id}`}
+464:                                                        highlightedArchetype() === row.id
+487:                                                            onClick={() => scrollToArchetype(row.id)}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === View button ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# 239:    const scrollToArchetype = (id: string) => {
+487:                                                            onClick={() => scrollToArchetype(row.id)}
+490:                                                            View ↓
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

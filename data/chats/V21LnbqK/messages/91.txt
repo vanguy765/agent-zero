@@ -1,0 +1,33 @@
+.from_("project-documents")
+            .upload(path, image_bytes, file_options={"content-type": "image/png", "upsert": "true"})
+        )
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        # Return a signed URL (bucket is private); 1-year expiry
+        _signed = await asyncio.to_thread(
+            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 31536000)
+        )
+        url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+        try:
+            await asyncio.to_thread(
+                lambda: sb_client.table("document_images").insert({
+                    "document_id": doc_id,
+                    "image_url": path,
+====
+        )
+        # supabase-py 2.x raises StorageApiError on failure, but some versions return
+        # an error dict instead — check explicitly so the path is never returned on failure.
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        # Return a signed URL (bucket is private); 1-year expiry
+        _signed = await asyncio.to_thread(
+            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 31536000)
+        )
+        url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+        try:
+            await asyncio.to_thread(
+                lambda: sb_client.table("document_images").insert({
+                    "document_id": doc_id,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

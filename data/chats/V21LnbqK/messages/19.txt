@@ -1,0 +1,16 @@
+Thumbnail storage path: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_1.png
+
+Signed URL response: {'signedURL': 'http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_1.png?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwcm9qZWN0LWRvY3VtZW50cy90ZXN0LXRlbmFudC90ZXN0LXByb2plY3QvZG9jLXBhcnNlci9qb2JfZWZjNTg2ZjMtZGFkYy00Yjk0LWJlN2EtNDE3MDk1ZTM0Mjg4X3RodW1iX3BhZ2VfMS5wbmciLCJpYXQiOjE3NzM0NDg3NTUsImV4cCI6MTc3MzQ1MjM1NX0.MATG6unTCSVPsGZmfnPvZn9TMWhoBpDShkTwk07siVA', 'signedUrl': 'http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_1.png?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwcm9qZWN0LWRvY3VtZW50cy90ZXN0LXRlbmFudC90ZXN0LXByb2plY3QvZG9jLXBhcnNlci9qb2JfZWZjNTg2ZjMtZGFkYy00Yjk0LWJlN2EtNDE3MDk1ZTM0Mjg4X3RodW1iX3BhZ2VfMS5wbmciLCJpYXQiOjE3NzM0NDg3NTUsImV4cCI6MTc3MzQ1MjM1NX0.MATG6unTCSVPsGZmfnPvZn9TMWhoBpDShkTwk07siVA'}
+Download URL: http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/job_efc58...
+Download status: 200, size: 34395 bytes
+Saved to: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs/20260314_003244/pages/page_001_thumb.png
+
+--- Constructed URL approach ---
+Constructed: http://host.docker.internal:54321/storage/v1/object/authenticated/project-documents/test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_1.png
+Status: 200, size: 34395 bytes
+Authenticated URL works!
+
+--- Supabase client download ---
+Downloaded: 34395 bytes
+Saved to: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs/20260314_003244/pages/page_001_thumb.png
+(venv) root@d2d162d983f0:/a0/usr/workdir#

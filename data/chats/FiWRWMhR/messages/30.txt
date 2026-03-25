@@ -1,0 +1,40 @@
+=== GUARDED TS ===
+
+✔ No violations found.
+
+=== UNGUARDED PY ===
+
+/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py
+  9:1  warning  BLW001  function-needs-guard     process_user_data() has parameters but no guard calls
+         💡 Consider adding: guard_type(raw_data, expected_type, "process_user_data", "raw_data"); guard_type(source, expected_type, "process_user_data", "source"); guard_type(strict, expected_type, "process_user_data", "strict")
+  9:1  info     BLW003  trace-at-boundary     process_user_data() appears to be a phase boundary but has no trace call
+         💡 Consider adding: result = trace("after_process_user_data", data)
+  22:1  warning  BLW004  no-bare-assert     process_user_data() uses raise for validation for validation instead of guard()
+         💡 Replace raise with: guard(condition, "process_user_data", "description") which raises GuardError
+  27:1  warning  BLW004  no-bare-assert     process_user_data() uses bare assert for validation instead of guard()
+         💡 Replace assert with: guard(condition, "process_user_data", "description")
+  28:1  warning  BLW004  no-bare-assert     process_user_data() uses bare assert for validation instead of guard()
+         💡 Replace assert with: guard(condition, "process_user_data", "description")
+  35:1  warning  BLW001  function-needs-guard     save_user_to_database() has parameters but no guard calls
+         💡 Consider adding: guard_type(db, expected_type, "save_user_to_database", "db"); guard_type(user_data, expected_type, "save_user_to_database", "user_data"); guard_type(table, expected_type, "save_user_to_database", "table")
+  35:1  warning  BLW002  verify-after-mutation     save_user_to_database() has database mutation but no verify call
+         💡 Consider adding: verify(result.rowCount == 1, "save_user_to_database", "expected 1 affected row")
+  48:1  warning  BLW001  function-needs-guard     export_users_to_csv() has parameters but no guard calls
+         💡 Consider adding: guard_type(users, expected_type, "export_users_to_csv", "users"); guard_type(output_path, expected_type, "export_users_to_csv", "output_path")
+  48:1  warning  BLW002  verify-after-mutation     export_users_to_csv() has file write but no verify call
+         💡 Consider adding: verify_file_written(filepath, "export_users_to_csv", "file write failed")
+  64:1  warning  BLW001  function-needs-guard     handle_user_notification() has parameters but no guard calls
+         💡 Consider adding: guard_type(user, expected_type, "handle_user_notification", "user"); guard_type(admin_email, expected_type, "handle_user_notification", "admin_email"); guard_type(template, expected_type, "handle_user_notification", "template")
+  64:1  warning  BLW002  verify-after-mutation     handle_user_notification() has notification send but no verify call
+         💡 Consider adding: verify(sent == True, "handle_user_notification", "notification send failed")
+  64:1  info     BLW003  trace-at-boundary     handle_user_notification() appears to be a phase boundary but has no trace call
+         💡 Consider adding: result = trace("after_handle_user_notification", data)
+  77:1  warning  BLW001  function-needs-guard     fetch_remote_users() has parameters but no guard calls
+         💡 Consider adding: guard_type(api_url, expected_type, "fetch_remote_users", "api_url"); guard_type(api_key, expected_type, "fetch_remote_users", "api_key"); guard_type(page, expected_type, "fetch_remote_users", "page")
+  77:1  info     BLW003  trace-at-boundary     fetch_remote_users() appears to be a phase boundary but has no trace call
+         💡 Consider adding: result = trace("after_fetch_remote_users", data)
+
+✖ 14 problems (0 errors, 11 warnings, 3 info)
+
+Files scanned: 1
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

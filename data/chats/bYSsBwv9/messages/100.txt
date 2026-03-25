@@ -1,0 +1,14 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Port 54321 (Supabase) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Port 5432 (PostgreSQL) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: ss: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API .env ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# DOC_PARSER_URL=http://localhost:5000
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API getScopedClient ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# apps/api/src/middleware/supabase.ts:5:export const getScopedClient = (c: Context): SupabaseClient => {
+apps/api/src/routes/bom-action-requests.ts:12:const getScopedClient = (c: any) => {
+apps/api/src/routes/bom-action-requests.ts:23:    const supabase = getScopedClient(c);
+apps/api/src/routes/bom-action-requests.ts:37:    const supabase = getScopedClient(c);
+apps/api/src/routes/doc-parser-routes.ts:15:import { getScopedClient } from '../middleware/supabase';
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

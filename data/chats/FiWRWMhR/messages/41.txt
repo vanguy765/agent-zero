@@ -1,0 +1,103 @@
+=== Size ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 1569 /a0/usr/workdir/bulwark-ai/GUIDE.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 71947 /a0/usr/workdir/bulwark-ai/GUIDE.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Top-level sections (## headers) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 9:## Table of Contents
+26:## 1. What Is Bulwark AI?
+36:## 2. Why Does AI Code Fail?
+103:## 3. The Three Layers Explained
+417:## 4. The Decision Flowchart
+706:## 5. Runtime Modes: Not Everything Costs the Same
+1160:## 6. How to Add Bulwark to Your Project
+1271:## 7. Common Mistakes
+1509:## 8. Why We Made These Choices
+1535:## 9. Glossary
+1551:## What's Next?
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === All headers with line numbers ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 9:## Table of Contents
+26:## 1. What Is Bulwark AI?
+36:## 2. Why Does AI Code Fail?
+42:### F1: Silent Data Shape Mismatch
+50:### F2: Unverified Side Effects
+58:### F3: Placeholder and Demo Data
+66:### F4: Confident Wrong Assumptions
+74:### F5: Happy-Path-Only Logic
+82:### F6: Stale Pattern Application
+90:### Summary: The Six Failure Modes
+103:## 3. The Three Layers Explained
+111:### 3.1 Layer 1: Guard
+115:#### Real-World Analogy
+121:#### What It Catches
+128:#### The Decision Question
+134:#### Code Example: Before and After
+190:#### Using Helper Functions (Less Boilerplate)
+212:### 3.2 Layer 2: Trace
+216:#### Real-World Analogy
+222:#### What It Catches
+230:#### The Decision Question
+236:#### Code Example: Before and After
+308:#### Important: Shape, Not Content
+317:### 3.3 Layer 3: Verify
+321:#### Real-World Analogy
+327:#### What It Catches
+332:#### The Decision Question
+340:#### Code Example: Before and After
+379:#### Another Example: File Writing
+407:### Layer Summary
+417:## 4. The Decision Flowchart
+421:### The Three Questions
+439:### Example 1: A Function That Fetches Data from an API
+479:### Example 2: A Function That Writes a File
+532:### Example 3: A Pure Data Transformer
+578:### Example 4: A Database CRUD Function
+627:### Example 5: A Full Pipeline (All Three Layers)
+694:### Quick Reference: Which Layers Does Each Example Need?
+706:## 5. Runtime Modes: Not Everything Costs the Same
+710:### The Car Analogy
+720:### What Changes Across Environments
+728:### Guards: Never Turned Off
+739:### Traces: Always Present, Volume Adjustable
+747:### Verifies: Strategy Adapts to Throughput
+761:### 5.1 Configuring Bulwark AI
+765:#### Option A: Environment Variables
+803:#### Option B: Code Configuration
+837:#### The Three Verify Strategies Explained
+853:#### The `critical` Flag: Some Things Are Always Fully Verified
+891:### 5.2 Availability Guards
+897:#### The Restaurant Analogy
+906:#### When to Use Availability Guards
+914:#### Code Example
+983:#### Why Availability Guards Are an Extension, Not Core
+991:### 5.3 Recovery: Self-Healing Availability Guards
+993:#### The Problem: Scripts That Exist But Nobody Runs
+1009:#### How Recovery Works
+1037:#### Python Example
+1080:#### TypeScript Example
+1105:#### What the Logs Look Like
+1134:#### When to Use Recovery
+1148:#### Safety Guardrails
+1160:## 6. How to Add Bulwark to Your Project
+1164:### Step 1: Copy the Helpers and Configure
+1193:### Step 2: Pick Your First Function
+1202:### Step 3: Add Guards at the Top
+1223:### Step 4: Add Traces at Boundaries
+1240:### Step 5: Add Verifies After Writes
+1253:### Step 6: Run Your Code
+1265:### Step 7: Repeat
+1271:## 7. Common Mistakes
+1277:### Mistake 1: Silent Coercion with `data = data or {}`
+1318:### Mistake 2: Catching Exceptions and Ignoring Them
+1369:### Mistake 3: Logging Actual Data Values in Traces
+1402:### Mistake 4: Verifying the Status Code but Not the Response Body
+1452:### Mistake 5: Using Bare `assert` in Python Production Code
+1509:## 8. Why We Made These Choices
+1513:### Why convention over library?
+1517:### Why three layers instead of just input validation?
+1521:### Why structured error messages?
+1525:### Why are Guards always on but Traces configurable?
+1529:### Why is Idempotency an extension, not core?
+1535:## 9. Glossary
+1551:## What's Next?
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

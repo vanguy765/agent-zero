@@ -1,0 +1,40 @@
+private baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API Error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  // Units
+  async getUnits(): Promise<Unit[]> {
+    return this.request<Unit[]>('/units');
+  }
+
+  async getUnit(id: string): Promise<Unit> {
+    return this.request<Unit>(`/units/${id}`);
+  }
+
+  async updateUnit(id: string, data: Partial<Unit>): Promise<Unit> {
+    return this.request<Unit>(`/units/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

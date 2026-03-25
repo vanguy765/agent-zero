@@ -1,0 +1,7 @@
+13:    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+15:    storage_url text,
+37:    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+---
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql:10:CREATE TABLE public.project_documents (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/early-work/20260204000000_document_storage.sql:5:CREATE TABLE project_documents (
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

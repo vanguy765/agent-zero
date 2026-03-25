@@ -1,0 +1,99 @@
+# Timesheet App — Agent Startup Instructions
+
+## ⚡ SESSION START PROTOCOL — Run this every session
+
+At the start of EVERY session, immediately run the health check and notify the user of any missing critical services:
+
+```bash
+bash /a0/usr/projects/timesheet_app/voicelog-scaffold/scripts/dev-health.sh
+```
+
+Then use the `notify_user` tool for each failing critical service:
+- **Supabase (Kong) down** → `notify_user` type=warning: "Supabase is not running on Windows. Please run `supabase start` in voicelog-scaffold on your Windows machine, then paste `supabase status` output here."
+- **Doc Parser down** → `notify_user` type=warning: "Doc Parser is not running (port 5000). Start it with: `cd doc-parser && python server.py`"
+
+Do NOT wait for the user to discover data issues — proactively notify at session start.
+
+---
+
+## Architecture Overview
+
+This project runs across TWO machines:
+
+| Where | What runs |
+|---|---|
+| **Windows host** | `supabase start` → full Supabase stack (Kong + PostgREST + GoTrue + Studio) |
+| **Docker container (me)** | Node.js API, SolidJS frontends, Doc Parser, dev servers |
+
+The container reaches the Windows Supabase stack via `host.docker.internal`.
+
+## Port map (source of truth: docs/ports.md)
+
+| Port  | Where          | Service                        | Start command |
+|-------|----------------|--------------------------------|---------------|
+| 3000  | Container      | API (Hono) — Swagger at /ui    | `pnpm --filter api dev` |
+| 3001  | Container      | Web Dashboard (SolidJS)        | `pnpm --filter web-dashboard dev` |
+| 3002  | Container      | Site Companion (SolidJS)       | `pnpm --filter site-companion dev` |
+| 3003  | Container      | Material Admin (SolidJS)       | `pnpm --filter material-admin dev` |
+| 3004  | Container      | Work Orders (SolidJS)          | `pnpm --filter work-orders dev` |
+| 3005  | Container      | Tenant Portal (SolidJS)        | `pnpm --filter tenant-portal dev` |
+| 5000  | Container      | Doc Parser (Python FastAPI)    | `cd doc-parser && python server.py` |
+| 8082  | Container      | NocoDB                         | `cd nocodb && docker compose up` |
+| 54321 | Windows host   | Supabase Kong gateway          | `supabase start` (on Windows) |
+| 54322 | Windows host   | PostgreSQL (direct)            | managed by Supabase |
+| 54323 | Windows host   | Supabase Studio UI             | managed by Supabase |
+| 54330 | Container      | PostgREST proxy (fallback)     | auto-started by dev-start.sh |
+
+## SUPABASE_URL — two modes
+
+| Situation | SUPABASE_URL | Notes |
+|---|---|---|
+| Windows `supabase start` is running | `http://host.docker.internal:54321` | ✅ Preferred — full Kong stack |
+| Windows Supabase is NOT running | `http://127.0.0.1:54330` | ⚠️ Fallback — local proxy |
+
+Current value in `packages/config/src/index.ts`: `http://host.docker.internal:54321` (preferred mode)
+
+To switch to fallback mode:
+```bash
+sed -i 's|http://host.docker.internal:54321|http://127.0.0.1:54330|' \
+  /a0/usr/projects/timesheet_app/voicelog-scaffold/packages/config/src/index.ts
+```
+
+## Starting all container services
+
+```bash
+bash /a0/usr/projects/timesheet_app/voicelog-scaffold/scripts/dev-start.sh
+```
+
+This starts: API, Web Dashboard, Site Companion, Material Admin, Work Orders, Tenant Portal, Doc Parser, and fallback PostgREST proxy.
+
+## Supabase CLI — NOT available as global command in container
+
+Do NOT run `supabase start` inside the container — the CLI is not on PATH here.
+Docker is not available inside the container so `supabase start` would fail anyway.
+The CLI exists only as an npx package for migration management.
+
+## Database migrations (apply manually in container)
+
+```bash
+# Against Windows Supabase postgres:
+psql -U postgres -h host.docker.internal -p 54322 -d postgres -f supabase/migrations/<file>.sql
+
+# Against local container postgres (fallback):
+psql -U postgres -h 127.0.0.1 -p 54322 -d postgres -f supabase/migrations/<file>.sql
+```
+
+## If dashboard shows "Loading..." forever
+
+1. Run: `bash scripts/dev-health.sh`
+2. Check: `curl -s http://host.docker.internal:54321/rest/v1/ | head -c 100`
+3. If Windows Supabase is down → notify user to run `supabase start` on Windows
+4. If fallback needed: `bash scripts/dev-start.sh`
+5. Check logs: `tail -f /tmp/api.log /tmp/postgrest-proxy.log`
+
+## What to ask user if auth/data issues arise
+
+> "Please run `supabase status` on Windows and paste the output."
+
+This confirms which services are running and provides the current auth keys.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

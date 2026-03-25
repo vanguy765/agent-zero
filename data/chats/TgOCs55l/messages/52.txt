@@ -1,0 +1,19 @@
+| `GET`  | `/api/doc-parser/results/:jobId` | Full results — fetch once after `completed` |
+| `GET`  | `/api/doc-parser/health` | Health check including doc-parser reachability |
+
+#### Read endpoints (DB queries — no doc-parser call)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET`  | `/api/doc-parser/documents/:documentId/pages` | List all parsed pages. Query params: `?category=floorplan\|table\|site_photo\|diagram\|mixed\|text`, `?limit=`, `?offset=` |
+| `GET`  | `/api/doc-parser/documents/:documentId/pages/:pageNumber` | Get one page by 1-indexed page number (storage_url, thumbnail, category, raw_text, metadata) |
+| `GET`  | `/api/doc-parser/documents/:documentId/ocr` | List OCR/table results. Query params: `?page_number=N`, `?limit=`, `?offset=` |
+
+> **Note:** `/pipeline/page` requires `pdf-lib`. Run `pnpm install` on Windows after any container-side `package.json` change.
+#### Pipeline endpoint — quick reference
+```bash
+curl -X POST http://localhost:3000/api/doc-parser/pipeline \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<uuid>", "engine": "hybrid"}'
+# Returns: { document_id, job_id, pages_persisted, ocr_tables_persisted, summary }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

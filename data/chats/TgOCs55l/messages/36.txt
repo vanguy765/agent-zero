@@ -1,0 +1,64 @@
+src/middleware/auth.ts(3,49): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/middleware/auth.ts(4,24): error TS2307: Cannot find module '@repo/logger' or its corresponding type declarations.
+src/middleware/supabase.ts(3,49): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/bom-action-requests.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/delivery.ts(2,38): error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+src/routes/doc-parser-routes.ts(23,29): error TS2307: Cannot find module 'pdf-lib' or its corresponding type declarations.
+src/routes/doc-parser-routes.ts(24,57): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/documents.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/entity-creation.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/materials.ts(7,8): error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+src/routes/onboard.ts(3,57): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/project-definitions.ts(40,3): error TS2345: Argument of type '(c: Context<Env, "/", {}>) => Promise<any>' is not assignable to parameter of type 'Handler<Env, "/", {}, Promise<never>>'.
+  Type 'Promise<any>' is not assignable to type 'Promise<never>'.
+    Type 'any' is not assignable to type 'never'.
+src/routes/project-outcomes.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/reviews.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/todos.ts(2,64): error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+src/routes/todos.ts(4,49): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/trades.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/type-orders.ts(3,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/voice.ts(4,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/routes/work-orders.ts(11,8): error TS2307: Cannot find module '@repo/schemas' or its corresponding type declarations.
+src/routes/work-orders.ts(13,76): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/services/a2a/agentCard.ts(2,25): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+src/services/a2a/skillRouter.ts(2,57): error TS2307: Cannot find module '@repo/config' or its corresponding type declarations.
+tsconfig.json(2,16): error TS6053: File '@repo/tsconfig/base.json' not found.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts(8,46): error TS2694: Namespace '"/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/external"' has no exported member 'core'.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts(8,106): error TS2694: Namespace '"/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/external"' has no exported member 'core'.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/metadata.d.ts(8,140): error TS2694: Namespace '"/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/external"' has no exported member 'core'.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts(20,26): error TS2614: Module '"zod"' has no exported member 'ZodPipe'. Did you mean to use 'import ZodPipe from "zod"' instead?
+../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts(37,15): error TS2707: Generic type 'ZodObject<T, UnknownKeys, Catchall, Output, Input>' requires between 1 and 5 type arguments.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/openapi-registry.d.ts(41,28): error TS2707: Generic type 'ZodObject<T, UnknownKeys, Catchall, Output, Input>' requires between 1 and 5 type arguments.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts(5,15): error TS2614: Module '"zod"' has no exported member 'core'. Did you mean to use 'import core from "zod"' instead?
+../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts(51,17): error TS2707: Generic type 'ZodObject<T, UnknownKeys, Catchall, Output, Input>' requires between 1 and 5 type arguments.
+../../node_modules/@asteasolutions/zod-to-openapi/dist/zod-extensions.d.ts(58,15): error TS2428: All declarations of 'ZodType' must have identical type parameters.
+../../node_modules/@asteasolutions/zod-to-openapi/node_modules/zod/v3/types.d.cts(48,31): error TS2428: All declarations of 'ZodType' must have identical type parameters.
+../../node_modules/@hono/swagger-ui/dist/index.d.cts(2,32): error TS2307: Cannot find module 'swagger-ui-dist' or its corresponding type declarations.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api# 16:**Stack:** Hono API · SolidJS frontends · Supabase (Postgres + Auth + Realtime) · Python doc-parser
+31:├── doc-parser/           # Python FastAPI AI service — port 5000
+43:## ⛔ Critical Agent Rules — doc-parser
+45:**doc-parser is a standalone Docker container. It is NOT a local process inside the Agent Zero container.**
+50:| ❌ NEVER install Python packages in `doc-parser/` | No pip, no venv, no requirements.txt installs from this container |
+51:| ❌ NEVER look for or activate a venv in `doc-parser/` | There is no venv there — it lives inside the Docker image |
+52:| ✅ If port 5000 is unreachable | `notify_user` type=warning and ask user to run `docker-compose up` in `doc-parser/` **on Windows** |
+53:| ✅ To interact with doc-parser | Use HTTP via `http://doc-parser:5000` (shared `agent-zero-network`) or `http://localhost:5000` |
+86:| Service Role | Run `npx supabase status` to get — needed for admin operations and doc-parser uploads                                                                                    |
+95:| OpenRouter     | `doc-parser/.env`          |
+114:| `PROGRAM_STATUS=develop_without_ai` | root `.env`, `doc-parser/.env` | Skips Claude API calls in doc-parser; returns mocked JSON |
+124:cd doc-parser
+132:| POST   | `/parse/docling`   | Docling-only engine (primary)          |
+133:| POST   | `/parse/hybrid`    | Hybrid: Docling decompose + Claude extract |
+139:### Hono API — doc-parser routes (`/api/doc-parser/*`)
+141:The Hono API (port 3000) wraps the doc-parser with Supabase integration.
+146:| `POST` | `/api/doc-parser/pipeline` | **Full pipeline** — submit + poll + persist `document_pages` + `ocr_results`. Blocks until complete. |
+147:| `POST` | `/api/doc-parser/parse` | Submit job, return `job_id` immediately (caller polls) |
+148:| `GET`  | `/api/doc-parser/status/:jobId` | Lightweight poll — safe every 2-5s |
+149:| `GET`  | `/api/doc-parser/results/:jobId` | Full results — fetch once after `completed` |
+150:| `GET`  | `/api/doc-parser/health` | Health check including doc-parser reachability |
+154:curl -X POST http://localhost:3000/api/doc-parser/pipeline \
+159:> Full docs: `.agents/workflows/parse-document.md`
+184:# Doc-parser (separate):
+185:cd doc-parser && docker compose up -d
+201:- **`supabase start` parse errors**: Comment out `deno_version` / `health_timeout` in `supabase/config.toml`.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

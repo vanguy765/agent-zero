@@ -1,0 +1,119 @@
+========== GUIDE.md VERIFICATION ==========
+Lines: 1401
+
+--- All headings ---
+9:## Table of Contents
+25:## 1. What Is Bulwark AI?
+35:## 2. Why Does AI Code Fail?
+41:### F1: Silent Data Shape Mismatch
+49:### F2: Unverified Side Effects
+57:### F3: Placeholder and Demo Data
+65:### F4: Confident Wrong Assumptions
+73:### F5: Happy-Path-Only Logic
+81:### F6: Stale Pattern Application
+89:### Summary: The Six Failure Modes
+102:## 3. The Three Layers Explained
+110:### 3.1 Layer 1: Guard
+114:#### Real-World Analogy
+120:#### What It Catches
+127:#### The Decision Question
+133:#### Code Example: Before and After
+189:#### Using Helper Functions (Less Boilerplate)
+211:### 3.2 Layer 2: Trace
+215:#### Real-World Analogy
+221:#### What It Catches
+229:#### The Decision Question
+235:#### Code Example: Before and After
+307:#### Important: Shape, Not Content
+316:### 3.3 Layer 3: Verify
+320:#### Real-World Analogy
+326:#### What It Catches
+331:#### The Decision Question
+339:#### Code Example: Before and After
+378:#### Another Example: File Writing
+406:### Layer Summary
+416:## 4. The Decision Flowchart
+420:### The Three Questions
+438:### Example 1: A Function That Fetches Data from an API
+478:### Example 2: A Function That Writes a File
+531:### Example 3: A Pure Data Transformer
+577:### Example 4: A Database CRUD Function
+626:### Example 5: A Full Pipeline (All Three Layers)
+693:### Quick Reference: Which Layers Does Each Example Need?
+705:## 5. Runtime Modes: Not Everything Costs the Same
+709:### The Car Analogy
+719:### What Changes Across Environments
+727:### Guards: Never Turned Off
+738:### Traces: Always Present, Volume Adjustable
+746:### Verifies: Strategy Adapts to Throughput
+760:### 5.1 Configuring Bulwark AI
+764:#### Option A: Environment Variables
+802:#### Option B: Code Configuration
+836:#### The Three Verify Strategies Explained
+852:#### The `critical` Flag: Some Things Are Always Fully Verified
+890:### 5.2 Availability Guards
+896:#### The Restaurant Analogy
+905:#### When to Use Availability Guards
+913:#### Code Example
+982:#### Why Availability Guards Are an Extension, Not Core
+992:## 6. How to Add Bulwark to Your Project
+996:### Step 1: Copy the Helpers and Configure
+1025:### Step 2: Pick Your First Function
+1034:### Step 3: Add Guards at the Top
+1055:### Step 4: Add Traces at Boundaries
+1072:### Step 5: Add Verifies After Writes
+1085:### Step 6: Run Your Code
+1097:### Step 7: Repeat
+1103:## 7. Common Mistakes
+1109:### Mistake 1: Silent Coercion with `data = data or {}`
+1150:### Mistake 2: Catching Exceptions and Ignoring Them
+1201:### Mistake 3: Logging Actual Data Values in Traces
+1234:### Mistake 4: Verifying the Status Code but Not the Response Body
+1284:### Mistake 5: Using Bare `assert` in Python Production Code
+1341:## 8. Why We Made These Choices
+1345:### Why convention over library?
+1349:### Why three layers instead of just input validation?
+1353:### Why structured error messages?
+1357:### Why are Guards always on but Traces configurable?
+1361:### Why is Idempotency an extension, not core?
+1367:## 9. Glossary
+1383:## What's Next?
+
+--- ToC entries for 5.x ---
+15:5. [Runtime Modes: Not Everything Costs the Same](#5-runtime-modes-not-everything-costs-the-same)
+16:   - [5.1 Configuring Bulwark AI](#51-configuring-bulwark-ai)
+17:   - [5.2 Availability Guards](#52-availability-guards)
+77:**Imagine this:** You plan an outdoor wedding and book the venue, the caterer, the band, and the photographer. But you make zero plans for rain. No tent, no indoor backup, no rain date. You planned for the happy path (sunny day) and ignored every other possibility. That's F5.
+705:## 5. Runtime Modes: Not Everything Costs the Same
+
+--- configure() mentions ---
+14
+
+--- Step 1 heading ---
+996:### Step 1: Copy the Helpers and Configure
+
+========== README.md VERIFICATION ==========
+Lines: 339
+
+--- Version badge ---
+[![Spec](https://img.shields.io/badge/spec-v0.2.0--draft-blue)](SPEC.md)
+
+--- New sections ---
+9:[![Spec](https://img.shields.io/badge/spec-v0.2.0--draft-blue)](SPEC.md)
+106:## What's New in v0.2.0
+108:### 🔧 Runtime Configuration
+126:configure(mode='production', verify_strategy='adaptive')
+132:configure({ mode: 'production', verifyStrategy: 'adaptive' });
+135:### 📊 Verify Strategies
+147:### 🏥 Availability Guards (Extension)
+165:Availability Guards are an extension — useful in practice, but not required for Bulwark compliance. See the [Guide](GUIDE.md#52-availability-guards) for details.
+214:configure(mode='development')
+299:Guards are O(1) type checks — nanoseconds. Traces log a shape string — microseconds. Verifies may add one lightweight query. With v0.2.0's verify strategies, you can sample or adapt verification for high-throughput systems. Unmeasurable for 99% of applications.
+
+--- Bottom nav ---
+**Bulwark AI** — *Because AI code that looks right isn't the same as AI code that is right.*
+
+[Read the Spec](SPEC.md) · [Read the Guide](GUIDE.md) · [Get the Prompt](prompts/bulwark-system-prompt.md) · [View the Checklist](checklists/bulwark-checklist.md)
+
+</div>
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

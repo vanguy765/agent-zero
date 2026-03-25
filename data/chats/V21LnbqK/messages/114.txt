@@ -1,0 +1,25 @@
+=== Pipeline poll loop ===
+        if state == "complete":
+            break
+        if state == "error":
+            raise RuntimeError(f"Doc-parser job failed: {status.get('error')}")
+
+    log("Fetching results ...")
+    results_resp = requests.get(f"{api_url}/results/{job_id}", timeout=30)
+    results_resp.raise_for_status()
+    return results_resp.json()
+
+
+
+=== Check actual status ===
+{
+    "job_id": "2b949ff2-bc5d-4ae0-b088-1246298a53ce",
+    "status": "completed",
+    "engine": "docling",
+    "file_name": "Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf",
+    "progress": {
+        "current_phase": "complete",
+        "phases": [
+            "docling_conversion",
+            "classification",
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

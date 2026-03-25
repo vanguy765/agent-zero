@@ -1,0 +1,21 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Section titles (order matters) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 329:            <Section title="Projects" count={projectRows().length || undefined} linkHref="/projects" linkLabel="View all →">
+388:            <Section title="Company WO Templates" count={templateRows().length || undefined} linkHref="/templates/company" linkLabel="View all →">
+431:            <Section title="Space Archetypes" count={archetypeRows().length || undefined} linkHref="/settings/type-orders" linkLabel="Manage →">
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Details button ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 490:                                                            Details ↓
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === scrollToArchetype ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 239:    const scrollToArchetype = (id: string) => {
+487:                                                            onClick={() => scrollToArchetype(row.id)}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === ARCHETYPE_DESCRIPTIONS keys ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 173:    kitchen:
+175:    bathroom:
+177:    bedroom:
+209:    studio:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Dev server running? ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 200 up
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

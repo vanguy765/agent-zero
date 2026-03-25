@@ -1,0 +1,134 @@
+# Test 2.1 Results: Three-Function Pipeline
+
+> **Date**: ____-__-__
+> **Agent**: ________________
+> **Duration**: __ minutes
+> **Iterations**: __ (code → lint → fix cycles)
+
+---
+
+## Quantitative Metrics
+
+### Compliance Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| First-pass linter violations | /__ | Before any fixes |
+| Final linter violations | /__ | After self-correction |
+| Self-correction rate | __% | (first - final) / first × 100 |
+| True positive violations fixed | __ | Correctly identified & fixed |
+| False positives identified | __ | Correctly classified as FP |
+
+### Pattern Quality Metrics
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| Guard presence (all 4 functions) | | 4 | 1 point per function |
+| Guard consistency (output→input) | | 3 | 1 point per boundary |
+| Trace correlation (shared op_id) | | 4 | 1 point per function |
+| Verify on mutation | | 1 | load_to_database verify |
+| Custom error types | | 1 | GuardError + VerifyError |
+| No bare asserts | | 1 | BLW004 compliance |
+| **Pattern Quality Total** | | **14** | |
+
+### Cross-Function Coherence (NEW for Round 2)
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| operation_id generated once | | 1 | Single UUID for pipeline |
+| operation_id passed to all 3 funcs | | 3 | 1 per function |
+| operation_id in all trace calls | | 1 | Grep-able correlation |
+| ingest output → transform guard | | 1 | list[dict] contract match |
+| transform output → load guard | | 1 | list[dict] contract match |
+| Orchestrator manages flow | | 1 | run_pipeline coordinates |
+| **Coherence Total** | | **8** | |
+
+### Code Quality Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Total lines of code | __ | |
+| Lines of guard/trace/verify | __ | Defensive overhead |
+| Overhead percentage | __% | defensive / total × 100 |
+| Functions implemented | /4 | ingest, transform, load, run |
+| End-to-end execution | pass/fail | Pipeline produces output |
+| Output file correct | pass/fail | 4 records, renamed fields |
+
+---
+
+## Qualitative Assessment
+
+### Guard Analysis
+
+| Function | Guards Present | Guards Appropriate | Notes |
+|----------|---------------|-------------------|-------|
+| ingest_csv | | | |
+| transform_records | | | |
+| load_to_database | | | |
+| run_pipeline | | | |
+
+### Trace Correlation Analysis
+
+```
+# Paste a sample log output showing operation_id flow:
+
+```
+
+**Correlation verified**: [ ] Yes  [ ] No
+**Same operation_id throughout**: [ ] Yes  [ ] No
+
+### Verify Analysis
+
+| Function | Has Verify | Verify Target | Correct |
+|----------|-----------|---------------|--------|
+| ingest_csv | | N/A (read-only) | |
+| transform_records | | N/A (pure transform) | |
+| load_to_database | | File write | |
+| run_pipeline | | Pipeline completion | |
+
+---
+
+## Linter Output
+
+```json
+// Paste final linter JSON output here
+```
+
+## Failure Taxonomy
+
+| Failure Code | Observed | Description |
+|-------------|----------|-------------|
+| F-GRD | [ ] | Missing or incorrect guard |
+| F-TRC | [ ] | Missing or uncorrelated trace |
+| F-VRF | [ ] | Missing verify after mutation |
+| F-COR | [ ] | Broken trace correlation |
+| F-CON | [ ] | Guard/output contract mismatch |
+| F-LNT | [ ] | Linter false positive issue |
+| F-AST | [ ] | Bare assert used |
+| F-ERR | [ ] | Missing custom error types |
+
+---
+
+## Overall Score
+
+| Category | Score | Max | Weight |
+|----------|-------|-----|--------|
+| Guard presence | /4 | 4 | 20% |
+| Trace correlation | /4 | 4 | 25% |
+| Guard consistency | /3 | 3 | 20% |
+| Verify on mutation | /1 | 1 | 15% |
+| Linter compliance | /1 | 1 | 10% |
+| End-to-end execution | /1 | 1 | 10% |
+| **Weighted Total** | | **100%** | |
+
+## Observations & Recommendations
+
+### What worked well:
+1.
+
+### What needed iteration:
+1.
+
+### Recommendations for framework improvement:
+1.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

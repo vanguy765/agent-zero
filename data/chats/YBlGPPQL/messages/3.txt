@@ -1,0 +1,11 @@
+886:### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+888:A Service Manifest centralizes dependency health checks, recovery procedures, severity classifications, and notification channels into a single declarative configuration. Instead of hard-coding recovery parameters in each `guard_available()` call, the manifest externalizes this knowledge — enabling operations teams to manage recovery without modifying application code.
+899:The Service Manifest addresses all four problems by introducing a configuration-driven orchestration layer.
+914:#### 10.2.1 Manifest Schema
+1009:#### 10.2.2 Severity Model
+1036:#### 10.2.3 Declarative Guard Function
+1103:#### 10.2.4 Notification Channels
+1147:#### 10.2.5 Manifest MUST Rules
+1156:#### 10.2.6 Separation of Concerns
+1172:#### 10.2.7 Diagnostic Format
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

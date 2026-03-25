@@ -1,0 +1,17 @@
+{
+  "errors": 0,
+  "warnings": 9,
+  "info": 0
+}
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys,json; data=json.load(sys.stdin); print(json.dumps(data['summary'],indent=2)); [print(f"  {v['rule_id']} L{v['line']}: {v['function']} - {v['message']}") for v in data['violations']]
+                                                                                                                                      ~^^^^^^^^^^^^
+KeyError: 'function'
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === RUN TESTS ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+============================================================
+Results: 18/18 passed, 0 failed
+All tests passed!
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

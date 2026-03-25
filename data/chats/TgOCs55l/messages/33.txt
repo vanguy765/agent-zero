@@ -1,0 +1,15 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# not in api/package.json
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 170:async def parse_docling(
+173:    provider: str = Form(DEFAULT_PROVIDER),
+174:    supabase_url: str = Form(None),
+175:    supabase_key: str = Form(None),
+176:    tenant_name: str = Form(None),
+177:    project_name: str = Form(None),
+588:async def parse_hybrid(
+591:    provider: str = Form(DEFAULT_PROVIDER),
+592:    supabase_url: str = Form(None),
+593:    supabase_key: str = Form(None),
+594:    tenant_name: str = Form(None),
+595:    project_name: str = Form(None),
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

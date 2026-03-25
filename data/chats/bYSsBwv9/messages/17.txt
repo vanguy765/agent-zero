@@ -1,0 +1,76 @@
+export interface TypeOrder {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  category: 'interior' | 'exterior' | 'pre_construction' | 'common';
+  scope: 'system' | 'company' | 'project';
+  organization_id?: string;
+  project_id?: string;
+  parent_type_order_id?: string;
+  is_composite: boolean;
+  definition?: Record<string, any>;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BomActionRequest {
+  id: string;
+  project_id: string;
+  unit_id?: string;
+  document_id?: string;
+  action_description: string;
+  bom_reference?: string;
+  matched_template_id?: string;
+  matched_sop_id?: string;
+  match_confidence?: number;
+  match_method: 'pending' | 'auto' | 'manual' | 'ai_suggested';
+  status: 'pending' | 'matched' | 'rejected' | 'applied';
+  metadata?: Record<string, any>;
+===
+export interface WorkOrderTemplate {
+  id: string;
+  scope: 'system' | 'company' | 'project';  // NEW: Template scope
+  organization_id?: string;  // Now optional for app-level templates
+  project_id?: string;  // NEW: For project-level templates
+  library_id?: string;  // legacy Template library association
+  outcome_id?: string;  // NEW: Project Outcome association
+  trade_id?: string;    // NEW: Trade FK reference
+  trade_name: string;
+  version: number;
+  is_active: boolean;
+  is_frozen?: boolean;
+  definition: {
+    sections: Record<string, {
+      label: string;
+      order: number;
+      columns: Array<{
+        key: string;
+        label: string;
+        type: string;
+        order: number;
+===
+export interface WOProject {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  project_type: string;
+  library_id?: string;
+  outcome_id?: string;
+  status: 'staged' | 'active' | 'paused' | 'completed' | 'archived';
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateLibrary {
+  id: string;
+  name: string;
+  description?: string;
+  project_type: string;
+  scope: 'system' | 'company';
+  organization_id?: string;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

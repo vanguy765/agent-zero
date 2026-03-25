@@ -1,0 +1,49 @@
+"""Submit PDF to /parse/docling, poll until done, return results."""
+    log("Submitting to doc-parser /parse/docling ...")
+
+    with open(pdf_path, "rb") as f:
+        resp = requests.post(
+            f"{api_url}/parse/docling",
+            files={"file": (pdf_path.name, f, "application/pdf")},
+            data={
+                "tenant_name": tenant,
+                "project_name": project,
+                "supabase_url": sb_url,
+                "supabase_key": sb_key,
+            },
+            timeout=30,
+        )
+    resp.raise_for_status()
+    job_id = resp.json()["job_id"]
+    log(f"Job submitted: {job_id}")
+
+    # Poll
+    while True:
+        time.sleep(poll_interval)
+        status_resp = requests.get(f"{api_url}/status/{job_id}", timeout=10)
+        status_resp.raise_for_status()
+        status = status_resp.json()
+        pct = status.get("progress_pct", 0)
+        step = status.get("current_step", "")
+        state = status.get("status", "")
+        log(f"  [{state}] {pct:.0f}% — {step}")
+        if state in ("complete", "completed"):
+            break
+        if state == "error":
+            raise RuntimeError(f"Doc-parser job failed: {status.get('error')}")
+
+    log("Fetching results ...")
+    results_resp = requests.get(f"{api_url}/results/{job_id}", timeout=30)
+    results_resp.raise_for_status()
+    return results_resp.json()
+
+
+# ---------------------------------------------------------------------------
+# Phase 3+: Persist pages, images, OCR
+# ---------------------------------------------------------------------------
+
+def persist_results(sb: Client, document_id: str, results: dict):
+    """Persist hybrid engine results into relational tables.
+
+    Handles the actual hybrid output format:
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,15 @@
+846: * guardAvailable(
+853: * guardAvailable(
+916:export function guardAvailable(
+1024: * Async version of guardAvailable for checks that return Promises.
+1027: * await guardAvailableAsync(
+1036:export async function guardAvailableAsync(
+1481:  // --- Availability Guard Tests ---
+1482:  console.log("\n--- Availability Guard Tests ---");
+1484:  test("guardAvailable with true check passes", () => {
+1485:    guardAvailable(() => true, "test", "testService");
+1488:  test("guardAvailable with false check raises", () => {
+1490:      guardAvailable(() => false, "test", "testService");
+1497:  test("guardAvailable with exception raises GuardError", () => {
+1499:      guardAvailable(
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

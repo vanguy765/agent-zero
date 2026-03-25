@@ -1,0 +1,32 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# supabase/migrations/20260217000005_document_tables.sql:10:CREATE TABLE public.project_documents (
+supabase/migrations/20260217000005_document_tables.sql:24:ALTER TABLE ONLY public.project_documents
+supabase/migrations/20260217000008_foreign_keys.sql:12:ALTER TABLE ONLY public.project_documents
+supabase/migrations/20260217000008_foreign_keys.sql:15:ALTER TABLE ONLY public.project_documents
+supabase/migrations/20260217000009_indexes.sql:22:CREATE INDEX idx_project_documents_project_id ON public.project_documents USING btree (project_id);
+supabase/migrations/20260217000012_rls_policies.sql:17:ALTER TABLE public.project_documents ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20260222000004_storage_buckets.sql:27:    CREATE POLICY project_documents_insert
+supabase/migrations/20260222000004_storage_buckets.sql:45:    CREATE POLICY project_documents_select
+supabase/migrations/20260222000004_storage_buckets.sql:63:    CREATE POLICY project_documents_update
+supabase/migrations/20260222000004_storage_buckets.sql:81:    CREATE POLICY project_documents_delete
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 4: * Integrates doc-parser service into the existing work-orders API.
+9: *   POST /api/doc-parser/parse                          - Parse document (engine selection, returns job_id)
+10: *   POST /api/doc-parser/pipeline                       - Full pipeline: submit + poll + persist to DB
+11: *   POST /api/doc-parser/pipeline/page                  - Single-page pipeline: extract page N, parse, persist
+12: *   POST /api/doc-parser/pipeline/reprocess             - Re-run full pipeline (idempotent upsert)
+13: *   GET  /api/doc-parser/status/:jobId                  - Lightweight status (poll-safe)
+14: *   GET  /api/doc-parser/results/:jobId                 - Full results (fetch-once)
+15: *   GET  /api/doc-parser/health                         - Service health check
+16: *   GET  /api/doc-parser/documents/:documentId/pages    - List all parsed pages for a document
+17: *   GET  /api/doc-parser/documents/:documentId/pages/:pageNumber - Get one parsed page
+18: *   GET  /api/doc-parser/documents/:documentId/ocr      - List all OCR/table results for a document
+35:} from '../services/doc-parser-client';
+44: * Infer a page category from the raw page data returned by doc-parser.
+58: * Downloads the PDF from Supabase storage, submits it to doc-parser,
+112:  // 3. Submit to doc-parser
+149:        new Error(`Doc-parser job ${status.status}: ${status.error ?? 'no details'}`),
+172:    const pageNumber = parseInt(pageNumStr, 10);
+238:    poll_url:             `/api/doc-parser/status/${jobId}`,
+239:    results_url:          `/api/doc-parser/results/${jobId}`,
+244:// POST /parse
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

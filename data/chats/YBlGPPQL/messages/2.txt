@@ -1,0 +1,58 @@
+# Test 2.3: Service Manifest Guard
+
+## Context
+
+You are implementing the Service Manifest pattern defined in SPEC.md §10.2.
+
+## Inputs Provided
+
+- `test-results/fixtures/services.json` — manifest with 3 services (local_db, cache, metrics_collector)
+- `test-results/fixtures/*.sh` — simulated health check and recovery scripts
+- `reference/bulwark.py` — existing GTV primitives (guard_condition, guard_type, trace_event, verify_condition, etc.)
+
+## Task
+
+Write a Python module `service_manifest_pipeline.py` that:
+
+1. **Implements `guard_service(service_name, func_name, operation_id, manifest_path)`**
+   - Loads and validates the manifest JSON at load time (rule M1)
+   - Runs the configured health check command
+   - Attempts recovery with bounded retries and exponential backoff if configured
+   - Sends notifications via a channel registry (at minimum, the `log` channel)
+   - Raises `GuardError` for `critical` severity failures
+   - Returns `False` for `warning` severity failures (caller decides)
+   - Silently skips `info` severity failures
+
+2. **Implements `run_pipeline(manifest_path, operation_id)`**
+   - Guards all three services using `guard_service()`
+   - Demonstrates severity-driven behavior:
+     - `local_db` (critical): pipeline aborts if unavailable
+     - `cache` (warning): pipeline degrades gracefully with fallback
+     - `metrics_collector` (info): pipeline continues silently
+   - Traces all decisions with the shared `operation_id`
+   - Returns a result dict with service statuses and pipeline outcome
+
+3. **Follows all Bulwark GTV patterns**
+   - Guards on all inputs (BLW001)
+   - Traces at boundaries (BLW003)
+   - Verifies pipeline outcome (BLW002)
+   - Uses GuardError/VerifyError (BLW005)
+   - No bare asserts (BLW004)
+
+## Test Scenarios
+
+The module must handle three scenarios (controlled by flag files):
+
+| Scenario | Setup | Expected Behavior |
+|----------|-------|-------------------|
+| Happy path | `/tmp/db_healthy` and `/tmp/cache_healthy` exist | All services healthy, pipeline completes |
+| Recovery path | Remove `/tmp/db_healthy` before run | DB recovery triggers, `recover_db.sh` restores it, pipeline completes |
+| Degraded path | Remove `/tmp/cache_healthy`, keep db healthy | Cache warning logged, fallback used, pipeline completes with degraded flag |
+
+## Constraints
+
+- Import from `reference/bulwark.py` for GTV primitives
+- Health check scripts are at relative paths in `test-results/fixtures/`
+- Recovery scripts create flag files to simulate service restoration
+- All diagnostic output must follow Bulwark structured format (GUARD:SERVICE:..., GUARD:RECOVERY:...)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

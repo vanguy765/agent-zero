@@ -1,0 +1,25 @@
+=== Bucket list ===
+  project-documents | public=False | id=project-documents
+
+=== Public URL response ===
+Status: 400
+Body: {"statusCode":"404","error":"Bucket not found","message":"Bucket not found"}
+
+=== Authenticated URL response ===
+Status: 200
+Body: �PNG
+
+IHDRdd���IDATx���A	 �@�g��^"�%�{pk���Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�Y�
+
+=== Signed URL ===
+Signed URL: {'signedURL': 'http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/fix_verification_test.png?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwcm9qZWN0LWRvY3VtZW50cy90ZXN0LXRlbmFudC90ZXN0LXByb2plY3QvZG9jLXBhcnNlci9maXhfdmVyaWZpY2F0aW9uX3Rlc3QucG5nIiwiaWF0IjoxNzczNDQ5NDk3LCJleHAiOjE3NzM0NTMwOTd9.MwoOj9UBcK-RSbsWQwsezk9pI5kLIiuTNVIy1xQZK_w', 'signedUrl': 'http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/fix_verification_test.png?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwcm9qZWN0LWRvY3VtZW50cy90ZXN0LXRlbmFudC90ZXN0LXByb2plY3QvZG9jLXBhcnNlci9maXhfdmVyaWZpY2F0aW9uX3Rlc3QucG5nIiwiaWF0IjoxNzczNDQ5NDk3LCJleHAiOjE3NzM0NTMwOTd9.MwoOj9UBcK-RSbsWQwsezk9pI5kLIiuTNVIy1xQZK_w'}
+Signed URL status: 200
+Content-Length: 287 bytes
+
+=== Files in bucket ===
+  fix_verification_test.png
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_10.png
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_11.png
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_12.png
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_14.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,17 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#     # --- F-LNT-2: BLW001 skips describe_* infrastructure functions ---
+
+    def test_blw001_skips_describe_functions(self):
+        """describe_shape() and similar diagnostic utilities should not require guards."""
+        rule = GuardPresentRule()
+        body = (
+            '    if data is None:
+'
+            '        return "NoneType"
+'
+            '    t = type(data).__name__
+'
+            '    if isinstance(data, dict):
+'
+            '        return f"{t}, keys={sorted(data.keys())}"
+'
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

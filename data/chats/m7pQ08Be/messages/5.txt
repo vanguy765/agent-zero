@@ -1,0 +1,895 @@
+# Bulwark AI — Defensive Coding Standard for AI-Generated Code
+
+**Version:** 0.2.0-draft
+**Status:** Draft
+**Date:** 2026-03-15
+**License:** CC-BY-4.0 (Specification) / MIT (Reference Implementations)
+**Companion Guide:** See [GUIDE.md](GUIDE.md) for a beginner-friendly explanation of every design decision.
+
+---
+
+## Abstract
+
+Bulwark AI defines a universal, language-agnostic defensive coding standard designed to prevent the specific failure modes exhibited by AI-generated code. The standard specifies three mandatory layers — **Guard**, **Trace**, and **Verify** — that form a defensive membrane around code produced by large language models, AI coding agents, and automated code generation systems.
+
+The standard is a **convention**, not a library. It requires zero dependencies and can be implemented using only a language's built-in assertion and logging primitives.
+
+### Why This Exists
+
+AI code generators produce code by predicting the most *likely* next token, not by reasoning about runtime behavior. The result is code that compiles, looks correct, and passes casual review — but fails silently when it encounters real data. Bulwark AI makes those silent failures loud, diagnostic, and self-correcting.
+
+---
+
+## Table of Contents
+
+1. [Motivation](#1-motivation)
+2. [Definitions](#2-definitions)
+3. [The Three Layers](#3-the-three-layers)
+4. [Diagnostic Message Format](#4-diagnostic-message-format)
+5. [Compliance Levels](#5-compliance-levels)
+6. [Runtime Modes](#6-runtime-modes)
+7. [Language-Agnostic Implementation Guidelines](#7-language-agnostic-implementation-guidelines)
+8. [AI Prompt Integration](#8-ai-prompt-integration)
+9. [Validation Checklist](#9-validation-checklist)
+10. [Extension Layers](#10-extension-layers)
+11. [Versioning and Evolution](#11-versioning-and-evolution)
+12. [References](#12-references)
+13. [Appendix A: FAQ](#appendix-a-faq)
+14. [Appendix B: Design Decisions](#appendix-b-design-decisions)
+
+---
+
+## 1. Motivation
+
+### 1.1 The Problem
+
+AI code generation systems (LLMs, coding agents, copilots) produce code through statistical pattern completion. They generate the **most probable** code, not the **most correct** code. This creates a class of failures fundamentally different from human programming errors:
+
+- Human errors are typically **syntactic** (typos, wrong variable names) or **logical** (off-by-one, wrong algorithm)
+- AI errors are typically **semantic** — the code is syntactically valid and structurally plausible but **silently wrong at runtime**
+
+### 1.2 AI-Specific Failure Taxonomy
+
+| ID | Failure Mode | Description | Example |
+|----|-------------|-------------|---------|
+| **F1** | Silent data shape mismatch | Code assumes a data structure that doesn't match reality | API returns `{result: {pages: [...]}}` but code reads `response["pages"]` |
+| **F2** | Unverified side effects | Code reports success without confirming the operation occurred | `db.insert()` returns 200 but 0 rows inserted; code logs "success" |
+| **F3** | Placeholder/demo data | Hardcoded test values, example URLs, or stub data left in production code | `api_key = "sk-test-1234"`, `url = "https://example.com/api"` |
+| **F4** | Confident wrong assumptions | Code assumes environmental conditions without checking | Assumes path is writable, service is reachable, key exists in dict |
+| **F5** | Happy-path-only logic | No handling for empty results, missing keys, null values, or error states | `results = fetch(); process(results[0])` with no empty-check |
+| **F6** | Stale pattern application | Uses deprecated APIs, outdated syntax, or patterns from training data | Using `requests.get` without `timeout` parameter (pre-2.28 pattern) |
+
+### 1.3 Why Existing Approaches Are Insufficient
+
+| Approach | Limitation |
+|----------|------------|
+| Design by Contract (Meyer, 1986) | Language-specific (Eiffel); human-focused; no trace/verify layers |
+| Type systems | Catch shape errors at compile time but not runtime data mismatches |
+| Unit tests | Written by the same AI that wrote the code — same blind spots |
+| Linters | Catch style issues, not semantic correctness |
+| Code review | Requires human expertise; doesn't scale to AI generation speed |
+
+Bulwark AI addresses the gap: a **runtime defensive standard** targeting **AI-specific failure modes** that works **across all languages** with **zero dependencies**.
+
+### 1.4 Design Philosophy
+
+Bulwark AI is built on five principles:
+
+1. **Convention over library** — The standard defines *what* to do, not *which package* to install. This means it works everywhere, forever, with no supply chain risk.
+2. **Loud failure over silent corruption** — A crash with a diagnostic message is infinitely better than silent wrong behavior. Wrong data in a database is harder to fix than a stopped process.
+3. **AI-readable diagnostics** — Error messages are structured so that AI agents can read their own failures and self-correct without human intervention.
+4. **Additive adoption** — You can add Bulwark to existing code one function at a time. No refactoring required. No interface changes. No caller modifications.
+5. **Cost-aware defense** — Not all defenses cost the same. The standard specifies which layers are always-on and which adapt to context (see §6 Runtime Modes).
+
+---
+
+## 2. Definitions
+
+| Term | Definition |
+|------|------------|
+| **Guard** | A precondition check that validates the shape, type, and presence of data before a function processes it |
+| **Trace** | A structured log entry that records the shape (not content) of data at a phase boundary |
+| **Verify** | A postcondition check that confirms a side effect (write, send, delete) actually achieved its intended result |
+| **Phase boundary** | Any point where data is handed from one processing stage to another |
+| **Side effect** | Any operation that modifies state outside the current function scope (DB write, file write, API call, queue publish, email send) |
+| **Shape** | The structural description of data: type, length/size, keys/fields, and nested structure — explicitly NOT the content/values |
+| **Diagnostic message** | A structured string emitted by a Guard, Trace, or Verify that follows the format specified in §4 |
+| **Bulwarked function** | A function that implements all applicable Bulwark layers per the decision rules in §3.4 |
+| **Bulwarked pipeline** | A pipeline where every phase boundary has Traces and every function is Bulwarked |
+| **Runtime mode** | The environment-specific configuration that controls layer behavior (see §6) |
+| **Verify strategy** | The method used to confirm a side effect, chosen based on throughput and criticality (see §3.3.5) |
+
+---
+
+## 3. The Three Layers
+
+### 3.1 Layer 1: GUARD
+
+#### 3.1.1 Purpose
+
+Guards prevent functions from operating on data that doesn't match their expectations. They convert **silent failures** (F1, F4, F5) into **loud, diagnostic failures** at the earliest possible point.
+
+**Why this matters:** When an AI agent writes `response["pages"]` but the API actually returns `{"result": {"pages": [...]}}`, the code fails with a generic `KeyError: 'pages'`. That tells you nothing. A Guard fails with `GUARD:process_pages | expected key 'pages', got keys: ['result', 'status']` — which tells you (or the AI agent) exactly how to fix it.
+
+#### 3.1.2 Applicability Rule
+
+> **A Guard is REQUIRED on every function that receives data it did not create.**
+
+This includes:
+- Functions receiving API responses
+- Functions receiving database query results
+- Functions receiving user input
+- Functions receiving data from other pipeline stages
+- Functions receiving configuration values
+- Functions receiving file contents
+- Functions receiving deserialized data (JSON, YAML, etc.)
+
+This excludes:
+- Pure computation functions operating on primitives they constructed
+- Internal helper functions where the caller is already Guarded
+
+**Why "data it did not create"?** If your function built the data itself, it already knows the shape. But any data that crossed a boundary — network, file system, user input, another function — could be anything. AI agents routinely assume data shapes without checking. Guards enforce the contract.
+
+#### 3.1.3 Guard Requirements
+
+Every Guard MUST validate:
+
+1. **Presence** — The data exists and is not null/None/undefined
+2. **Type** — The data is the expected type (dict, list, string, etc.)
+3. **Shape** — Required keys/fields/indices exist
+4. **Non-emptiness** — Collections that must have elements are not empty (when applicable)
+
+Every Guard SHOULD validate:
+
+5. **Value range** — Numeric values are within expected bounds
+6. **Format** — Strings match expected patterns (URLs, dates, IDs)
+7. **Referential integrity** — Cross-references between fields are consistent
+
+#### 3.1.4 Guard Behavior
+
+- Guards MUST fail **loudly** — via exception or error return
+- Guards MUST NOT silently coerce data into expected shapes
+- Guards MUST NOT catch their own exceptions
+- Guards MUST emit a diagnostic message conforming to §4
+- Guards SHOULD be the **first** statements in a function body
+- Guards SHOULD be grouped together, visually separated from business logic
+
+#### 3.1.5 Guard Anti-Patterns
+
+| Anti-Pattern | Why It's Wrong | What To Do Instead |
+|-------------|----------------|--------------------|
+| `data = data or {}` | Silently masks missing data — violates F5 defense | Guard for None first, then process |
+| `data.get("key", None)` without subsequent check | Defers the failure instead of catching it | Guard for key existence, then access |
+| `try: x = data["key"] except: x = default` | Hides shape mismatches — violates F1 defense | Guard for key, then access directly |
+| Type coercion without validation | `int(value)` can silently truncate or raise unhelpful errors | Guard type first, then coerce |
+| Bare `assert` in production | Python strips `assert` with `-O` flag | Use explicit `if/raise` (see §3.1.6) |
+
+#### 3.1.6 Assert vs. Raise: Production Reliability
+
+In Python, `assert` statements are removed when the interpreter runs with the `-O` (optimize) flag. This means Guards written as bare `assert` disappear in some production environments.
+
+**The standard RECOMMENDS explicit `if/raise` for production code:**
+
+```python
+# ⚠️ Development-only (stripped by python -O):
+assert isinstance(data, dict), "GUARD:fn | expected dict"
+
+# ✅ Always active (recommended):
+if not isinstance(data, dict):
+    raise GuardError(f"GUARD:fn | expected dict, got {type(data).__name__}")
+```
+
+**Why not just always use `if/raise`?** Because `assert` is simpler to write and read, and most Python applications never use `-O`. The reference implementation provides `guard()`, `guard_type()`, and `guard_keys()` helper functions that use `if/raise` internally, giving you the readability of assertions with the reliability of explicit exceptions.
+
+For languages without this ambiguity (TypeScript, Go, Rust), use the idiomatic error mechanism.
+
+---
+
+### 3.2 Layer 2: TRACE
+
+#### 3.2.1 Purpose
+
+Traces create a **flight recorder** for data pipelines, making the invisible flow of data between stages visible. They enable rapid diagnosis of where data shape diverged from expectations.
+
+**Why this matters:** In a four-stage pipeline (fetch → parse → transform → store), if Stage 4 crashes, you need to know what Stage 3 handed it. Without Traces, you're debugging blind. With Traces, you see exactly what shape the data had at every handoff point — like a black box recorder on an airplane.
+
+#### 3.2.2 Applicability Rule
+
+> **A Trace is REQUIRED at every phase boundary where data flows between processing stages.**
+
+This includes:
+- Between pipeline stages (fetch → parse → transform → load)
+- Before and after serialization/deserialization
+- At API call boundaries (before send, after receive)
+- At queue publish/consume boundaries
+- Before data enters a critical processing function
+
+#### 3.2.3 Trace Requirements
+
+Every Trace MUST record:
+
+1. **Label** — A human-readable identifier for the phase boundary
+2. **Type** — The runtime type of the data
+3. **Size** — Length, count, or byte size as appropriate
+4. **Structure** — Keys, fields, or schema summary for complex types
+
+Every Trace MUST NOT record:
+
+5. **Content** — Actual values, PII, secrets, or business data
+6. **Full dumps** — Complete serializations of large objects
+
+**Why no content?** Two reasons. First, security: traces should be safe to leave in production logs without risking data exposure. Second, performance: logging the shape of a 10MB JSON object takes microseconds; logging the content takes milliseconds and fills your disk.
+
+#### 3.2.4 Trace Behavior
+
+- Traces MUST be **non-destructive** — they observe but never modify data
+- Traces MUST be **pass-through** — they return the data unchanged
+- Traces MUST emit a diagnostic message conforming to §4
+- Traces SHOULD have negligible performance impact
+- Traces SHOULD be implementable as a single function call wrapping the data
+- Traces MUST respect the configured runtime mode (see §6)
+
+#### 3.2.5 Shape Description Format
+
+The shape description SHOULD follow this structure:
+
+```
+<type>[, len=<n>][, keys=<list>][, items=<nested_shape>][, sample=<first_item_shape>]
+```
+
+Examples:
+```
+dict, keys=['pages','metadata'], len=2
+list, len=47, items=dict{keys=['id','content','score']}
+str, len=4096
+NoneType
+list, len=0 (EMPTY)
+dict, keys=['result'], result=dict{keys=['data','pagination']}
+```
+
+---
+
+### 3.3 Layer 3: VERIFY
+
+#### 3.3.1 Purpose
+
+Verifies confirm that side effects actually achieved their intended result. They prevent the **phantom success** pattern (F2) where code reports completion without confirming the operation occurred.
+
+**Why this matters:** AI agents love to write `db.insert(data)` followed by `return {"status": "success"}`. But what if the insert silently failed? What if it returned a 200 status but wrote zero rows? What if the file write succeeded but the disk was full and the file is 0 bytes? Verify catches all of these.
+
+#### 3.3.2 Applicability Rule
+
+> **A Verify is REQUIRED after every operation that produces side effects.**
+
+This includes:
+- Database writes (INSERT, UPDATE, DELETE)
+- File system writes (create, write, append, delete)
+- API calls that modify remote state (POST, PUT, PATCH, DELETE)
+- Queue/message publishes
+- Email/notification sends
+- Cache writes
+- External service state changes
+
+#### 3.3.3 Verify Requirements
+
+Every Verify MUST confirm at least one of:
+
+1. **Row count** — The expected number of rows were affected
+2. **Existence check** — The written resource exists and is readable
+3. **Content check** — A read-back confirms the written data matches (for critical operations)
+4. **Acknowledgment** — The receiving system acknowledged the operation (not just accepted the request)
+5. **State transition** — The target resource is now in the expected state
+
+#### 3.3.4 Verify Behavior
+
+- Verifies MUST fail **loudly** if the side effect cannot be confirmed
+- Verifies MUST emit a diagnostic message conforming to §4
+- Verifies SHOULD be **immediately** after the side-effect operation
+- Verifies SHOULD use the **lightest possible** confirmation method
+- Verifies MAY use a read-back query, existence check, or return value inspection
+- Verifies MUST follow the appropriate strategy for the throughput context (see §3.3.5)
+
+#### 3.3.5 Verify Strategies by Context
+
+Not all verifications cost the same. The standard requires verification but allows the **strategy** to adapt to throughput and criticality.
+
+##### Strategy Selection Matrix
+
+| Context | Strategy | Cost | Example |
+|---------|----------|------|---------|
+| **Single operations** (CRUD endpoints, <100 ops/min) | Per-operation read-back | Low | `SELECT id FROM orders WHERE id = ?` after INSERT |
+| **Batch operations** (bulk imports, ETL loads) | Aggregate verify after batch | Low | `SELECT COUNT(*) WHERE batch_id = ?` after batch INSERT |
+| **High-throughput streams** (>1000 ops/sec) | Statistical sampling | Minimal | Verify 1-5% of writes; alert if failure rate > threshold |
+| **Critical operations** (payments, auth, security) | Full per-operation verify | Medium | Read-back + idempotency check, regardless of throughput |
+| **File operations** (any throughput) | Existence + size check | Negligible | `os.path.exists()` + `os.path.getsize() > 0` |
+| **Async/queue operations** | Acknowledgment + deferred verify | Varies | Confirm publish ack; consumer verifies on receipt |
+
+##### Why Not Always Full Verification?
+
+Consider a data pipeline processing 10,000 events per second:
+
+```python
+# Full verify: DOUBLES database load (10K reads added to 10K writes)
+for event in stream:  # 10,000/sec
+    db.insert("events", event)
+    check = db.query("SELECT id FROM events WHERE id = ?", event.id)  # +10,000 queries/sec!
+```
+
+```python
+# Sampling verify: adds 1% overhead (100 reads per 10K writes)
+for i, event in enumerate(stream):
+    db.insert("events", event)
+    if i % 100 == 0:  # Verify 1% of writes
+        check = db.query("SELECT id FROM events WHERE id = ?", event.id)
+        verify(len(check) == 1, "process_stream", f"sampled verify failed at event {i}")
+```
+
+```python
+# Batch verify: ONE query after entire batch
+result = db.insert_many("events", batch)
+verify(result.rowcount == len(batch), "process_batch",
+       f"INSERT expected {len(batch)} rows, affected {result.rowcount}")
+```
+
+All three approaches satisfy the Verify requirement. The standard mandates **that** you verify, not **how** you verify. Choose the strategy that matches your throughput.
+
+##### Critical Operations: Always Full Verify
+
+Some operations are too important for sampling:
+
+- **Financial transactions** — Every payment must be verified
+- **Authentication/authorization changes** — Every permission change must be confirmed
+- **Data deletion** — Every DELETE must confirm the correct count was removed
+- **Security-sensitive writes** — Audit logs, encryption key storage, credential updates
+
+For these, use full per-operation verification regardless of throughput cost.
+
+#### 3.3.6 Verify Strategies by Side Effect Type
+
+| Side Effect | Preferred Verify Strategy | Fallback Strategy |
+|------------|--------------------------|-------------------|
+| DB INSERT | Check `rowcount` from result | `SELECT COUNT(*)` with batch identifier |
+| DB UPDATE | Check `rowcount` matches expected | `SELECT` modified rows, compare values |
+| DB DELETE | Check `rowcount` matches expected | `SELECT COUNT(*)` confirms reduction |
+| File write | `os.path.exists()` + size check | Read first N bytes, compare hash |
+| API POST | Check response for created resource ID | GET the resource back |
+| Queue publish | Check publish acknowledgment/receipt | Consumer-side verify (deferred) |
+| Email send | Check SMTP response code | Delivery receipt (async, best-effort) |
+
+---
+
+### 3.4 Decision Rules
+
+Apply these three questions to every function:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  "If this data were wrong, would the code silently continue?"│
+│   YES → Add a GUARD                                         │
+├─────────────────────────────────────────────────────────────┤
+│  "Does data flow between processing phases here?"            │
+│   YES → Add a TRACE                                         │
+├─────────────────────────────────────────────────────────────┤
+│  "Does this function produce side effects?"                  │
+│   YES → Add a VERIFY                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+A single function MAY require multiple layers. For example, a function that receives API data, transforms it, and writes to a database requires all three:
+
+```
+def process_and_store(api_response, db):
+    # GUARD: validate input shape
+    guard_type(api_response, dict, "process_and_store", "api_response")
+    guard_keys(api_response, {"data"}, "process_and_store", "api_response")
+
+    # Business logic
+    records = transform(api_response["data"])
+
+    # TRACE: log shape before write
+    records = trace("before_db_write", records)
+
+    # Side effect
+    result = db.insert_many(records)
+
+    # VERIFY: confirm write succeeded
+    verify(result.rowcount == len(records), "process_and_store",
+           f"INSERT expected {len(records)} rows, affected {result.rowcount}")
+```
+
+---
+
+## 4. Diagnostic Message Format
+
+### 4.1 Structure
+
+All diagnostic messages MUST follow this format:
+
+```
+<LAYER>:<function_name> | <message>
+```
+
+Where:
+- `<LAYER>` is one of: `GUARD`, `TRACE`, `VERIFY`
+- `<function_name>` is the name of the function emitting the diagnostic
+- `<message>` contains the diagnostic details
+
+**Why this format?** Three reasons:
+1. **Grep-friendly** — You can `grep "GUARD:" logs.txt` to find all guard failures instantly
+2. **AI-parseable** — An AI agent can read `GUARD:process_pages | missing 'pages', available: ['result']` and immediately know how to fix the code
+3. **Layer-identifiable** — You can instantly tell whether a failure is a bad input (GUARD), a data flow issue (TRACE), or a failed write (VERIFY)
+
+### 4.2 Guard Message Requirements
+
+Guard messages MUST include:
+1. **What was expected** — the contract
+2. **What was received** — the reality
+3. **Available context** — keys present, type received, value summary
+
+```
+GUARD:process_pages | expected dict with key 'pages', got dict with keys: ['result', 'metadata']
+GUARD:save_user | expected 'email' to be str, got NoneType
+GUARD:fetch_batch | expected list with len > 0, got empty list
+```
+
+### 4.3 Trace Message Requirements
+
+Trace messages MUST include:
+1. **Phase label** — where in the pipeline
+2. **Shape description** — per §3.2.5
+
+```
+TRACE:after_fetch | dict, keys=['result','meta'], len=2
+TRACE:after_parse | list, len=47, items=dict{keys=['page','content']}
+TRACE:before_db_write | list, len=47, items=dict{keys=['id','text','embedding']}, total_bytes=~2.3MB
+```
+
+### 4.4 Verify Message Requirements
+
+Verify messages MUST include:
+1. **Operation performed** — what was attempted
+2. **Expected outcome** — what should have happened
+3. **Actual outcome** — what was observed
+
+```
+VERIFY:save_records | INSERT expected 47 rows, affected 47 rows — OK
+VERIFY:save_records | INSERT expected 47 rows, affected 0 rows — FAIL
+VERIFY:write_output | file /tmp/output.json expected size > 0, actual size: 0 bytes — FAIL
+VERIFY:publish_event | queue 'tasks' publish expected ack, got timeout after 5s — FAIL
+```
+
+### 4.5 Severity Levels
+
+| Level | Usage | Behavior |
+|-------|-------|----------|
+| **FATAL** | Guard/Verify failure in critical path | Halt execution, raise exception |
+| **ERROR** | Guard/Verify failure in non-critical path | Log error, return error state, do not continue silently |
+| **WARN** | Trace detects unexpected but non-fatal shape | Log warning, continue execution |
+| **INFO** | Normal Trace output | Log for diagnostic purposes |
+
+---
+
+## 5. Compliance Levels
+
+### 5.1 Level 1: Guarded
+
+All functions receiving external data have Guards per §3.1.
+
+**Minimum bar for AI-generated code.** This alone catches the majority of AI failures (F1, F4, F5).
+
+### 5.2 Level 2: Guarded + Traced
+
+Level 1, plus all phase boundaries have Traces per §3.2.
+
+**Recommended for multi-stage pipelines.** Adds the flight recorder that makes debugging pipeline failures trivial.
+
+### 5.3 Level 3: Fully Bulwarked
+
+Level 2, plus all side effects have Verifies per §3.3.
+
+**Required for production systems with data integrity requirements.** The complete defensive membrane.
+
+---
+
+## 6. Runtime Modes
+
+### 6.1 Overview
+
+Bulwark layers are always **present in code** but may adjust their **behavior** based on the runtime environment. This section defines how each layer operates across development, staging, and production environments.
+
+**Why runtime modes?** The three layers have vastly different cost profiles:
+
+| Layer | Typical Cost | What It Does |
+|-------|-------------|---------------|
+| Guard | ~Nanoseconds | `isinstance()`, `key in dict` — CPU-only, no I/O |
+| Trace | ~Microseconds + log I/O | `type()`, `len()`, `keys()` → write one log line |
+| Verify | Milliseconds to seconds | Read-back query, file check, API confirmation |
+
+A Guard that checks `isinstance(data, dict)` costs 50 nanoseconds. A Verify that reads back from a database costs 5 milliseconds. That's a 100,000x difference. Treating them identically would be like requiring a full vehicle inspection every time you turn the steering wheel.
+
+### 6.2 Guards: MUST Be Always Active
+
+Guards are the primary defense. They MUST remain active in all environments.
+
+**Rationale:** Guards cost nanoseconds. The function they protect costs milliseconds to seconds (database queries, API calls, file I/O). The guard overhead is unmeasurable — typically less than 0.001% of function execution time. More importantly, the failures Guards catch (wrong data shape from an API, missing keys from a database result) happen *in production*, when real services change their response formats. Disabling Guards in production removes the defense exactly where it's needed most.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  GUARDS: Always active. All environments. No exceptions.     │
+│                                                               │
+│  Development:  ✅ Active (crash with diagnostic)              │
+│  Staging/CI:   ✅ Active (crash with diagnostic)              │
+│  Production:   ✅ Active (crash with diagnostic)              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Implementation note:** Use explicit `if/raise` (not bare `assert`) to ensure Guards survive Python's `-O` flag and similar optimization modes in other languages. See §3.1.6.
+
+### 6.3 Traces: Always Present, Configurable Verbosity
+
+Trace code MUST always be present in the source. Trace *output* is controlled by log level configuration.
+
+**Rationale:** Traces are your flight recorder. You don't remove the black box from an airplane during commercial flights — you just don't read it unless something goes wrong. Similarly, Trace code stays in place so that when a production issue occurs, you can increase the log level and immediately see the data flow without deploying new code.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TRACES: Always in code. Output controlled by log level.     │
+│                                                               │
+│  Development:  ✅ Verbose (DEBUG) — full shape at every       │
+│                   boundary                                    │
+│  Staging/CI:   ✅ Verbose (DEBUG/INFO) — full shape for       │
+│                   test visibility                             │
+│  Production:   ⚙️ Configurable:                               │
+│                   INFO  → summary traces (type + size only)   │
+│                   WARN+ → silent (but code is there,          │
+│                           lower level to activate)            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Implementation pattern:**
+
+```python
+def trace(label, data):
+    shape = describe_shape(data)
+    if log.isEnabledFor(logging.DEBUG):     # Dev: full shape
+        log.debug(f"TRACE:{label} | {shape}")
+    elif log.isEnabledFor(logging.INFO):    # Prod-verbose: summary
+        log.info(f"TRACE:{label} | {type(data).__name__}, len={_safe_len(data)}")
+    # WARN+: silent, but the code path exists for activation
+    return data  # Always pass-through
+```
+
+### 6.4 Verifies: Always Present, Strategy Adapts to Context
+
+Verify code MUST always be present. The verification **strategy** adapts to throughput and criticality.
+
+**Rationale:** A CRUD endpoint handling 50 requests per minute can afford a read-back query after every INSERT — that's 50 extra queries per minute, negligible. A streaming pipeline processing 10,000 events per second cannot — that would double the database load. Both need verification, but they need *different kinds* of verification.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  VERIFIES: Always in code. Strategy adapts to context.       │
+│                                                               │
+│  Development:  ✅ Full verify (read-back every operation)     │
+│  Staging/CI:   ✅ Full verify (catch issues before prod)      │
+│  Production:   ⚙️ Context-dependent:                          │
+│                   Single ops (<100/min)  → Full per-op verify │
+│                   Batch ops              → Aggregate verify   │
+│                   High-throughput (>1K/s) → Sampled verify    │
+│                   Critical ops (payments) → Full, always      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+See §3.3.5 for the complete strategy selection matrix.
+
+### 6.5 Configuration Mechanism
+
+The standard does not mandate a specific configuration mechanism. Implementations SHOULD support:
+
+1. **Environment variable** — `BULWARK_MODE=production` or `BULWARK_TRACE_LEVEL=INFO`
+2. **Log level inheritance** — Traces respect the application's existing log level configuration
+3. **Code-level configuration** — A module-level setting for verify strategy
+
+**Example configuration:**
+
+```python
+# Option 1: Environment variable
+import os
+BULWARK_MODE = os.environ.get("BULWARK_MODE", "development")
+
+# Option 2: Explicit configuration
+from bulwark import configure
+configure(
+    guards="always",           # Only valid value
+    trace_level="INFO",        # DEBUG, INFO, WARNING, or OFF
+    verify_strategy="full",    # full, sampled, batch, or adaptive
+    verify_sample_rate=0.01,   # For sampled strategy: verify 1% of ops
+)
+```
+
+### 6.6 Runtime Mode Summary
+
+| Layer | Development | Staging/CI | Production | Can Be Disabled? |
+|-------|------------|------------|------------|------------------|
+| **Guard** | ✅ Active | ✅ Active | ✅ Active | **No. Never.** |
+| **Trace** | ✅ Verbose | ✅ Verbose | ⚙️ Configurable | Output can be silenced; code stays |
+| **Verify** | ✅ Full | ✅ Full | ⚙️ Strategy adapts | Strategy adapts; verification itself stays |
+
+---
+
+## 7. Language-Agnostic Implementation Guidelines
+
+### 7.1 Assertion Primitives
+
+| Language | Guard/Verify Primitive | Trace Primitive |
+|----------|----------------------|----------------|
+| Python | `if not cond: raise GuardError()` | `logging.info()` |
+| TypeScript | `if (!cond) throw new GuardError()` | `console.info()` |
+| Go | `if cond { return fmt.Errorf() }` | `log.Printf()` |
+| Rust | `ensure!()` macro or `Result<T, E>` | `tracing::info!()` |
+| Bash | `[[ cond ]] \|\| { echo "..."; exit 1; }` | `echo "TRACE:..." >&2` |
+
+### 7.2 Zero-Dependency Principle
+
+Bulwark AI implementations MUST NOT require any external dependencies. Every layer MUST be implementable using only:
+- Built-in assertion/error mechanisms
+- Built-in logging/print facilities
+- Built-in type inspection
+
+Helper functions (e.g., `describe_shape()`, `trace()`) MAY be defined as project-local utilities but MUST NOT be imported from an external package to achieve compliance.
+
+**Why zero dependencies?** Three reasons:
+1. **No supply chain risk** — No package to be compromised, deprecated, or abandoned
+2. **Universal applicability** — Works in any environment, any language, any project
+3. **AI-friendly** — AI agents can generate the helpers inline without needing to know about package managers
+
+### 7.3 Performance Considerations
+
+- Guards SHOULD have O(1) complexity for type/presence checks
+- Guards MAY have O(n) complexity for collection validation only when n is bounded
+- Traces MUST NOT serialize full data structures — shape only
+- Verifies SHOULD use the lightest confirmation method available
+- See §6 for runtime mode performance guidance
+
+---
+
+## 8. AI Prompt Integration
+
+The following snippet can be injected into any AI agent's system prompt to enforce Bulwark AI compliance. See `/prompts/bulwark-system-prompt.md` for the full prompt fragment.
+
+### 8.1 Minimum Viable Prompt Injection
+
+```
+DEFENSIVE CODING STANDARD: Bulwark AI (Guard-Trace-Verify)
+
+All code you generate MUST follow these three rules:
+
+1. GUARD: Every function receiving data it didn't create must validate
+   shape/type/presence before processing. If validation fails, raise an
+   error with format: "GUARD:<function> | expected <X>, got <Y>"
+
+2. TRACE: At every pipeline phase boundary, log the data shape (type,
+   length, keys — NOT content) with format: "TRACE:<label> | <shape>"
+
+3. VERIFY: After every side effect (DB write, file write, API call),
+   confirm the operation succeeded. Format: "VERIFY:<function> | <op>
+   expected <X>, actual <Y>"
+
+Decision rules:
+- "Would wrong data silently continue?" → Add GUARD
+- "Data flows between stages?" → Add TRACE
+- "Function has side effects?" → Add VERIFY
+
+Never silently swallow errors. Never assume data shape. Never report
+success without verification.
+```
+
+### 8.2 Integration Targets
+
+| Platform | Where to Add | Notes |
+|----------|-------------|-------|
+| Agent Zero | System prompt or `.a0proj` instructions | Direct injection |
+| Cursor | `.cursorrules` in project root | Loaded automatically |
+| GitHub Copilot | `.github/copilot-instructions.md` | Loaded per-repo |
+| Claude Projects | Project instructions | Persistent across conversations |
+| Aider | `.aider.conventions` | Loaded automatically |
+| BMAD Method | `.bmad/skills/bulwark-defensive-coding.md` | Invokable by Developer, QA agents |
+| Any LLM | System prompt | Universal |
+
+---
+
+## 9. Validation Checklist
+
+See `/checklists/bulwark-checklist.md` for the machine-readable validation checklist.
+
+Summary of checkpoints:
+
+- [ ] Every function receiving external data has Guards
+- [ ] Guards check presence, type, and shape (not just type)
+- [ ] Guard failure messages include expected vs. actual
+- [ ] Pipeline phase boundaries have Traces
+- [ ] Traces log shape, not content
+- [ ] Every side-effect operation has a Verify
+- [ ] Verify confirms the effect, not just the response code
+- [ ] Verify strategy matches throughput context (§3.3.5)
+- [ ] No silent error swallowing (`except: pass`, `.get(k, default)` without check)
+- [ ] No placeholder/demo data in production paths
+- [ ] Diagnostic messages follow the `LAYER:function | message` format
+- [ ] Guards use `if/raise` (not bare `assert`) for production reliability
+- [ ] Traces respect log level configuration
+
+---
+
+## 10. Extension Layers
+
+The following layers are not part of the core standard but address important failure modes in specific contexts. They are documented here for implementations that need them.
+
+### 10.1 Availability Guard (RECOMMENDED for external dependencies)
+
+An Availability Guard verifies that an external dependency (service, database, file system) is reachable before the application relies on it.
+
+#### When to Use
+
+- At **service initialization** (application startup)
+- At **pipeline start** (before a long-running job begins)
+- At **health check endpoints** (for orchestrators like Kubernetes)
+- **After connection errors** (circuit breaker recovery)
+
+#### When NOT to Use
+
+- **Not on every individual API call** — this would add seconds of latency per request
+- **Not for internal function calls** — only for external network/I/O dependencies
+
+#### Pattern
+
+```python
+# ✅ RIGHT: Check at initialization
+class PaymentClient:
+    def __init__(self, base_url):
+        # GUARD:AVAILABLE — verify service is reachable at startup
+        response = requests.head(base_url + "/health", timeout=5)
+        guard(response.status_code < 500, "PaymentClient.__init__",
+              f"Payment service at {base_url} returned {response.status_code}")
+        self.base_url = base_url
+
+# ❌ WRONG: Check on every call
+    def charge(self, amount):
+        requests.head(self.base_url + "/health", timeout=5)  # Adds 200ms to EVERY charge!
+        return requests.post(f"{self.base_url}/charge", json={"amount": amount})
+```
+
+#### Diagnostic Format
+
+```
+GUARD:AVAILABLE:PaymentClient | service at https://pay.example.com returned 503
+GUARD:AVAILABLE:pipeline_start | database at db.internal:5432 connection refused
+```
+
+### 10.2 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+
+An Idempotency Guard prevents duplicate execution when operations are retried.
+
+#### When to Use
+
+- AI agent retry loops (agent fails, framework re-executes)
+- Scheduled tasks that may overlap
+- API endpoints that may receive duplicate requests
+- Pipeline stages that may be re-run after partial failure
+
+#### Why This Is an Extension, Not Core
+
+Idempotency Guards are **invasive** — they change function signatures, require storage infrastructure (database columns, Redis keys), and force callers to provide idempotency keys. This breaks the core standard's principle of **additive adoption** (§1.4, principle 4). Guard, Trace, and Verify can be added to any function without changing its interface. Idempotency cannot.
+
+#### Pattern
+
+```python
+def create_order(order_data, idempotency_key):
+    # GUARD:IDEMPOTENT — check for duplicate execution
+    existing = db.query("SELECT id FROM orders WHERE idempotency_key = ?", idempotency_key)
+    if existing:
+        log.info(f"GUARD:IDEMPOTENT:create_order | duplicate detected, key={idempotency_key}, returning existing")
+        return existing[0]
+    
+    # ... proceed with creation
+```
+
+### 10.3 Confidence Annotation (FUTURE, not yet recommended)
+
+Confidence annotations would allow AI agents to self-label code sections with their certainty level.
+
+#### Why This Is Deferred
+
+Current AI models are poorly calibrated at self-assessment. They tend to either mark everything as high confidence (overconfident) or everything as low confidence (useless). This extension becomes valuable when AI models improve at expressing calibrated uncertainty.
+
+#### Proposed Format (for future use)
+
+```python
+# CONFIDENCE: LOW — API response shape inferred from function name, not documentation
+# CONFIDENCE: HIGH — standard library pattern, well-established
+# CONFIDENCE: MEDIUM — based on similar patterns in training data
+```
+
+---
+
+## 11. Versioning and Evolution
+
+This specification follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR**: Breaking changes to layer definitions or diagnostic format
+- **MINOR**: New optional recommendations, additional failure modes, new language guidelines
+- **PATCH**: Clarifications, typo fixes, example improvements
+
+---
+
+## 12. References
+
+1. Meyer, B. (1986). "Design by Contract." *Advances in Object-Oriented Software Engineering*.
+2. Fowler, M. (2006). "Fail Fast." *martinfowler.com*.
+3. Nygard, M. (2007). *Release It!* — Stability patterns for production systems.
+4. Humble, J. & Farley, D. (2010). *Continuous Delivery* — Build, test, deploy automation.
+
+---
+
+## Appendix A: FAQ
+
+### "Isn't this just input validation?"
+
+No. Input validation is one part of Layer 1 (Guard). Bulwark AI also requires runtime data flow visibility (Trace) and side-effect confirmation (Verify). Most input validation libraries don't address F2 (unverified side effects) or provide pipeline observability.
+
+### "Won't all these assertions slow down my code?"
+
+Guards cost nanoseconds (type checks). Traces cost microseconds (shape logging). Verifies cost varies by strategy — from negligible (file existence check) to milliseconds (read-back query). See §6 Runtime Modes for how to adapt verification strategy to your throughput needs. For the vast majority of applications, total Bulwark overhead is under 1% of execution time.
+
+### "Should I use this for human-written code too?"
+
+Yes. The patterns are universally good practice. But the standard is specifically *designed* for AI failure modes and *optimized* for AI agent consumption (structured diagnostic messages, simple decision rules, zero-dependency implementation).
+
+### "What about async operations?"
+
+Verifies for async operations SHOULD use the acknowledgment pattern: confirm the operation was accepted and queued, then implement a separate verification step (callback, polling, or consumer-side verify) for eventual confirmation.
+
+### "Can I use a validation library instead of raw assertions?"
+
+Yes. Libraries like `pydantic`, `zod`, or `joi` can implement the Guard layer. The standard defines *what* must be checked and *how failures must be reported*, not *which tool* performs the check. However, the zero-dependency reference implementation must always be available as a fallback.
+
+### "Do I need all three layers on every function?"
+
+No. Apply the decision rules in §3.4. A pure transformation function with no side effects doesn't need a Verify. A function that doesn't sit at a phase boundary doesn't need a Trace. But every function receiving external data needs a Guard.
+
+### "What if my team already uses TypeScript/pydantic for type safety?"
+
+Great — your Guard layer is partially covered. But type systems don't address Trace (pipeline observability) or Verify (side-effect confirmation). And runtime type checking catches things that compile-time types miss — like an API that returns `{"error": "not found"}` instead of the expected `{"user": {...}}`. Both are valid JSON objects, both pass type checks, but only one has the data you need.
+
+---
+
+## Appendix B: Design Decisions
+
+This appendix documents the reasoning behind major design choices. For a more detailed, beginner-friendly explanation, see [GUIDE.md](GUIDE.md).
+
+### B.1 Why Convention Over Library?
+
+A library creates a dependency. Dependencies get abandoned, compromised, or version-locked. A convention is forever. You can implement Bulwark AI in any language, any project, any era — because it's just `if/raise`, `log()`, and `if/raise` again. No package manager required.
+
+### B.2 Why Three Layers Instead of One?
+
+Input validation (Guard) catches bad data coming in. But it doesn't tell you *where* in a pipeline the data went wrong (Trace), and it doesn't confirm that your writes actually worked (Verify). Each layer addresses a different failure mode. Combining them creates a complete defensive membrane.
+
+### B.3 Why Structured Diagnostic Messages?
+
+Unstructured errors like `KeyError: 'pages'` require a human to read the stack trace, understand the context, and figure out the fix. Structured messages like `GUARD:process_pages | missing 'pages', available: ['result', 'metadata']` can be parsed by an AI agent to self-correct in one iteration. This is the key insight: **error messages are an API for the next debugging agent** (human or AI).
+
+### B.4 Why Not Always Full Verification?
+
+Because physics. A read-back query takes 1-5ms. At 10,000 operations per second, that's 10-50 seconds of additional database time per second — impossible. The standard requires verification but allows the strategy to adapt. See §3.3.5 and §6.4.
+
+### B.5 Why Are Guards Always On But Traces Are Configurable?
+
+Cost. A Guard (`isinstance(data, dict)`) takes 50 nanoseconds. A Trace (format string + log write) takes 5-50 microseconds. At high throughput, Trace log volume becomes significant — not the CPU cost, but the I/O and storage cost of millions of log lines per hour. Guards have no such scaling concern.
+
+### B.6 Why Is Idempotency an Extension, Not Core?
+
+Adoption friction. Guard, Trace, and Verify can be added to any existing function without changing its signature, its callers, or its infrastructure. Idempotency requires a new parameter, a storage mechanism, and a policy decision. It's important, but it's a different *kind* of thing — an architectural pattern, not a defensive annotation.
+
+---
+
+*Bulwark AI is an open standard. Contributions welcome at github.com/bulwark-ai/bulwark-ai*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

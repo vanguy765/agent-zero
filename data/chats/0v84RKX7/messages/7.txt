@@ -1,0 +1,39 @@
+======================================================================
+CSV Pipeline — Bulwark AI Level 3 (Fully Bulwarked)
+======================================================================
+2026-03-18 03:27:17 | INFO  | TRACE:run_pipeline:start | pipeline starting | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:ingest_csv:input | filepath='/a0/usr/workdir/bulwark-ai/test-results/test_data.csv', file_size=199 bytes | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:ingest_csv:output | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:ingest_csv:output_detail | record_count=4, columns=['department', 'email', 'first_name', 'last_name'] | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:transform_records:input | record_count=4, schema_keys=['department', 'email', 'first_name', 'last_name'] | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:transform_records:input_records | list, len=4, items=dict{keys=['department', 'email', 'first_name', 'last_name']} | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:transform_records:output | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:transform_records:output_detail | transformed_count=4, new_fields=['dept', 'email_address', 'family_name', 'given_name'] | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:load_to_database:input | record_count=4, target_table='employees' | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:load_to_database:input_records | list, len=4, items=dict{keys=['dept', 'email_address', 'family_name', 'given_name']} | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | DEBUG | VERIFY:load_to_database | OK — file '/a0/usr/workdir/bulwark-ai/test-results/pipeline_output.json' exists, size=523 bytes
+2026-03-18 03:27:17 | DEBUG | VERIFY:load_to_database | OK — INSERT expected 4 records, file contains 4 records
+2026-03-18 03:27:17 | INFO  | TRACE:load_to_database:output | inserted_count=4 | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+2026-03-18 03:27:17 | INFO  | TRACE:run_pipeline:complete | ingested=4, transformed=4, loaded=4 | op=62ed37ad-8770-4368-ace3-ab4a28d18b3d
+
+======================================================================
+Pipeline Result:
+{
+  "operation_id": "62ed37ad-8770-4368-ace3-ab4a28d18b3d",
+  "records_ingested": 4,
+  "records_transformed": 4,
+  "records_loaded": 4,
+  "status": "verified"
+}
+======================================================================
+
+Output file: /a0/usr/workdir/bulwark-ai/test-results/pipeline_output.json
+Records in output: 4
+Sample record:
+{
+  "given_name": "Alice",
+  "family_name": "Smith",
+  "email_address": "alice@example.com",
+  "dept": "Engineering"
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

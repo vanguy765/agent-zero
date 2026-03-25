@@ -1,0 +1,21 @@
+"""fetch_and_save.py — Refactored with Bulwark GTV defensive coding patterns.
+
+Bulwark AI Defensive Coding Standard v0.2.0
+Compliance Level: 3 (Fully Bulwarked)
+BULWARK_MODE: development
+
+Original code (non-compliant):
+    def fetch_and_save(url, db):
+        response = requests.get(url)
+        data = response.json()
+        db.execute("INSERT INTO records VALUES (?)", data)
+        return {"status": "ok"}
+
+Violations in original:
+    - BLW001: No guards on `url` or `db`
+    - BLW002: No verify after INSERT
+    - BLW003: No traces at boundaries
+    - BLW005: No custom error types
+"""
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

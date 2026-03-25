@@ -1,0 +1,20 @@
+=== Removing old server, test results, temp files ===
+
+=== Removing root-level temp files ===
+
+=== Remaining doc-parser files ===
+benchmark_script.py	  Dockerfile		README.md
+benchmark_vision.py	  filter_floorplans.py	requirements.txt
+compare_methods.py	  hybrid.py		server.py
+confidence.py		  job_manager.py	slice_cv.py
+cv2_detect.py		  models.py		slice_surya.py
+decode_docling_images.py  preparse.py		templates
+detection.py		  prompts.py		verify_env.py
+docker-compose.yml	  __pycache__
+
+=== Remaining voicelog-scaffold root files ===
+ clean-documents.ps1	 pnpm-lock.yaml		   turbo.json
+ convert_bom.sql	 pnpm-workspace.yaml	   verify_data.sql
+ create_work_order.ps1	 README.md
+ package.json		 restore-for-testing.ps1
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

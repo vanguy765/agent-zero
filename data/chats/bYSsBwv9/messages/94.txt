@@ -1,0 +1,17 @@
+Total lines: 867
+Line 860:   async getDashboardStats(): Promise<DashboardStats> {
+Line 608:   async getTypeOrders(category?: string): Promise<TypeOrder[]> {
+Line 420:   async getTemplates(scope?: 'system' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+Line 538:   async getProjects(): Promise<WOProject[]> {
+Line 361: class ApiClient {
+Line 362:   private baseUrl: string;
+Line 364:   constructor(baseUrl: string) {
+Line 365:     this.baseUrl = baseUrl;
+Line 373:       const response = await fetch(`${this.baseUrl}${endpoint}`, {
+Line 651:     const response = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+Line 739:     return this.baseUrl.replace('/work-orders', '');
+Line 371:     const timeoutId = setTimeout(() => controller.abort(), 10000);
+Line 393:       clearTimeout(timeoutId);
+Line 775:     status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+Line 370:     const controller = new AbortController();
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

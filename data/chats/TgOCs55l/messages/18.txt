@@ -1,0 +1,11 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000005_document_tables.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000008_foreign_keys.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000009_indexes.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260217000012_rls_policies.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260223000002_sysadmin_rls_policies.sql
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/early-work/20260204000000_document_storage.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# add_image_column.ts
+parse_pdf.ts
+parse_pdf_v2.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

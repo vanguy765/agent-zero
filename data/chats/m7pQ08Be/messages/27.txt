@@ -1,0 +1,73 @@
+=== TRANSITION: Section 5 -> 5.1 (lines 754-770) ===
+| A streaming pipeline at 10,000 events/second | Verify a 1-5% sample | Full verification would double database load |
+| A payment processing function | Full per-operation, always | Too critical for sampling — every transaction matters |
+
+The key insight: **the standard requires *that* you verify, not *how* you verify.** Choose the strategy that matches your throughput and criticality.
+
+
+### 5.1 Configuring Bulwark AI
+
+Now that you understand *what* changes across environments, let's talk about *how* to tell Bulwark which environment you're in. There are two ways: environment variables and code configuration.
+
+#### Option A: Environment Variables
+
+Environment variables are settings you define *outside* your code — in your terminal, your Docker configuration, or your cloud platform's settings panel. They're the preferred way to configure Bulwark in production because you can change behavior without touching code.
+
+Here are the four environment variables Bulwark recognizes:
+
+| Variable | What It Controls | Values | Default |
+
+=== TRANSITION: 5.2 -> Section 6 (lines 986-1005) ===
+Availability Guards are different. They're a *startup-time* concern, not a *per-function* concern. They require knowledge of your deployment topology (which services exist, where they live, what their health endpoints look like). Including them in the core would break the "add it to any function" simplicity that makes Bulwark easy to adopt.
+
+That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+
+---
+
+## 6. How to Add Bulwark to Your Project
+
+Ready to start? Here's a step-by-step guide. The most important thing to know: **you can do this one function at a time.** You don't need to refactor your entire codebase. Pick one function, add the layers, and expand from there.
+
+### Step 1: Copy the Helpers and Configure
+
+Grab the reference implementation for your language from the `reference/` directory:
+
+- **Python:** [`reference/bulwark.py`](reference/bulwark.py)
+- **TypeScript:** [`reference/bulwark.ts`](reference/bulwark.ts)
+
+Copy the file into your project. These helpers provide `guard()`, `guard_type()`, `guard_keys()`, `trace()`, `describe_shape()`, `verify()`, and `configure()` — all implemented with zero external dependencies.
+
+If you prefer, you can skip the helpers entirely and write raw `if/raise` statements. The helpers are a convenience, not a requirement.
+
+=== Step 1 content (lines 996-1025) ===
+### Step 1: Copy the Helpers and Configure
+
+Grab the reference implementation for your language from the `reference/` directory:
+
+- **Python:** [`reference/bulwark.py`](reference/bulwark.py)
+- **TypeScript:** [`reference/bulwark.ts`](reference/bulwark.ts)
+
+Copy the file into your project. These helpers provide `guard()`, `guard_type()`, `guard_keys()`, `trace()`, `describe_shape()`, `verify()`, and `configure()` — all implemented with zero external dependencies.
+
+If you prefer, you can skip the helpers entirely and write raw `if/raise` statements. The helpers are a convenience, not a requirement.
+
+Then, at your application's startup (before any Bulwark-protected functions run), call `configure()` to set your runtime mode:
+
+```python
+# Python — at the top of your main entry point
+from bulwark import configure
+
+configure(mode='development')  # or 'staging' or 'production'
+```
+
+```typescript
+// TypeScript — at the top of your main entry point
+import { configure } from './bulwark';
+
+configure({ mode: 'development' });  // or 'staging' or 'production'
+```
+
+If you don't call `configure()`, Bulwark defaults to `development` mode with full verbosity — the safest starting point. See [Section 5.1](#51-configuring-bulwark-ai) for all configuration options.
+
+### Step 2: Pick Your First Function
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

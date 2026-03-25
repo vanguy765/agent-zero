@@ -1,0 +1,10 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > ⚠️ **Naming Convention (Required for Linter Detection)**
+>
+> Guards **must** be implemented as function calls matching the pattern `guard*(` or
+> `guard_*(`. The linter uses regex `\bguard(?:_?[a-zA-Z]*)\s*\(` to detect guards.
+>
+> **Compliant**: `guard_type(x, str, ...)`, `guardNotNull(x, ...)`, `guard(x, ...)`
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Verify detection pattern column ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# | Rule | Description | Detection Pattern |
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

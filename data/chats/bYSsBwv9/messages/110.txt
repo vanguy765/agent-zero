@@ -1,0 +1,52 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Testing after SIGUSR1 ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > {}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Roles in database ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#     rolname
+---------------
+ anon
+ authenticated
+ authenticator
+ service_role
+(4 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Permissions on work_order_templates ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#     grantee    | privilege_type
+---------------+----------------
+ anon          | TRIGGER
+ anon          | INSERT
+ anon          | SELECT
+ anon          | UPDATE
+ anon          | DELETE
+ anon          | TRUNCATE
+ anon          | REFERENCES
+ authenticated | INSERT
+ authenticated | SELECT
+ authenticated | UPDATE
+ authenticated | DELETE
+ authenticated | TRUNCATE
+ authenticated | REFERENCES
+ authenticated | TRIGGER
+ postgres      | INSERT
+ postgres      | SELECT
+ postgres      | UPDATE
+ postgres      | DELETE
+ postgres      | TRUNCATE
+ postgres      | REFERENCES
+ postgres      | TRIGGER
+ service_role  | INSERT
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: uerying: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Query as anon role ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# SET
+ERROR:  function auth.jwt() does not exist
+LINE 2:         (auth.jwt() -> 'user_metadata' ->> 'role') = 'sysadm...
+                 ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+QUERY:  coalesce(
+        (auth.jwt() -> 'user_metadata' ->> 'role') = 'sysadmin',
+        false
+    )
+CONTEXT:  PL/pgSQL function is_sysadmin() line 3 at RETURN
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === RLS policies on work_order_templates ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

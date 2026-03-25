@@ -1,0 +1,46 @@
+URL: http://host.docker.internal:54321
+Key: MISSING
+---------------------------------------------------------------------------
+SupabaseException                         Traceback (most recent call last)
+Cell In[1], line 26
+     23 print(f'URL: {url}')
+     24 print(f'Key: {key[:20]}...' if key else 'Key: MISSING')
+---> 26 sb = create_client(url, key)
+     28 # 1. Clean DB tables in dependency order
+     29 for table in ['ocr_results', 'document_images', 'document_pages', 'project_documents']:
+
+File /opt/venv/lib/python3.13/site-packages/supabase/_sync/client.py:380, in create_client(supabase_url, supabase_key, options)
+    349 def create_client(
+    350     supabase_url: str,
+    351     supabase_key: str,
+    352     options: Optional[ClientOptions] = None,
+    353 ) -> Client:
+    354     """Create client function to instantiate supabase client like JS runtime.
+    355
+    356     Parameters
+   (...)    378     Client
+    379     """
+--> 380     return Client.create(
+    381         supabase_url=supabase_url, supabase_key=supabase_key, options=options
+    382     )
+
+File /opt/venv/lib/python3.13/site-packages/supabase/_sync/client.py:109, in Client.create(cls, supabase_url, supabase_key, options)
+    101 @classmethod
+    102 def create(
+    103     cls,
+   (...)    106     options: Optional[ClientOptions] = None,
+    107 ) -> "Client":
+    108     auth_header = options.headers.get("Authorization") if options else None
+--> 109     client = cls(supabase_url, supabase_key, options)
+    111     if auth_header is None:
+    112         try:
+
+File /opt/venv/lib/python3.13/site-packages/supabase/_sync/client.py:59, in Client.__init__(self, supabase_url, supabase_key, options)
+     57     raise SupabaseException("supabase_url is required")
+     58 if not supabase_key:
+---> 59     raise SupabaseException("supabase_key is required")
+     61 # Check if the url and key are valid
+     62 if not re.match(r"^(https?)://.+", supabase_url):
+
+SupabaseException: supabase_key is required
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,26 @@
+
+    # Phase 1
+    document_id, file_url = upload_pdf(sb, pdf_path, args.tenant, args.project)
+
+    # Phase 2
+    results = submit_and_poll(
+        args.api_url, pdf_path, args.tenant, args.project,
+        args.supabase_url, args.supabase_key, args.poll_interval,
+    )
+
+    # Save raw results alongside PDF for debugging
+    results_path = pdf_path.parent / f"{pdf_path.stem}_pipeline_results.json"
+    results_path.write_text(json.dumps(results, indent=2))
+    log(f"Raw results saved to {results_path}")
+
+    # Phases 3-5
+    persist_results(sb, document_id, results)
+
+    log("")
+    log(f"Done. document_id = {document_id}")
+    log(f"Summary: {json.dumps(results.get('summary', {}), indent=2)}")
+
+
+if __name__ == "__main__":
+    main()
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

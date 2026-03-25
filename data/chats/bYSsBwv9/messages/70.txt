@@ -1,0 +1,32 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+import {
+    buildDraftRooms,
+    buildDraftTemplate,
+    findSimilarTemplate,
+    logEntityCreation,
+} from '../services/placeholderGenerator';
+import {
+    createReviewsBatch,
+    type CreateReviewInput,
+} from '../services/reviewService';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+if (process.env.REQUIRE_AUTH === 'true') {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---db lib---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

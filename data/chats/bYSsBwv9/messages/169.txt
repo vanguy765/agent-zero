@@ -1,0 +1,111 @@
+no strictPort found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === check turbo.json for site-companion config ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === what is on port 3002 in container ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: ss: command not found
+nothing on 3002
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === App.tsx ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+import { Component } from 'solid-js';
+import { Router, Route } from '@solidjs/router';
+import { isSupabaseConfigured } from './lib/supabase';
+
+// Pages
+import UnitList from './pages/UnitList';
+import UnitDetail from './pages/UnitDetail';
+import VoiceTest from './pages/VoiceTest';
+
+const Layout: Component = (props: any) => {
+    return (
+        <div style={{ "min-height": "100vh", "background-color": "#f7fafc" }}>
+            <nav style={{ padding: "1rem", "background-color": "#ffffff", "border-bottom": "1px solid #e2e8f0", display: "flex", gap: "1rem" }}>
+                <a href="/units" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🏢 Units</a>
+                <a href="/voice" style={{ "font-weight": "bold", "text-decoration": "none", color: "#2d3748" }}>🎤 Voice Test</a>
+            </nav>
+            <main style={{ padding: "1rem" }}>
+                {props.children}
+            </main>
+        </div>
+    );
+};
+
+const App: Component = () => {
+    return (
+        <>
+            {!isSupabaseConfigured && (
+                <div style={{ "background-color": "#e53e3e", color: "white", padding: "1rem", "text-align": "center", "font-weight": "bold" }}>
+                    CONFIG ERROR: Missing Supabase Environment Variables. Check .env file.
+                </div>
+            )}
+            <Router root={Layout}>
+                <Route path="/" component={UnitList} />
+                <Route path="/units" component={UnitList} />
+                <Route path="/units/:id" component={UnitDetail} />
+                <Route path="/voice" component={VoiceTest} />
+            </Router>
+        </>
+    );
+};
+
+export default App;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === index.tsx ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+/* @refresh reload */
+import { render } from 'solid-js/web';
+import { Router } from '@solidjs/router';
+import App from './App';
+import './index.css';
+
+const root = document.getElementById('root');
+
+if (root instanceof HTMLElement) {
+    console.log('Mounting App...');
+    try {
+        render(() => <App />, root);
+        console.log('App mounted.');
+    } catch (err) {
+        console.error('Mounting Error:', err);
+        root.innerHTML = `<div style="color: red; padding: 20px; border: 2px solid red;">
+            <h1>Startup Error</h1>
+            <pre>${err instanceof Error ? err.message : String(err)}</pre>
+        </div>`;
+    }
+} else {
+    document.body.innerHTML = '<h1>FATAL: Root element not found</h1>';
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === lib/supabase.ts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const isSupabaseConfigured = !!supabaseUrl && !!supabaseKey;
+
+if (!isSupabaseConfigured) {
+    console.error('CRITICAL: Missing Supabase Env Vars. API calls will fail.');
+}
+
+// Create client with fallback strings to prevent init crash. Requests will fail naturally.
+export const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseKey || 'placeholder');
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

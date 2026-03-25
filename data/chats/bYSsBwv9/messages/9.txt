@@ -1,0 +1,51 @@
+CREATE TABLE IF NOT EXISTS "public"."type_order_compositions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "composite_type_order_id" "uuid" NOT NULL,
+    "component_type_order_id" "uuid" NOT NULL,
+    "quantity" integer DEFAULT 1 NOT NULL,
+    "display_order" integer DEFAULT 0,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."type_order_compositions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."type_order_default_work_orders" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "type_order_id" "uuid" NOT NULL,
+=== TEMPLATE_LIBRARIES ===
+CREATE TABLE IF NOT EXISTS "public"."template_libraries" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text",
+    "project_type" "text" NOT NULL,
+    "scope" "text" DEFAULT 'app'::"text" NOT NULL,
+    "organization_id" "uuid",
+    "icon" "text",
+    "color" "text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "is_active" boolean DEFAULT true NOT NULL,
+    "is_default" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "template_libraries_scope_check" CHECK (("scope" = ANY (ARRAY['system'::"text", 'company'::"text"]))),
+    CONSTRAINT "valid_company_library" CHECK (((("scope" = 'company'::"text") AND ("organization_id" IS NOT NULL)) OR ("scope" <> 'company'::"text"))),
+=== WORK_ORDERS ===
+CREATE TABLE IF NOT EXISTS "public"."work_orders" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "unit_id" "uuid" NOT NULL,
+    "template_id" "uuid" NOT NULL,
+    "trade_name" "text" NOT NULL,
+    "status" "text" DEFAULT 'pending'::"text",
+    "assigned_contractor_id" "uuid",
+    "inspector_id" "uuid",
+    "start_date" timestamp with time zone,
+    "completion_date" timestamp with time zone,
+    "inspector_signoff_date" timestamp with time zone,
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "trade_id" "uuid",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

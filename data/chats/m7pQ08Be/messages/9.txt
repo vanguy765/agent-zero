@@ -1,0 +1,77 @@
+============================================================
+Bulwark AI — Python Reference Implementation Self-Test
+Version: 0.2.0-draft
+Config: {'mode': 'development', 'guards_enabled': True, 'trace_level': 'DEBUG', 'verify_strategy': 'full', 'verify_sample_rate': 0.01}
+============================================================
+
+--- Guard Tests ---
+  [PASS] guard(True) passes
+2026-03-15 03:46:50 | ERROR | GUARD:test | expected X, got Y
+  [PASS] guard(False) raises GuardError
+  [PASS] guard_type(dict) passes
+2026-03-15 03:46:50 | ERROR | GUARD:test | 'data' expected dict, got list
+  [PASS] guard_type(list as dict) raises
+2026-03-15 03:46:50 | ERROR | GUARD:test | 'input' missing keys: ['c'], available: ['a', 'b']
+  [PASS] guard_keys missing key raises
+  [PASS] guard_keys all present passes
+  [PASS] guard_not_empty([1,2]) passes
+2026-03-15 03:46:50 | ERROR | GUARD:test | 'data' is empty (list, len=0)
+  [PASS] guard_not_empty([]) raises
+  [PASS] guard_range(5, 1, 10) passes
+2026-03-15 03:46:50 | ERROR | GUARD:test | 'val' value 15 above maximum 10
+  [PASS] guard_range(15, 1, 10) raises
+  [PASS] GuardError is Exception (not AssertionError)
+
+--- Trace Tests ---
+2026-03-15 03:46:50 | DEBUG | TRACE:test | dict, keys=['a'], len=1, sample['a']=int
+  [PASS] trace returns data unchanged
+2026-03-15 03:46:50 | DEBUG | TRACE:test | NoneType
+  [PASS] trace(None) returns None
+2026-03-15 03:46:50 | DEBUG | TRACE:test | list, len=0 (EMPTY)
+  [PASS] trace([]) returns []
+
+--- Shape Description Tests ---
+  [PASS] describe_shape(None) = NoneType
+  [PASS] describe_shape(42) = int
+  [PASS] describe_shape('hello') = str, len=5
+  [PASS] describe_shape([1, 2, 3]) = list, len=3, items=int
+  [PASS] describe_shape([]) = list, len=0 (EMPTY)
+
+--- Verify Tests ---
+2026-03-15 03:46:50 | DEBUG | VERIFY:test | OK — should pass
+  [PASS] verify(True) passes
+2026-03-15 03:46:50 | ERROR | VERIFY:test | INSERT expected 10, affected 0
+  [PASS] verify(False) raises VerifyError
+  [PASS] VerifyError is Exception (not AssertionError)
+
+--- Configuration Tests ---
+  [PASS] configure(mode='production') works
+  [PASS] config reflects production mode
+  [PASS] configure(mode='invalid') raises ValueError
+
+--- Verify Strategy Tests ---
+  [PASS] sampled strategy skips most verifies (100/100 skipped)
+2026-03-15 03:46:50 | ERROR | VERIFY:test | critical must verify
+  [PASS] critical=True always verifies even when sampled
+
+--- Availability Guard Tests ---
+2026-03-15 03:46:50 | INFO  | GUARD:AVAILABLE:test | test_service — OK
+  [PASS] guard_available with True check passes
+2026-03-15 03:46:50 | ERROR | GUARD:AVAILABLE:test | test_service — not available
+  [PASS] guard_available with False check raises
+2026-03-15 03:46:50 | ERROR | GUARD:AVAILABLE:test | test_service — check raised ConnectionError: refused
+  [PASS] guard_available with exception raises GuardError
+
+--- Pipeline Tests ---
+2026-03-15 03:46:50 | INFO  | PIPELINE:test_pipeline | starting with 2 stages
+2026-03-15 03:46:50 | DEBUG | TRACE:test_pipeline:input | list, len=3, items=int
+2026-03-15 03:46:50 | DEBUG | TRACE:test_pipeline.double:output | list, len=3, items=int
+2026-03-15 03:46:50 | DEBUG | TRACE:test_pipeline.to_dict:output | dict, keys=['count', 'results'], len=2, sample['results']=list, len=3, items=int
+2026-03-15 03:46:50 | INFO  | PIPELINE:test_pipeline | completed all 2 stages
+  [PASS] pipeline produces correct result
+
+============================================================
+Results: 31/31 passed, 0 failed
+All self-tests passed. Bulwark AI is operational.
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

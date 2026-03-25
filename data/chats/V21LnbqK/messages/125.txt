@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""parse_document_pipeline.py
+
+Full PDF → Supabase pipeline:
+  1. Upload PDF to project-documents bucket
+  2. Insert project_documents row
+  3. Submit to doc-parser /parse/docling (passes SB creds so doc-parser uploads images)
+  4. Poll /status until complete
+  5. Fetch /results
+  6. Insert document_pages (one per page, with storage_url, thumbnail_url, category)
+  7. Insert document_images (floorplans, site_photos, diagrams)
+  8. Insert ocr_results (one per table, with markdown + structured_data)
+
+Usage:
+  python parse_document_pipeline.py \\
+    --pdf path/to/file.pdf \\
+    --tenant my_tenant \\
+    --project my_project \\
+    [--supabase-url http://host.docker.internal:54321] \\
+    [--supabase-key <service_role_key>] \\
+    [--api-url http://localhost:5000]
+
+Env vars (fallbacks):
+  SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DOC_PARSER_URL
+"""
+
+import argparse
+import json
+import os
+import sys
+import time
+import uuid
+from pathlib import Path
+from dotenv import load_dotenv
+
+import requests
+from supabase import create_client, Client
+
+# ---------------------------------------------------------------------------
+# Load .env from doc-parser directory (same folder as this script)
+# ---------------------------------------------------------------------------
+_here = Path(__file__).parent
+load_dotenv(_here / ".env")
+
+# ---------------------------------------------------------------------------
+# CLI args
+# ---------------------------------------------------------------------------
+
+def parse_args():
+    p = argparse.ArgumentParser(description="PDF → Supabase parse pipeline")
+    p.add_argument("--pdf", required=True, help="Path to PDF file")
+    p.add_argument("--tenant", required=True, help="Tenant name (used for storage paths)")
+    p.add_argument("--project", required=True, help="Project name (used for storage paths)")
+    p.add_argument(
+        "--supabase-url",
+        default=os.getenv("SUPABASE_URL", "http://host.docker.internal:54321"),
+        help="Supabase API URL",
+    )
+    p.add_argument(
+        "--supabase-key",
+        default=os.getenv("SUPABASE_SERVICE_ROLE_KEY", ""),
+        help="Supabase service role key (required for storage uploads)",
+    )
+    p.add_argument(
+        "--api-url",
+        default=os.getenv("DOC_PARSER_URL", "http://localhost:5000"),
+        help="Doc-parser API base URL",
+    )
+    p.add_argument(
+        "--poll-interval", type=float, default=3.0,
+        help="Seconds between status polls (default: 3)",
+    )
+    return p.parse_args()
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def log(msg: str):
+    print(f"[pipeline] {msg}", flush=True)
+
+
+def determine_category(page_data: dict) -> str:
+    """Derive dominant page category from hybrid engine page result.
+
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,98 @@
+=== PROGRAM_STATUS checks in hybrid.py ===
+    prompt: str,
+    image_b64: str,
+    max_tokens: int = 4096,
+) -> str:
+    """Send image + prompt to LLM provider and return response text."""
+    if os.getenv("PROGRAM_STATUS") == "develop_without_ai":
+        logger.info("DEVELOP_WITHOUT_AI: intercepting run_llm_extraction")
+        return json.dumps({
+            "unit_number": "DUMMY-101",
+            "unit_type": "1B1B",
+            "floor": 1,
+            "bedrooms": 1,
+            "bathrooms": 1,
+            "total_area_sf": 800,
+            "rooms": [],
+            "doors": [],
+            "windows": [],
+            "fixtures": [],
+            "upgrades": [],
+            "general_notes": ["AI intercepted for development"]
+        })
+
+    try:
+        import litellm
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {
+                    "url": f"data:image/png;base64,{image_b64}"
+                }},
+            ],
+        }]
+        response = await asyncio.to_thread(
+            litellm.completion,
+            model=provider,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=0.1,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        logger.error(f"LLM extraction failed: {e}")
+        raise
+
+
+async def run_text_llm(
+    provider: str,
+    prompt: str,
+    context: str,
+    max_tokens: int = 4096,
+) -> str:
+    """Send text-only prompt to LLM."""
+    if os.getenv("PROGRAM_STATUS") == "develop_without_ai":
+        logger.info("DEVELOP_WITHOUT_AI: intercepting run_text_llm")
+        return json.dumps({
+            "synthesis_applied": True,
+            "merged_units": [],
+            "notes": "DEVELOP_WITHOUT_AI synthesis fallback"
+        })
+
+
+=== server.py thumbnail_url handling (around line 426) ===
+                f"job_{job_id}_page_{page_no}_full.jpg",
+                page_no=page_no, image_type="page_render",
+            )
+            pages_result[page_no]["page_image_url"] = page_url
+            w, h = page_pil.size
+            thumb = page_pil.resize((400, int(h * 400 / w)))
+            thumb_url = await upload_image_to_storage(
+                thumb, sb_client, tenant_name, project_name,
+                f"job_{job_id}_page_{page_no}_thumb.jpg",
+                page_no=page_no, image_type="page_thumbnail",
+            )
+            pages_result[page_no]["thumbnail_url"] = thumb_url
+
+    # Phase 3: LLM Analysis (P1: rich prompts)
+    await job_manager.update_progress(
+        job_id,
+        phase=ProcessingPhase.LLM_ANALYSIS,
+        current_step="starting_llm_analysis",
+    )
+
+    # Build table context for enrichment
+    table_context = ""
+    if table_data:
+        table_context = "\n\n".join([
+            f"--- Table from Page {pg} ---\n{md}"
+            for pg, md in table_data
+        ])
+
+    for i, (page_no, pil_img, b64, fp_url) in enumerate(floorplan_images):
+        await job_manager.update_progress(
+            job_id,
+
+=== How server.py constructs URLs ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

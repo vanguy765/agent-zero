@@ -1,0 +1,27 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Fix verification (line 181 context) ===
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Fix verification (line 562 context) ===
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,   // real page number in the original document
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === All changed files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 1. scripts/dev-health.sh
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 2. apps/api/.env
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 3. .env (root)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 4. packages/config/src/index.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 5. apps/api/src/routes/doc-parser-routes.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

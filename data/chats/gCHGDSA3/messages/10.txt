@@ -1,0 +1,37 @@
+
+--- calculate_tax: Normal Cases ---
+  [FAIL] 100 * 0.1 = 10.0: 'tuple' object has no attribute '__name__'
+  [FAIL] 99.99 * 0.0825 = 8.25 (rounding): 'tuple' object has no attribute '__name__'
+
+--- calculate_tax: Zero/Edge Cases ---
+  [FAIL] 0 * 0.1 = 0.0: 'tuple' object has no attribute '__name__'
+  [FAIL] 100 * 0 = 0.0: 'tuple' object has no attribute '__name__'
+  [FAIL] 0 * 0 = 0.0: 'tuple' object has no attribute '__name__'
+  [FAIL] 100 * 1.0 = 100.0 (max rate): 'tuple' object has no attribute '__name__'
+
+--- calculate_tax: Guard Rejection Cases ---
+  [FAIL] Rejects negative amount: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects rate > 1: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects negative rate: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects string amount: 'tuple' object has no attribute '__name__'
+
+--- calculate_invoice_total: Guard Rejection Cases ---
+2026-03-16 05:23:31 | ERROR | GUARD:calculate_invoice_total | 'items' is empty (list, len=0)
+  [PASS] Rejects empty items list
+  [FAIL] Rejects non-dict item: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects item with missing keys: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects None db: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects tax_rate > 1: 'tuple' object has no attribute '__name__'
+  [FAIL] Rejects zero quantity: 'tuple' object has no attribute '__name__'
+
+--- calculate_invoice_total: Verify on Failed DB Write ---
+  [FAIL] Verify fires on failed DB write (rowcount=0): 'tuple' object has no attribute '__name__'
+
+--- calculate_invoice_total: Happy Path ---
+  [FAIL] Happy path with real SQLite DB: 'tuple' object has no attribute '__name__'
+
+============================================================
+Results: 1/18 passed, 17 failed
+WARNING: 17 test(s) failed!
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

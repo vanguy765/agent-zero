@@ -1,0 +1,44 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === api.ts relevant methods ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 420:  async getTemplates(scope?: 'system' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+422:    return this.request<WorkOrderTemplate[]>(`/templates${query}`);
+426:    return this.request<WorkOrderTemplate>(`/templates/${id}`);
+430:    return this.request<WorkOrderTemplate>('/templates', {
+437:    return this.request<WorkOrderTemplate>(`/templates/${id}`, {
+444:    return this.request(`/templates/${id}`, {
+451:    return this.request<WorkOrderTemplate[]>('/templates/system');
+455:    return this.request<WorkOrderTemplate[]>('/templates/company');
+459:    return this.request<WorkOrderTemplate[]>(`/templates/project/${projectId}`);
+463:    return this.request<WorkOrderTemplate>('/templates/assign-to-company', {
+470:    return this.request<WorkOrderTemplate>('/templates/assign-to-project', {
+477:    return this.request(`/templates/${templateId}/unassign`, {
+484:    return this.request<string[]>('/templates/prefs/hidden');
+488:    return this.request(`/templates/prefs/${templateId}/hidden`, {
+538:  async getProjects(): Promise<WOProject[]> {
+539:    return this.request<WOProject[]>('/projects');
+543:    return this.request<WOProject>(`/projects/${id}`);
+547:    return this.request<WOProject>('/projects', {
+554:    return this.request<WOProject>(`/projects/${id}`, {
+561:    return this.request(`/projects/${id}`, {
+608:  async getTypeOrders(category?: string): Promise<TypeOrder[]> {
+610:    return this.request<TypeOrder[]>(`/type-orders${q}`);
+614:    return this.request<any[]>(`/type-orders/${typeOrderId}/compositions`);
+618:    return this.request<any[]>(`/type-orders/${typeOrderId}/default-work-orders`);
+622:    return this.request(`/type-orders/${typeOrderId}/default-work-orders`, {
+642:    return this.request<ProjectDocument[]>(`/projects/${projectId}/documents`);
+651:    const response = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+839:      return this.request(`/templates/${templateId}/sop`);
+860:  async getDashboardStats(): Promise<DashboardStats> {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === proxy packages ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# http-proxy not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === port 54330 status ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: ss: command not found
+port 54330 is free
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API server status ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 404 Not Found(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: ss: command not found
+nothing on 3000
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

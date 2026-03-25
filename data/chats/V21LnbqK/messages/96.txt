@@ -1,0 +1,61 @@
+=== L871 (element crops) ===
+                if len(fp_sub_idxs) < 2:
+                    continue
+
+                page_img_tmp = pdf_pages[page_no - 1]
+                word_counts: List[Tuple[int, dict, int]] = []
+                for i, el in fp_sub_idxs:
+                    crop = crop_element(page_img_tmp, el["bbox"])
+                    if crop is None:
+                        word_counts.append((i, el, 0))
+                        continue
+                    try:
+                        data = await asyncio.to_thread(
+                            _pytesseract.image_to_data,
+                            crop, config="--psm 6",
+=== L977 (floorplan regions) ===
+                el_type = el.get("type", "unknown")
+                bbox = el.get("bbox", [])
+
+                if len(bbox) != 4:
+                    continue
+
+                cropped = crop_element(page_img, bbox)
+                if cropped is None:
+                    continue
+
+                if el_type == "floorplan":
+                    # Save full drawing as floorplan_dia (context sheet, not for LLM unit analysis)
+                    fp_dia_idx = len(floorplan_dia_urls.get(page_no, []))
+                    fname = f"job_{job_id}_floorplan_dia_{fp_dia_idx}_page_{page_no}.png"
+=== L1005 (insets) ===
+                            os.path.join(local_dir, fname)
+                        )
+
+                    # Detect insets; OCR-classify each to route as floorplan or diagram
+                    inset_bboxes = _detect_inset_diagrams(cropped)
+                    for inset_bbox in inset_bboxes:
+                        inset_crop = crop_element(cropped, inset_bbox)
+                        if inset_crop is None:
+                            continue
+                        is_fp = await asyncio.to_thread(has_architectural_text, inset_crop)
+                        if is_fp:
+                            fp_b64 = image_to_base64(inset_crop)
+                            floorplan_crops.append((page_no, inset_crop, fp_b64))
+                            fp_idx = len(floorplan_urls.get(page_no, []))
+=== L1168 (table crops) ===
+            # --- Get the spec-table crop (send crop, not full page) ----------
+            tbl_el = next(
+                (e for e in page_elements.get(page_no, [])
+                 if e.get("type") in ("table", "spec_table")),
+                None,
+            )
+            tbl_img = crop_element(pdf_pages[idx], tbl_el["bbox"]) if tbl_el else pdf_pages[idx]
+
+            # --- Adaptive upscale: ensure minimum OCR-quality pixel width ----
+            _orig_w, _orig_h = tbl_img.size
+            _scale = max(1.0, HYBRID_PARAMS.SPEC_TABLE_MIN_WIDTH_PX / _orig_w)
+            if _scale > 1.0:
+                tbl_img = tbl_img.resize(
+                    (int(_orig_w * _scale), int(_orig_h * _scale)),
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

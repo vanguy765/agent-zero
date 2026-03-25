@@ -1,0 +1,67 @@
+./.env
+./apps/api/.env
+./apps/api/.env.example
+./apps/work-orders/.env
+./doc-parser/.env
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === rooms table columns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > >      column_name     |        data_type
+---------------------+--------------------------
+ id                  | uuid
+ organization_id     | uuid
+ name                | text
+ display_order       | integer
+ created_at          | timestamp with time zone
+ status              | text
+ auto_generated      | boolean
+ generation_source   | text
+ generation_metadata | jsonb
+(9 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work_order_templates columns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > >        column_name       |        data_type
+-------------------------+--------------------------
+ id                      | uuid
+ organization_id         | uuid
+ trade_name              | text
+ version                 | integer
+ is_active               | boolean
+ definition              | jsonb
+ created_at              | timestamp with time zone
+ updated_at              | timestamp with time zone
+ scope                   | text
+ project_id              | uuid
+ parent_template_id      | uuid
+ copied_from_template_id | uuid
+ created_by              | uuid
+ updated_by              | uuid
+ library_id              | uuid
+ status                  | text
+ auto_generated          | boolean
+ generation_source       | text
+ generation_metadata     | jsonb
+ is_frozen               | boolean
+ trade_id                | uuid
+/sr/projects/timesheet_app/voicelog-scaffold
+Pattern not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === rooms table columns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > >      column_name     |        data_type
+---------------------+--------------------------
+ id                  | uuid
+ organization_id     | uuid
+ name                | text
+ display_order       | integer
+ created_at          | timestamp with time zone
+ status              | text
+ auto_generated      | boolean
+ generation_source   | text
+ generation_metadata | jsonb
+(9 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === nginx availability ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# nginx not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === dashboard-stats route ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

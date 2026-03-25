@@ -1,0 +1,9 @@
+npm ERR! code EUNSUPPORTEDPROTOCOL
+npm ERR! Unsupported URL Type "workspace:": workspace:*
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /root/.npm/_logs/2026-03-11T00_14_23_024Z-debug-0.log
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# ls: cannot access 'node_modules/vite/': No such file or directory
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# lrwxrwxrwx 1 root root 157 Mar 10 19:26 node_modules/vite -> /mnt/host/c/Users/3900X/Documents/GitHub/agentZero/voicelog-scaffold/node_modules/.pnpm/vite@5.4.21_@types+node@25.0.10_lightningcss@1.30.2/node_modules/vite
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders#

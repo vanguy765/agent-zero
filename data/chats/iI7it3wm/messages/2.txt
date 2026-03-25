@@ -1,0 +1,39 @@
+retrieval-augmented-generation · GitHub Topics
+https://github.com/topics/retrieval-augmented-generation
+Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, memory, and generation.
+
+context-aware-ai · GitHub Topics · GitHub
+https://github.com/topics/context-aware-ai?o=desc&s=forks
+It helps developers organize and automatically collect information from their codebase into structured documents that can be easily shared with AI assistants. php mcp instructions context hacktoberfest context-extractor llm prompt-engineering ...
+
+GitHub - yichuan-w/LEANN: [MLsys2026]: RAG on Everything with ...
+https://github.com/yichuan-w/LEANN
+The smallest vector index in the world. RAG Everything with LEANN! LEANN is an innovative vector database that democratizes personal AI. Transform your laptop ...
+
+generative-ai-for-beginners/15-rag-and-vector-databases/README ... - GitHub
+https://github.com/microsoft/generative-ai-for-beginners/blob/main/15-rag-and-vector-databases/README.md
+In this lesson we will cover the following: An introduction to RAG, what it is and why it is used in AI (artificial intelligence). Understanding what vector databases are and creating one for our application. A practical example on how to integrate RAG into an application.
+
+What’s the difference between RAG and MCP (Model Context Protocol)?
+https://github.com/resources/articles/software-development-with-retrieval-augmentation-generation-rag
+Retrieval-augmented generation (RAG) and Model Context Protocol (MCP) are two different techniques for enhancing the capabilities of large language models. RAG combines the strengths of large language models with external knowledge sources by retrieving relevant documents from a database and using them to inform and improve the responses generated, making it particularly effective for tasks requiring up-to-date or specialized information. MCP, on the other hand, focuses on structuring and transmitting contextual information between different components or models, enabling more efficient communication and collaboration across AI systems. While RAG augments generation with retrieved data for richer outputs, MCP standardizes the way context is shared and utilized, optimizing interoperability and workflow within complex AI ecosystems.
+
+OpenViking: ByteDance's Open-Source Context Database That Gives AI ...
+https://emelia.io/hub/openviking-context-database-ai-agents
+The project was initiated and is maintained by the Viking team at Volcano Engine, ByteDance's cloud division. Open-sourced in January 2026, it has rapidly accumulated over 15,000 GitHub stars and approximately 1,000 forks. This rapid adoption is partly explained by its native compatibility with OpenClaw, the open-source AI agent framework that has taken China and the rest of the world by storm ...
+
+Top AI GitHub Repositories in 2026 - ByteByteGo Newsletter
+https://blog.bytebytego.com/p/top-ai-github-repositories-in-2026
+Mar 9, 2026 ... ... RAG pipelines, conversational AI applications, and structured data ... codebase context and executes developer commands via natural language.
+
+Building_RAG_using_Gemma_and_Faiss_Vector_DB.ipynb - Colab
+https://colab.research.google.com/github/trehansalil/gen_ai/blob/main/Building_RAG_using_Gemma_and_Faiss_Vector_DB.ipynb/
+Building RAG Application using Gemma 7B LLM & Faiss Vector Database Retrieval-Augmented Generation (RAG) is the concept of providing large language models (LLMs) with additional information from an external knowledge source. This allows them to generate more accurate and contextual answers while reducing hallucinations.
+
+RAG Pipeline Tutorial: Build Production-Ready Knowledge Systems
+https://markaicode.com/rag-pipeline-tutorial-production-ready/
+Learn to build production-ready RAG pipelines with vector databases, embeddings, and retrieval systems. Complete guide with Python code examples.
+
+GitHub - HKUDS/RAG-Anything: "RAG-Anything: All-in-One RAG Framework" · GitHub
+https://github.com/HKUDS/RAG-Anything
+"RAG-Anything: All-in-One RAG Framework". Contribute to HKUDS/RAG-Anything development by creating an account on GitHub.

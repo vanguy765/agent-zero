@@ -1,0 +1,41 @@
+=== Lines 483-502 (image block) ===
+483:         )
+484:         url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+485:         doc_id = project_name if _UUID_RE.match(project_name or '') else None
+486:         try:
+487:             await asyncio.to_thread(
+488:                 lambda: sb_client.table("document_images").insert({
+489:                     "document_id": doc_id,
+490:                     "image_url": path,
+491:                     "page_number": page_no,
+492:                     "image_type": image_type,
+493:                     "metadata": {
+494:                         "type": "png", "source": "doc-parser",
+495:                         "width": pil_image.width, "height": pil_image.height
+496:                     }
+497:                 }).execute()
+498:             )
+499:         except Exception as db_err:
+500:             logger.warning(f"DB record insert failed for {filename}: {db_err}")
+501:         return url_response
+502:     except Exception as e:
+
+=== Lines 534-550 (table block) ===
+534:         )
+535:         url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+536:         doc_id = project_name if _UUID_RE.match(project_name or '') else None
+537:         try:
+538:             await asyncio.to_thread(
+539:                 lambda: sb_client.table("document_images").insert({
+540:                     "document_id": doc_id,
+541:                     "image_url": path,
+542:                     "page_number": page_no,
+543:                     "image_type": table_type,
+544:                     "metadata": {"type": "markdown", "source": "doc-parser"},
+545:                 }).execute()
+546:             )
+547:         except Exception as db_err:
+548:             logger.warning(f"DB record insert failed for {filename}: {db_err}")
+549:         logger.info(f"Table markdown uploaded: {path}")
+550:         return url_response
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

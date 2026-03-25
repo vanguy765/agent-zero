@@ -1,0 +1,71 @@
+### 3.4 Decision Rules
+
+Apply these three questions to every function:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  "If this data were wrong, would the code silently continue?"│
+│   YES → Add a GUARD                                         │
+├─────────────────────────────────────────────────────────────┤
+│  "Does data flow between processing phases here?"            │
+│   YES → Add a TRACE                                         │
+├─────────────────────────────────────────────────────────────┤
+│  "Does this function produce side effects?"                  │
+│   YES → Add a VERIFY                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+A single function MAY require multiple layers. For example, a function that receives API data, transforms it, and writes to a database requires all three:
+
+```
+def process_and_store(api_response, db):
+    # GUARD: validate input shape
+    guard_type(api_response, dict, "process_and_store", "api_response")
+    guard_keys(api_response, {"data"}, "process_and_store", "api_response")
+
+    # Business logic
+    records = transform(api_response["data"])
+
+    # TRACE: log shape before write
+    records = trace("before_db_write", records)
+
+    # Side effect
+    result = db.insert_many(records)
+
+    # VERIFY: confirm write succeeded
+    verify(result.rowcount == len(records), "process_and_store",
+           f"INSERT expected {len(records)} rows, affected {result.rowcount}")
+```
+
+---
+
+## 4. Diagnostic Message Format
+
+### 4.1 Structure
+
+All diagnostic messages MUST follow this format:
+
+```
+<LAYER>:<function_name> | <message>
+```
+
+Where:
+- `<LAYER>` is one of: `GUARD`, `TRACE`, `VERIFY`
+- `<function_name>` is the name of the function emitting the diagnostic
+- `<message>` contains the diagnostic details
+
+**Why this format?** Three reasons:
+1. **Grep-friendly** — You can `grep "GUARD:" logs.txt` to find all guard failures instantly
+2. **AI-parseable** — An AI agent can read `GUARD:process_pages | missing 'pages', available: ['result']` and immediately know how to fix the code
+3. **Layer-identifiable** — You can instantly tell whether a failure is a bad input (GUARD), a data flow issue (TRACE), or a failed write (VERIFY)
+
+### 4.2 Guard Message Requirements
+
+Guard messages MUST include:
+1. **What was expected** — the contract
+2. **What was received** — the reality
+3. **Available context** — keys present, type received, value summary
+
+```
+GUARD:process_pages | expected dict with key 'pages', got dict with keys: ['result', 'metadata']
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,170 @@
+"""Configuration loading for Bulwark linter.
+
+Supports .bulwarklint.json in project root and CLI overrides.
+"""
+
+import json
+import logging
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional, Set
+
+logger = logging.getLogger(__name__)
+
+DEFAULT_EXCLUDES = [
+    "node_modules",
+    "dist",
+    "build",
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+    "env",
+    ".env",
+    ".tox",
+    "vendor",
+]
+
+DEFAULT_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".go"}
+
+CONFIG_FILENAME = ".bulwarklint.json"
+
+
+@dataclass
+class RuleConfig:
+    """Configuration for a single rule."""
+    enabled: bool = True
+    severity: Optional[str] = None  # override severity
+
+
+@dataclass
+class LintConfig:
+    """Complete linter configuration."""
+    exclude: List[str] = field(default_factory=lambda: list(DEFAULT_EXCLUDES))
+    extensions: Set[str] = field(default_factory=lambda: set(DEFAULT_EXTENSIONS))
+    rules: Dict[str, RuleConfig] = field(default_factory=dict)
+    format: str = "terminal"
+    severity: str = "warning"  # minimum severity to report
+    fix_hint: bool = False
+    no_color: bool = False
+    stats: bool = False
+
+    def is_rule_enabled(self, rule_id: str) -> bool:
+        """Check if a rule is enabled."""
+        if rule_id in self.rules:
+            return self.rules[rule_id].enabled
+        return True  # enabled by default
+
+    def get_rule_severity(self, rule_id: str) -> Optional[str]:
+        """Get severity override for a rule, or None for default."""
+        if rule_id in self.rules:
+            return self.rules[rule_id].severity
+        return None
+
+
+def find_config_file(start_path: str) -> Optional[str]:
+    """Search for .bulwarklint.json starting from start_path up to root."""
+    current = Path(start_path).resolve()
+    if current.is_file():
+        current = current.parent
+
+    while True:
+        config_path = current / CONFIG_FILENAME
+        if config_path.is_file():
+            return str(config_path)
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+
+    return None
+
+
+def load_config(config_path: Optional[str] = None, start_path: str = ".") -> LintConfig:
+    """Load configuration from file and return LintConfig.
+
+    Args:
+        config_path: Explicit path to config file. If None, searches upward.
+        start_path: Starting directory for config file search.
+
+    Returns:
+        LintConfig instance.
+    """
+    config = LintConfig()
+
+    # Find config file
+    if config_path is None:
+        config_path = find_config_file(start_path)
+
+    if config_path is None:
+        logger.debug("No config file found, using defaults")
+        return config
+
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("Failed to load config from %s: %s", config_path, exc)
+        return config
+
+    logger.debug("Loaded config from %s", config_path)
+
+    # Parse excludes
+    if "exclude" in data and isinstance(data["exclude"], list):
+        config.exclude = data["exclude"]
+
+    # Parse extensions
+    if "extensions" in data and isinstance(data["extensions"], list):
+        config.extensions = set(data["extensions"])
+
+    # Parse rules
+    if "rules" in data and isinstance(data["rules"], dict):
+        for rule_id, rule_data in data["rules"].items():
+            if isinstance(rule_data, dict):
+                config.rules[rule_id] = RuleConfig(
+                    enabled=rule_data.get("enabled", True),
+                    severity=rule_data.get("severity"),
+                )
+
+    return config
+
+
+def merge_cli_overrides(
+    config: LintConfig,
+    *,
+    format: Optional[str] = None,
+    severity: Optional[str] = None,
+    rules_filter: Optional[List[str]] = None,
+    exclude: Optional[List[str]] = None,
+    fix_hint: bool = False,
+    no_color: bool = False,
+    stats: bool = False,
+) -> LintConfig:
+    """Apply CLI argument overrides to config."""
+    if format is not None:
+        config.format = format
+    if severity is not None:
+        config.severity = severity
+    if fix_hint:
+        config.fix_hint = True
+    if no_color:
+        config.no_color = True
+    if stats:
+        config.stats = True
+
+    # If specific rules requested via CLI, disable all others
+    if rules_filter:
+        all_rule_ids = {"BLW001", "BLW002", "BLW003", "BLW004", "BLW005"}
+        enabled_ids = set(r.strip().upper() for r in rules_filter)
+        for rid in all_rule_ids:
+            if rid not in config.rules:
+                config.rules[rid] = RuleConfig()
+            config.rules[rid].enabled = rid in enabled_ids
+
+    # Extend excludes from CLI
+    if exclude:
+        config.exclude.extend(exclude)
+
+    return config
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

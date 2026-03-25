@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "defaults": {
+    "max_retries": 3,
+    "retry_delay": 1.0,
+    "backoff_multiplier": 2.0,
+    "notification": {
+      "on_failure": false,
+      "channels": []
+    }
+  },
+  "services": {
+    "local_db": {
+      "description": "Simulated PostgreSQL database",
+      "health_check": {
+        "command": "./fixtures/health_db.sh",
+        "timeout": 5
+      },
+      "recovery": {
+        "command": "./fixtures/recover_db.sh",
+        "max_retries": 3,
+        "retry_delay": 0.5,
+        "backoff_multiplier": 2.0
+      },
+      "severity": "critical",
+      "notification": {
+        "on_failure": true,
+        "channels": ["log"],
+        "escalation_after": 2
+      }
+    },
+    "cache": {
+      "description": "Simulated Redis cache",
+      "health_check": {
+        "command": "./fixtures/health_cache.sh",
+        "timeout": 3
+      },
+      "recovery": {
+        "command": "./fixtures/recover_cache.sh",
+        "max_retries": 2,
+        "retry_delay": 0.5,
+        "backoff_multiplier": 1.5
+      },
+      "severity": "warning",
+      "notification": {
+        "on_failure": false
+      }
+    },
+    "metrics_collector": {
+      "description": "Simulated metrics endpoint (always down)",
+      "health_check": {
+        "command": "./fixtures/health_metrics.sh",
+        "timeout": 2
+      },
+      "recovery": null,
+      "severity": "info",
+      "notification": {
+        "on_failure": false
+      }
+    }
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

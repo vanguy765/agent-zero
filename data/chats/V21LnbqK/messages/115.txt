@@ -1,0 +1,9 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir# (venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# > > > > > > > > > > > > > > > > > > > > > > > > > > > > [pipeline] Fetching results from completed job...
+Traceback (most recent call last):
+  File "<string>", line 15, in <module>
+    resp.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/venv/lib/python3.13/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 404 Client Error: Not Found for url: http://doc-parser:5000/results/2b949ff2-bc5d-4ae0-b088-1246298a53ce
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

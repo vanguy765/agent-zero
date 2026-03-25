@@ -1,0 +1,5 @@
+ocr_results: EXISTS — columns: ['id', 'document_id', 'page_id', 'table_index', 'markdown', 'structured_data', 'confidence', 'created_at']
+document_pages: EXISTS — columns: ['id', 'document_id', 'page_number', 'storage_url', 'thumbnail_url', 'category', 'raw_text', 'metadata', 'created_at']
+project_documents: EXISTS — columns: ['id', 'project_id', 'title', 'description', 'file_url', 'file_type', 'file_size_bytes', 'uploaded_by', 'uploaded_at', 'metadata', 'created_at']
+document_images: EXISTS — columns: ['id', 'document_id', 'image_url', 'page_number', 'image_type', 'caption', 'metadata', 'created_at']
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

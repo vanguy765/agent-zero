@@ -1,0 +1,11 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === .env files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# no .env in site-companion
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -rw-r--r-- 1 root root 136 Mar  4 03:42 .env
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === workspace packages built? ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ui: no dist
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# db: no dist
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# schemas: no dist
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === turbo log 2026-03-10 (yesterday) - site-companion ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

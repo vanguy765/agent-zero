@@ -1,0 +1,834 @@
+import { supabase } from './supabase';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/work-orders';
+
+export interface Unit {
+  id: string;
+  organization_id: string;
+  project_id?: string;  // NEW: Link to WO Project
+  type_order_id?: string | null; // NEW: Link to Type Order
+  unit_number: string;
+  unit_type: string;
+  floor: number;
+  area_sf: number;
+  bedrooms?: number;
+  status: 'not_started' | 'in_progress' | 'completed';
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WOProject {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  project_type: string;
+  library_id?: string;
+  outcome_id?: string;
+  status: 'staged' | 'active' | 'paused' | 'completed' | 'archived';
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateLibrary {
+  id: string;
+  name: string;
+  description?: string;
+  project_type: string;
+  scope: 'system' | 'company';
+  organization_id?: string;
+  icon?: string;
+  color?: string;
+  is_active: boolean;
+  is_default: boolean;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Trade {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  display_order: number;
+  is_active: boolean;
+  scope: 'system' | 'company';
+  organization_id?: string;
+  parent_trade_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectOutcome {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  scope: 'system' | 'company';
+  organization_id?: string;
+  icon?: string;
+  color?: string;
+  metadata?: Record<string, any>;
+  is_active: boolean;
+  is_default: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TypeOrder {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  category: 'interior' | 'exterior' | 'pre_construction' | 'common';
+  scope: 'system' | 'company' | 'project';
+  organization_id?: string;
+  project_id?: string;
+  parent_type_order_id?: string;
+  is_composite: boolean;
+  definition?: Record<string, any>;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BomActionRequest {
+  id: string;
+  project_id: string;
+  unit_id?: string;
+  document_id?: string;
+  action_description: string;
+  bom_reference?: string;
+  matched_template_id?: string;
+  matched_sop_id?: string;
+  match_confidence?: number;
+  match_method: 'pending' | 'auto' | 'manual' | 'ai_suggested';
+  status: 'pending' | 'matched' | 'rejected' | 'applied';
+  metadata?: Record<string, any>;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkOrderTemplate {
+  id: string;
+  scope: 'system' | 'company' | 'project';  // NEW: Template scope
+  organization_id?: string;  // Now optional for app-level templates
+  project_id?: string;  // NEW: For project-level templates
+  library_id?: string;  // legacy Template library association
+  outcome_id?: string;  // NEW: Project Outcome association
+  trade_id?: string;    // NEW: Trade FK reference
+  trade_name: string;
+  version: number;
+  is_active: boolean;
+  is_frozen?: boolean;
+  definition: {
+    sections: Record<string, {
+      label: string;
+      order: number;
+      columns: Array<{
+        key: string;
+        label: string;
+        type: string;
+        order: number;
+      }>;
+      items?: string[];
+    }>;
+  } | null;
+  parent_template_id?: string;
+  copied_from_template_id?: string;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+  sop_id?: string;       // FK → sops, linked SOP
+  _inherited?: boolean;  // Set by API for resolved lazy-copy templates
+}
+
+export interface SopSummary {
+    id: string;
+    sop_number: string;
+    trade_code: string;
+    trade_name: string;
+    task_name: string;
+    revision: string;
+    status: string;
+    estimated_duration?: string;
+    trade_id?: string;
+}
+
+export interface SopSection {
+    id: string;
+    sop_id: string;
+    section_number: number;
+    section_type: string;
+    title: string;
+    content_md?: string;
+    phase_name?: string;
+}
+
+export interface SopStep {
+    id: string;
+    sop_id: string;
+    section_id: string;
+    phase_name: string;
+    phase_number: number;
+    step_number: number;
+    step_name: string;
+    tasks_summary?: string;
+    detail_md?: string;
+    est_duration_minutes?: number;
+}
+
+export interface StepProgress {
+    id: string;
+    work_order_id: string;
+    sop_step_id: string;
+    status: 'pending' | 'in_progress' | 'completed' | 'skipped' | 'blocked';
+    completed_by?: string;
+    started_at?: string;
+    completed_at?: string;
+    duration_minutes?: number;
+    notes?: string;
+    photo_urls?: string[];
+    override_detail?: string;
+    is_override?: boolean;
+    sop_step?: SopStep;
+}
+
+export interface WorkOrder {
+  id: string;
+  organization_id: string;
+  unit_id: string;
+  template_id: string;
+  trade_id?: string;
+  trade_name: string;
+  type_order_id?: string;
+  bom_action_request_id?: string;
+  assigned_contractor_id?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  started_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+  tasks?: WorkOrderTask[];
+  notes?: any[];
+  unit?: Unit;
+  template?: WorkOrderTemplate;
+}
+
+export interface WorkOrderTask {
+  id: string;
+  work_order_id: string;
+  room_id: string;
+  row_order: number;
+  task_data: {
+    steps: Array<{
+      key: string;
+      label: string;
+      status: 'pending' | 'complete' | 'blocked';
+      not_applicable: boolean;
+      completed_by?: string;
+      completed_at?: string;
+    }>;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectDocument {
+  id: string;
+  project_id: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  file_type: string;
+  file_size_bytes: number;
+  uploaded_by?: string;
+  uploaded_at: string;
+  metadata?: {
+    page_count?: number;
+    original_name?: string;
+    mime_type?: string;
+    [key: string]: any;
+  };
+  created_at: string;
+}
+
+export interface DocumentImage {
+  id: string;
+  document_id: string;
+  image_url: string;
+  page_number?: number;
+  image_type?: string;
+  caption?: string;
+  metadata?: {
+    width?: number;
+    height?: number;
+    type?: string;
+    [key: string]: any;
+  };
+  signed_url?: string;
+  created_at: string;
+}
+
+export interface ParsedDocumentResult {
+  success: boolean;
+  document_id: string;
+  parsed: {
+    document_id: string;
+    units: Array<{
+      unit_number: string;
+      unit_type: string;
+      floor: number;
+      bedrooms: number;
+      bathrooms: number;
+      area_sf: number;
+      rooms: Array<{
+        name: string;
+        dimensions: { length_ft: number; width_ft: number; area_sf: number };
+        baseboard_length_ft: number;
+        baseboard_exclusions: string[];
+      }>;
+      doors: Array<{
+        location: string;
+        type: string;
+        dimensions: string;
+        hardware: string;
+        action: string;
+        do_not_install?: boolean;
+      }>;
+      windows: Array<{
+        location: string;
+        type: string;
+        dimensions: string;
+        coverings: string;
+      }>;
+      fixtures: Array<{
+        category: string;
+        name: string;
+        location: string;
+        specifications: string;
+      }>;
+      upgrades: Array<{
+        trade: string;
+        description: string;
+        quantity?: number;
+        unit?: string;
+      }>;
+    }>;
+    general_notes: string[];
+    total_baseboard_ft: number;
+    summary: {
+      units_count: number;
+      trades: string[];
+      total_doors: number;
+      total_windows: number;
+    };
+    raw_text?: string;
+  };
+  summary: {
+    units_count: number;
+    total_baseboard_ft: number;
+    trades: string[];
+  };
+}
+
+class ApiClient {
+  private baseUrl: string;
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl;
+  }
+
+  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API Error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  // Units
+  async getUnits(): Promise<Unit[]> {
+    return this.request<Unit[]>('/units');
+  }
+
+  async getUnit(id: string): Promise<Unit> {
+    return this.request<Unit>(`/units/${id}`);
+  }
+
+  async updateUnit(id: string, data: Partial<Unit>): Promise<Unit> {
+    return this.request<Unit>(`/units/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async generateUnitWorkOrders(unitId: string): Promise<{ success: boolean; count: number; work_orders: any[] }> {
+    return this.request(`/units/${unitId}/generate-work-orders`, {
+      method: 'POST',
+    });
+  }
+
+  // Templates
+  async getTemplates(scope?: 'system' | 'company' | 'project'): Promise<WorkOrderTemplate[]> {
+    const query = scope ? `?scope=${scope}` : '';
+    return this.request<WorkOrderTemplate[]>(`/templates${query}`);
+  }
+
+  async getTemplate(id: string): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>(`/templates/${id}`);
+  }
+
+  async createTemplate(data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>('/templates', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateTemplate(id: string, data: Partial<WorkOrderTemplate>): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>(`/templates/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTemplate(id: string): Promise<{ success: boolean }> {
+    return this.request(`/templates/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Template Inheritance / Assignment
+  async getSystemTemplates(): Promise<WorkOrderTemplate[]> {
+    return this.request<WorkOrderTemplate[]>('/templates/system');
+  }
+
+  async getCompanyTemplates(): Promise<WorkOrderTemplate[]> {
+    return this.request<WorkOrderTemplate[]>('/templates/company');
+  }
+
+  async getProjectTemplates(projectId: string): Promise<WorkOrderTemplate[]> {
+    return this.request<WorkOrderTemplate[]>(`/templates/project/${projectId}`);
+  }
+
+  async assignTemplateToCompany(systemTemplateId: string, organizationId: string): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>('/templates/assign-to-company', {
+      method: 'POST',
+      body: JSON.stringify({ app_template_id: systemTemplateId, organization_id: organizationId }),
+    });
+  }
+
+  async assignTemplateToProject(companyTemplateId: string, projectId: string, organizationId: string): Promise<WorkOrderTemplate> {
+    return this.request<WorkOrderTemplate>('/templates/assign-to-project', {
+      method: 'POST',
+      body: JSON.stringify({ company_template_id: companyTemplateId, project_id: projectId, organization_id: organizationId }),
+    });
+  }
+
+  async unassignTemplateFromProject(templateId: string): Promise<{ success: boolean }> {
+    return this.request(`/templates/${templateId}/unassign`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Template Visibility Preferences
+  async getHiddenTemplateIds(): Promise<string[]> {
+    return this.request<string[]>('/templates/prefs/hidden');
+  }
+
+  async setTemplateHidden(templateId: string, isHidden: boolean): Promise<{ success: boolean }> {
+    return this.request(`/templates/prefs/${templateId}/hidden`, {
+      method: 'PUT',
+      body: JSON.stringify({ is_hidden: isHidden }),
+    });
+  }
+
+  // Work Orders
+  async getWorkOrders(): Promise<WorkOrder[]> {
+    return this.request<WorkOrder[]>('/work-orders');
+  }
+
+  async getWorkOrder(id: string): Promise<WorkOrder> {
+    return this.request<WorkOrder>(`/work-orders/${id}`);
+  }
+
+  async createWorkOrder(data: { unit_id: string; template_id: string }): Promise<WorkOrder> {
+    return this.request<WorkOrder>('/work-orders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWorkOrder(id: string, data: Partial<WorkOrder>): Promise<WorkOrder> {
+    return this.request<WorkOrder>(`/work-orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Tasks
+  async updateTask(workOrderId: string, taskId: string, data: Partial<WorkOrderTask>): Promise<WorkOrderTask> {
+    return this.request<WorkOrderTask>(`/work-orders/${workOrderId}/tasks/${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Notes
+  async getNotes(workOrderId: string): Promise<any[]> {
+    return this.request<any[]>(`/work-orders/${workOrderId}/notes`);
+  }
+
+  async createNote(workOrderId: string, content: string): Promise<any> {
+    return this.request<any>(`/work-orders/${workOrderId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  // Projects
+  async getProjects(): Promise<WOProject[]> {
+    return this.request<WOProject[]>('/projects');
+  }
+
+  async getProject(id: string): Promise<WOProject> {
+    return this.request<WOProject>(`/projects/${id}`);
+  }
+
+  async createProject(data: Partial<WOProject>): Promise<WOProject> {
+    return this.request<WOProject>('/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProject(id: string, data: Partial<WOProject>): Promise<WOProject> {
+    return this.request<WOProject>(`/projects/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProject(id: string): Promise<{ success: boolean }> {
+    return this.request(`/projects/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Template Libraries (Legacy)
+  async getTemplateLibraries(params?: {
+    project_type?: string;
+    scope?: 'system' | 'company';
+  }): Promise<TemplateLibrary[]> {
+    const query = params ? new URLSearchParams(params as any).toString() : '';
+    return this.request<TemplateLibrary[]>(
+      `/template-libraries${query ? `?${query}` : ''}`
+    );
+  }
+
+  async getTemplateLibrary(id: string): Promise<TemplateLibrary> {
+    return this.request<TemplateLibrary>(`/template-libraries/${id}`);
+  }
+
+  async getDefaultLibrary(projectType: string): Promise<TemplateLibrary> {
+    return this.request<TemplateLibrary>(
+      `/template-libraries/default/${projectType}`
+    );
+  }
+
+  // Schema Evolution Phase 1 Extensions
+  
+  // Trades
+  async getTrades(): Promise<Trade[]> {
+    return this.request<Trade[]>('/trades');
+  }
+
+  async getOrganizationTrades(): Promise<Trade[]> {
+    return this.request<Trade[]>('/trades/organization');
+  }
+
+  // Project Outcomes
+  async getProjectOutcomes(): Promise<ProjectOutcome[]> {
+    return this.request<ProjectOutcome[]>('/project-outcomes');
+  }
+
+  async getProjectOutcomeTrades(outcomeId: string): Promise<{ trade_id: string; outcome_id: string }[]> {
+    return this.request<{ trade_id: string; outcome_id: string }[]>(`/project-outcomes/${outcomeId}/trades`);
+  }
+
+  // Type Orders
+  async getTypeOrders(category?: string): Promise<TypeOrder[]> {
+    const q = category ? `?category=${category}` : '';
+    return this.request<TypeOrder[]>(`/type-orders${q}`);
+  }
+
+  async getTypeOrderCompositions(typeOrderId: string): Promise<any[]> {
+    return this.request<any[]>(`/type-orders/${typeOrderId}/compositions`);
+  }
+
+  async getTypeOrderDefaultWorkOrders(typeOrderId: string): Promise<any[]> {
+    return this.request<any[]>(`/type-orders/${typeOrderId}/default-work-orders`);
+  }
+
+  async updateTypeOrderDefaultWorkOrders(typeOrderId: string, templateIds: string[]): Promise<void> {
+    return this.request(`/type-orders/${typeOrderId}/default-work-orders`, {
+      method: 'PUT',
+      body: JSON.stringify({ templateIds })
+    });
+  }
+
+  // BOM Action Requests
+  async getBomActionRequests(projectId: string): Promise<BomActionRequest[]> {
+    return this.request<BomActionRequest[]>(`/bom-action-requests/project/${projectId}`);
+  }
+
+  async updateBomActionRequest(id: string, updates: Partial<BomActionRequest>): Promise<BomActionRequest> {
+    return this.request<BomActionRequest>(`/bom-action-requests/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+  }
+
+  // Documents
+  async getProjectDocuments(projectId: string): Promise<ProjectDocument[]> {
+    return this.request<ProjectDocument[]>(`/projects/${projectId}/documents`);
+  }
+
+  async uploadDocument(projectId: string, file: File, title?: string, description?: string): Promise<ProjectDocument> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (title) formData.append('title', title);
+    if (description) formData.append('description', description);
+
+    const response = await fetch(`${this.baseUrl}/projects/${projectId}/documents`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API Error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  async getDocument(documentId: string): Promise<ProjectDocument> {
+    return this.request<ProjectDocument>(`/documents/${documentId}`);
+  }
+
+  async updateDocument(documentId: string, data: Partial<ProjectDocument>): Promise<ProjectDocument> {
+    return this.request<ProjectDocument>(`/documents/${documentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteDocument(documentId: string): Promise<{ success: boolean }> {
+    return this.request(`/documents/${documentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getDocumentDownloadUrl(documentId: string): Promise<{ url: string; filename: string; expires_at: string }> {
+    return this.request(`/documents/${documentId}/download`);
+  }
+
+  // Image Extraction
+  async extractImagesFromDocument(documentId: string): Promise<{ success: boolean; images_extracted: number; images: DocumentImage[] }> {
+    return this.request(`/documents/${documentId}/extract-images`, {
+      method: 'POST',
+    });
+  }
+
+  async getDocumentImages(documentId: string): Promise<DocumentImage[]> {
+    return this.request<DocumentImage[]>(`/documents/${documentId}/images`);
+  }
+
+  async getImage(imageId: string): Promise<DocumentImage> {
+    return this.request<DocumentImage>(`/images/${imageId}`);
+  }
+
+  async updateImage(imageId: string, data: Partial<DocumentImage>): Promise<DocumentImage> {
+    return this.request<DocumentImage>(`/images/${imageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteImage(imageId: string): Promise<{ success: boolean }> {
+    return this.request(`/images/${imageId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Text Extraction
+  async extractTextFromDocument(documentId: string): Promise<{ success: boolean; page_count: number; text: string; pages: string[] }> {
+    return this.request(`/documents/${documentId}/extract-text`, {
+      method: 'POST',
+    });
+  }
+
+  // Claude AI Parsing
+  async parseDocumentWithClaude(documentId: string, customPrompt?: string): Promise<ParsedDocumentResult> {
+    return this.request(`/documents/${documentId}/parse`, {
+      method: 'POST',
+      body: customPrompt ? JSON.stringify({ customPrompt }) : undefined,
+    });
+  }
+
+  async generateWorkOrdersFromDocument(documentId: string): Promise<{ success: boolean; work_orders_count: number; work_orders: any[] }> {
+    return this.request(`/documents/${documentId}/generate-work-orders`, {
+      method: 'POST',
+    });
+  }
+
+  // ============================================================
+  // Doc-Parser Integration (P1-P7)
+  // ============================================================
+
+  private get docParserBaseUrl(): string {
+    return this.baseUrl.replace('/work-orders', '');
+  }
+
+  private async docParserRequest(endpoint: string, options?: RequestInit): Promise<any> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch(`${this.docParserBaseUrl}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        ...options?.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API Error: ${response.status} - ${error}`);
+    }
+
+    return response.json();
+  }
+
+  /** Submit a document for parsing via doc-parser service */
+  async submitDocParserJob(
+    documentId: string,
+    engine: 'claude-direct' | 'hybrid' = 'hybrid'
+  ): Promise<{ job_id: string; status: string; engine: string }> {
+    return this.docParserRequest(`/doc-parser/parse`, {
+      method: 'POST',
+      body: JSON.stringify({ document_id: documentId, engine }),
+    });
+  }
+
+  /** Poll job status (lightweight endpoint) */
+  async getDocParserStatus(jobId: string): Promise<{
+    job_id: string;
+    status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+    engine: string;
+    file_name: string;
+    progress: {
+      current_phase: string;
+      phases: string[];
+      current_page: number;
+      total_pages: number;
+      current_step: string;
+      floorplans_found: number;
+      tables_found: number;
+      percent_complete: number;
+    };
+    error?: string;
+    created_at: string;
+    updated_at: string;
+  }> {
+    return this.docParserRequest(`/doc-parser/status/${jobId}`);
+  }
+
+  /** Fetch full results (heavy endpoint, call once after completed) */
+  async getDocParserResults(jobId: string, summary?: boolean): Promise<any> {
+    const query = summary ? '?summary=true' : '';
+    return this.docParserRequest(`/doc-parser/results/${jobId}${query}`);
+  }
+
+  /** List all doc-parser jobs */
+  async listDocParserJobs(status?: string): Promise<any[]> {
+    const query = status ? `?status=${status}` : '';
+    return this.docParserRequest(`/doc-parser/jobs${query}`);
+  }
+
+  /** Delete a doc-parser job */
+  async deleteDocParserJob(jobId: string): Promise<{ status: string }> {
+    return this.docParserRequest(`/doc-parser/jobs/${jobId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  /** Check doc-parser service health */
+  async getDocParserHealth(): Promise<{
+    status: string;
+    version: string;
+    engines: string[];
+  }> {
+    return this.docParserRequest('/doc-parser/health');
+  }
+
+  // SOP Methods
+  async getSops(tradeCode?: string): Promise<SopSummary[]> {
+      const query = tradeCode ? `?trade_code=${tradeCode}` : '';
+      return this.request<SopSummary[]>(`/sops${query}`);
+  }
+
+  async getSop(id: string): Promise<any> {
+      return this.request<any>(`/sops/${id}`);
+  }
+
+  async getTemplateSop(templateId: string): Promise<{
+      sop: SopSummary | null;
+      steps: SopStep[];
+      sections: SopSection[];
+      _inherited: boolean;
+  }> {
+      return this.request(`/templates/${templateId}/sop`);
+  }
+
+  // Step Progress Methods
+  async getStepProgress(workOrderId: string): Promise<StepProgress[]> {
+      return this.request<StepProgress[]>(`/work-orders/${workOrderId}/step-progress`);
+  }
+
+  async initializeSteps(workOrderId: string): Promise<{ initialized: number }> {
+      return this.request(`/work-orders/${workOrderId}/initialize-steps`, { method: 'POST' });
+  }
+
+  async updateStepProgress(progressId: string, updates: Partial<StepProgress>): Promise<StepProgress> {
+      return this.request(`/work-orders/step-progress/${progressId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(updates),
+      });
+  }
+
+}
+
+export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

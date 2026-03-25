@@ -1,0 +1,132 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === README lines 147-195 ===
+### 🏥 Availability Guards (Extension)
+
+Check whether external services are reachable **at startup**, not per-call:
+
+```python
+def check_api_available(base_url, timeout=5):
+    """Availability Guard: verify the API is reachable before starting work."""
+    response = requests.get(f"{base_url}/health", timeout=timeout)
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"GUARD:availability | {base_url}/health returned "
+            f"status {response.status_code}, expected 200"
+        )
+
+# Use at startup:
+check_api_available("https://api.example.com")
+```
+
+Availability Guards are an extension — useful in practice, but not required for Bulwark compliance.
+
+#### 🔄 Self-Healing Recovery (NEW in v0.2.0)
+
+When a dependency is down and you have a script that fixes it, why not run it automatically?
+
+```python
+from bulwark import guard_available
+
+guard_available(
+    check=lambda: requests.get("http://localhost:5432/health", timeout=3).status_code < 500,
+    function_name="app_startup",
+    dependency="PostgreSQL",
+    recovery_command="docker compose up -d postgres",  # ← runs automatically if DB is down
+    max_retries=3,
+    retry_delay=5.0,
+)
+# If DB is up → passes instantly
+# If DB is down → runs recovery script → waits → re-checks → succeeds or fails loudly
+```
+
+Recovery is optional, bounded (never retries forever), and fully logged. No `recovery_command` = original behavior unchanged. See the [Guide](GUIDE.md#53-recovery-self-healing-availability-guards) for the full pattern.
+
+---
+
+## Decision Rules
+
+Three questions. Apply to every function.
+
+| Question | If YES |
+|----------|--------|
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === BMAD skill lines 340-375 ===
+| development | Always ON | All (DEBUG) | Every operation |
+| staging | Always ON | Key boundaries (INFO) | Sampled |
+| production | Always ON | Anomalies (WARNING) | Critical=full, routine=sampled |
+
+---
+
+## Integration with Existing Validation
+
+Bulwark complements, not replaces, existing validation libraries:
+
+| Library | Role | Bulwark Adds |
+|---------|------|--------------|
+| **Zod** (TS) | Schema validation at API boundaries | Internal guards, traces, verify |
+| **Pydantic** (Python) | Model validation at API boundaries | Internal guards, traces, verify |
+| **Joi** (Node) | Request validation | Same as Zod |
+
+See integration guides:
+- [Bulwark × Zod](../../guides/bulwark-x-zod.md)
+- [Bulwark × Pydantic](../../guides/bulwark-x-pydantic.md)
+
+---
+
+## Full Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [QUICKSTART.md](../../QUICKSTART.md) | 5-minute setup guide |
+| [GUIDE.md](../../GUIDE.md) | Comprehensive beginner's guide |
+| [SPEC.md](../../SPEC.md) | Formal technical specification |
+| [Checklist](../../checklists/bulwark-checklist.md) | PR review checklist |
+| [System Prompt](../../prompts/bulwark-system-prompt.md) | AI agent system prompt |
+| [Remediation Prompt](../../prompts/bulwark-remediation-agent.md) | Auto-fix agent prompt |
+
+---
+
+*Bulwark AI v0.2.0 — bulwark-ai.dev*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Checklist lines 120-160 ===
+### Recovery (if configured)
+- [ ] Recovery command is explicit (caller-provided, not inferred)
+- [ ] Recovery is bounded (`max_retries` enforced, not indefinite)
+- [ ] Recovery uses exponential backoff (`retry_delay` × `backoff_multiplier`)
+- [ ] Every recovery attempt is logged with: attempt number, command, exit code, elapsed time
+- [ ] Recovery does NOT escalate privileges (no `sudo` injection)
+- [ ] Recovery failure includes full context: dependency name, all attempts, total time, last exit code
+- [ ] Omitting `recovery_command` produces identical behavior to detection-only (backward compatible)
+
+---
+
+## Configuration & Runtime Modes
+
+### Mode Selection
+- [ ] Runtime mode is set via `BULWARK_MODE` environment variable or code-level configuration
+- [ ] Mode defaults to `development` when not explicitly set
+- [ ] Three modes are supported: `development`, `staging`, `production`
+
+### Mode Behavior Matrix
+- [ ] **Guards**: Always active in ALL modes (non-negotiable, O(1) cost)
+- [ ] **Traces**: Verbosity adapts to mode:
+  - Development: `DEBUG` (all traces visible)
+  - Staging: `INFO` (key boundaries visible)
+  - Production: `WARNING` (only anomalies visible)
+- [ ] **Verifies**: Strategy adapts to mode:
+  - Development: `full` (every operation verified)
+  - Staging: `sampled` (configurable sample rate)
+  - Production: `adaptive` (critical=full, routine=sampled)
+
+### Configuration Mechanism
+- [ ] At least one configuration method is supported (env var, code-level, or config file)
+- [ ] Configuration is documented for the deployment environment
+- [ ] `critical=True` flag is applied to high-value verify operations (financial, auth, data integrity)
+
+---
+
+## Integration & Pipeline
+
+- [ ] Multi-stage pipelines have Traces between every stage
+- [ ] Functions with multiple layers (Guard + Trace + Verify) apply them in correct order:
+  1. Guard (preconditions)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

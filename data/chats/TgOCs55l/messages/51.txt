@@ -1,0 +1,6 @@
+119:## Doc-Parser Service
+161:#### Read endpoints (DB queries — no doc-parser call)
+165:| `GET`  | `/api/doc-parser/documents/:documentId/pages` | List all parsed pages. Query params: `?category=floorplan\|table\|site_photo\|diagram\|mixed\|text`, `?limit=`, `?offset=` |
+166:| `GET`  | `/api/doc-parser/documents/:documentId/pages/:pageNumber` | Get one page by 1-indexed page number (storage_url, thumbnail, category, raw_text, metadata) |
+167:| `GET`  | `/api/doc-parser/documents/:documentId/ocr` | List OCR/table results. Query params: `?page_number=N`, `?limit=`, `?offset=` |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

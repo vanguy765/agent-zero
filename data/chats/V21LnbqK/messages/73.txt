@@ -1,0 +1,26 @@
+=== preflight.py failure message ===
+        print("  ❌ Some checks failed. Ask user to run on Windows:\n"
+              "     powershell -File scripts/reset-and-start.ps1\n"
+              "  This auto-starts Supabase + doc-parser, resets DB, seeds users, and starts dev servers.")
+        return 1
+
+=== AGENTS.md recovery section ===
+> **Recovery script:** If any check fails, tell the user to run:
+> ```powershell
+> powershell -File scripts/reset-and-start.ps1
+> ```
+> This script auto-detects and starts Supabase + doc-parser, resets the DB, seeds users (alice, eric, sysadmin), and launches dev servers. It is the single command to bring the full environment up from any state.
+
+
+
+=== SESSION_START.md failure table ===
+**If ANY check fails**, tell the user to run this single command on Windows:
+```powershell
+powershell -File scripts/reset-and-start.ps1
+```
+This script handles everything: starts Supabase if down, starts doc-parser if down, resets DB, seeds users (alice, eric, sysadmin), and launches dev servers.
+
+### Step 3 — Report Status
+Tell the user:
+- Which docs were read
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

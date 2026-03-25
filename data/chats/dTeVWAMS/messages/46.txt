@@ -1,0 +1,44 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 10:## Table of Contents
+27:## 1. What Is Bulwark AI?
+37:## 2. Why Does AI Code Fail?
+104:## 3. The Three Layers Explained
+418:## 4. The Decision Flowchart
+707:## 5. Runtime Modes: Not Everything Costs the Same
+1161:## 6. How to Add Bulwark to Your Project
+1272:## 7. Common Mistakes
+1510:## 8. Why We Made These Choices
+1536:## 9. Glossary
+1552:## What's Next?
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+Recovery is powerful, so Bulwark enforces strict safety rules:
+
+1. **Recovery is always optional.** If you don't pass `recovery_command`, behavior is identical to a plain Availability Guard. No existing code breaks.
+2. **Recovery is always bounded.** The guard will never retry forever. After `max_retries` attempts, it fails loudly.
+3. **Recovery is always logged.** Every attempt, every result, every timing — all recorded. You always know what happened.
+4. **Recovery runs with current permissions.** No privilege escalation. The script runs as the same user as your application.
+5. **Backoff prevents hammering.** Each retry waits longer than the last, giving the service time to actually start.
+
+---
+
+## 6. How to Add Bulwark to Your Project
+
+Ready to start? Here's a step-by-step guide. The most important thing to know: **you can do this one function at a time.** You don't need to refactor your entire codebase. Pick one function, add the layers, and expand from there.
+
+### Step 1: Copy the Helpers and Configure
+
+Grab the reference implementation for your language from the `reference/` directory:
+
+- **Python:** [`reference/bulwark.py`](reference/bulwark.py)
+- **TypeScript:** [`reference/bulwark.ts`](reference/bulwark.ts)
+
+Copy the file into your project. These helpers provide `guard()`, `guard_type()`, `guard_keys()`, `trace()`, `describe_shape()`, `verify()`, and `configure()` — all implemented with zero external dependencies.
+
+If you prefer, you can skip the helpers entirely and write raw `if/raise` statements. The helpers are a convenience, not a requirement.
+
+Then, at your application's startup (before any Bulwark-protected functions run), call `configure()` to set your runtime mode:
+
+```python
+# Python — at the top of your main entry point
+from bulwark import configure
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

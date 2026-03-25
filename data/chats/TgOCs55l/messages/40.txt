@@ -1,0 +1,9 @@
+=== parse-document.md line count and approaches ===
+293 /a0/usr/projects/timesheet_app/voicelog-scaffold/.agents/workflows/parse-document.md
+29:## Approach 1 — Full Document Pipeline
+79:## Approach 2 — Single-Page Pipeline
+131:## Approach 3 — Idempotent Reprocess
+152:## Approach 4 — Read Endpoints (DB only, no doc-parser call)
+218:## Approach 5 — HTTP Proxy (custom polling)
+239:## Approach 6 — Python CLI Pipeline
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

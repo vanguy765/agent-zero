@@ -1,0 +1,14 @@
+
+=== Doc-Parser Pre-Flight Check ===
+  Doc-parser: http://doc-parser:5000
+  Supabase:   http://host.docker.internal:54321
+
+  [OK] Doc-parser healthy: healthy - engines: ['docling', 'hybrid']
+  [OK] Supabase service key: eyJhbGciOiJIUzI1NiIs...3W0YpN81IU
+  [FAIL] Supabase API: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+  [FAIL] Supabase storage bucket: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+
+  ❌ Some checks failed. Ask user to run on Windows:
+     powershell -File scripts/reset-and-start.ps1
+  This auto-starts Supabase + doc-parser, resets DB, seeds users, and starts dev servers.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

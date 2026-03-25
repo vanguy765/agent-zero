@@ -1,0 +1,243 @@
+/**
+ * Doc-Parser HTTP Client
+ *
+ * Shared service for communicating with the doc-parser backend.
+ * Used by both docling and hybrid engine proxy routes.
+ */
+
+const DOC_PARSER_URL = process.env.DOC_PARSER_URL || 'http://localhost:5000';
+
+export interface DocParserJobResponse {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+  engine: 'docling' | 'hybrid';
+  file: string;
+}
+
+export interface DocParserProgress {
+  current_phase: string;
+  phases: string[];
+  current_page: number;
+  total_pages: number;
+  current_step: string;
+  floorplans_found: number;
+  tables_found: number;
+  percent_complete: number;
+}
+
+export interface DocParserStatus {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timeout';
+  engine: string;
+  file_name: string;
+  progress: DocParserProgress;
+  error?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocParserResultSummary {
+  pages_count: number;
+  floorplans_count: number;
+  tables_count: number;
+  units_count: number;
+  has_footer: boolean;
+  total_doors: number;
+  total_windows: number;
+  total_baseboard_ft: number;
+  trades: string[];
+}
+
+export interface DocParserConfidence {
+  overall: number;
+  room_dimensions: boolean;
+  door_specifications: boolean;
+  window_specifications: boolean;
+  fixture_completeness: boolean;
+  cross_page_synthesis: boolean;
+  baseboard_data: boolean;
+  unit_identification: boolean;
+  per_page: Record<string, any>;
+}
+
+export interface DocParserUnit {
+  unit_number: string;
+  unit_type: string;
+  floor: number;
+  bedrooms: number;
+  bathrooms: number;
+  half_baths: number;
+  area_sf: number;
+  rooms: any[];
+  doors: any[];
+  windows: any[];
+  fixtures: any[];
+  upgrades: any[];
+  general_notes: string[];
+  source_page: number;
+}
+
+export interface DocParserResult {
+  engine: string;
+  pages: Record<number, any>;
+  units: DocParserUnit[];
+  tables: any[];
+  footer_sample: any;
+  general_notes: string[];
+  synthesis: any;
+  confidence: DocParserConfidence;
+  summary: DocParserResultSummary;
+}
+
+/**
+ * Submit a PDF for parsing with the specified engine.
+ */
+export async function submitParseJob(
+  pdfBuffer: Buffer | ArrayBuffer,
+  fileName: string,
+  engine: 'docling' | 'hybrid',
+  options: {
+    provider?: string;
+    tenantName?: string;
+    projectName?: string;
+    supabaseUrl?: string;
+    supabaseKey?: string;
+  } = {},
+): Promise<DocParserJobResponse> {
+  const endpoint = engine === 'hybrid' ? '/parse/hybrid' : '/parse/docling';
+
+  const formData = new FormData();
+  const blob = new Blob([new Uint8Array(pdfBuffer as any)], { type: 'application/pdf' });
+  formData.append('file', blob, fileName);
+
+  if (options.provider) {
+    formData.append('provider', options.provider);
+  }
+  if (options.tenantName) {
+    formData.append('tenant_name', options.tenantName);
+  }
+  if (options.projectName) {
+    formData.append('project_name', options.projectName);
+  }
+  if (options.supabaseUrl) {
+    formData.append('supabase_url', options.supabaseUrl);
+  }
+  if (options.supabaseKey) {
+    formData.append('supabase_key', options.supabaseKey);
+  }
+
+  const response = await fetch(`${DOC_PARSER_URL}${endpoint}`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Doc-parser submission failed (${response.status}): ${errorText}`,
+    );
+  }
+
+  return response.json();
+}
+
+/**
+ * Get lightweight job status (poll-safe).
+ * NEVER includes result data.
+ */
+export async function getJobStatus(
+  jobId: string,
+): Promise<DocParserStatus> {
+  const response = await fetch(`${DOC_PARSER_URL}/status/${jobId}`);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+    throw new Error(`Status check failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get full extraction results (fetch-once after completed).
+ * Heavy payload - only call when status confirms "completed".
+ */
+export async function getJobResults(
+  jobId: string,
+  summaryOnly: boolean = false,
+): Promise<{ job_id: string; status: string; result?: DocParserResult; summary?: DocParserResultSummary }> {
+  const url = summaryOnly
+    ? `${DOC_PARSER_URL}/results/${jobId}?summary=true`
+    : `${DOC_PARSER_URL}/results/${jobId}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Results for job ${jobId} not found`);
+    }
+    throw new Error(`Results fetch failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Check if doc-parser service is healthy and available.
+ */
+export async function checkHealth(): Promise<{
+  status: string;
+  engines: string[];
+  dependencies: Record<string, boolean>;
+}> {
+  try {
+    const response = await fetch(`${DOC_PARSER_URL}/health`, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) {
+      return {
+        status: 'unhealthy',
+        engines: [],
+        dependencies: {},
+      };
+    }
+    return response.json();
+  } catch {
+    return {
+      status: 'unreachable',
+      engines: [],
+      dependencies: {},
+    };
+  }
+}
+
+/**
+ * Map hybrid engine output to ParsedDocument-compatible format.
+ *
+ * When engine is "hybrid", the units array is already
+ * ParsedDocument-compatible. This mapper normalizes the
+ * response for the frontend.
+ */
+export function mapToParseDocument(
+  result: DocParserResult,
+  documentId: string,
+): {
+  document_id: string;
+  units: DocParserUnit[];
+  general_notes: string[];
+  total_baseboard_ft: number;
+  summary: DocParserResultSummary;
+  confidence: DocParserConfidence;
+} {
+  return {
+    document_id: documentId,
+    units: result.units || [],
+    general_notes: result.general_notes || [],
+    total_baseboard_ft: result.summary?.total_baseboard_ft || 0,
+    summary: result.summary,
+    confidence: result.confidence,
+  };
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

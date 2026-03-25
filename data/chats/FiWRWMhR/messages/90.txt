@@ -1,0 +1,31 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#         self.assertEqual(len(violations), 1)
+        self.assertIn("VerifyError", violations[0].message)
+
+    def test_no_violation_with_imports(self):
+        content = 'from bulwark import GuardError, VerifyError\n\ndef foo(x):\n    guard_type(x, str, "foo", "x")\n    verify(x, "foo", "msg")'
+        violations = self.rule.check_file("/tmp/test.py", content, "python")
+        self.assertEqual(len(violations), 0)
+
+    def test_no_violation_with_class_def(self):
+        content = 'class GuardError(Exception): pass\nclass VerifyError(Exception): pass\n\ndef foo(x):\n    guard(x, "foo", "msg")\n    verify(x, "foo", "msg")'
+        violations = self.rule.check_file("/tmp/test.py", content, "python")
+        self.assertEqual(len(violations), 0)
+
+    def test_skip_no_guard_verify_usage(self):
+        content = 'def foo(x):\n    return x + 1'
+        violations = self.rule.check_file("/tmp/test.py", content, "python")
+        self.assertEqual(len(violations), 0)
+
+    def test_ts_import_detected(self):
+        content = 'import { GuardError, VerifyError } from "./bulwark";\n\nfunction foo(x) { guardType(x, "string"); verify(x); }'
+        violations = self.rule.check_file("/tmp/test.ts", content, "typescript")
+        self.assertEqual(len(violations), 0)
+
+    def test_severity_is_info(self):
+        from bulwark_lint.rules.base import Severity
+        self.assertEqual(self.rule.severity, Severity.INFO)
+
+
+if __name__ == "__main__":
+    unittest.main()
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

@@ -1,0 +1,25 @@
+### 🏥 Availability Guards (Extension)
+
+Check whether external services are reachable **at startup**, not per-call:
+
+```python
+def check_api_available(base_url, timeout=5):
+    """Availability Guard: verify the API is reachable before starting work."""
+    response = requests.get(f"{base_url}/health", timeout=timeout)
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"GUARD:availability | {base_url}/health returned "
+            f"status {response.status_code}, expected 200"
+        )
+
+# Use at startup:
+check_api_available("https://api.example.com")
+```
+
+Availability Guards are an extension — useful in practice, but not required for Bulwark compliance. See the [Guide](GUIDE.md#52-availability-guards) for details.
+
+---
+
+## Decision Rules
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

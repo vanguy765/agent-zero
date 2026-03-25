@@ -1,0 +1,105 @@
+# Bulwark AI — System Prompt Fragment
+# Version: 0.1.0-draft
+# Usage: Inject this into any AI agent's system prompt to enforce
+#        the Bulwark AI defensive coding standard.
+#
+# Integration targets:
+#   - Agent Zero: Add to system prompt or .a0proj instructions
+#   - Cursor: Add to .cursorrules
+#   - GitHub Copilot: Add to .github/copilot-instructions.md
+#   - Claude Projects: Add to project instructions
+#   - Aider: Add to .aider.conventions
+#   - Any LLM system prompt: Paste directly
+
+---
+
+## DEFENSIVE CODING STANDARD: Bulwark AI v0.1 (Guard · Trace · Verify)
+
+All code you generate MUST implement three defensive layers:
+
+### GUARD — Validate before processing
+Every function receiving data it didn't create MUST validate inputs before use.
+- Check: presence (not null), type, shape (required keys/fields), non-emptiness
+- On failure: raise/throw with message format:
+  `GUARD:<function_name> | expected <what_was_expected>, got <what_was_received>`
+- NEVER silently coerce: no `data or {}`, no `except: pass`, no `.get(key, default)` without subsequent validation
+- Guards MUST be the first statements in the function body
+
+```python
+# GUARD example
+def process_pages(response):
+    assert isinstance(response, dict), \
+        f"GUARD:process_pages | expected dict, got {type(response).__name__}"
+    assert "pages" in response, \
+        f"GUARD:process_pages | expected key 'pages', got keys: {list(response.keys())}"
+    pages = response["pages"]
+    assert isinstance(pages, list) and len(pages) > 0, \
+        f"GUARD:process_pages | expected non-empty list, got {type(pages).__name__} len={len(pages) if hasattr(pages,'__len__') else 'N/A'}"
+```
+
+### TRACE — Log shape at phase boundaries
+At every point where data flows between pipeline stages, log the data SHAPE (not content).
+- Record: type, length/size, keys/fields, nested structure summary
+- NEVER log actual values, PII, or secrets
+- Format: `TRACE:<label> | <shape_description>`
+- Traces are non-destructive pass-throughs — they observe but never modify
+
+```python
+# TRACE example
+def trace(label, data):
+    shape = f"{type(data).__name__}"
+    if isinstance(data, dict):
+        shape += f", keys={sorted(data.keys())}, len={len(data)}"
+    elif isinstance(data, (list, tuple)):
+        shape += f", len={len(data)}"
+        if data:
+            shape += f", items={type(data[0]).__name__}"
+    elif isinstance(data, str):
+        shape += f", len={len(data)}"
+    logging.info(f"TRACE:{label} | {shape}")
+    return data  # always pass through
+
+raw = trace("after_fetch", fetch(url))
+parsed = trace("after_parse", parse(raw))
+```
+
+### VERIFY — Confirm side effects actually happened
+After every write operation (DB, file, API, queue, email), CONFIRM the effect occurred.
+- Check: row count, file existence + size, response contains created resource, ack received
+- On failure: raise/throw with message format:
+  `VERIFY:<function_name> | <operation> expected <expected>, actual <actual>`
+- NEVER report success based solely on a 200 status code or lack of exception
+
+```python
+# VERIFY example
+def save_records(records, db):
+    result = db.insert_many("results", records)
+    assert result.rowcount == len(records), \
+        f"VERIFY:save_records | INSERT expected {len(records)} rows, affected {result.rowcount}"
+    return {"status": "verified", "count": result.rowcount}
+```
+
+### Decision Rules — Apply on EVERY function you write:
+
+| Question | If YES |
+|----------|--------|
+| "If this data were wrong, would the code silently continue?" | Add a **GUARD** |
+| "Does data flow between processing phases here?" | Add a **TRACE** |
+| "Does this function produce side effects?" | Add a **VERIFY** |
+
+### Absolute Prohibitions:
+- ❌ NEVER use `except: pass` or bare `except Exception`
+- ❌ NEVER use `data.get(key, default)` as a substitute for validation
+- ❌ NEVER report success without verifying the side effect
+- ❌ NEVER assume a path is writable, a service is reachable, or a key exists
+- �� NEVER leave placeholder/demo data (test URLs, example API keys, stub values)
+- ❌ NEVER silently return empty results when data was expected
+
+### Diagnostic Message Format:
+All defensive messages follow: `<LAYER>:<function_name> | <details>`
+where LAYER is GUARD, TRACE, or VERIFY.
+Details MUST include expected vs. actual for Guards and Verifies.
+Details MUST include shape description for Traces.
+
+---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

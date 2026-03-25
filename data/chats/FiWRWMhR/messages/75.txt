@@ -1,0 +1,6 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > > > > [main 72044d8] test: add Test 1.1 and 1.2 results with generated code
+ 4 files changed, 741 insertions(+), 44 deletions(-)
+ create mode 100644 test-results/TEST_1.2_RESULTS.md
+ create mode 100644 test-results/fetch_and_save.py
+ create mode 100644 test-results/user_sync.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,14 @@
+Result type: <class 'dict'>
+Result keys: ['job_id', 'engine', 'timestamp', 'summary', 'confidence', 'units', 'pages', 'tables', 'footer', 'thumbnails', 'raw_llm_responses']
+Pages count: 29
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+Cell In[1], line 14
+     12 print(f'Pages count: {len(pages)}')
+     13 if pages:
+---> 14     p = pages[0]
+     15     print(f'\nPage 1 keys: {list(p.keys())}')
+     16     # Look for URL fields
+
+KeyError: 0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,309 @@
+
+✔ No violations found.
+
+Files scanned: 1
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Full directory scan — JSON output ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# {
+  "version": "1.0.0",
+  "files_scanned": 4,
+  "total_violations": 29,
+  "violations": [
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "process_user_data() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 9,
+      "function_name": "process_user_data",
+      "fix_hint": "Consider adding: guard_type(raw_data, expected_type, \"process_user_data\", \"raw_data\"); guard_type(source, expected_type, \"process_user_data\", \"source\"); guard_type(strict, expected_type, \"process_user_data\", \"strict\")"
+    },
+    {
+      "rule_id": "BLW003",
+      "rule_name": "trace-at-boundary",
+      "severity": "info",
+      "message": "process_user_data() appears to be a phase boundary but has no trace call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 9,
+      "function_name": "process_user_data",
+      "fix_hint": "Consider adding: result = trace(\"after_process_user_data\", data)"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "process_user_data() uses raise for validation for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 22,
+      "function_name": "process_user_data",
+      "fix_hint": "Replace raise with: guard(condition, \"process_user_data\", \"description\") which raises GuardError"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "process_user_data() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 27,
+      "function_name": "process_user_data",
+      "fix_hint": "Replace assert with: guard(condition, \"process_user_data\", \"description\")"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "process_user_data() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 28,
+      "function_name": "process_user_data",
+      "fix_hint": "Replace assert with: guard(condition, \"process_user_data\", \"description\")"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "save_user_to_database() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 35,
+      "function_name": "save_user_to_database",
+      "fix_hint": "Consider adding: guard_type(db, expected_type, \"save_user_to_database\", \"db\"); guard_type(user_data, expected_type, \"save_user_to_database\", \"user_data\"); guard_type(table, expected_type, \"save_user_to_database\", \"table\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "save_user_to_database() has database mutation but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 35,
+      "function_name": "save_user_to_database",
+      "fix_hint": "Consider adding: verify(result.rowCount == 1, \"save_user_to_database\", \"expected 1 affected row\")"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "export_users_to_csv() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 48,
+      "function_name": "export_users_to_csv",
+      "fix_hint": "Consider adding: guard_type(users, expected_type, \"export_users_to_csv\", \"users\"); guard_type(output_path, expected_type, \"export_users_to_csv\", \"output_path\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "export_users_to_csv() has file write but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 48,
+      "function_name": "export_users_to_csv",
+      "fix_hint": "Consider adding: verify_file_written(filepath, \"export_users_to_csv\", \"file write failed\")"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "handle_user_notification() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 64,
+      "function_name": "handle_user_notification",
+      "fix_hint": "Consider adding: guard_type(user, expected_type, \"handle_user_notification\", \"user\"); guard_type(admin_email, expected_type, \"handle_user_notification\", \"admin_email\"); guard_type(template, expected_type, \"handle_user_notification\", \"template\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "handle_user_notification() has notification send but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 64,
+      "function_name": "handle_user_notification",
+      "fix_hint": "Consider adding: verify(sent == True, \"handle_user_notification\", \"notification send failed\")"
+    },
+    {
+      "rule_id": "BLW003",
+      "rule_name": "trace-at-boundary",
+      "severity": "info",
+      "message": "handle_user_notification() appears to be a phase boundary but has no trace call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 64,
+      "function_name": "handle_user_notification",
+      "fix_hint": "Consider adding: result = trace(\"after_handle_user_notification\", data)"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "fetch_remote_users() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 77,
+      "function_name": "fetch_remote_users",
+      "fix_hint": "Consider adding: guard_type(api_url, expected_type, \"fetch_remote_users\", \"api_url\"); guard_type(api_key, expected_type, \"fetch_remote_users\", \"api_key\"); guard_type(page, expected_type, \"fetch_remote_users\", \"page\")"
+    },
+    {
+      "rule_id": "BLW003",
+      "rule_name": "trace-at-boundary",
+      "severity": "info",
+      "message": "fetch_remote_users() appears to be a phase boundary but has no trace call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.py",
+      "line": 77,
+      "function_name": "fetch_remote_users",
+      "fix_hint": "Consider adding: result = trace(\"after_fetch_remote_users\", data)"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "handleCreateUser() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 11,
+      "function_name": "handleCreateUser",
+      "fix_hint": "Consider adding: guardType(req, \"type\", \"handleCreateUser\", \"req\"); guardType(env, \"type\", \"handleCreateUser\", \"env\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "handleCreateUser() has database mutation but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 11,
+      "function_name": "handleCreateUser",
+      "fix_hint": "Consider adding: verify(result.rowCount === 1, \"handleCreateUser\", \"expected 1 affected row\")"
+    },
+    {
+      "rule_id": "BLW003",
+      "rule_name": "trace-at-boundary",
+      "severity": "info",
+      "message": "handleCreateUser() appears to be a phase boundary but has no trace call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 11,
+      "function_name": "handleCreateUser",
+      "fix_hint": "Consider adding: const result = trace(\"afterHandleCreateUser\", data);"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "handleCreateUser() uses throw new Error for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 19,
+      "function_name": "handleCreateUser",
+      "fix_hint": "Replace throw with: guard(condition, \"handleCreateUser\", \"description\") which throws GuardError"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "handleCreateUser() uses throw new Error for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 23,
+      "function_name": "handleCreateUser",
+      "fix_hint": "Replace throw with: guard(condition, \"handleCreateUser\", \"description\") which throws GuardError"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "syncUserToExternalApi() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 33,
+      "function_name": "syncUserToExternalApi",
+      "fix_hint": "Consider adding: guardType(userId, \"type\", \"syncUserToExternalApi\", \"userId\"); guardType(apiKey, \"type\", \"syncUserToExternalApi\", \"apiKey\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "syncUserToExternalApi() has database query, HTTP POST (+1 more) but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 33,
+      "function_name": "syncUserToExternalApi",
+      "fix_hint": "Consider adding: verify(result !== null, \"syncUserToExternalApi\", \"query returned no results\")"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "syncUserToExternalApi() uses throw new Error for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 44,
+      "function_name": "syncUserToExternalApi",
+      "fix_hint": "Replace throw with: guard(condition, \"syncUserToExternalApi\", \"description\") which throws GuardError"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "parseUserPayload() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 49,
+      "function_name": "parseUserPayload",
+      "fix_hint": "Consider adding: guardType(rawData, \"type\", \"parseUserPayload\", \"rawData\"); guardType(format, \"type\", \"parseUserPayload\", \"format\")"
+    },
+    {
+      "rule_id": "BLW003",
+      "rule_name": "trace-at-boundary",
+      "severity": "info",
+      "message": "parseUserPayload() appears to be a phase boundary but has no trace call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 49,
+      "function_name": "parseUserPayload",
+      "fix_hint": "Consider adding: const result = trace(\"afterParseUserPayload\", data);"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "parseUserPayload() uses throw new Error for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 61,
+      "function_name": "parseUserPayload",
+      "fix_hint": "Replace throw with: guard(condition, \"parseUserPayload\", \"description\") which throws GuardError"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "exportUsersToFile() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 66,
+      "function_name": "exportUsersToFile",
+      "fix_hint": "Consider adding: guardType(users, \"type\", \"exportUsersToFile\", \"users\"); guardType(outputPath, \"type\", \"exportUsersToFile\", \"outputPath\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "exportUsersToFile() has file write but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 66,
+      "function_name": "exportUsersToFile",
+      "fix_hint": "Consider adding: verify_file_written(filepath, \"exportUsersToFile\", \"file write failed\")"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "notifyUserCreated() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 74,
+      "function_name": "notifyUserCreated",
+      "fix_hint": "Consider adding: guardType(user, \"type\", \"notifyUserCreated\", \"user\"); guardType(adminEmail, \"type\", \"notifyUserCreated\", \"adminEmail\")"
+    },
+    {
+      "rule_id": "BLW002",
+      "rule_name": "verify-after-mutation",
+      "severity": "warning",
+      "message": "notifyUserCreated() has notification send but no verify call",
+      "filepath": "/a0/usr/workdir/bulwark-ai/linter/tests/fixtures/sample_unguarded.ts",
+      "line": 74,
+      "function_name": "notifyUserCreated",
+      "fix_hint": "Consider adding: verify(sent === true, \"notifyUserCreated\", \"notification send failed\")"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 24,
+    "info": 5
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

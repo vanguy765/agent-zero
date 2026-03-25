@@ -1,0 +1,41 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# """Tests for individual Bulwark lint rules."""
+
+import os
+import unittest
+
+from bulwark_lint.languages import FunctionInfo
+from bulwark_lint.text_utils import strip_strings_and_comments
+from bulwark_lint.rules.blw001_guard_present import GuardPresentRule
+from bulwark_lint.rules.blw002_verify_after_mutation import VerifyAfterMutationRule
+from bulwark_lint.rules.blw003_trace_at_boundary import TraceAtBoundaryRule
+from bulwark_lint.rules.blw004_no_bare_assert import NoBareAssertRule
+from bulwark_lint.rules.blw005_custom_error_types import CustomErrorTypesRule
+
+
+def _make_func(name="myFunc", params="a, b", body="", language="python",
+               start_line=1, end_line=10, filepath="/tmp/test.py"):
+    """Helper to create FunctionInfo for testing."""
+    return FunctionInfo(
+        name=name,
+        start_line=start_line,
+        end_line=end_line,
+        params=params,
+        body=body,
+        language=language,
+        filepath=filepath,
+        clean_body=strip_strings_and_comments(body, language),
+    )
+
+
+class TestBLW001GuardPresent(unittest.TestCase):
+    """Test BLW001: function-needs-guard."""
+
+    def setUp(self):
+        self.rule = GuardPresentRule()
+
+    def test_violation_when_no_guard(self):
+        func = _make_func(
+            params="data: str, count: int",
+            body="    result = process(data)\n    return result\n    # extra line",
+        )
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

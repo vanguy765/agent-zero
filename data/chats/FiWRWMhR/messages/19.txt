@@ -1,0 +1,256 @@
+"""Base rule class and Violation dataclass for Bulwark linter."""
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bulwark_lint.languages import FunctionInfo
+
+
+class Severity(Enum):
+    """Violation severity levels."""
+    ERROR = "error"
+    WARNING = "warning"
+    INFO = "info"
+
+    @property
+    def weight(self) -> int:
+        """Numeric weight for comparison (higher = more severe)."""
+        return {"error": 3, "warning": 2, "info": 1}[self.value]
+
+    def __ge__(self, other: "Severity") -> bool:
+        return self.weight >= other.weight
+
+    def __gt__(self, other: "Severity") -> bool:
+        return self.weight > other.weight
+
+    def __le__(self, other: "Severity") -> bool:
+        return self.weight <= other.weight
+
+    def __lt__(self, other: "Severity") -> bool:
+        return self.weight < other.weight
+
+
+@dataclass
+class Violation:
+    """A single linter violation found in source code."""
+    rule_id: str
+    rule_name: str
+    message: str
+    filepath: str
+    line: int
+    function_name: str
+    severity: Severity = Severity.WARNING
+    fix_hint: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        """Serialize to dictionary for JSON output."""
+        result = {
+            "rule_id": self.rule_id,
+            "rule_name": self.rule_name,
+            "severity": self.severity.value,
+            "message": self.message,
+            "filepath": self.filepath,
+            "line": self.line,
+            "function_name": self.function_name,
+        }
+        if self.fix_hint:
+            result["fix_hint"] = self.fix_hint
+        return result
+
+
+class BaseRule:
+    """Base class for all Bulwark lint rules."""
+    rule_id: str = ""
+    rule_name: str = ""
+    description: str = ""
+    severity: Severity = Severity.WARNING
+    file_level: bool = False  # True for rules that check entire files
+
+    def check(self, func: "FunctionInfo") -> List[Violation]:
+        """Check a function for violations. Override in subclasses."""
+        raise NotImplementedError(f"{self.__class__.__name__} must implement check()")
+
+    def check_file(self, filepath: str, content: str, language: str) -> List[Violation]:
+        """Check an entire file for violations. Override for file-level rules."""
+        raise NotImplementedError(f"{self.__class__.__name__} must implement check_file()")
+
+    def _make_violation(
+        self,
+        message: str,
+        filepath: str,
+        line: int,
+        function_name: str,
+        fix_hint: Optional[str] = None,
+        severity: Optional[Severity] = None,
+    ) -> Violation:
+        """Helper to create a Violation with this rule's metadata."""
+        return Violation(
+            rule_id=self.rule_id,
+            rule_name=self.rule_name,
+            message=message,
+            filepath=filepath,
+            line=line,
+            function_name=function_name,
+            severity=severity or self.severity,
+            fix_hint=fix_hint,
+        )
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# =====
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# """BLW005 — custom-error-types
+
+Files using Bulwark patterns should define or import GuardError and VerifyError.
+This is a FILE-LEVEL rule, not function-level.
+"""
+
+import re
+from pathlib import Path
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Usage detection
+# ---------------------------------------------------------------------------
+
+# Guard usage patterns
+_GUARD_USAGE = re.compile(r'\bguard(?:_?[a-zA-Z]*)\s*\(', re.IGNORECASE)
+
+# Verify usage patterns
+_VERIFY_USAGE = re.compile(r'\bverify(?:_?[a-zA-Z]*)\s*\(', re.IGNORECASE)
+
+# ---------------------------------------------------------------------------
+# GuardError presence patterns
+# ---------------------------------------------------------------------------
+
+_GUARD_ERROR_PATTERNS = [
+    # Python: class definition
+    re.compile(r'\bclass\s+GuardError\b'),
+    # Python: import
+    re.compile(r'\bfrom\s+\S+\s+import\s+.*\bGuardError\b'),
+    re.compile(r'\bimport\s+.*\bGuardError\b'),
+    # TS/JS: class definition
+    re.compile(r'\bclass\s+GuardError\b'),
+    # TS/JS: import
+    re.compile(r'\bimport\s*\{[^}]*\bGuardError\b'),
+    re.compile(r'\bimport\s+.*\bGuardError\b'),
+    # Go: type definition
+    re.compile(r'\btype\s+GuardError\s+struct\b'),
+]
+
+# ---------------------------------------------------------------------------
+# VerifyError presence patterns
+# ---------------------------------------------------------------------------
+
+_VERIFY_ERROR_PATTERNS = [
+    # Python: class definition
+    re.compile(r'\bclass\s+VerifyError\b'),
+    # Python: import
+    re.compile(r'\bfrom\s+\S+\s+import\s+.*\bVerifyError\b'),
+    re.compile(r'\bimport\s+.*\bVerifyError\b'),
+    # TS/JS: class definition
+    re.compile(r'\bclass\s+VerifyError\b'),
+    # TS/JS: import
+    re.compile(r'\bimport\s*\{[^}]*\bVerifyError\b'),
+    re.compile(r'\bimport\s+.*\bVerifyError\b'),
+    # Go: type definition
+    re.compile(r'\btype\s+VerifyError\s+struct\b'),
+]
+
+# ---------------------------------------------------------------------------
+# Bulwark reference implementation detection (skip these files)
+# ---------------------------------------------------------------------------
+
+_BULWARK_REF_PATTERNS = [
+    re.compile(r'bulwark\.(py|ts|js|go)$', re.IGNORECASE),
+    re.compile(r'bulwark_ref', re.IGNORECASE),
+]
+
+
+def _is_bulwark_reference(filepath: str) -> bool:
+    """Check if file is the Bulwark reference implementation itself."""
+    name = Path(filepath).name
+    return any(p.search(name) for p in _BULWARK_REF_PATTERNS)
+
+
+def _has_guard_error(content: str) -> bool:
+    """Check if file defines or imports GuardError."""
+    return any(p.search(content) for p in _GUARD_ERROR_PATTERNS)
+
+
+def _has_verify_error(content: str) -> bool:
+    """Check if file defines or imports VerifyError."""
+    return any(p.search(content) for p in _VERIFY_ERROR_PATTERNS)
+
+
+class CustomErrorTypesRule(BaseRule):
+    """Files using Bulwark patterns should define or import GuardError/VerifyError."""
+
+    rule_id = "BLW005"
+    rule_name = "custom-error-types"
+    description = "Files using guard/verify should define or import GuardError/VerifyError."
+    severity = Severity.INFO
+    file_level = True
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        """Not used for file-level rules."""
+        return []
+
+    def check_file(self, filepath: str, content: str, language: str) -> List[Violation]:
+        """Check entire file for GuardError/VerifyError presence."""
+        violations: List[Violation] = []
+
+        # Skip Bulwark reference implementations
+        if _is_bulwark_reference(filepath):
+            return violations
+
+        uses_guard = bool(_GUARD_USAGE.search(content))
+        uses_verify = bool(_VERIFY_USAGE.search(content))
+
+        # Skip if file doesn't use any guard/verify calls
+        if not uses_guard and not uses_verify:
+            return violations
+
+        # Check for GuardError
+        if uses_guard and not _has_guard_error(content):
+            violations.append(self._make_violation(
+                message="File uses guard() calls but does not define or import GuardError",
+                filepath=filepath,
+                line=1,
+                function_name="(file-level)",
+                fix_hint=self._guard_error_hint(language),
+            ))
+
+        # Check for VerifyError
+        if uses_verify and not _has_verify_error(content):
+            violations.append(self._make_violation(
+                message="File uses verify() calls but does not define or import VerifyError",
+                filepath=filepath,
+                line=1,
+                function_name="(file-level)",
+                fix_hint=self._verify_error_hint(language),
+            ))
+
+        return violations
+
+    @staticmethod
+    def _guard_error_hint(language: str) -> str:
+        if language == "python":
+            return 'Add: from bulwark import GuardError  # or define class GuardError(Exception): pass'
+        elif language in ("typescript", "javascript"):
+            return 'Add: import { GuardError } from "./bulwark";  // or define class GuardError extends Error {}'
+        elif language == "go":
+            return 'Add: type GuardError struct { ... }'
+        return 'Define or import GuardError'
+
+    @staticmethod
+    def _verify_error_hint(language: str) -> str:
+        if language == "python":
+            return 'Add: from bulwark import VerifyError  # or define class VerifyError(Exception): pass'
+        elif language in ("typescript", "javascript"):
+            return 'Add: import { VerifyError } from "./bulwark";  // or define class VerifyError extends Error {}'
+        elif language == "go":
+            return 'Add: type VerifyError struct { ... }'
+        return 'Define or import VerifyError'
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

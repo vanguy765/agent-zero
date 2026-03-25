@@ -1,0 +1,22 @@
+def test_violation_boundary_no_trace(self):
+        func = _make_func(
+            name="parseResponse",
+            body='    data = json.loads(raw)\n    cleaned = clean(data)\n    validated = validate(cleaned)\n    formatted = format(validated)\n    return formatted',
+        )
+        violations = self.rule.check(func)
+        self.assertEqual(len(violations), 1)
+        self.assertEqual(violations[0].rule_id, "BLW003")
+
+    def test_no_violation_with_trace(self):
+        func = _make_func(
+            name="parseResponse",
+            body='    data = json.loads(raw)\n    cleaned = clean(data)\n    result = trace("afterParse", cleaned)\n    formatted = format(result)\n    return formatted',
+        )
+        violations = self.rule.check(func)
+        self.assertEqual(len(violations), 0)
+
+    def test_skip_accessor(self):
+        func = _make_func(
+            name="get_user_name",
+            body='    data = self.db.query(q)\n    await something\n    result = process(data)\n    more = transform(result)\n    return more',
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

@@ -1,0 +1,26 @@
+Got 1 projects
+  - Bill Hennessy Place
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === /work-orders/projects raw ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# [{"id":"761c1d88-d1f1-4da1-8b53-441b9b2667c2","organization_id":"00000000-0000-0000-0000-000000000001","name":"Bill Hennessy Place","description":"Auto-created during template hierarchy migration","status":"active","metadata":{},"created_at":"2026-02-12T02:02:43.985645+00:00","updated_at":"2026-02-15T21:14:49.862017+00:00","project_type":"residential_house","library_id":"c8991ce2-1638-4ed5-ac12-293e909185bc","outcome_id":null}](venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === API log tail ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+[dotenv@17.2.3] injecting env (1) from ../../.env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+[API] Zod Version: undefined
+[API] DOC_PARSER_URL is: http://localhost:5000
+Server is running on port 3000
+Swagger UI available at http://localhost:3000/ui
+<-- GET /work-orders/dashboard-stats
+--> GET /work-orders/dashboard-stats 200 50ms
+<-- GET /work-orders/dashboard-stats
+--> GET /work-orders/dashboard-stats 200 14ms
+<-- GET /work-orders/dashboard-stats
+--> GET /work-orders/dashboard-stats 200 24ms
+<-- GET /work-orders/templates?scope=company
+--> GET /work-orders/templates?scope=company 200 16ms
+<-- GET /work-orders/type-orders
+--> GET /work-orders/type-orders 200 6ms
+<-- GET /work-orders/projects
+--> GET /work-orders/projects 200 6ms
+<-- GET /work-orders/projects
+--> GET /work-orders/projects 200 5ms
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

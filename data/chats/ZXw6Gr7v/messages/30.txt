@@ -1,0 +1,15 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#   const { data: document, error: fetchError } = await serviceClient
+    .from('project_documents')
+    .select('*')
+    .eq('id', documentId)
+    .single();
+
+  if (fetchError || !document) return c.json({ error: 'Document not found' }, 404);
+  if (!document.file_type?.includes('pdf')) return c.json({ error: 'Document is not a PDF' }, 400);
+
+  // 2. Download full PDF from storage
+  const { data: fileData, error: downloadError } = await serviceClient.storage
+    .from('project-documents')
+    .download(document.file_url);
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

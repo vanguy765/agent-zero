@@ -1,0 +1,29 @@
+## ✅ GUIDE.md Created Successfully
+
+**File:** `/a0/usr/workdir/bulwark-ai/GUIDE.md`
+**Line count:** 1,150 lines (within the 800–1,200 target)
+
+### All 9 sections are present in order:
+
+| # | Section | Coverage |
+|---|---------|----------|
+| 1 | **What Is Bulwark AI?** | Elevator pitch, building inspector analogy, free/zero-dep/any-language |
+| 2 | **Why Does AI Code Fail?** | All 6 failure modes (F1–F6) in plain English with "imagine this" scenarios |
+| 3 | **The Three Layers Explained** | Guard (cooking ingredients), Trace (security cameras), Verify (bank balance) — each with summary, analogy, before/after Python code, failure modes caught, and decision question |
+| 4 | **The Decision Flowchart** | 3 conversational decision questions + 5 walked-through examples (API fetch, file writer, data transformer, database CRUD, full pipeline) with a summary table |
+| 5 | **Runtime Modes** | Car analogy (seatbelt/dashcam/vehicle inspection), dev/staging/prod table, emphasis that Guards are NEVER turned off, verify strategy adaptation |
+| 6 | **How to Add Bulwark to Your Project** | 7 step-by-step instructions, "one function at a time" emphasis |
+| 7 | **Common Mistakes** | 5 mistakes with ❌ wrong way, explanation, and ✅ right way (silent coercion, swallowed exceptions, logging content in traces, status-code-only verification, bare assert) |
+| 8 | **Why We Made These Choices** | 5 design decisions in plain language (convention over library, three layers, structured messages, Guard always-on, idempotency as extension) |
+| 9 | **Glossary** | 9 terms defined in one sentence each |
+
+### Writing style compliance:
+- ✅ Uses "you" and "your" throughout
+- ✅ Short paragraphs (3–4 sentences max)
+- ✅ Liberal use of headers and subheaders
+- ✅ Complete, runnable Python code examples (not snippets)
+- ✅ Tables for comparisons
+- ✅ Emoji used sparingly (✅ ❌ ⚙️ only)
+- ✅ Never uses the word "simply"
+- ✅ Self-contained — readable without the SPEC.md
+- ✅ Consistent function names and patterns with the spec

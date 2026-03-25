@@ -1,0 +1,204 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === README.md structure ===
+3:# 🛡️ Bulwark AI
+5:### Defensive Coding Standard for AI-Generated Code
+20:## The Problem
+36:## The Solution: Three Defensive Layers
+63:### Layer 1: GUARD — *"Don't trust what you didn't create"*
+79:### Layer 2: TRACE — *"Make the invisible visible"*
+90:### Layer 3: VERIFY — *"Trust, but verify"*
+96:# VERIFY: don't just hope — confirm
+106:## What's New in v0.2.0
+108:### 🔧 Runtime Configuration
+124:# Python
+135:### 📊 Verify Strategies
+147:### 🏥 Availability Guards (Extension)
+161:# Use at startup:
+167:#### 🔄 Self-Healing Recovery (NEW in v0.2.0)
+182:# If DB is up → passes instantly
+183:# If DB is down → runs recovery script → waits → re-checks → succeeds or fails loudly
+190:## Decision Rules
+202:## Key Principles
+204:### 🚫 Zero Dependencies
+207:### 🌐 Language Agnostic
+210:### 🤖 AI-Agent Optimized
+219:## Quick Start
+221:### Option 1: Copy the Reference Implementation
+224:# Python — copy into your project
+227:# TypeScript — copy into your project
+234:# Configure at startup
+248:### Option 2: Inject the AI Prompt
+259:### Option 3: Just Follow the Pattern
+269:## Project Structure
+290:## Compliance Levels
+300:## Diagnostic Message Format
+314:## FAQ
+333:## Contributing
+347:## License
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === BMAD skill structure ===
+1:# Bulwark Defensive Coding
+3:## Skill Metadata
+16:## Purpose
+30:## When to Invoke This Skill
+44:## The Three-Layer Model
+46:### Layer 1: GUARD — Validate Before Processing
+116:### Layer 2: TRACE — Log Shape at Boundaries
+157:### Layer 3: VERIFY — Confirm Side Effects
+198:## Function Template
+214:## Developer Agent Instructions
+226:### Anti-Patterns to Avoid
+229:# ❌ Silent coercion — masks bugs
+232:# ❌ Swallowed exceptions — hides failures
+238:# ❌ Bare assert — stripped by python -O
+241:# ❌ Unverified success — assumes write worked
+245:# ❌ Value logging — PII leak risk
+251:## QA Agent Instructions
+255:### Mandatory Checks (Every Function)
+264:### Boundary Checks (Data Flow Functions)
+271:### Side Effect Checks (Mutation Functions)
+279:### Configuration Checks (Project Level)
+288:## Automated Validation
+290:### Linter
+295:# Scan source directory
+298:# JSON output for CI integration
+301:# Specific rules only
+318:### CI Integration
+321:# GitHub Actions example
+331:## Configuration Reference
+334:# Environment variable
+346:## Integration with Existing Validation
+362:## Full Documentation
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Checklist structure ===
+1:# Bulwark AI — Validation Checklist
+10:## Pre-Flight: Scope Identification
+21:## Layer 1: GUARD Compliance
+23:### Presence & Type
+30:### Shape & Structure
+36:### Diagnostic Quality
+43:### Anti-Pattern Absence
+52:## Layer 2: TRACE Compliance
+54:### Placement
+60:### Content
+68:### Behavior
+76:## Layer 3: VERIFY Compliance
+78:### Coverage
+84:### Confirmation Method
+90:### Strategy Selection
+98:### Diagnostic Quality
+106:## Extension: Availability Guards
+108:### Applicability
+114:### Detection
+120:### Recovery (if configured)
+131:## Configuration & Runtime Modes
+133:### Mode Selection
+138:### Mode Behavior Matrix
+149:### Configuration Mechanism
+156:## Integration & Pipeline
+171:## Assert vs. Raise (Python-Specific)
+180:## Custom Error Types
+190:## Compliance Summary
+203:## Linter Compliance (Automated)
+217:# Terminal output (human-readable)
+220:# JSON output (CI integration)
+223:# Specific rules only
+226:# Specific languages only
+232:## Machine-Readable Rules (for CI/Linter integration)
+295:## Quick Reference: Correct Layer Order in a Function
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === CONTINUATION_PROMPT.md ===
+# Bulwark AI — Continuation Prompt
+
+> Paste this into a new Agent Zero conversation (developer profile) to resume work.
+
+---
+
+## Project Summary
+
+I'm developing **Bulwark AI** — a zero-dependency defensive coding standard that mitigates AI-generated code failures through a **Guard-Trace-Verify (GTV)** framework. It's a convention, not a library.
+
+## Repository
+
+- **GitHub**: Private repo `bulwark-ai` (already pushed, authenticated via `§§secret(GITHUB_TOKEN)`)
+- **Local path**: `/a0/usr/workdir/bulwark-ai`
+- **Key files**:
+  - `SPEC.md` — Formal specification (v0.2.0-draft)
+  - `GUIDE.md` — 1,570-line comprehensive guide
+  - `QUICKSTART.md` — 5-minute on-ramp
+  - `PROJECT_STATUS.md` — Full project context, history, open questions, test results
+  - `LIVE_TEST_PLAN.md` — Three-round test plan with metrics framework
+  - `DECISIONS.md` — 22 Architecture Decision Records
+  - `.bmad/skills/bulwark-defensive-coding.md` — BMAD integration skill (v0.2.1)
+  - `bulwark_lint/` — Python linter package (64/64 tests passing)
+  - `prompts/bulwark-remediation-agent.md` — Auto-remediation prompt
+  - `guides/bulwark-zod-integration.md` — TypeScript integration guide
+  - `guides/bulwark-pydantic-integration.md` — Python integration guide
+  - `ref/` — Reference implementations (Python + TypeScript, 72 tests total)
+  - `test-results/` — Test prompts, results, and artifacts
+
+## Current State
+
+### Completed
+- ✅ Core spec, reference implementations, documentation
+- ✅ Linter CLI (`python -m bulwark_lint`) with 5 rules (BLW001-BLW005), 64 tests
+- ✅ BMAD skill integration
+- ✅ Zod + Pydantic integration guides
+- ✅ GitHub repo created and pushed
+- ✅ **Round 1 live tests ALL PASSED** (Tests 1.1, 1.2, 1.3)
+  - 93% average first-pass compliance
+  - 100% self-correction rate
+  - 3.0/3.0 pattern quality
+  - 8/8 judgment score on false positive handling
+- ✅ Linter fixes: string literal stripping, `__main__` block exclusion, infrastructure helper skipping
+
+### Ready to Execute NOW
+- 📋 **Test 2.1**: Three-Function Pipeline (cross-function trace correlation)
+  - Prompt: `test-results/TEST_2.1_PROMPT.md`
+  - Scoring: `test-results/TEST_2.1_RESULTS_TEMPLATE.md`
+  - This tests GTV coherence across a CSV pipeline: ingest → transform → load
+  - Key metric: shared `operation_id` flowing through all functions
+
+### Upcoming After 2.1
+- 📋 **Test 2.2**: Error Recovery Chain (extends 2.1 with retries + circuit breaker)
+- 📋 **Round 3**: Real codebase testing
+
+### Technical Debt Remaining
+- TD-3: TypeScript examples directory empty
+- TD-4: Go and Bash stub directories empty
+- OQ-1: Linter YAML config not implemented
+- OQ-4: Compliance badge deferred
+- No CONTRIBUTING.md, CI/CD pipeline, or IDE extensions yet
+
+## Environment Details
+
+- **Container**: Kali Linux Docker, full root access
+- **Python**: 3.13+ at `/opt/venv`
+- **Linter venv**: `/a0/usr/workdir/bulwark-ai/venv`
+- **Supabase** (for integration tests if needed):
+  - Gateway: `http://172.21.0.1:8000`
+  - Anon key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0`
+  - Service role key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU`
+
+## How to Execute Test 2.1
+
+1. Read the prompt: `cat /a0/usr/workdir/bulwark-ai/test-results/TEST_2.1_PROMPT.md`
+2. Follow its instructions (load BMAD skill, read spec, write code, lint, test)
+3. Record results using the template: `test-results/TEST_2.1_RESULTS_TEMPLATE.md`
+4. Commit results to the repo
+
+## Git Workflow
+
+```bash
+cd /a0/usr/workdir/bulwark-ai
+git add -A && git commit -m "description" && git push origin main
+```
+
+Credential helper is configured — push should work without token in URL.
+
+## Important Patterns
+
+- The linter detects `guard_*()`, `trace_*()`, `verify_*()` naming conventions via regex
+- Custom error types: `GuardError`, `VerifyError` (raise, never assert)
+- Use `if not condition: raise GuardError(...)` — never bare `assert`
+- All traces should include structured logging with context (operation_id, etc.)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

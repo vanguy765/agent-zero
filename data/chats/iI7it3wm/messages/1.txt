@@ -1,0 +1,39 @@
+Memory - OpenClaw
+https://docs.openclaw.ai/concepts/memory
+OpenClaw memory is plain Markdown in the agent workspace. The files are the source of truth; the model only "remembers" what gets written to disk. Memory search tools are provided by the active memory plugin (default: memory-core). Disable memory plugins with plugins.slots.memory = "none".
+
+OpenClaw — Personal AI Assistant - GitHub
+https://github.com/openclaw/openclaw
+OpenClaw is a personal AI assistant you run on your own devices. It answers you on the channels you already use (WhatsApp, Telegram, Slack, Discord, Google Chat ...
+
+OpenClaw plugin: persistent, searchable memory for AI agents ... - GitHub
+https://github.com/lucassynnott/openclaw-memory
+Unified memory and context engine plugin for OpenClaw. Replaces OpenClaw's built-in sliding-window compaction with a DAG-based summarization system that preserves every message, adds pre-compaction fact extraction, and provides persistent cross-session memory for all your agents. Absorbs three previously separate projects: Lossless Claw (context management), Gigabrain (memory capture), and ...
+
+OpenClaw Memory & Context: How Your AI Actually Remembers
+https://openclawai.io/blog/openclaw-memory-context-configuration/
+Most AI assistants forget everything the moment you close the chat. OpenClaw doesn't. It has a layered memory system that gives your agent genuine continuity — it remembers your preferences, past decisions, project context, and lessons learned across sessions.
+
+Stop Losing Context: A Guide to OpenClaw Memory | OpenClaw
+https://open-claw.bot/docs/concepts/memory/
+Stop Losing Context: A Guide to OpenClaw Memory I used to get frustrated when my agents would "forget" a key decision halfway through a session. Context windows are getting bigger, but they still feel like a leaky bucket. If the conversation goes on long enough, the important stuff eventually spills out.
+
+mem9 - Unlimited Memory Infrastructure for OpenClaw
+https://mem9.ai/
+mem9.ai is unlimited memory infrastructure for OpenClaw. Persistent recall, hybrid search, and multi-agent context for Claude Code, OpenCode, OpenClaw, and custom tools.
+
+basicmachines-co/openclaw-basic-memory - GitHub
+https://github.com/basicmachines-co/openclaw-basic-memory
+Enables two-way collaboration — both you and the AI read and write the same files. Over time, your agent builds a knowledge base that grows with you. Context ...
+
+OpenClaw Memory Guide - Building Persistent AI Context
+https://openclaw.com.au/memory
+Master OpenClaw's memory system. Learn how to structure MEMORY.md, daily logs, and semantic search for effective long-term AI context.
+
+How to Optimize OpenClaw: Memory, Concurrency, and Context ...
+https://medium.com/@creativeaininja/how-to-optimize-openclaw-memory-concurrency-and-context-that-actually-works-84690c2de3d7
+Feb 24, 2026 ... How to Optimize OpenClaw: Memory, Concurrency, and Context That Actually Works 180000 GitHub ... Every few months, a new open‑source AI project ...
+
+GitHub - MemTensor/MemOS-Cloud-OpenClaw-Plugin: Official MemOS Cloud plugin for OpenClaw. Enables long-term memory for agents by recalling context before execution and saving conversations after each run. · GitHub
+https://github.com/MemTensor/MemOS-Cloud-OpenClaw-Plugin
+Official MemOS Cloud plugin for OpenClaw. Enables long-term memory for agents by recalling context before execution and saving conversations after each run. - MemTensor/MemOS-Cloud-OpenClaw-Plugin

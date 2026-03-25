@@ -1,0 +1,69 @@
+test_discover_multiple_extensions (test_discovery.TestDiscoverFiles.test_discover_multiple_extensions) ... ok
+test_discover_nonexistent_path (test_discovery.TestDiscoverFiles.test_discover_nonexistent_path) ... Path does not exist: /nonexistent/path
+ok
+test_discover_python_files (test_discovery.TestDiscoverFiles.test_discover_python_files) ... ok
+test_discover_single_file (test_discovery.TestDiscoverFiles.test_discover_single_file) ... ok
+test_exclude_patterns (test_discovery.TestDiscoverFiles.test_exclude_patterns) ... ok
+test_no_matching_extensions (test_discovery.TestDiscoverFiles.test_no_matching_extensions) ... ok
+test_default_config (test_engine.TestConfigLoading.test_default_config) ... ok
+test_rule_disabled (test_engine.TestConfigLoading.test_rule_disabled) ... ok
+test_rule_enabled_check (test_engine.TestConfigLoading.test_rule_enabled_check) ... ok
+test_guarded_py_is_clean (test_engine.TestEngineIntegration.test_guarded_py_is_clean)
+Guarded Python fixture should produce zero violations. ... ok
+test_guarded_ts_is_clean (test_engine.TestEngineIntegration.test_guarded_ts_is_clean)
+Guarded TS fixture should produce zero violations. ... ok
+test_lint_paths_integration (test_engine.TestEngineIntegration.test_lint_paths_integration)
+Test linting a directory of fixtures. ... ok
+test_severity_filtering (test_engine.TestEngineIntegration.test_severity_filtering)
+Test that severity filtering works. ... ok
+test_unguarded_py_has_violations (test_engine.TestEngineIntegration.test_unguarded_py_has_violations)
+Unguarded Python fixture should produce violations. ... ok
+test_unguarded_ts_has_violations (test_engine.TestEngineIntegration.test_unguarded_ts_has_violations)
+Unguarded TS fixture should produce violations. ... ok
+test_python_class_methods (test_engine.TestFunctionExtraction.test_python_class_methods) ... ok
+test_python_functions (test_engine.TestFunctionExtraction.test_python_functions) ... ok
+test_typescript_functions (test_engine.TestFunctionExtraction.test_typescript_functions) ... ok
+test_go (test_engine.TestLanguageDetection.test_go) ... ok
+test_javascript (test_engine.TestLanguageDetection.test_javascript) ... ok
+test_python (test_engine.TestLanguageDetection.test_python) ... ok
+test_typescript (test_engine.TestLanguageDetection.test_typescript) ... ok
+test_unsupported (test_engine.TestLanguageDetection.test_unsupported) ... ok
+test_custom_guard_detected (test_rules.TestBLW001GuardPresent.test_custom_guard_detected) ... ok
+test_no_violation_when_guard_present (test_rules.TestBLW001GuardPresent.test_no_violation_when_guard_present) ... ok
+test_skip_no_params (test_rules.TestBLW001GuardPresent.test_skip_no_params) ... ok
+test_skip_self_only (test_rules.TestBLW001GuardPresent.test_skip_self_only) ... ok
+test_skip_short_function (test_rules.TestBLW001GuardPresent.test_skip_short_function) ... ok
+test_ts_guard_detected (test_rules.TestBLW001GuardPresent.test_ts_guard_detected) ... ok
+test_violation_when_no_guard (test_rules.TestBLW001GuardPresent.test_violation_when_no_guard) ... ok
+test_custom_verify_detected (test_rules.TestBLW002VerifyAfterMutation.test_custom_verify_detected) ... ok
+test_no_violation_read_only (test_rules.TestBLW002VerifyAfterMutation.test_no_violation_read_only) ... ok
+test_no_violation_with_verify (test_rules.TestBLW002VerifyAfterMutation.test_no_violation_with_verify) ... ok
+test_violation_db_insert_no_verify (test_rules.TestBLW002VerifyAfterMutation.test_violation_db_insert_no_verify) ... ok
+test_violation_file_write_no_verify (test_rules.TestBLW002VerifyAfterMutation.test_violation_file_write_no_verify) ... ok
+test_violation_http_post_no_verify (test_rules.TestBLW002VerifyAfterMutation.test_violation_http_post_no_verify) ... ok
+test_violation_send_email_no_verify (test_rules.TestBLW002VerifyAfterMutation.test_violation_send_email_no_verify) ... ok
+test_async_boundary_detected (test_rules.TestBLW003TraceAtBoundary.test_async_boundary_detected) ... ok
+test_no_violation_with_trace (test_rules.TestBLW003TraceAtBoundary.test_no_violation_with_trace) ... ok
+test_severity_is_info (test_rules.TestBLW003TraceAtBoundary.test_severity_is_info) ... ok
+test_skip_accessor (test_rules.TestBLW003TraceAtBoundary.test_skip_accessor) ... ok
+test_skip_short_function (test_rules.TestBLW003TraceAtBoundary.test_skip_short_function) ... ok
+test_violation_boundary_no_trace (test_rules.TestBLW003TraceAtBoundary.test_violation_boundary_no_trace) ... ok
+test_no_violation_clean_code (test_rules.TestBLW004NoBareAssert.test_no_violation_clean_code) ... ok
+test_skip_test_file (test_rules.TestBLW004NoBareAssert.test_skip_test_file) ... ok
+test_skip_test_function (test_rules.TestBLW004NoBareAssert.test_skip_test_function) ... ok
+test_violation_bare_assert_python (test_rules.TestBLW004NoBareAssert.test_violation_bare_assert_python) ... ok
+test_violation_raise_valueerror (test_rules.TestBLW004NoBareAssert.test_violation_raise_valueerror) ... ok
+test_violation_throw_new_error_ts (test_rules.TestBLW004NoBareAssert.test_violation_throw_new_error_ts) ... ok
+test_no_violation_with_class_def (test_rules.TestBLW005CustomErrorTypes.test_no_violation_with_class_def) ... ok
+test_no_violation_with_imports (test_rules.TestBLW005CustomErrorTypes.test_no_violation_with_imports) ... ok
+test_severity_is_info (test_rules.TestBLW005CustomErrorTypes.test_severity_is_info) ... ok
+test_skip_no_guard_verify_usage (test_rules.TestBLW005CustomErrorTypes.test_skip_no_guard_verify_usage) ... ok
+test_ts_import_detected (test_rules.TestBLW005CustomErrorTypes.test_ts_import_detected) ... ok
+test_violation_guard_without_guard_error (test_rules.TestBLW005CustomErrorTypes.test_violation_guard_without_guard_error) ... ok
+test_violation_verify_without_verify_error (test_rules.TestBLW005CustomErrorTypes.test_violation_verify_without_verify_error) ... ok
+
+----------------------------------------------------------------------
+Ran 56 tests in 0.111s
+
+OK
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

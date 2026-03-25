@@ -1,0 +1,39 @@
+GitHub - analysis-tools-dev/static-analysis: ⚙️ A curated list of ...
+https://github.com/analysis-tools-dev/static-analysis
+It provides both a simple command line interface and a fluent API in Python for generating complex code modifications in code. ... deal — Design by contract for ...
+
+assertion-library · GitHub Topics · GitHub
+https://github.com/topics/assertion-library
+python testing assertions fluent-interface check assertion-library fluent-assertions fluent assertion-framework ... Lightweight Self-Documenting Design by Contract Programming and Security Hardened mode.
+
+design-by-contract · GitHub Topics · GitHub
+https://github.com/topics/design-by-contract
+Decorator Contracts is a library that provides the ability to create and assign Code Contracts to ECMAScript and TypeScript classes. This enables enforcement of the Liskov substitution principle and the Open-closed principle of SOLID to support Design By Contract™.
+
+A good Design-by-Contract library for Java? [closed] - Stack Overflow
+https://stackoverflow.com/questions/1075719/a-good-design-by-contract-library-for-java
+Jul 2, 2009 ... There is a Groovy extensions that enables Design by Contract(tm) in Groovy/Java code - GContracts. It uses so-called closure annotations to ...
+
+ChessMax/awesome-programming-languages: The list of ... - GitHub
+https://github.com/ChessMax/awesome-programming-languages
+... design by contract; genericity accessible: small; embeddable; open source ... code libraries both by static linking and runtime module loading. OpenZz ...
+
+Design by Contract and Assertions
+https://www.eiffel.org/doc/solutions/Design_by_Contract_and_Assertions
+We can code the invariant as shown below. invariant hour_valid: 0 <= hour and hour <= 23 minute_valid: 0 <= minute and minute <= 59 second_valid: 0 <= second and second <= 59 · The name invariant implies that the assertion can never be false ... and that's true up to a point. It's really more like, "it must be true at times when it really counts". At runtime the invariant must be true for an instance at anytime that the instance is available to clients.
+
+A Practical Guide to Design by Contract for AI-Assisted ... - LinkedIn
+https://www.linkedin.com/pulse/ai-%E8%BC%94%E5%8A%A9%E9%96%8B%E7%99%BC%E7%9A%84%E5%B7%A5%E7%A8%8B%E5%AF%A6%E8%B8%90python-%E5%A5%91%E7%B4%84%E5%BC%8F%E8%A8%AD%E8%A8%88%E6%8C%87%E5%8D%97-peng-jen-chen-5k0tc
+In an agile workflow, code generated or modified by an AI can inadvertently break the implicit agreements between modules, leading to unexpected runtime errors during integration or execution.
+
+validation · GitHub Topics · GitHub
+https://github.com/topics/validation?l=python
+python flask django validation bottlepy aiohttp falcon marshmallow pyramid hacktoberfest request-validation ... A robust email syntax and deliverability validation library for Python. ... 🤝 Design by contract for Python. Write bug-free code.
+
+Deal Documentation
+https://deal.readthedocs.io/_/downloads/en/latest/pdf/
+LOGO.PNG A Python library for design by contract (DbC) and checking values, exceptions, and side-effects. In a nutshell, deal empowers you to write bug-free code. By adding a few decorators to your code, you get for free tests, static analysis, formal verification, and much more. Read intro to get started.
+
+GitHub - avelino/awesome-go
+https://github.com/avelino/awesome-go
+hvalid hvalid is a lightweight validation library written in Go language. ... gocontracts - brings design-by-contract to Go by synchronizing the code with the ...

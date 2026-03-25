@@ -1,0 +1,14 @@
+
+/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py
+  47:1  warning  BLW001  function-needs-guard     _type_name() has parameters but no guard calls
+  120:1  warning  BLW001  function-needs-guard     describe_shape() has parameters but no guard calls
+  340:1  warning  BLW001  function-needs-guard     test() has parameters but no guard calls
+  512:1  warning  BLW001  function-needs-guard     execute() has parameters but no guard calls
+  527:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  528:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  529:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  530:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+  531:1  warning  BLW004  no-bare-assert     _invoice_happy_path() uses bare assert for validation instead of guard()
+
+✖ 9 problems (0 errors, 9 warnings, 0 info)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

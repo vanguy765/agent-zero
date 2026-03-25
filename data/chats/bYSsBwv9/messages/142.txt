@@ -1,0 +1,27 @@
+55
+    56	if ($docParserUp) {
+    57	    Write-Host "  doc-parser is already running on :5000" -ForegroundColor Green
+    58	} else {
+    59	    # Check if container exists but is stopped
+    60	    $containerStatus = docker ps -a --filter "name=doc-parser" --format "{{.Status}}" 2>$null
+    61	    if ($containerStatus -match "Exited") {
+    62	        Write-Host "  doc-parser container is stopped — restarting..." -ForegroundColor Yellow
+    63	        Push-Location $docParserDir
+    64	        docker compose start
+    65	        Pop-Location
+    66	    } else {
+    67	        Write-Host "  doc-parser container not found — starting with docker compose..." -ForegroundColor Yellow
+    68	        Push-Location $docParserDir
+    69	        docker compose up -d
+    70	        if ($LASTEXITCODE -ne 0) {
+    71	            Write-Host "  WARNING: docker compose up failed for doc-parser. Continuing without it." -ForegroundColor Yellow
+    72	        }
+    73	        Pop-Location
+    74	    }
+    75	    # Wait for doc-parser to be ready
+    76	    $retries = 0
+    77	    do {
+    78	        Start-Sleep -Seconds 3
+    79	        $retries++
+    80	        try {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

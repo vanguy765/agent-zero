@@ -1,0 +1,136 @@
+=== doc-parser docker-compose.yml ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# version: '3.8'
+
+services:
+  doc-parser:
+    build: .
+    volumes:
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    env_file:
+      - .env
+    environment:
+      - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    # Run uvicorn server with reload for development
+    command: uvicorn server:app --host 0.0.0.0 --port 5000 --reload
+    ports:
+      - "5000:5000"
+    networks:
+      - agent-zero-network
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  agent-zero-network:
+    external: true
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === reset-and-start.ps1 doc-parser health check section ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 3:# Stops servers, ensures Supabase + doc-parser are running,
+4-# resets the database, seeds users, and starts dev servers
+5-# ============================================================
+6-
+7-$Root = Resolve-Path "$PSScriptRoot\.."
+8-
+9-# -- Step 0a: Ensure Supabase is running
+10-Write-Host "`n=== Step 0a: Checking Supabase ===" -ForegroundColor Cyan
+11-try {
+12-    $null = Invoke-WebRequest -Uri "http://localhost:54321/rest/v1/" `
+13-        -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+14-    Write-Host "  Supabase is already running on :54321" -ForegroundColor Green
+15-}
+16-catch {
+17-    Write-Host "  Supabase not detected - running 'supabase start'..." -ForegroundColor Yellow
+18-    Push-Location $Root
+19-    supabase start
+20-    if ($LASTEXITCODE -ne 0) {
+21-        Write-Host "  ERROR: 'supabase start' failed. Aborting." -ForegroundColor Red
+22-        exit 1
+23-    }
+--
+37:            Write-Host "  Still waiting... ($retries/10)" -ForegroundColor DarkGray
+38-        }
+39-    } while ($retries -lt 10)
+40-    if ($retries -ge 10) {
+41-        Write-Host "  WARNING: Supabase may not be fully ready. Continuing anyway." -ForegroundColor Yellow
+42-    }
+43-}
+44-
+45:# -- Step 0b: Ensure doc-parser container is running
+46:Write-Host "`n=== Step 0b: Checking doc-parser container ===" -ForegroundColor Cyan
+47:$docParserDir = Join-Path $Root "doc-parser"
+48-
+49-$docParserUp = $false
+50-try {
+51:    $null = Invoke-WebRequest -Uri "http://localhost:5000/" `
+52-        -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+53-    $docParserUp = $true
+54-}
+55-catch {}
+56-
+57-if ($docParserUp) {
+58:    Write-Host "  doc-parser is already running on :5000" -ForegroundColor Green
+59-}
+60-else {
+61-    $fmt = '{{.Status}}'
+62:    $containerStatus = docker ps -a --filter 'name=doc-parser' --format $fmt 2>$null
+63-    if ($containerStatus -match 'Exited') {
+64:        Write-Host "  doc-parser container is stopped - restarting..." -ForegroundColor Yellow
+65-        Push-Location $docParserDir
+66-        docker compose start
+67-        Pop-Location
+68-    }
+69-    else {
+70:        Write-Host "  doc-parser container not found - starting with docker compose..." -ForegroundColor Yellow
+71-        Push-Location $docParserDir
+72-        docker compose up -d
+73-        if ($LASTEXITCODE -ne 0) {
+74:            Write-Host "  WARNING: docker compose up failed for doc-parser. Continuing without it." -ForegroundColor Yellow
+75-        }
+76-        Pop-Location
+77-    }
+78-    $retries = 0
+79-    do {
+80-        Start-Sleep -Seconds 3
+81-        $retries++
+82-        try {
+83:            $null = Invoke-WebRequest -Uri "http://localhost:5000/" `
+84-                -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+85:            Write-Host "  doc-parser is ready on :5000" -ForegroundColor Green
+86-            break
+87-        }
+88-        catch {
+89:            Write-Host "  Still waiting for doc-parser... ($retries/10)" -ForegroundColor DarkGray
+90-        }
+91-    } while ($retries -lt 10)
+92-    if ($retries -ge 10) {
+93:        Write-Host "  WARNING: doc-parser may not be ready. Continuing anyway." -ForegroundColor Yellow
+94-    }
+95-}
+96-
+97-# -- Step 1: Kill dev servers
+98-Write-Host "`n=== Step 1: Killing dev servers ===" -ForegroundColor Cyan
+99-& "$PSScriptRoot\kill-dev-servers.ps1"
+100-
+101-# -- Step 2: Reset database
+102-Write-Host "`n=== Step 2: Resetting database ===" -ForegroundColor Cyan
+103-Push-Location $Root
+104-supabase db reset
+105-Pop-Location
+106-
+107-# -- Step 3: Seed users (alice + eric)
+108-Write-Host "`n=== Step 3: Seeding users (alice + eric) ===" -ForegroundColor Cyan
+109-Push-Location (Join-Path $Root "apps\api")
+110-npx tsx scripts/create_user.ts
+111-Pop-Location
+112-
+113-# -- Step 4: Create sysadmin user
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,86 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Lines 160-200 ===
+  if (!result) {
+    throw Object.assign(
+      new Error('Job completed but result payload is empty'),
+      { status: 502, job_id: jobId },
+    );
+  }
+
+  // 6. Persist document_pages
+  const pageEntries = Object.entries(result.pages || {});
+  const pageIdMap: Record<number, string> = {};
+
+  for (const [pageNumStr, pageData] of pageEntries) {
+    const pageNumber = parseInt(pageNumStr, 10);
+    const pd = pageData as any;
+
+    const { data: pageRow, error: pageErr } = await serviceClient
+      .from('document_pages')
+      .upsert(
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+        },
+        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+      )
+      .select('id')
+      .single();
+
+    if (pageErr) {
+      console.error(`[pipeline] document_pages upsert failed for page ${pageNumber}:`, pageErr.message);
+    } else if (pageRow) {
+      pageIdMap[pageNumber] = pageRow.id;
+    }
+  }
+
+  console.log(`[pipeline] Persisted ${Object.keys(pageIdMap).length}/${pageEntries.length} pages`);
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Lines 540-580 ===
+  // 6. Fetch results
+  const rawResults = await getJobResults(jobId, false);
+  const result = rawResults.result;
+  if (!result) {
+    return c.json({ error: 'Job completed but result payload is empty', job_id: jobId }, 502);
+  }
+
+  // 7. Upsert just this page into document_pages
+  // doc-parser returns page 1 for a single-page PDF — remap to the real page number
+  const pageEntries = Object.entries(result.pages || {});
+  let persistedPageId: string | null = null;
+
+  // Take the first (and only) page from the result, map it to the real page_number
+  if (pageEntries.length > 0) {
+    const pd = pageEntries[0][1] as any;
+
+    const { data: pageRow, error: pageErr } = await serviceClient
+      .from('document_pages')
+      .upsert(
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,   // real page number in the original document
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+        },
+        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+      )
+      .select('id')
+      .single();
+
+    if (pageErr) {
+      console.error(`[pipeline/page] document_pages upsert failed:`, pageErr.message);
+    } else if (pageRow) {
+      persistedPageId = pageRow.id;
+    }
+  }
+
+  // 8. Persist any OCR tables found on this page
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

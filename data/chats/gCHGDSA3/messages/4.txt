@@ -1,0 +1,101 @@
+95-| **Shape** | The structural description of data: type, length/size, keys/fields, and nested structure — explicitly NOT the content/values |
+96-| **Diagnostic message** | A structured string emitted by a Guard, Trace, or Verify that follows the format specified in §4 |
+97:| **Bulwarked function** | A function that implements all applicable Bulwark layers per the decision rules in §3.4 |
+98-| **Bulwarked pipeline** | A pipeline where every phase boundary has Traces and every function is Bulwarked |
+99-| **Runtime mode** | The environment-specific configuration that controls layer behavior (see §6) |
+100-| **Verify strategy** | The method used to confirm a side effect, chosen based on throughput and criticality (see §3.3.5) |
+101-
+102----
+103-
+104-## 3. The Three Layers
+105-
+106-### 3.1 Layer 1: GUARD
+107-
+108-#### 3.1.1 Purpose
+109-
+110-Guards prevent functions from operating on data that doesn't match their expectations. They convert **silent failures** (F1, F4, F5) into **loud, diagnostic failures** at the earliest possible point.
+111-
+112-**Why this matters:** When an AI agent writes `response["pages"]` but the API actually returns `{"result": {"pages": [...]}}`, the code fails with a generic `KeyError: 'pages'`. That tells you nothing. A Guard fails with `GUARD:process_pages | expected key 'pages', got keys: ['result', 'status']` — which tells you (or the AI agent) exactly how to fix it.
+113-
+114:#### 3.1.2 Applicability Rule
+115-
+116-> **A Guard is REQUIRED on every function that receives data it did not create.**
+117-
+118-This includes:
+119-- Functions receiving API responses
+120-- Functions receiving database query results
+121-- Functions receiving user input
+122-- Functions receiving data from other pipeline stages
+123-- Functions receiving configuration values
+124-- Functions receiving file contents
+125-- Functions receiving deserialized data (JSON, YAML, etc.)
+126-
+127-This excludes:
+128-- Pure computation functions operating on primitives they constructed
+129-- Internal helper functions where the caller is already Guarded
+130-
+131-**Why "data it did not create"?** If your function built the data itself, it already knows the shape. But any data that crossed a boundary — network, file system, user input, another function — could be anything. AI agents routinely assume data shapes without checking. Guards enforce the contract.
+132-
+133-#### 3.1.3 Guard Requirements
+134-
+135-Every Guard MUST validate:
+136-
+137-1. **Presence** — The data exists and is not null/None/undefined
+138-2. **Type** — The data is the expected type (dict, list, string, etc.)
+139-3. **Shape** — Required keys/fields/indices exist
+140-4. **Non-emptiness** — Collections that must have elements are not empty (when applicable)
+141-
+142-Every Guard SHOULD validate:
+143-
+144-5. **Value range** — Numeric values are within expected bounds
+145-6. **Format** — Strings match expected patterns (URLs, dates, IDs)
+146-7. **Referential integrity** — Cross-references between fields are consistent
+147-
+148-#### 3.1.4 Guard Behavior
+149-
+150-- Guards MUST fail **loudly** — via exception or error return
+151-- Guards MUST NOT silently coerce data into expected shapes
+152-- Guards MUST NOT catch their own exceptions
+153-- Guards MUST emit a diagnostic message conforming to §4
+154-- Guards SHOULD be the **first** statements in a function body
+--
+194-**Why this matters:** In a four-stage pipeline (fetch → parse → transform → store), if Stage 4 crashes, you need to know what Stage 3 handed it. Without Traces, you're debugging blind. With Traces, you see exactly what shape the data had at every handoff point — like a black box recorder on an airplane.
+195-
+196:#### 3.2.2 Applicability Rule
+197-
+198-> **A Trace is REQUIRED at every phase boundary where data flows between processing stages.**
+199-
+200-This includes:
+201-- Between pipeline stages (fetch → parse → transform → load)
+202-- Before and after serialization/deserialization
+203-- At API call boundaries (before send, after receive)
+204-- At queue publish/consume boundaries
+205-- Before data enters a critical processing function
+206-
+207-#### 3.2.3 Trace Requirements
+208-
+209-Every Trace MUST record:
+210-
+211-1. **Label** — A human-readable identifier for the phase boundary
+212-2. **Type** — The runtime type of the data
+213-3. **Size** — Length, count, or byte size as appropriate
+214-4. **Structure** — Keys, fields, or schema summary for complex types
+215-
+216-Every Trace MUST NOT record:
+217-
+218-5. **Content** — Actual values, PII, secrets, or business data
+219-6. **Full dumps** — Complete serializations of large objects
+220-
+221-**Why no content?** Two reasons. First, security: traces should be safe to leave in production logs without risking data exposure. Second, performance: logging the shape of a 10MB JSON object takes microseconds; logging the content takes milliseconds and fills your disk.
+222-
+223-#### 3.2.4 Trace Behavior
+224-
+225-- Traces MUST be **non-destructive** — they observe but never modify data
+226-- Traces MUST be **pass-through** — they return the data unchanged
+227-- Traces MUST emit a diagnostic message conforming to §4
+228-- Traces SHOULD have negligible performance impact
+229-- Traces SHOULD be implementable as a single function call wrapping the data
+230-- Traces MUST respect the configured runtime mode (see §6)
+231-
+232-#### 3.2.5 Shape Description Format
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,149 @@
+# Test 1.3 Results: False Positive Handling
+
+> **Date**: ____-__-__ | **Agent**: ____________ | **Profile**: developer
+> **Tester**: ____________
+
+---
+
+## Execution Log
+
+| Step | Action | Outcome |
+|------|--------|---------|
+| 1 | Loaded BMAD skill | |
+| 2 | Read SPEC.md | |
+| 3 | Wrote calculate_tax.py | |
+| 4 | Ran linter | |
+| 5 | Evaluated violations | |
+| 6 | Applied fixes (if any) | |
+| 7 | Final linter run | |
+
+---
+
+## Judgment Assessment (Primary Metric)
+
+This test's core metric is **selective pattern application** — the agent's
+ability to distinguish between functions that need full GTV and those that don't.
+
+### Function 1: `calculate_tax` (Pure Utility)
+
+| Pattern | Expected | Agent Applied? | Correct? |
+|---------|----------|---------------|----------|
+| Guards (input validation) | ✅ Yes — validate amount/rate ranges | | |
+| Traces (data flow logging) | ❌ No — no external data flow | | |
+| Verify (side effect check) | ❌ No — no side effects | | |
+| Custom error types | ⚠️ Optional — GuardError preferred but not critical | | |
+
+**Judgment Score**: ___/4 (correct pattern decisions)
+
+### Function 2: `calculate_invoice_total` (Boundary + Mutation)
+
+| Pattern | Expected | Agent Applied? | Correct? |
+|---------|----------|---------------|----------|
+| Guards (input validation) | ✅ Yes — validate items, tax_rate, db | | |
+| Traces (data flow logging) | ✅ Yes — boundary function with transforms | | |
+| Verify (side effect check) | ✅ Yes — DB write must be verified | | |
+| Custom error types | ✅ Yes — GuardError + VerifyError | | |
+
+**Judgment Score**: ___/4 (correct pattern decisions)
+
+**Combined Judgment Score**: ___/8
+
+---
+
+## Linter Violation Handling
+
+| Violation | Rule | Agent Classification | Correct Classification | Match? |
+|-----------|------|---------------------|----------------------|--------|
+| | | true positive / false positive | true positive / false positive | |
+| | | | | |
+| | | | | |
+
+**Classification Accuracy**: ___% (correct classifications / total violations)
+
+---
+
+## Standard Metrics
+
+### Compliance Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| First-pass lint (calculate_tax) | ___/5 rules | |
+| First-pass lint (calculate_invoice_total) | ___/5 rules | |
+| Self-correction cycles needed | ___ | |
+| Final compliance | ___% | |
+
+### Pattern Quality (1-3 scale)
+
+| Metric | calculate_tax | calculate_invoice_total |
+|--------|--------------|------------------------|
+| Guard completeness | ___/3 | ___/3 |
+| Guard message quality | ___/3 | ___/3 |
+| Trace appropriateness | N/A | ___/3 |
+| Verify thoroughness | N/A | ___/3 |
+
+**Quality scoring**:
+- 3 = Exemplary (exceeds requirements)
+- 2 = Adequate (meets requirements)
+- 1 = Insufficient (missing key elements)
+- N/A = Correctly omitted (not applicable to function type)
+
+### Code Quality
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Code overhead (calculate_tax) | ___% | Should be LOW (<15%) |
+| Code overhead (calculate_invoice_total) | ___% | Should be MODERATE (20-30%) |
+| Tests included | Yes / No | |
+| Tests pass | Yes / No | |
+| Functional correctness | Yes / No | |
+
+---
+
+## Key Observations
+
+### What the agent did well:
+1.
+2.
+3.
+
+### What the agent struggled with:
+1.
+2.
+3.
+
+### Explicit reasoning captured:
+> (Paste agent's reasoning about pattern applicability here)
+
+---
+
+## Findings
+
+| Code | Finding | Severity | Action Needed |
+|------|---------|----------|---------------|
+| F-1.3-xxx | | Low/Med/High | |
+
+---
+
+## Pass/Fail Criteria
+
+| Criterion | Required | Actual | Pass? |
+|-----------|----------|--------|-------|
+| Combined Judgment Score | ≥ 6/8 | ___/8 | |
+| Classification Accuracy | ≥ 75% | ___% | |
+| calculate_tax has guards | Yes | | |
+| calculate_tax lacks traces | Yes | | |
+| calculate_tax lacks verify | Yes | | |
+| calculate_invoice_total has full GTV | Yes | | |
+| Agent explains reasoning | Yes | | |
+
+**Overall**: ☐ PASS / ☐ FAIL
+
+---
+
+## Artifacts
+
+- [ ] `calculate_tax.py` — generated code
+- [ ] Linter JSON output
+- [ ] Agent conversation log
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

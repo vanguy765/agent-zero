@@ -1,0 +1,29 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === All Kong env vars ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# KONG_DATABASE=off
+KONG_DECLARATIVE_CONFIG=/home/kong/kong.yml
+KONG_DNS_ORDER=LAST,A,CNAME
+KONG_PLUGINS=request-transformer,cors
+KONG_PORT_MAPS=54321:8000
+KONG_NGINX_PROXY_PROXY_BUFFER_SIZE=160k
+KONG_NGINX_PROXY_PROXY_BUFFERS=64 160k
+KONG_NGINX_WORKER_PROCESSES=1
+KONG_SSL_CERT=/home/kong/localhost.crt
+KONG_SSL_CERT_KEY=/home/kong/localhost.key
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ASSET=ce
+KONG_VERSION=2.8.1
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Try auth container for JWT secret ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# GOTRUE_JWT_ADMIN_ROLES=service_role
+GOTRUE_JWT_AUD=authenticated
+GOTRUE_JWT_DEFAULT_GROUP_NAME=authenticated
+GOTRUE_JWT_EXP=3600
+GOTRUE_JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
+GOTRUE_JWT_ISSUER=http://127.0.0.1:54321/auth/v1
+GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED=false
+GOTRUE_RATE_LIMIT_ANONYMOUS_USERS=30
+GOTRUE_JWT_KEYS=[{"kty":"EC","kid":"b81269f1-21d8-4f2e-b719-c2240a840d90","use":"sig","key_ops":["sign","verify"],"alg":"ES256","ext":true,"d":"dIhR8wywJlqlua4y_yMq2SLhlFXDZJBCvFrY1DCHyVU","crv":"P-256","x":"M5Sjqn5zwC9Kl1zVfUUGvv9boQjCGd45G8sdopBExB4","y":"P6IXMvA2WYXSHSOMTBH2jsw_9rrzGy89FjPf6oOsIxQ"}]
+GOTRUE_JWT_VALIDMETHODS=HS256,RS256,ES256
+GOTRUE_EXTERNAL_APPLE_SECRET=env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

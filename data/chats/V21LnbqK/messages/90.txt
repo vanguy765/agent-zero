@@ -1,0 +1,17 @@
+Testing thumbnail URL: http://host.docker.internal:54321/storage/v1/object/sign/project-documents/default/unassigned/doc-parser/job_39c67e14-51...
+HTTP status: 200
+Content-Type: image/png
+Content-Length: 34395 bytes
+
+Testing floorplan URL: http://host.docker.internal:54321/storage/v1/object/sign/project-documents/default/unassigned/doc-parser/job_39c67e14-51...
+HTTP status: 200
+Content-Type: image/png
+Content-Length: 312006 bytes
+
+=== SUMMARY ===
+Pages parsed: 29
+Thumbnails: 29
+Tables: 27
+URLs are signed: True
+URLs are accessible: True
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

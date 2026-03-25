@@ -1,0 +1,21 @@
+=== Dev Stack Health Check ===
+
+--- Windows Host (via host.docker.internal) ---
+✅ Supabase Kong / API  → host.docker.internal:54321
+✅ Supabase Studio      → host.docker.internal:54323
+
+--- Container Services ---
+❌ API (Hono)           → :3000  ← pnpm --filter api dev
+⚠️  Web Dashboard        → :3001  (not running)
+⚠️  Site Companion       → :3002  (not running)
+⚠️  Material Admin       → :3003  (not running)
+⚠️  Work Orders          → :3004  (not running)
+⚠️  Tenant Portal        → :3005  (not running)
+✅ Doc Parser           → :5000
+⚠️  NocoDB               → :8082  (not running — see nocodb/docker-compose.yml)
+
+--- Fallback / Infrastructure ---
+⚠️  PostgreSQL (local)   → :54322  (fallback unavailable)
+⚠️  PostgREST Proxy      → :54330  (fallback not running)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

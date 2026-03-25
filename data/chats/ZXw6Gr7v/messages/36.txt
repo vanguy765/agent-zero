@@ -1,0 +1,23 @@
+Status: 200
+{
+  "document_id": "aefe59d7-f05e-45ce-a624-d199447a8894",
+  "job_id": "896d53c0-769c-4550-ab5d-74fc797ca7ab",
+  "engine": "hybrid",
+  "status": "completed",
+  "pages_persisted": 29,
+  "ocr_tables_persisted": 27,
+  "summary": {
+    "total_pages": 29,
+    "units_found": 17,
+    "floorplans_found": 17,
+    "floorplan_dias_found": 28,
+    "tables_found": 27,
+    "photos_found": 198,
+    "diagrams_found": 37,
+    "thumbnails_count": 29,
+    "pages_with_elements": 29
+  },
+  "poll_url": "/api/doc-parser/status/896d53c0-769c-4550-ab5d-74fc797ca7ab",
+  "results_url": "/api/doc-parser/results/896d53c0-769c-4550-ab5d-74fc797ca7ab"
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

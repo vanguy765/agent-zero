@@ -1,0 +1,10 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---dashboard-stats---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---api routes---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# a2a.ts			onboard.ts		type-orders.ts
+bom-action-requests.ts	project-definitions.ts	units.ts
+delivery.ts		project-outcomes.ts	voice.ts
+doc-parser-routes.ts	reviews.ts		work-orders.ts
+documents.ts		taxonomy.ts		work-orders.ts.backup-orgfix
+entity-creation.ts	todos.ts
+materials.ts		trades.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

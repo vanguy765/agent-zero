@@ -1,0 +1,161 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 66:def _extract_python_functions(source: str, filepath: str) -> List[FunctionInfo]:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# """BLW004 — no-bare-assert
+
+Code should use guard()/GuardError instead of bare assert or raw throw/raise for validation.
+"""
+
+import re
+from pathlib import Path
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Test file detection
+# ---------------------------------------------------------------------------
+
+_TEST_FILE_PATTERNS = re.compile(
+    r'(test_|_test\.|_test$|\.test\.|_spec\.|spec_|\.spec\.)',
+    re.IGNORECASE,
+)
+
+_TEST_FUNC_PATTERNS = re.compile(
+    r'^(test_|test[A-Z]|it_|describe_|spec_)',
+)
+
+
+def _is_test_file(filepath: str) -> bool:
+    """Check if file is a test file."""
+    name = Path(filepath).name
+    return bool(_TEST_FILE_PATTERNS.search(name))
+
+
+def _is_test_function(func_name: str) -> bool:
+    """Check if function is a test function."""
+    return bool(_TEST_FUNC_PATTERNS.match(func_name))
+
+
+# ---------------------------------------------------------------------------
+# Anti-patterns
+# ---------------------------------------------------------------------------
+
+# Python: bare assert at start of line (not in string)
+_PY_BARE_ASSERT = re.compile(r'^\s*assert\s+', re.MULTILINE)
+
+# Python: raise ValueError/TypeError for validation
+_PY_RAISE_VALIDATION = re.compile(
+    r'^\s*raise\s+(ValueError|TypeError|AssertionError)\s*\(',
+    re.MULTILINE,
+)
+
+# TS/JS: throw new Error for what looks like validation
+_TS_THROW_ERROR = re.compile(
+    r'^\s*throw\s+new\s+Error\s*\(',
+    re.MULTILINE,
+)
+
+# TS/JS: throw new TypeError/RangeError for validation
+_TS_THROW_VALIDATION = re.compile(
+    r'^\s*throw\s+new\s+(TypeError|RangeError|ReferenceError)\s*\(',
+    re.MULTILINE,
+)
+
+
+def _find_violations_in_body(body: str, language: str) -> List[dict]:
+    """Find bare assert/throw patterns in function body. Returns list of {pattern, line_offset}."""
+    results: List[dict] = []
+    lines = body.split('\n')
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+
+        # Skip comments
+        if stripped.startswith('#') or stripped.startswith('//'):
+            continue
+
+        # Skip strings (rough heuristic: line is mostly a string)
+        if stripped.startswith(('"', "'", '`')):
+            continue
+
+        if language == "python":
+            if _PY_BARE_ASSERT.match(line):
+                results.append({
+                    "pattern": "bare assert",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+            elif _PY_RAISE_VALIDATION.match(line):
+                results.append({
+                    "pattern": "raise for validation",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+
+        elif language in ("typescript", "javascript"):
+            if _TS_THROW_ERROR.match(line):
+                results.append({
+                    "pattern": "throw new Error",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+            elif _TS_THROW_VALIDATION.match(line):
+                results.append({
+                    "pattern": "throw validation error",
+                    "line_offset": i,
+                    "text": stripped,
+                })
+
+    return results
+
+
+def _generate_fix_hint(pattern: str, language: str, func_name: str) -> str:
+    """Generate fix suggestion."""
+    if language == "python":
+        if "assert" in pattern:
+            return f'Replace assert with: guard(condition, "{func_name}", "description")'
+        else:
+            return f'Replace raise with: guard(condition, "{func_name}", "description") which raises GuardError'
+    else:
+        return f'Replace throw with: guard(condition, "{func_name}", "description") which throws GuardError'
+
+
+class NoBareAssertRule(BaseRule):
+    """Code should use guard() instead of bare assert/throw for validation."""
+
+    rule_id = "BLW004"
+    rule_name = "no-bare-assert"
+    description = "Use guard()/GuardError instead of bare assert or raw throw/raise for validation."
+    severity = Severity.WARNING
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip test files
+        if _is_test_file(func.filepath):
+            return violations
+
+        # Skip test functions
+        if _is_test_function(func.name):
+            return violations
+
+        # Find anti-patterns (use clean_body to skip strings/comments)
+        found = _find_violations_in_body(func.clean_body, func.language)
+
+        for item in found:
+            # Calculate actual line number
+            # We need to find the line offset within the body relative to start_line
+            actual_line = func.start_line + item["line_offset"] + 1  # +1 for def line itself
+
+            fix_hint = _generate_fix_hint(item["pattern"], func.language, func.name)
+
+            violations.append(self._make_violation(
+                message=f"{func.name}() uses {item['pattern']} for validation instead of guard()",
+                filepath=func.filepath,
+                line=actual_line,
+                function_name=func.name,
+                fix_hint=fix_hint,
+            ))
+
+        return violations
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

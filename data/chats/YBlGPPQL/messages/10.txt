@@ -1,0 +1,17 @@
+
+# ---------------------------------------------------------------------------
+# Notification Channel Registry
+# ---------------------------------------------------------------------------
+def _send_log_notification(service, severity, message, operation_id):
+    """Log-based notification channel (always available, N3)."""
+    guard_not_none(service, "_send_log_notification", "service")
+    guard_not_none(operation_id, "_send_log_notification", "operation_id")
+    logger.warning(
+        "NOTIFICATION:log | service=%s severity=%s op=%s | %s",
+        service, severity, operation_id, message,
+    )
+
+
+NOTIFICATION_CHANNELS = {
+    "log": _send_log_notification,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

@@ -1,0 +1,14 @@
+1150 /a0/usr/workdir/bulwark-ai/GUIDE.md
+---
+# Bulwark AI — A Beginner's Companion Guide
+
+**Your friendly introduction to the Guard-Trace-Verify defensive coding standard**
+
+> This guide is a companion to the [formal specification (SPEC.md)](SPEC.md). You don't need to read the spec first — everything you need is right here.
+...
+For the AI prompt snippet to make your AI coding assistant follow Bulwark, see [prompts/bulwark-system-prompt.md](prompts/bulwark-system-prompt.md).
+
+---
+
+*Bulwark AI is an open standard. Contributions welcome at github.com/bulwark-ai/bulwark-ai*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

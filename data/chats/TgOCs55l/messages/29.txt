@@ -1,0 +1,16 @@
+16:**Stack:** Hono API · SolidJS frontends · Supabase (Postgres + Auth + Realtime) · Python doc-parser
+31:├── doc-parser/           # Python FastAPI AI service — port 5000
+43:## ⛔ Critical Agent Rules — doc-parser
+45:**doc-parser is a standalone Docker container. It is NOT a local process inside the Agent Zero container.**
+50:| ❌ NEVER install Python packages in `doc-parser/` | No pip, no venv, no requirements.txt installs from this container |
+51:| ❌ NEVER look for or activate a venv in `doc-parser/` | There is no venv there — it lives inside the Docker image |
+52:| ✅ If port 5000 is unreachable | `notify_user` type=warning and ask user to run `docker-compose up` in `doc-parser/` **on Windows** |
+53:| ✅ To interact with doc-parser | Use HTTP via `http://doc-parser:5000` (shared `agent-zero-network`) or `http://localhost:5000` |
+86:| Service Role | Run `npx supabase status` to get — needed for admin operations and doc-parser uploads                                                                                    |
+95:| OpenRouter     | `doc-parser/.env`          |
+114:| `PROGRAM_STATUS=develop_without_ai` | root `.env`, `doc-parser/.env` | Skips Claude API calls in doc-parser; returns mocked JSON |
+124:cd doc-parser
+132:| POST   | `/parse/docling`   | Docling-only engine (primary)          |
+133:| POST   | `/parse/hybrid`    | Hybrid: Docling decompose + Claude extract |
+163:cd doc-parser && docker compose up -d
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,18 @@
+
+  async updateStepProgress(progressId: string, updates: Partial<StepProgress>): Promise<StepProgress> {
+      return this.request(`/work-orders/step-progress/${progressId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(updates),
+      });
+  }
+
+}
+
+  // Dashboard Stats
+  async getDashboardStats(): Promise<DashboardStats> {
+    return this.request<DashboardStats>('/dashboard-stats');
+  }
+
+
+export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

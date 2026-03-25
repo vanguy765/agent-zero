@@ -1,0 +1,151 @@
+# Bulwark AI — Project Status & Context
+
+> **Purpose**: This document provides the full project context for any new
+> contributor (human or AI) picking up development. It captures the evolution
+> narrative, competitive positioning, open questions, and creator vision that
+> cannot be reconstructed from the specification or code alone.
+>
+> **Last Updated**: 2026-03-14 (v0.2.0-draft)
+
+---
+
+## Table of Contents
+
+1. [Creator Vision](#creator-vision)
+2. [Project Evolution](#project-evolution)
+3. [Current State Assessment](#current-state-assessment)
+4. [Competitive Landscape](#competitive-landscape)
+5. [Open Questions](#open-questions)
+6. [Known Gaps & Technical Debt](#known-gaps--technical-debt)
+7. [Audience & Adoption Profile](#audience--adoption-profile)
+
+---
+
+## Creator Vision
+
+> *[To be written by the project creator. This section should capture: why you
+> started this project, what problem you personally encountered, who you're
+> building it for, and what success looks like to you. Even 3-5 sentences here
+> will dramatically improve continuity across development sessions.]*
+
+---
+
+## Project Evolution
+
+This section captures the development arc — the sequence of decisions and
+discoveries that shaped Bulwark into its current form. Understanding this
+sequence reveals what's mature (battle-tested through iteration) vs. what's
+recent (may need refinement).
+
+### Phase 1: Concept & Identity (Session 1)
+
+**Starting point**: The observation that AI-generated code fails in specific,
+predictable ways that traditional error handling doesn't catch:
+- Data arrives with wrong shape but passes type checks
+- Side effects are assumed to succeed without confirmation
+- Transformations happen invisibly with no structural logging
+
+**Key activities**:
+- Defined the three-layer defensive membrane concept (Guard/Trace/Verify)
+- Established the "convention over library" and "zero dependency" philosophy
+- Compared project names: `assert-ai` vs `bulwark-ai` → chose `bulwark-ai`
+  for stronger defensive narrative and better searchability
+- Created identity system with tagline: "The defensive membrane for AI-generated code"
+
+**Maturity**: ★★★★★ — The core concept is stable and well-validated.
+
+### Phase 2: Specification & Reference Implementations (Session 1-2)
+
+**Key activities**:
+- Wrote SPEC.md — the formal technical specification
+- Built Python reference implementation with embedded self-tests
+- Built TypeScript reference implementation with embedded self-tests
+- Created machine-readable validation checklist
+- Developed document processing pipeline example (Python)
+- Created AI system prompt snippet for LLM integration
+- Wrote professional README.md
+
+**Discovery**: Writing the pipeline example revealed that the spec needed
+clearer guidance on multi-stage processing. This led to the BulwarkPipeline
+extension.
+
+**Maturity**: ★★★★☆ — Solid implementations, well-tested (36/36 both languages).
+May need refinement as real-world usage reveals edge cases.
+
+### Phase 3: Configuration & Adaptive Behavior (Session 2-3)
+
+**Key activities**:
+- Analyzed runtime costs of each layer (nanoseconds → seconds)
+- Designed configuration system with three modes (dev/staging/production)
+- Implemented throughput-adaptive verify strategies (full/sampled/adaptive)
+- Established the "Guards always active" principle with cost justification
+- Added `critical=True` flag for high-value verify operations
+
+**Discovery**: The runtime cost analysis revealed a natural gradient that
+mapped perfectly to configuration behavior — cheap operations stay on,
+expensive operations adapt. This wasn't planned; it emerged from the analysis.
+
+**Maturity**: ★★★★☆ — Configuration system is implemented and tested.
+Adaptive strategy may need tuning with real-world throughput data.
+
+### Phase 4: Availability Guards & Recovery (Session 3-4)
+
+**Key activities**:
+- Implemented Availability Guards for startup-time dependency checking
+- Discussed idempotency guards �� deferred as too invasive for v1.0
+- Prioritized availability over idempotency (additive vs. invasive)
+- Added self-healing Recovery extension to Availability Guards
+- Implemented exponential backoff with bounded retries
+- Updated all documentation (SPEC.md, GUIDE.md, README.md)
+
+**Discovery**: The user reported frequently running manual recovery scripts
+after availability failures. This real-world pain point drove the Recovery
+extension — transforming passive detection into active self-healing.
+
+**Maturity**: ★★★☆☆ — Implemented and tested but newer than core layers.
+Recovery commands execute via shell — security implications need more
+thought for production guidance.
+
+### Phase 5: Documentation Overhaul (Session 4)
+
+**Key activities**:
+- Created GUIDE.md — 1,570-line beginner-friendly companion
+- Restructured documentation into three tiers (README → GUIDE → SPEC)
+- Added analogies throughout (bouncers, security cameras, receipt checkers)
+- Ensured all v0.2.0 features documented with code examples in both languages
+- Validated all 72 tests passing (36 Python + 36 TypeScript)
+
+**Maturity**: ★★★★☆ — Comprehensive but may need updates as features evolve.
+
+### Phase 6: Architecture Records & Context Preservation (Session 5 — Current)
+
+**Key activities**:
+- Created DECISIONS.md — 22 Architecture Decision Records
+- Created PROJECT_STATUS.md (this document)
+- Prepared comprehensive continuation prompt for new development sessions
+- Identified next development priorities
+
+**Maturity**: ★★★★★ — Meta-documentation is complete.
+
+---
+
+## Current State Assessment
+
+### What's Production-Ready
+- ✅ Core three-layer framework (Guard/Trace/Verify)
+- ✅ Python reference implementation (36/36 tests)
+- ✅ TypeScript reference implementation (36/36 tests)
+- ✅ Configuration system with three modes
+- ✅ Throughput-adaptive verify strategies
+- ✅ Availability Guards with Recovery
+- ✅ BulwarkPipeline extension
+- ✅ Comprehensive documentation (README + GUIDE + SPEC)
+- ✅ Architecture Decision Records
+
+### What's Drafted but Not Implemented
+- 📋 Linter YAML configuration (discussed, schema drafted, no code)
+- ✅ BMAD integration implemented (`.bmad/skills/bulwark-defensive-coding.md`)
+- 📋 Launch strategy (outlined, not executed)
+
+### What Doesn't Exist Yet
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

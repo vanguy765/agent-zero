@@ -1,0 +1,28 @@
+Status code: 200
+{
+  "job_id": "efc586f3-dadc-4b94-be7a-417095e34288",
+  "status": "processing",
+  "engine": "hybrid",
+  "file_name": "Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf",
+  "progress": {
+    "current_phase": "llm_analysis",
+    "phases": [
+      "docling_conversion",
+      "classification",
+      "image_extraction",
+      "llm_analysis",
+      "synthesis",
+      "uploading"
+    ],
+    "current_page": 29,
+    "total_pages": 29,
+    "current_step": "cv2_detection_page_29",
+    "floorplans_found": 10,
+    "tables_found": 5,
+    "percent_complete": 85.0
+  },
+  "error": null,
+  "created_at": "2026-03-14T00:32:46.292919",
+  "updated_at": "2026-03-14T00:36:14.374347"
+}
+(venv) root@d2d162d983f0:/a0/usr/workdir#

@@ -1,0 +1,10 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# === pages/ list ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# CompanyTemplates.tsx  ProjectDocuments.tsx.bak	Templates.tsx
+Dashboard.tsx	      ProjectOutcomes.tsx	Trades.tsx
+LoginPage.tsx	      Projects.tsx		TypeOrders.tsx
+NewProject.tsx	      ProjectTemplates.tsx	Units.tsx
+ProjectDetail.tsx     TemplateDetail.tsx	WorkOrderDetail.tsx
+ProjectDocuments.tsx  TemplateEditor.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders# === Running vite build to catch TS errors ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders#

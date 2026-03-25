@@ -1,0 +1,71 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/index.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/index.ts.bak
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/a2a.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/bom-action-requests.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/delivery.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/materials.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-outcomes.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/trades.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/type-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts.backup-orgfix
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/agentCard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/progress.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skills/workOrders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/taskStore.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/types.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/claudePdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/pdfParser.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/placeholderGenerator.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/reviewService.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "@hono/node-server": "latest",
+    "@hono/swagger-ui": "^0.5.3",
+    "@hono/zod-openapi": "^1.2.0",
+    "@hono/zod-validator": "latest",
+    "@napi-rs/canvas": "^0.1.89",
+    "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@supabase/supabase-js": "^2.90.1",
+    "dotenv": "latest",
+    "hono": "latest",
+    "pdfjs-dist": "^5.4.624",
+    "unpdf": "^1.4.0"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/node": "latest",
+    "postgres": "^3.4.8",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

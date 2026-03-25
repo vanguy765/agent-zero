@@ -1,0 +1,44 @@
+def crop_element(
+    pil_image: Image.Image,
+    bbox: List[float],
+    padding_pct: float = 0.01,
+) -> Image.Image:
+    """Crop an element from a page image using normalized bounding box.
+
+    Args:
+        pil_image: Full-page rendered image
+        bbox: Normalized [x_min, y_min, x_max, y_max] (0.0 to 1.0)
+        padding_pct: Extra padding as fraction of dimension (default 1%)
+
+    Returns:
+        Cropped PIL Image
+    """
+    w, h = pil_image.size
+
+    # Convert normalized to pixel coordinates
+    x_min = int(bbox[0] * w)
+    y_min = int(bbox[1] * h)
+    x_max = int(bbox[2] * w)
+    y_max = int(bbox[3] * h)
+
+    # Add padding
+    pad_x = int((x_max - x_min) * padding_pct)
+    pad_y = int((y_max - y_min) * padding_pct)
+
+    x_min = max(0, x_min - pad_x)
+    y_min = max(0, y_min - pad_y)
+    x_max = min(w, x_max + pad_x)
+    y_max = min(h, y_max + pad_y)
+
+    return pil_image.crop((x_min, y_min, x_max, y_max))
+
+
+def create_thumbnail(
+    pil_image: Image.Image,
+    max_width: int = 400,
+) -> Image.Image:
+    """Create a thumbnail of a page image for phone display.
+
+    Args:
+        pil_image: Full-size page image
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

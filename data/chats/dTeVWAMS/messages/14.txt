@@ -1,0 +1,11 @@
+58:class SimulatedDBError(Exception):
+71:class CircuitBreaker:
+90:    def __init__(self, name: str, failure_threshold: int = 3, reset_timeout: float = 60.0):
+112:    def get_state(self) -> str:
+116:    def guard_circuit(self, operation_id: str) -> None:
+161:    def record_success(self, operation_id: str) -> None:
+182:    def record_failure(self, error: Exception, operation_id: str) -> None:
+220:def guard_db_available(db_config: dict, operation_id: str, simulate_failure: bool = False) -> None:
+272:def load_to_database_with_retry(records: list[dict], db_config: dict, operation_id: str, max_retries: int = 3, circuit_breaker: CircuitBreaker | None = None, simulate_failures: int = 0) -> tuple[int, int]:
+421:def run_pipeline_resilient(filepath: str, schema: dict, db_config: dict, max_retries: int = 3, simulate_failures: int = 0) -> dict:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

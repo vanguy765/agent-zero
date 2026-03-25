@@ -1,0 +1,12 @@
+6090c1b (HEAD -> main, origin/main) docs: add comprehensive live test plan for Bulwark × BMAD × Agent Zero
+1649d1c feat: initial commit — Bulwark AI v0.2.0-draft
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Verify remote is up to date ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > bash: /a0/usr/workdir/bulwark-ai/test-results/TEST_1.1_PROMPT.md: No such file or directory
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# wc: /a0/usr/workdir/bulwark-ai/test-results/TEST_1.1_PROMPT.md: No such file or directory
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ✅ Test prompt created
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

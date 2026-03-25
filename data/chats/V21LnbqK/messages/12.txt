@@ -1,0 +1,21 @@
+============================================================
+  Doc-Parser Test Run
+  PDF:        tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf
+  Engine:     hybrid
+  Output:     /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs/20260314_003244
+  Supabase:   http://host.docker.internal:54321
+  Tenant:     test-tenant
+  Project:    test-project
+  Doc-Parser: http://doc-parser:5000
+============================================================
+
+[SUBMIT] POST http://doc-parser:5000/parse/hybrid
+  PDF: tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf (8.4 MB)
+  Job ID: efc586f3-dadc-4b94-be7a-417095e34288
+  Status: queued
+
+[POLL] Polling every 5s (timeout: 1800s)
+  [0s] Status: processing | Progress: 15.0% | {"current_phase": "docling_conversion", "phases": ["docling_conversion", "classification", "image_extraction", "llm_anal
+
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

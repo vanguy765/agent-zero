@@ -1,0 +1,162 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import {
+    WorkOrderUnitSchema,
+    WorkOrderTemplateSchema,
+    WorkOrderSchema,
+    WorkOrderTaskSchema,
+    WorkOrderNoteSchema,
+    CreateWorkOrderRequestSchema,
+    UpdateTaskStepRequestSchema,
+    CreateNoteRequestSchema
+} from '@repo/schemas';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+import {
+    buildDraftRooms,
+    buildDraftTemplate,
+    findSimilarTemplate,
+    logEntityCreation,
+} from '../services/placeholderGenerator';
+import {
+    createReviewsBatch,
+    type CreateReviewInput,
+} from '../services/reviewService';
+
+export const workOrdersRoute = new OpenAPIHono();
+
+// Middleware
+if (process.env.REQUIRE_AUTH === 'true') {
+    workOrdersRoute.use('*', authMiddleware);
+}
+// workOrdersRoute.use('*', authMiddleware);
+
+// CREATE SCOPED CLIENT HELPER
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    // For testing without auth - use service role to bypass RLS
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+// ============================================================================
+// UNITS ENDPOINTS
+// ============================================================================
+
+// LIST ALL UNITS
+workOrdersRoute.get('/units', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .order('floor', { ascending: true })
+        .order('unit_number', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// GET UNIT BY ID
+workOrdersRoute.get('/units/:id', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        return c.json({ error: error.message }, 404);
+    }
+=== UNITS ===
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+
+const unitsRouter = new OpenAPIHono();
+
+const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const UnitSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid(),
+  unit_number: z.string(),
+  floor_level: z.number().nullable(),
+  floorplan_key: z.string().nullable(),
+  specific_overrides: z.record(z.any()).nullable(), // JSONB
+});
+
+const UpdateOverridesSchema = z.object({
+  specific_overrides: z.record(z.any()),
+});
+
+// GET /units/:id
+unitsRouter.openapi(
+  createRoute({
+    method: 'get',
+    path: '/{id}',
+    responses: {
+      200: {
+        description: 'Get Unit',
+        content: {
+          'application/json': {
+            schema: UnitSchema,
+          },
+        },
+      },
+      404: { description: 'Unit not found' }
+    },
+  }),
+  async (c) => {
+    const id = c.req.param('id');
+    const { data, error } = await supabase
+      .from('units')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+       return c.json({ error: error.message }, 404);
+    }
+    
+    return c.json(data);
+  }
+);
+
+// PUT /units/:id/overrides
+unitsRouter.openapi(
+  createRoute({
+    method: 'put',
+    path: '/{id}/overrides',
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: UpdateOverridesSchema,
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: 'Updated Unit Overrides',
+        content: {
+            'application/json': {
+              schema: UnitSchema,
+            },
+          },
+      },
+       500: { description: 'Error updating overrides' }
+    },
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

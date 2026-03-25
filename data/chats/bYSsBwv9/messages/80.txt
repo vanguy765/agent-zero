@@ -1,0 +1,38 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---data done---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > >      table_name      | count
+---------------------+-------
+ bom_action_requests |     1
+ entity_creation_log |     1
+ metric_definitions  |     1
+ organization_trades |     1
+ organizations       |     1
+ pending_reviews     |     1
+ portal_table_config |     1
+ project_outcomes    |     1
+ rooms               |     1
+ sop_dependencies    |     1
+(10 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---downloading postgrest---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -rwxr-xr-x 1 1001 127 17M Aug  1  2024 /tmp/postgrest
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---postgrest downloaded---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > >         table_name         | row_count
+---------------------------+-----------
+ work_order_tasks          |      1584
+ work_orders               |       220
+ metric_definitions        |        40
+ rooms                     |        32
+ trade_outcome_assignments |        30
+ unit_room_calculations    |        29
+ type_orders               |        22
+ units                     |        20
+ work_order_templates      |        18
+ type_order_compositions   |        15
+ trades                    |        10
+ organization_trades       |        10
+ unit_room_measurements    |         8
+ template_libraries        |         5
+ project_outcomes          |         4
+(15 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,15 @@
+Security Considerations NOT in GUIDE.md - need to add
+service-manifest cross-ref NOT in GUIDE.md - need to add
+
+Recovery safety rule 5 at line 1157
+  1157: 5. **Backoff prevents hammering.** Each retry waits longer than the last, giving the service time to actually start.
+  1158:
+  1159: ---
+  1160:
+  1161: ## 6. How to Add Bulwark to Your Project
+  1162:
+  1163: Ready to start? Here's a step-by-step guide. The most important thing to know: **you can do this one function at a time.** You don't need to refactor your entire codebase. Pick one function, add the layers, and expand from there.
+  1164:
+  1165: ### Step 1: Copy the Helpers and Configure
+  1166:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,23 @@
+#!/bin/bash
+# Simulated database health check
+# Healthy when /tmp/db_healthy exists, unhealthy otherwise
+[ -f /tmp/db_healthy ] && exit 0 || exit 1
+---
+#!/bin/bash
+# Simulated cache health check
+[ -f /tmp/cache_healthy ] && exit 0 || exit 1
+---
+#!/bin/bash
+# Simulated metrics collector — always down (tests info severity)
+exit 1
+---
+#!/bin/bash
+# Simulated database recovery — creates the healthy flag
+touch /tmp/db_healthy
+echo "DB recovered"
+---
+#!/bin/bash
+# Simulated cache recovery — creates the healthy flag
+touch /tmp/cache_healthy
+echo "Cache recovered"
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

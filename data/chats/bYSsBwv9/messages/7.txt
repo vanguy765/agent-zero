@@ -1,0 +1,88 @@
+CREATE TABLE IF NOT EXISTS "public"."work_order_templates" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid",
+    "trade_name" "text" NOT NULL,
+    "version" integer DEFAULT 1,
+    "is_active" boolean DEFAULT true,
+    "definition" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "scope" "text" DEFAULT 'company'::"text" NOT NULL,
+    "project_id" "uuid",
+    "parent_template_id" "uuid",
+    "copied_from_template_id" "uuid",
+    "created_by" "uuid",
+    "updated_by" "uuid",
+    "library_id" "uuid",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "auto_generated" boolean DEFAULT false NOT NULL,
+    "generation_source" "text",
+    "generation_metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "is_frozen" boolean DEFAULT false,
+=== WO_PROJECTS ===
+CREATE TABLE IF NOT EXISTS "public"."wo_projects" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "project_type" "text",
+    "library_id" "uuid",
+    "outcome_id" "uuid",
+    CONSTRAINT "wo_projects_status_check" CHECK (("status" = ANY (ARRAY['staged'::"text", 'active'::"text", 'paused'::"text", 'completed'::"text", 'archived'::"text"])))
+);
+
+
+ALTER TABLE "public"."wo_projects" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."work_order_notes" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+=== TYPE_ORDERS ===
+CREATE TABLE IF NOT EXISTS "public"."type_orders" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "code" "text" NOT NULL,
+    "description" "text",
+    "category" "text" DEFAULT 'interior'::"text" NOT NULL,
+    "scope" "text" DEFAULT 'system'::"text" NOT NULL,
+    "organization_id" "uuid",
+    "project_id" "uuid",
+    "parent_type_order_id" "uuid",
+    "is_composite" boolean DEFAULT false,
+    "definition" "jsonb" DEFAULT '{}'::"jsonb",
+    "is_active" boolean DEFAULT true NOT NULL,
+    "display_order" integer DEFAULT 0,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "type_orders_category_check" CHECK (("category" = ANY (ARRAY['interior'::"text", 'exterior'::"text", 'pre_construction'::"text", 'common'::"text"]))),
+    CONSTRAINT "type_orders_scope_check" CHECK (("scope" = ANY (ARRAY['system'::"text", 'company'::"text", 'project'::"text"]))),
+    CONSTRAINT "valid_company_type" CHECK (((("scope" = 'company'::"text") AND ("organization_id" IS NOT NULL) AND ("project_id" IS NULL)) OR ("scope" <> 'company'::"text"))),
+    CONSTRAINT "valid_project_type" CHECK (((("scope" = 'project'::"text") AND ("organization_id" IS NOT NULL) AND ("project_id" IS NOT NULL)) OR ("scope" <> 'project'::"text"))),
+    CONSTRAINT "valid_system_type" CHECK (((("scope" = 'system'::"text") AND ("organization_id" IS NULL) AND ("project_id" IS NULL)) OR ("scope" <> 'system'::"text")))
+=== UNITS ===
+CREATE TABLE IF NOT EXISTS "public"."units" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "unit_number" "text" NOT NULL,
+    "unit_type" "text",
+    "floor" integer,
+    "area_sf" numeric,
+    "status" "text" DEFAULT 'not_started'::"text",
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "project_id" "uuid",
+    "floor_plan_image" "text",
+    "dimensions" "jsonb",
+    "bedrooms" integer,
+    "type_order_id" "uuid"
+);
+
+
+ALTER TABLE "public"."units" OWNER TO "postgres";
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

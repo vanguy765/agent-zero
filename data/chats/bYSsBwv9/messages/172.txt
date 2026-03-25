@@ -1,0 +1,30 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# === directory listing ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# total 8
+drwxrwxrwx 1 root root 4096 Mar 11 00:18 .
+drwxrwxrwx 1 root root 4096 Feb 19 04:53 ..
+-rwxrwxrwx 1 root root  422 Feb 17 02:18 index.html
+drwxr-xr-x 1 root root 4096 Mar 11 03:26 node_modules
+-rwxrwxrwx 1 root root  549 Feb 17 02:18 package.json
+-rw-r--r-- 1 root root 2895 Feb 21 23:45 README.md
+drwxrwxrwx 1 root root 4096 Feb 17 02:18 src
+-rwxrwxrwx 1 root root  734 Feb 17 02:18 vite.config.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# === index.html ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <title>Site Companion</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# === tsconfig.json ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# no tsconfig.json
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion#

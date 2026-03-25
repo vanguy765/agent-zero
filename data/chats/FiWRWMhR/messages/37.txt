@@ -1,0 +1,129 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# #### 10.1.2 Recovery (OPTIONAL)
+
+The Recovery sub-pattern extends the Availability Guard with automated self-healing. When a dependency is unavailable and a recovery command is configured, the guard executes the command, waits, and re-checks availability. This bridges the gap between "a recovery script exists" and "someone has to manually run it."
+
+##### Motivation
+
+In practice, most infrastructure failures have known recovery procedures:
+- A Docker container needs `docker compose up -d <service>`
+- A system service needs `systemctl restart <service>`
+- A development environment needs a reset script
+
+These scripts exist but require manual invocation. The Recovery sub-pattern automates the trigger, turning "detect and complain" into "detect, fix, and continue."
+
+This is especially valuable for:
+- **AI agent workflows** — agents cannot manually run scripts; auto-recovery enables true autonomy
+- **Unattended execution** — scheduled tasks, CI/CD pipelines, overnight batch jobs
+- **Development environments** — services crash frequently; auto-restart saves developer time
+
+##### Recovery Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `recovery_command` | `string \| None` | `None` | Shell command or script path to execute when dependency is unavailable. If `None`, recovery is disabled (detection-only behavior). |
+| `max_retries` | `int` | `3` | Maximum number of recovery attempts before giving up. |
+| `retry_delay` | `float` | `5.0` | Seconds to wait after running recovery command before re-checking. |
+| `backoff_multiplier` | `float` | `2.0` | Multiply `retry_delay` by this factor after each failed attempt. Set to `1.0` for constant delay. |
+
+##### Recovery Behavior
+
+1. **Detection fails** — dependency is unavailable
+2. **If no `recovery_command`** — fail loudly (existing behavior, unchanged)
+3. **If `recovery_command` is set:**
+   a. Log the recovery attempt with attempt number and command
+   b. Execute the recovery command via subprocess
+   c. Wait `retry_delay` seconds (with backoff on subsequent attempts)
+   d. Re-run the availability check
+   e. If check passes → log success with attempt count and total elapsed time
+   f. If check fails and retries remain → go to (a) with incremented attempt
+   g. If check fails and no retries remain → fail loudly with full diagnostic
+
+##### Recovery MUST Rules
+
+- **R1: Recovery MUST be optional.** Omitting `recovery_command` MUST produce identical behavior to the pre-recovery Availability Guard. No existing code breaks.
+- **R2: Recovery MUST be bounded.** The guard MUST NOT retry indefinitely. `max_retries` MUST be enforced.
+- **R3: Recovery MUST be logged.** Every recovery attempt MUST produce a diagnostic trace including: attempt number, max attempts, command executed, command exit code, and elapsed time.
+- **R4: Recovery commands MUST be explicit.** The guard MUST NOT infer or construct recovery commands. The caller provides the exact command.
+- **R5: Recovery MUST NOT escalate privileges.** The command runs with the current process permissions. No `sudo` injection, no privilege elevation.
+- **R6: Recovery failure MUST include full context.** The final failure diagnostic MUST include: dependency name, all attempts made, total time elapsed, last command exit code, and the original availability check result.
+
+##### Pattern
+
+```python
+# Detection only (no recovery) — existing behavior, unchanged
+guard_available(
+    check=lambda: requests.head(url, timeout=5).status_code < 500,
+    function_name="app_startup",
+    dependency="payment-service",
+)
+
+# Detection with recovery — new capability
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ===SEPARATOR===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### 6.5 Configuration Mechanism
+
+The standard does not mandate a specific configuration mechanism. Implementations SHOULD support:
+
+1. **Environment variable** — `BULWARK_MODE=production` or `BULWARK_TRACE_LEVEL=INFO`
+2. **Log level inheritance** — Traces respect the application's existing log level configuration
+3. **Code-level configuration** — A module-level setting for verify strategy
+
+**Example configuration:**
+
+```python
+# Option 1: Environment variable
+import os
+BULWARK_MODE = os.environ.get("BULWARK_MODE", "development")
+
+# Option 2: Explicit configuration
+from bulwark import configure
+configure(
+    guards="always",           # Only valid value
+    trace_level="INFO",        # DEBUG, INFO, WARNING, or OFF
+    verify_strategy="full",    # full, sampled, batch, or adaptive
+    verify_sample_rate=0.01,   # For sampled strategy: verify 1% of ops
+)
+```
+
+### 6.6 Runtime Mode Summary
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ===SEPARATOR===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### 10.1 Availability Guard (RECOMMENDED for external dependencies)
+
+An Availability Guard verifies that an external dependency (service, database, file system) is reachable before the application relies on it. Optionally, it can attempt **automated recovery** when a dependency is unavailable.
+
+#### When to Use
+
+- At **service initialization** (application startup)
+- At **pipeline start** (before a long-running job begins)
+- At **health check endpoints** (for orchestrators like Kubernetes)
+- **After connection errors** (circuit breaker recovery)
+
+#### When NOT to Use
+
+- **Not on every individual API call** — this would add seconds of latency per request
+- **Not for internal function calls** — only for external network/I/O dependencies
+
+#### 10.1.1 Detection
+
+The detection phase checks whether a dependency is reachable. If the check fails and no recovery is configured, the guard fails loudly with a diagnostic message.
+
+##### Pattern
+
+```python
+# ✅ RIGHT: Check at initialization
+class PaymentClient:
+    def __init__(self, base_url):
+        # GUARD:AVAILABLE — verify service is reachable at startup
+        response = requests.head(base_url + "/health", timeout=5)
+        guard(response.status_code < 500, "PaymentClient.__init__",
+              f"Payment service at {base_url} returned {response.status_code}")
+        self.base_url = base_url
+
+# ❌ WRONG: Check on every call
+    def charge(self, amount):
+        requests.head(self.base_url + "/health", timeout=5)  # Adds 200ms to EVERY charge!
+        return requests.post(f"{self.base_url}/charge", json={"amount": amount})
+```
+
+##### Diagnostic Format
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

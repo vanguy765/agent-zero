@@ -1,0 +1,28 @@
+LIVE_TEST_PLAN.md                       | 22 ++++++++++++
+ test-results/TEST_2.3_PROMPT.md         | 57 ++++++++++++++++++++++++++++++
+ test-results/fixtures/health_cache.sh   |  3 ++
+ test-results/fixtures/health_db.sh      |  4 +++
+ test-results/fixtures/health_metrics.sh |  3 ++
+ test-results/fixtures/recover_cache.sh  |  4 +++
+ test-results/fixtures/recover_db.sh     |  4 +++
+ test-results/fixtures/services.json     | 62 +++++++++++++++++++++++++++++++++
+ 8 files changed, 159 insertions(+)
+[main 205b521] feat: add Test 2.3 Service Manifest Guard fixtures and prompt
+ 8 files changed, 159 insertions(+)
+ create mode 100644 test-results/TEST_2.3_PROMPT.md
+ create mode 100755 test-results/fixtures/health_cache.sh
+ create mode 100755 test-results/fixtures/health_db.sh
+ create mode 100755 test-results/fixtures/health_metrics.sh
+ create mode 100755 test-results/fixtures/recover_cache.sh
+ create mode 100755 test-results/fixtures/recover_db.sh
+ create mode 100644 test-results/fixtures/services.json
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (12/12), done.
+Writing objects: 100% (12/12), 3.53 KiB | 113.00 KiB/s, done.
+Total 12 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/vanguy765/bulwark-ai.git
+   365deb6..205b521  main -> main
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

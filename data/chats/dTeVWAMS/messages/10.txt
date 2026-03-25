@@ -1,0 +1,18 @@
+81:        OPEN    → HALF_OPEN  when reset_timeout has elapsed
+90:    def __init__(self, name: str, failure_threshold: int = 3, reset_timeout: float = 60.0):
+96:            reset_timeout:      Seconds to wait before transitioning OPEN → HALF_OPEN.
+102:        guard_condition(isinstance(reset_timeout, (int, float)), "CircuitBreaker.__init__", f"'{"reset_timeout"}' expected int or float, got {type(reset_timeout).__name__}")
+103:        guard_condition(reset_timeout > 0, "CircuitBreaker.__init__", "reset_timeout must be > 0")
+---
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 0,
+  "violations": [],
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

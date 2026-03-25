@@ -1,0 +1,57 @@
+tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    table_type: str = "table",
+) -> Optional[str]:
+    """Upload table markdown to Supabase Storage."""
+    if not sb_client:
+        return None
+    try:
+        content_bytes = markdown_content.encode("utf-8")
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+        upload_resp = await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, content_bytes, file_options={"content-type": "text/markdown", "upsert": "true"})
+        )
+        # supabase-py 2.x raises StorageApiError on failure, but some versions return
+        # an error dict instead — check explicitly so the path is never returned on failure.
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        # Return a signed URL (bucket is private); max expiry ~68 years
+        _signed = await asyncio.to_thread(
+            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 2147483647)
+        )
+        url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+        try:
+            await asyncio.to_thread(
+                lambda: sb_client.table("document_images").insert({
+                    "document_id": doc_id,
+                    "image_url": path,
+                    "page_number": page_no,
+                    "image_type": table_type,
+                    "metadata": {"type": "markdown", "source": "doc-parser"},
+                }).execute()
+            )
+        except Exception as db_err:
+            logger.warning(f"DB record insert failed for {filename}: {db_err}")
+        logger.info(f"Table markdown uploaded: {path}")
+        return url_response
+    except Exception as e:
+        logger.warning(f"Table upload failed for {filename}: {e}")
+        return None
+
+
+# ============================================================
+# Bounding Box Parsing Helper
+# ============================================================
+
+def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+    """Parse LLM bounding box response into element list."""
+    try:
+        cleaned = re.sub(r"```(?:json)?\s*|\s*```", "", raw).strip()
+        data = json.loads(cleaned)
+        elements = data.get("elements", [])
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

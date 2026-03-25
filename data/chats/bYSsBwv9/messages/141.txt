@@ -1,0 +1,89 @@
+=== reset-and-start.ps1 ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# # ============================================================
+# reset-and-start.ps1
+# Stops servers, resets DB, seeds users, starts dev servers
+# ============================================================
+
+Write-Host "`n=== Step 1: Killing dev servers ===" -ForegroundColor Cyan
+& "$PSScriptRoot\kill-dev-servers.ps1"
+
+Write-Host "`n=== Step 2: Resetting database ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\.."
+supabase db reset
+Pop-Location
+
+Write-Host "`n=== Step 3: Seeding users (alice + eric) ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\..\apps\api"
+npx tsx scripts/create_user.ts
+Pop-Location
+
+Write-Host "`n=== Step 4: Creating sysadmin user ===" -ForegroundColor Cyan
+$sysadminBody = @{
+    email         = "sysadmin@example.com"
+    password      = "sysadmin123"
+    email_confirm = $true
+    user_metadata = @{
+        role      = "sysadmin"
+        full_name = "System Administrator"
+    }
+} | ConvertTo-Json -Depth 3
+
+$serviceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+try {
+    $response = Invoke-RestMethod -Uri "http://127.0.0.1:54321/auth/v1/admin/users" `
+        -Method Post `
+        -Headers @{
+        "apikey"        = $serviceRoleKey
+        "Authorization" = "Bearer $serviceRoleKey"
+        "Content-Type"  = "application/json"
+    } `
+        -Body $sysadminBody
+    Write-Host "  Sysadmin created: $($response.email)" -ForegroundColor Green
+}
+catch {
+    Write-Host "  Sysadmin creation skipped (may already exist): $($_.Exception.Message)" -ForegroundColor Yellow
+}
+
+Write-Host "`n=== Step 5: Starting dev servers ===" -ForegroundColor Cyan
+Push-Location "$PSScriptRoot\.."
+pnpm dev
+Pop-Location
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === doc-parser docker files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker_logs.txt
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# version: '3.8'
+
+services:
+  doc-parser:
+    build: .
+    volumes:
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    env_file:
+      - .env
+    environment:
+      - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+    # Run uvicorn server with reload for development
+    command: uvicorn server:app --host 0.0.0.0 --port 5000 --reload
+    ports:
+      - "5000:5000"
+    networks:
+      - agent-zero-network
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  agent-zero-network:
+    external: true
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

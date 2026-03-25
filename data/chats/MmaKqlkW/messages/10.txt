@@ -1,0 +1,354 @@
+# Bulwark Defensive Coding
+
+## Skill Metadata
+
+| Field | Value |
+|-------|-------|
+| **Name** | bulwark-defensive-coding |
+| **Version** | 0.2.0 |
+| **Invokable By** | Developer, QA, Architect |
+| **Trigger** | Any function that receives external data, crosses a boundary, or produces side effects |
+| **Dependencies** | None (zero-dependency convention) |
+| **References** | [SPEC.md](../../SPEC.md) · [GUIDE.md](../../GUIDE.md) · [QUICKSTART.md](../../QUICKSTART.md) |
+
+---
+
+## Purpose
+
+This skill enforces the **Bulwark AI Guard-Trace-Verify** defensive coding
+standard. It prevents the six most common AI-generated code failure modes:
+
+1. **Silent data shape mismatch** — wrong types flow through unchecked
+2. **Unverified side effects** — writes assumed successful without confirmation
+3. **Placeholder/demo data** — hardcoded values survive to production
+4. **Confident wrong assumptions** — AI hallucinates API shapes
+5. **Happy-path-only logic** — no error handling for edge cases
+6. **Stale pattern application** — outdated API usage from training data
+
+---
+
+## When to Invoke This Skill
+
+Apply Bulwark patterns to **every function** that meets any of these criteria:
+
+- Receives parameters it didn't create
+- Calls an external service (API, database, file system)
+- Transforms data between processing phases
+- Produces side effects (writes, sends, deletes)
+
+**Exception**: Pure utility functions with primitive inputs (e.g., `add(a, b)`)
+do not require Bulwark patterns.
+
+---
+
+## The Three-Layer Model
+
+### Layer 1: GUARD — Validate Before Processing
+
+**Question**: "If this data were wrong, would the code silently continue?"
+
+Guards validate inputs at function entry. They are **never disabled** in any
+environment.
+
+**Rules**:
+- Check type, null/undefined, required keys, and value ranges
+- Use `if/raise` or `if/throw` — **never** bare `assert` (stripped by `python -O`)
+- Use custom `GuardError` type for structured error handling
+- Include function name, parameter name, expected vs actual in error messages
+
+**Pattern**:
+```python
+def process_order(order, user_id):
+    # GUARD: type
+    if not isinstance(order, dict):
+        raise GuardError(
+            f"GUARD:process_order | order | expected dict, got {type(order).__name__}")
+    # GUARD: required keys
+    for key in ("items", "total", "currency"):
+        if key not in order:
+            raise GuardError(
+                f"GUARD:process_order | order | missing key '{key}', "
+                f"got keys: {sorted(order.keys())}")
+    # GUARD: null
+    if user_id is None:
+        raise GuardError(
+            "GUARD:process_order | user_id | expected str, got None")
+```
+
+```typescript
+function processOrder(order: unknown, userId: string): void {
+  if (order === null || order === undefined || typeof order !== "object") {
+    throw new GuardError(
+      `GUARD:processOrder | order | expected object, got ${typeof order}`);
+  }
+  const obj = order as Record<string, unknown>;
+  for (const key of ["items", "total", "currency"]) {
+    if (!(key in obj)) {
+      throw new GuardError(
+        `GUARD:processOrder | order | missing key '${key}'`);
+    }
+  }
+}
+```
+
+**Error message format**: `GUARD:<function> | <param> | expected <X>, got <Y>`
+
+---
+
+### Layer 2: TRACE — Log Shape at Boundaries
+
+**Question**: "Does data flow between processing phases here?"
+
+Traces log the **structure** of data (type, keys, length) — never the values
+(PII risk). They are configurable by environment.
+
+**Rules**:
+- Log after fetch, after transform, before return
+- Record type, key names, array lengths, nested structure
+- Never log actual values, credentials, or PII
+- Use structured format: `TRACE:<label> | {shape}`
+
+**Pattern**:
+```python
+def describe_shape(data):
+    if data is None:
+        return {"type": "None"}
+    t = type(data).__name__
+    if isinstance(data, dict):
+        return {"type": t, "keys": sorted(data.keys()), "size": len(data)}
+    if isinstance(data, (list, tuple)):
+        result = {"type": t, "length": len(data)}
+        if data:
+            result["sample"] = describe_shape(data[0])
+        return result
+    return {"type": t}
+
+def trace(label, data):
+    logging.info(f"TRACE:{label} | {describe_shape(data)}")
+```
+
+**Environment behavior**:
+| Mode | Trace Level |
+|------|-------------|
+| development | All boundaries, DEBUG level |
+| staging | Key boundaries only, INFO level |
+| production | Anomalies only, WARNING level |
+
+---
+
+### Layer 3: VERIFY — Confirm Side Effects
+
+**Question**: "Does this function produce side effects?"
+
+Verifies confirm that mutations (DB writes, file operations, API calls)
+actually succeeded. Never assume success from lack of exception.
+
+**Rules**:
+- After every INSERT/UPDATE/DELETE, check affected row count
+- After file writes, confirm file exists and size > 0
+- After API calls, validate response status AND body shape
+- Use custom `VerifyError` type
+- Mark critical operations with `critical=True` (always fully verified)
+
+**Pattern**:
+```python
+def save_order(order, db):
+    result = db.execute("INSERT INTO orders ...", order)
+    # VERIFY: row inserted
+    if result.rowcount != 1:
+        raise VerifyError(
+            f"VERIFY:save_order | INSERT expected 1 row, affected {result.rowcount}")
+    # VERIFY: read-back
+    saved = db.execute("SELECT * FROM orders WHERE id = ?", result.lastrowid)
+    if not saved:
+        raise VerifyError(
+            f"VERIFY:save_order | read-back failed for id {result.lastrowid}")
+    return {"status": "verified", "id": result.lastrowid}
+```
+
+**Error message format**: `VERIFY:<function> | <operation> expected <X>, got <Y>`
+
+**Environment behavior**:
+| Mode | Verify Strategy |
+|------|----------------|
+| development | Every operation, full read-back |
+| staging | Sampled (N%), critical=always full |
+| production | Adaptive sampling, critical=always full |
+
+---
+
+## Function Template
+
+Apply this ordering to every function:
+
+```
+1. GUARD    — validate all inputs (type, null, keys, range)
+2. TRACE    — log input shape
+3. LOGIC    — transform, compute, business rules
+4. TRACE    — log output shape
+5. MUTATE   — side effect (DB, file, API)
+6. VERIFY   — confirm mutation succeeded
+7. RETURN   — return verified result
+```
+
+---
+
+## Developer Agent Instructions
+
+When writing or modifying code, apply these steps:
+
+1. **Before writing any function**, ask the three Bulwark questions
+2. **Add Guards first** — validate every parameter the function didn't create
+3. **Add Traces at boundaries** — log shape after fetch, after transform
+4. **Add Verifies after mutations** — confirm every write operation
+5. **Use custom error types** — `GuardError` and `VerifyError`, never bare `assert`
+6. **Follow the error message format** — `LAYER:function | param | expected X, got Y`
+7. **Never log actual values** — shape only (type, keys, length)
+
+### Anti-Patterns to Avoid
+
+```python
+# ❌ Silent coercion — masks bugs
+data = data or {}
+
+# ❌ Swallowed exceptions — hides failures
+try:
+    result = api.call()
+except Exception:
+    pass
+
+# ❌ Bare assert — stripped by python -O
+assert isinstance(data, dict)
+
+# ❌ Unverified success — assumes write worked
+db.insert(record)
+return {"status": "ok"}
+
+# ❌ Value logging — PII leak risk
+logging.info(f"User data: {user}")
+```
+
+---
+
+## QA Agent Instructions
+
+When reviewing code, validate against this checklist:
+
+### Mandatory Checks (Every Function)
+
+- [ ] **G1**: Every parameter from external source has a type guard
+- [ ] **G2**: Every nullable parameter has a null check
+- [ ] **G3**: Every dict/object parameter has required-key checks
+- [ ] **G4**: Guard errors use `GuardError` type with structured message
+- [ ] **G5**: No bare `assert` used for validation (Python)
+- [ ] **G6**: No silent coercion (`data or {}`, `data ?? {}`)
+
+### Boundary Checks (Data Flow Functions)
+
+- [ ] **T1**: Trace present after external data fetch
+- [ ] **T2**: Trace present after data transformation
+- [ ] **T3**: Traces log shape only, never values
+- [ ] **T4**: Trace labels identify the boundary clearly
+
+### Side Effect Checks (Mutation Functions)
+
+- [ ] **V1**: Every DB write verified by affected row count
+- [ ] **V2**: Every file write verified by existence + size check
+- [ ] **V3**: Every API call verified by status AND body shape
+- [ ] **V4**: Verify errors use `VerifyError` type with structured message
+- [ ] **V5**: Critical operations marked and always fully verified
+
+### Configuration Checks (Project Level)
+
+- [ ] **C1**: `BULWARK_MODE` environment variable configured per environment
+- [ ] **C2**: Custom error types (`GuardError`, `VerifyError`) defined
+- [ ] **C3**: `describe_shape` / `trace` utilities available
+- [ ] **C4**: No sensitive data in trace output
+
+---
+
+## Automated Validation
+
+### Linter
+
+Run the Bulwark linter to detect violations automatically:
+
+```bash
+# Scan source directory
+bulwark-lint src/
+
+# JSON output for CI integration
+bulwark-lint src/ --format json
+
+# Specific rules only
+bulwark-lint src/ --rules BLW001,BLW002
+```
+
+**Linter rules**:
+| Rule | Description |
+|------|-------------|
+| BLW001 | Functions with parameters should have guards |
+| BLW002 | Mutation calls should be followed by verification |
+| BLW003 | Multi-step pipelines should have traces at boundaries |
+| BLW004 | No bare `assert` for validation (Python) |
+| BLW005 | Guard/Verify should use custom error types |
+
+### CI Integration
+
+```yaml
+# GitHub Actions example
+- name: Bulwark Lint
+  run: |
+    pip install ./bulwark-ai/linter
+    bulwark-lint src/ --format json > bulwark-report.json
+    bulwark-lint src/  # Human-readable output for logs
+```
+
+---
+
+## Configuration Reference
+
+```bash
+# Environment variable
+export BULWARK_MODE=development  # development | staging | production
+```
+
+| Mode | Guards | Traces | Verifies |
+|------|--------|--------|----------|
+| development | Always ON | All (DEBUG) | Every operation |
+| staging | Always ON | Key boundaries (INFO) | Sampled |
+| production | Always ON | Anomalies (WARNING) | Critical=full, routine=sampled |
+
+---
+
+## Integration with Existing Validation
+
+Bulwark complements, not replaces, existing validation libraries:
+
+| Library | Role | Bulwark Adds |
+|---------|------|--------------|
+| **Zod** (TS) | Schema validation at API boundaries | Internal guards, traces, verify |
+| **Pydantic** (Python) | Model validation at API boundaries | Internal guards, traces, verify |
+| **Joi** (Node) | Request validation | Same as Zod |
+
+See integration guides:
+- [Bulwark × Zod](../../guides/bulwark-x-zod.md)
+- [Bulwark × Pydantic](../../guides/bulwark-x-pydantic.md)
+
+---
+
+## Full Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [QUICKSTART.md](../../QUICKSTART.md) | 5-minute setup guide |
+| [GUIDE.md](../../GUIDE.md) | Comprehensive beginner's guide |
+| [SPEC.md](../../SPEC.md) | Formal technical specification |
+| [Checklist](../../checklists/bulwark-checklist.md) | PR review checklist |
+| [System Prompt](../../prompts/bulwark-system-prompt.md) | AI agent system prompt |
+| [Remediation Prompt](../../prompts/bulwark-remediation-agent.md) | Auto-fix agent prompt |
+
+---
+
+*Bulwark AI v0.2.0 — bulwark-ai.dev*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

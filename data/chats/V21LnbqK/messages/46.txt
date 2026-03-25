@@ -1,0 +1,13 @@
+INFO:     Will watch for changes in these directories: ['/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser']
+INFO:     Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+INFO:     Started reloader process [5428] using WatchFiles
+INFO:     Started server process [5476]
+INFO:     Waiting for application startup.
+2026-03-14 01:17:28,809 [INFO] job_manager: Using in-memory job store
+2026-03-14 01:17:28,809 [INFO] job_manager: Job cleanup loop started (interval=10min)
+2026-03-14 01:17:28,809 [INFO] server: Doc-parser started (store=memory, provider=anthropic/claude-3.5-sonnet)
+INFO:     Application startup complete.
+2026-03-14 01:17:29,180 [INFO] watchfiles.main: 2 changes detected
+
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

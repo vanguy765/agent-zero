@@ -1,0 +1,64 @@
+# --- Availability Guard Tests ---
+    print("\n--- Availability Guard Tests ---")
+
+    test("guard_available with True check passes",
+         lambda: guard_available(
+             check=lambda: True,
+             function_name="test",
+             dependency="test_service",
+         ))
+
+    def _unavailable():
+        try:
+            guard_available(
+                check=lambda: False,
+                function_name="test",
+                dependency="test_service",
+            )
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_available with False check raises", _unavailable)
+
+    def _check_exception():
+        try:
+            guard_available(
+                check=lambda: (_ for _ in ()).throw(
+                    ConnectionError("refused")
+                ),
+                function_name="test",
+                dependency="test_service",
+            )
+            raise RuntimeError("should have raised")
+        except GuardError:
+            pass
+    test("guard_available with exception raises GuardError",
+         _check_exception)
+
+    # --- Pipeline Tests ---
+    print("\n--- Pipeline Tests ---")
+
+    pipeline = BulwarkPipeline("test_pipeline")
+    pipeline.add_stage(
+        "double", lambda x: [i * 2 for i in x],
+        input_type=list, not_empty=True
+    )
+    pipeline.add_stage(
+        "to_dict", lambda x: {"results": x, "count": len(x)},
+        input_type=list
+    )
+    result = pipeline.run([1, 2, 3])
+    test("pipeline produces correct result",
+         lambda: None if result == {"results": [2, 4, 6], "count": 3}
+         else (_ for _ in ()).throw(RuntimeError(f"wrong: {result}")))
+
+    # --- Summary ---
+    print(f"\n{'=' * 60}")
+    total = passed + failed
+    print(f"Results: {passed}/{total} passed, {failed} failed")
+    if failed == 0:
+        print("All self-tests passed. Bulwark AI is operational.")
+    else:
+        print(f"WARNING: {failed} test(s) failed!")
+    print("=" * 60)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

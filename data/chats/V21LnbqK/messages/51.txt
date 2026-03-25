@@ -1,0 +1,57 @@
+=== Check if doc-parser container can see our files ===
+{
+    "status": "healthy",
+    "version": "2.0.0",
+    "engines": [
+        "docling",
+        "hybrid"
+    ],
+    "dependencies": {
+        "docling": true,
+        "tesseract": true,
+        "litellm": true
+    },
+    "jobs": {
+        "running": 1,
+        "queued": 0,
+        "total": 1
+    },
+    "config": {
+        "store_backend": "memory",
+        "default_provider": "openrouter/anthropic/claude-3.5-sonnet",
+        "processing_timeout_s": 1800
+    }
+}
+
+=== Try to find shared mount points ===
+C:\ on /a0/usr/projects/timesheet_app/voicelog-scaffold type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+
+=== Check if /a0 is a mount ===
+C:\ on /a0/usr type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+C:\ on /a0/usr/projects/timesheet_app/voicelog-scaffold type 9p (rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5)
+
+=== Can we reach doc-parser API to check its hybrid.py? ===
+{
+  "status": "healthy",
+  "version": "2.0.0",
+  "engines": [
+    "docling",
+    "hybrid"
+  ],
+  "dependencies": {
+    "docling": true,
+    "tesseract": true,
+    "litellm": true
+  },
+  "jobs": {
+    "running": 1,
+    "queued": 0,
+    "total": 1
+  },
+  "config": {
+    "store_backend": "memory",
+    "default_provider": "openrouter/anthropic/claude-3.5-sonnet",
+    "processing_timeout_s": 1800
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

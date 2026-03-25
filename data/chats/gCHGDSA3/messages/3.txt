@@ -1,0 +1,32 @@
+975:No. Apply the decision rules in §3.4. A pure transformation function with no side effects doesn't need a Verify. A function that doesn't sit at a phase boundary doesn't need a Trace. But every function receiving external data needs a Guard.
+976-
+977-### "What if my team already uses TypeScript/pydantic for type safety?"
+978-
+979-Great — your Guard layer is partially covered. But type systems don't address Trace (pipeline observability) or Verify (side-effect confirmation). And runtime type checking catches things that compile-time types miss — like an API that returns `{"error": "not found"}` instead of the expected `{"user": {...}}`. Both are valid JSON objects, both pass type checks, but only one has the data you need.
+980-
+981----
+982-
+983-## Appendix B: Design Decisions
+984-
+985-This appendix documents the reasoning behind major design choices. For a more detailed, beginner-friendly explanation, see [GUIDE.md](GUIDE.md).
+986-
+987-### B.1 Why Convention Over Library?
+988-
+989-A library creates a dependency. Dependencies get abandoned, compromised, or version-locked. A convention is forever. You can implement Bulwark AI in any language, any project, any era — because it's just `if/raise`, `log()`, and `if/raise` again. No package manager required.
+990-
+991-### B.2 Why Three Layers Instead of One?
+992-
+993-Input validation (Guard) catches bad data coming in. But it doesn't tell you *where* in a pipeline the data went wrong (Trace), and it doesn't confirm that your writes actually worked (Verify). Each layer addresses a different failure mode. Combining them creates a complete defensive membrane.
+994-
+995-### B.3 Why Structured Diagnostic Messages?
+996-
+997-Unstructured errors like `KeyError: 'pages'` require a human to read the stack trace, understand the context, and figure out the fix. Structured messages like `GUARD:process_pages | missing 'pages', available: ['result', 'metadata']` can be parsed by an AI agent to self-correct in one iteration. This is the key insight: **error messages are an API for the next debugging agent** (human or AI).
+998-
+999-### B.4 Why Not Always Full Verification?
+1000-
+1001-Because physics. A read-back query takes 1-5ms. At 10,000 operations per second, that's 10-50 seconds of additional database time per second — impossible. The standard requires verification but allows the strategy to adapt. See §3.3.5 and §6.4.
+1002-
+1003-### B.5 Why Are Guards Always On But Traces Are Configurable?
+1004-
+1005-Cost. A Guard (`isinstance(data, dict)`) takes 50 nanoseconds. A Trace (format string + log write) takes 5-50 microseconds. At high throughput, Trace log volume becomes significant — not the CPU cost, but the I/O and storage cost of millions of log lines per hour. Guards have no such scaling concern.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,35 @@
+import { Component, createSignal } from 'solid-js';
+import { Button } from '@repo/ui';
+import { Login } from './Login';
+import { TodoList } from './components/TodoList';
+import { VoiceLogList } from './components/VoiceLogList';
+import { logger } from '@repo/logger';
+
+const App: Component = () => {
+    const [token, setToken] = createSignal<string | null>(null);
+
+    return (
+        <div>
+            {!token() ? (
+                <Login onLogin={(t) => setToken(t)} />
+            ) : (
+                <div style={{ padding: '20px', "max-width": "600px", margin: "0 auto" }}>
+                    <div style={{ display: "flex", "justify-content": "space-between", "align-items": "center" }}>
+                        <h1>Web Dashboard</h1>
+                        <Button onClick={() => {
+                            logger.info('Logged out');
+                            setToken(null);
+                        }}>Logout</Button>
+                    </div>
+                    <hr />
+                    <TodoList token={token()!} />
+                    <hr />
+                    <VoiceLogList />
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default App;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

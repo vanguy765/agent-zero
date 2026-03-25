@@ -1,0 +1,168 @@
+# Bulwark AI — Validation Checklist
+
+**Version:** 0.1.0-draft
+**Usage:** Use this checklist to verify code follows the Bulwark AI standard.
+**Format:** Machine-readable Markdown checkboxes. Can be parsed by CI tools.
+
+---
+
+## Pre-Flight: Scope Identification
+
+- [ ] All functions receiving external data are identified
+- [ ] All pipeline phase boundaries are identified
+- [ ] All side-effect operations are identified
+- [ ] No placeholder/demo data exists in production paths
+
+---
+
+## Layer 1: GUARD Compliance
+
+### Presence & Type
+- [ ] Every function receiving data it didn't create has Guards
+- [ ] Guards check for null/None/undefined before any access
+- [ ] Guards validate runtime type (dict/object, list/array, string, etc.)
+- [ ] Guards are the FIRST statements in the function body
+
+### Shape & Structure
+- [ ] Guards validate required keys/fields exist
+- [ ] Guards validate collection non-emptiness where applicable
+- [ ] Guards validate nested structure where applicable (at least one level)
+
+### Diagnostic Quality
+- [ ] Guard failure messages follow format: `GUARD:<function> | <message>`
+- [ ] Guard messages include what was EXPECTED
+- [ ] Guard messages include what was RECEIVED (actual type, available keys, etc.)
+- [ ] Guard messages are specific enough for an AI agent to self-correct
+
+### Anti-Pattern Absence
+- [ ] No silent coercion: `data = data or {}` / `data ?? {}`
+- [ ] No unvalidated defaults: `.get(key, default)` / `?? fallback` without subsequent check
+- [ ] No bare exception swallowing: `except: pass` / `catch {}`
+- [ ] No type coercion without validation: `int(value)` / `Number(value)` without guard
+
+---
+
+## Layer 2: TRACE Compliance
+
+### Placement
+- [ ] Traces exist at every pipeline phase boundary
+- [ ] Traces exist before/after serialization/deserialization
+- [ ] Traces exist at API call boundaries (before send, after receive)
+
+### Content
+- [ ] Traces log data TYPE
+- [ ] Traces log data SIZE (length, count, byte size)
+- [ ] Traces log data STRUCTURE (keys, fields, schema summary)
+- [ ] Traces do NOT log actual VALUES or content
+- [ ] Traces do NOT log PII, secrets, or sensitive data
+
+### Behavior
+- [ ] Traces are non-destructive (data passes through unchanged)
+- [ ] Traces follow format: `TRACE:<label> | <shape_description>`
+- [ ] Traces have negligible performance impact
+
+---
+
+## Layer 3: VERIFY Compliance
+
+### Coverage
+- [ ] Every database write (INSERT/UPDATE/DELETE) has a Verify
+- [ ] Every file write has a Verify (existence + size check)
+- [ ] Every state-changing API call has a Verify
+- [ ] Every queue/message publish has a Verify
+
+### Confirmation Method
+- [ ] Verifies check ACTUAL outcome, not just response code
+- [ ] Verifies use appropriate strategy (rowcount, existence check, read-back)
+- [ ] Verifies are IMMEDIATELY after the side-effect operation
+
+### Diagnostic Quality
+- [ ] Verify messages follow format: `VERIFY:<function> | <message>`
+- [ ] Verify messages include the OPERATION performed
+- [ ] Verify messages include EXPECTED outcome
+- [ ] Verify messages include ACTUAL outcome
+
+---
+
+## Integration & Pipeline
+
+- [ ] Multi-stage pipelines have Traces between every stage
+- [ ] Functions with multiple layers (Guard + Trace + Verify) apply them in correct order
+- [ ] Error propagation is clean — no silent swallowing between stages
+- [ ] Pipeline failures produce enough diagnostic context to identify the failing stage
+
+---
+
+## Compliance Summary
+
+| Level | Requirement | Status |
+|-------|------------|--------|
+| **Level 1: Guarded** | All external-data functions have Guards | ☐ |
+| **Level 2: Guarded + Traced** | Level 1 + all phase boundaries have Traces | ☐ |
+| **Level 3: Fully Bulwarked** | Level 2 + all side effects have Verifies | ☐ |
+
+---
+
+## Machine-Readable Rules (for CI/Linter integration)
+
+```yaml
+bulwark_rules:
+  guard:
+    - id: G001
+      rule: "Functions receiving external data must have type guards"
+      severity: error
+      pattern: "function receives parameter from API/DB/file/user without isinstance/typeof check"
+    - id: G002
+      rule: "Guards must check for null/None before access"
+      severity: error
+      pattern: "property access without null check on external data"
+    - id: G003
+      rule: "Guard messages must include expected vs actual"
+      severity: warning
+      pattern: "assertion message missing 'expected' or 'got' keywords"
+    - id: G004
+      rule: "No silent coercion of external data"
+      severity: error
+      pattern: "'or {}' | 'or []' | '?? {}' | '?? []' on unvalidated input"
+    - id: G005
+      rule: "No bare exception swallowing"
+      severity: error
+      pattern: "'except: pass' | 'except Exception: pass' | 'catch {}'"
+
+  trace:
+    - id: T001
+      rule: "Pipeline phase boundaries must have traces"
+      severity: warning
+      pattern: "data handoff between functions without trace() call"
+    - id: T002
+      rule: "Traces must not log content/values"
+      severity: error
+      pattern: "trace message containing actual data values or PII"
+    - id: T003
+      rule: "Traces must be non-destructive"
+      severity: error
+      pattern: "trace function modifying data before return"
+
+  verify:
+    - id: V001
+      rule: "Database writes must have row count verification"
+      severity: error
+      pattern: "db.insert/update/delete without rowcount check"
+    - id: V002
+      rule: "File writes must have existence verification"
+      severity: error
+      pattern: "file write without os.path.exists/fs.existsSync check"
+    - id: V003
+      rule: "API mutations must verify response"
+      severity: warning
+      pattern: "POST/PUT/PATCH/DELETE without status/body verification"
+    - id: V004
+      rule: "Verify messages must include expected vs actual"
+      severity: warning
+      pattern: "verify message missing expected/actual comparison"
+```
+
+---
+
+*Bulwark AI v0.1.0-draft — bulwark-ai.dev*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

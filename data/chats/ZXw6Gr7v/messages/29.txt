@@ -1,0 +1,46 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# CREATE TABLE public.project_documents (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    project_id uuid,
+    title text NOT NULL,
+    description text,
+    file_url text NOT NULL,
+    file_type text NOT NULL,
+    file_size_bytes bigint,
+    uploaded_by uuid,
+    uploaded_at timestamp with time zone DEFAULT now(),
+    metadata jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# docParserRoutes.post('/pipeline', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId = body?.document_id as string | undefined;
+  const engine     = (body?.engine || 'hybrid') as 'docling' | 'hybrid';
+
+  if (!documentId) return c.json({ error: 'document_id is required' }, 400);
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json({ error: `Unknown engine: ${engine}. Use 'docling' or 'hybrid'.` }, 400);
+  }
+docParserRoutes.post('/pipeline/reprocess', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId = body?.document_id as string | undefined;
+  const engine     = (body?.engine || 'hybrid') as 'docling' | 'hybrid';
+
+  if (!documentId) return c.json({ error: 'document_id is required' }, 400);
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json({ error: `Unknown engine: ${engine}. Use 'docling' or 'hybrid'.` }, 400);
+  }
+docParserRoutes.post('/pipeline/page', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId  = body?.document_id as string | undefined;
+  const pageNumber  = Number(body?.page_number);
+  const engine      = (body?.engine || 'hybrid') as 'docling' | 'hybrid';
+  const pollMs      = Number(body?.poll_interval_ms ?? 3000);
+  const timeoutMs   = Number(body?.timeout_ms      ?? 120_000);
+
+  if (!documentId)          return c.json({ error: 'document_id is required' }, 400);
+  if (!pageNumber || pageNumber < 1) return c.json({ error: 'page_number must be a positive integer (1-indexed)' }, 400);
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json({ error: `Unknown engine: ${engine}. Use 'docling' or 'hybrid'.` }, 400);
+  }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

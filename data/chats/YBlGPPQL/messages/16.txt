@@ -1,0 +1,21 @@
+def _run_health_check(health_check_cfg, working_dir):
+        working_dir:      Working directory for command execution.
+    guard_type(working_dir, str, "_run_health_check", "working_dir")
+            cwd=working_dir,
+    working_dir = os.path.dirname(os.path.abspath(__file__))
+    if _run_health_check(svc["health_check"], working_dir):
+                    cwd=working_dir,
+            if _run_health_check(svc["health_check"], working_dir):
+---
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 0,
+  "violations": [],
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

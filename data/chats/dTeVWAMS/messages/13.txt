@@ -1,0 +1,162 @@
+# Test 2.2 Results: Error Recovery Chain
+
+> **Date**: ____-__-__
+> **Agent**: ________________
+> **Duration**: __ minutes
+> **Iterations**: __ (code → lint → fix cycles)
+
+---
+
+## Quantitative Metrics
+
+### Compliance Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| First-pass linter violations | /__ | Before any fixes |
+| Final linter violations | /__ | After self-correction |
+| Self-correction rate | __% | (first - final) / first × 100 |
+| True positive violations fixed | __ | Correctly identified & fixed |
+| False positives identified | __ | Correctly classified as FP |
+
+### Pattern Quality Metrics
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| Guard presence (all functions) | | 5 | guard_db_available, load_with_retry, run_resilient, CircuitBreaker.guard_circuit, + reused |
+| Guard consistency (output→input) | | 3 | ingest→transform, transform→load, availability→load |
+| Trace correlation (shared op_id) | | 5 | All functions + circuit breaker + recovery logs |
+| Verify on mutation | | 1 | load_to_database_with_retry verify |
+| Custom error types | | 2 | GuardError + VerifyError + SimulatedDBError |
+| No bare asserts | | 1 | BLW004 compliance |
+| **Pattern Quality Total** | | **17** | |
+
+### Error Recovery Metrics (NEW for Test 2.2)
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| Bounded retry implemented | | 1 | max_retries parameter respected |
+| Recovery logging per attempt | | 1 | Each retry produces structured trace |
+| Attempt count in recovery logs | | 1 | "attempt=N/M" format |
+| Error context in recovery logs | | 1 | Error message included in trace |
+| Circuit breaker state tracking | | 1 | CLOSED/OPEN/HALF_OPEN states |
+| Circuit breaker blocks when OPEN | | 1 | GuardError raised when circuit open |
+| Circuit breaker resets on success | | 1 | Transitions back to CLOSED |
+| Circuit breaker timeout (HALF_OPEN) | | 1 | Allows retry after timeout |
+| **Recovery Total** | | **8** | |
+
+### Cross-Function Coherence
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| operation_id generated once | | 1 | Single UUID for pipeline |
+| operation_id passed to all funcs | | 3 | Including retry + circuit breaker |
+| operation_id in all trace calls | | 1 | Grep-able correlation |
+| operation_id in recovery logs | | 1 | Recovery traces include op_id |
+| Orchestrator manages flow | | 1 | run_pipeline_resilient coordinates |
+| **Coherence Total** | | **7** | |
+
+### Scenario Results
+
+| Scenario | Expected | Actual | Pass |
+|----------|----------|--------|------|
+| A: Happy path (0 failures) | Success, 0 retries, CB=CLOSED | | [ ] |
+| B: Transient failure (2 failures) | Success on 3rd try, recovery logs, CB=CLOSED | | [ ] |
+| C: Total failure (3+ failures) | GuardError, CB=OPEN | | [ ] |
+
+### Code Quality Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Total lines of code | __ | |
+| Lines of guard/trace/verify | __ | Defensive overhead |
+| Overhead percentage | __% | defensive / total × 100 |
+| New functions implemented | /5 | CircuitBreaker, guard_db_available, load_with_retry, run_resilient, SimulatedDBError |
+| Reused functions from 2.1 | /2 | ingest_csv, transform_records |
+| End-to-end execution | pass/fail | All 3 scenarios run |
+
+---
+
+## Qualitative Assessment
+
+### Guard Analysis
+
+| Function | Guards Present | Guards Appropriate | Notes |
+|----------|---------------|-------------------|-------|
+| guard_db_available | | | |
+| CircuitBreaker.guard_circuit | | | |
+| load_to_database_with_retry | | | |
+| run_pipeline_resilient | | | |
+
+### Recovery Logging Analysis
+
+```
+# Paste sample recovery log output from Scenario B:
+
+```
+
+**Recovery traces present**: [ ] Yes  [ ] No
+**Attempt counts correct**: [ ] Yes  [ ] No
+**Error context included**: [ ] Yes  [ ] No
+**operation_id in all recovery logs**: [ ] Yes  [ ] No
+
+### Circuit Breaker Analysis
+
+```
+# Paste circuit breaker state transition logs from Scenario C:
+
+```
+
+**State transitions correct**: [ ] Yes  [ ] No
+**Blocks when OPEN**: [ ] Yes  [ ] No
+**Resets on success**: [ ] Yes  [ ] No
+
+---
+
+## Linter Output
+
+```json
+// Paste final linter JSON output here
+```
+
+## Failure Taxonomy
+
+| Failure Code | Observed | Description |
+|-------------|----------|-------------|
+| F-GRD | [ ] | Missing or incorrect guard |
+| F-TRC | [ ] | Missing or uncorrelated trace |
+| F-VRF | [ ] | Missing verify after mutation |
+| F-COR | [ ] | Broken trace correlation |
+| F-CON | [ ] | Guard/output contract mismatch |
+| F-LNT | [ ] | Linter false positive issue |
+| F-AST | [ ] | Bare assert used |
+| F-ERR | [ ] | Missing custom error types |
+| F-REC | [ ] | Missing or incorrect recovery logging |
+| F-CBR | [ ] | Circuit breaker state error |
+
+---
+
+## Overall Score
+
+| Category | Score | Max | Weight |
+|----------|-------|-----|--------|
+| Guard presence | /5 | 5 | 15% |
+| Trace correlation | /5 | 5 | 15% |
+| Recovery logging | /8 | 8 | 20% |
+| Circuit breaker | /4 | 4 | 20% |
+| Verify on mutation | /1 | 1 | 10% |
+| Linter compliance | /1 | 1 | 10% |
+| End-to-end scenarios | /3 | 3 | 10% |
+| **Weighted Total** | | **100%** | |
+
+## Observations & Recommendations
+
+### What worked well:
+1.
+
+### What needed iteration:
+1.
+
+### Recommendations for framework improvement:
+1.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

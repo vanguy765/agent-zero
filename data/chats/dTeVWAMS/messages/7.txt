@@ -1,0 +1,549 @@
+#!/usr/bin/env python3
+"""csv_pipeline.py — Three-Function Data Pipeline with Bulwark GTV Patterns.
+
+Demonstrates correlated traces, input guards, and side-effect verification
+across a multi-stage CSV ingestion pipeline.
+
+Bulwark Compliance: Level 3 (Fully Bulwarked)
+"""
+
+import csv
+import json
+import logging
+import os
+import uuid
+from typing import Any
+
+# ---------------------------------------------------------------------------
+# Logging Configuration
+# ---------------------------------------------------------------------------
+
+log = logging.getLogger("csv_pipeline")
+if not log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter(
+        "%(asctime)s | %(levelname)-5s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    ))
+    log.addHandler(_handler)
+    log.setLevel(logging.DEBUG)
+
+
+# ---------------------------------------------------------------------------
+# Custom Error Types (BLW-005 compliance)
+# ---------------------------------------------------------------------------
+
+class GuardError(Exception):
+    """Raised when a Guard precondition check fails.
+
+    Inherits from Exception (not AssertionError) so it is never
+    stripped by Python's -O flag. See SPEC.md §3.1.6.
+    """
+    pass
+
+
+class VerifyError(Exception):
+    """Raised when a Verify postcondition check fails.
+
+    Inherits from Exception (not AssertionError) so it is never
+    stripped by Python's -O flag.
+    """
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Guard Primitives
+# ---------------------------------------------------------------------------
+
+def guard_condition(condition: bool, function_name: str, message: str) -> None:
+    """Core guard primitive. Raises GuardError if condition is False."""
+    if not condition:
+        diag = f"GUARD:{function_name} | {message}"
+        log.error(diag)
+        raise GuardError(diag)
+
+
+def guard_type(value: Any, expected_type: type, function_name: str,
+               param_name: str = "input") -> None:
+    """Guard that validates the type of a value."""
+    guard_condition(
+        isinstance(value, expected_type),
+        function_name,
+        f"'{param_name}' expected {expected_type.__name__}, "
+        f"got {type(value).__name__}",
+    )
+
+
+def guard_keys(data: dict, required_keys: set, function_name: str,
+               param_name: str = "input") -> None:
+    """Guard that validates required keys exist in a dict."""
+    guard_type(data, dict, function_name, param_name)
+    missing = required_keys - set(data.keys())
+    guard_condition(
+        len(missing) == 0,
+        function_name,
+        f"'{param_name}' missing keys: {sorted(missing)}, "
+        f"available: {sorted(data.keys())}",
+    )
+
+
+def guard_not_empty(value: Any, function_name: str,
+                    param_name: str = "input") -> None:
+    """Guard that validates a collection is not empty and not None."""
+    guard_condition(
+        value is not None,
+        function_name,
+        f"'{param_name}' is None",
+    )
+    if hasattr(value, "__len__"):
+        guard_condition(
+            len(value) > 0,
+            function_name,
+            f"'{param_name}' is empty ({type(value).__name__}, len=0)",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Trace Primitives
+# ---------------------------------------------------------------------------
+
+def _describe_shape(data: Any) -> str:
+    """Describe the structural shape of data without exposing content."""
+    if data is None:
+        return "NoneType"
+    t = type(data).__name__
+    if isinstance(data, dict):
+        return f"{t}, keys={sorted(data.keys())}, len={len(data)}"
+    if isinstance(data, (list, tuple)):
+        if len(data) == 0:
+            return f"{t}, len=0 (EMPTY)"
+        shape = f"{t}, len={len(data)}"
+        if isinstance(data[0], dict):
+            shape += f", items=dict{{keys={sorted(data[0].keys())}}}"
+        else:
+            shape += f", items={type(data[0]).__name__}"
+        return shape
+    if isinstance(data, str):
+        return f"{t}, len={len(data)}"
+    return t
+
+
+def trace_data(label: str, data: Any, operation_id: str) -> Any:
+    """Log the shape of data at a phase boundary. Non-destructive pass-through."""
+    shape = _describe_shape(data)
+    log.info(f"TRACE:{label} | {shape} | op={operation_id}")
+    return data
+
+
+def trace_event(label: str, message: str, operation_id: str) -> None:
+    """Log a pipeline event (start, completion, etc.) with operation_id."""
+    log.info(f"TRACE:{label} | {message} | op={operation_id}")
+
+
+# ---------------------------------------------------------------------------
+# Verify Primitives
+# ---------------------------------------------------------------------------
+
+def verify_condition(condition: bool, function_name: str,
+                     message: str) -> None:
+    """Core verify primitive. Raises VerifyError if condition is False."""
+    if not condition:
+        diag = f"VERIFY:{function_name} | {message}"
+        log.error(diag)
+        raise VerifyError(diag)
+    log.debug(f"VERIFY:{function_name} | OK — {message}")
+
+
+def verify_file_written(filepath: str, function_name: str,
+                        min_size: int = 1) -> None:
+    """Verify that a file was written and meets minimum size."""
+    if not os.path.exists(filepath):
+        diag = (f"VERIFY:{function_name} | "
+                f"file '{filepath}' does not exist after write")
+        log.error(diag)
+        raise VerifyError(diag)
+    actual_size = os.path.getsize(filepath)
+    if actual_size < min_size:
+        diag = (f"VERIFY:{function_name} | "
+                f"file '{filepath}' expected size >= {min_size} bytes, "
+                f"actual: {actual_size} bytes")
+        log.error(diag)
+        raise VerifyError(diag)
+    log.debug(
+        f"VERIFY:{function_name} | OK — file '{filepath}' "
+        f"exists, size={actual_size} bytes"
+    )
+
+
+# ===========================================================================
+# PIPELINE FUNCTION 1: ingest_csv
+# ===========================================================================
+
+def ingest_csv(filepath: str, operation_id: str | None = None) -> tuple[list[dict], str]:
+    """Read and validate a CSV file.
+
+    Guards: filepath type/presence, file existence, file non-empty, parsed records.
+    Traces: input filepath+size, output record count+columns.
+
+    Args:
+        filepath:     Path to the CSV file to ingest.
+        operation_id: Correlation ID for distributed tracing. Generated if None.
+
+    Returns:
+        Tuple of (records, operation_id).
+
+    Raises:
+        GuardError: If any precondition fails.
+    """
+    fn = "ingest_csv"
+
+    # Generate or reuse operation_id
+    if operation_id is None:
+        operation_id = str(uuid.uuid4())
+
+    # --- GUARDS ---
+    guard_type(filepath, str, fn, "filepath")
+    guard_not_empty(filepath, fn, "filepath")
+
+    guard_condition(
+        os.path.exists(filepath),
+        fn,
+        f"file '{filepath}' does not exist",
+    )
+    guard_condition(
+        os.path.isfile(filepath),
+        fn,
+        f"'{filepath}' is not a regular file",
+    )
+    guard_condition(
+        os.access(filepath, os.R_OK),
+        fn,
+        f"file '{filepath}' is not readable",
+    )
+
+    file_size = os.path.getsize(filepath)
+    guard_condition(
+        file_size > 0,
+        fn,
+        f"file '{filepath}' is empty (0 bytes)",
+    )
+
+    # --- TRACE INPUT ---
+    trace_event(
+        f"{fn}:input",
+        f"filepath='{filepath}', file_size={file_size} bytes",
+        operation_id,
+    )
+
+    # --- BUSINESS LOGIC ---
+    with open(filepath, "r", newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        records = list(reader)
+
+    # --- GUARD: parsed records ---
+    guard_not_empty(records, fn, "parsed_records")
+
+    # --- TRACE OUTPUT ---
+    column_names = sorted(records[0].keys()) if records else []
+    trace_data(f"{fn}:output", records, operation_id)
+    trace_event(
+        f"{fn}:output_detail",
+        f"record_count={len(records)}, columns={column_names}",
+        operation_id,
+    )
+
+    return (records, operation_id)
+
+
+# ===========================================================================
+# PIPELINE FUNCTION 2: transform_records
+# ===========================================================================
+
+def transform_records(records: list[dict], schema: dict, operation_id: str) -> list[dict]:
+    """Normalize and transform records according to a schema mapping.
+
+    Guards: records type/presence, schema type/presence, schema field existence.
+    Traces: input record count+schema, output record count+new fields.
+
+    Args:
+        records:      List of dicts from ingest_csv.
+        schema:       Mapping of {old_field: new_field}.
+        operation_id: Correlation ID for distributed tracing.
+
+    Returns:
+        List of transformed dicts with renamed fields.
+
+    Raises:
+        GuardError: If any precondition fails.
+    """
+    fn = "transform_records"
+
+    # --- GUARDS ---
+    guard_type(records, list, fn, "records")
+    guard_not_empty(records, fn, "records")
+    guard_condition(
+        all(isinstance(r, dict) for r in records),
+        fn,
+        f"'records' expected list of dicts, "
+        f"found {type(records[0]).__name__} at index 0",
+    )
+
+    guard_type(schema, dict, fn, "schema")
+    guard_not_empty(schema, fn, "schema")
+
+    guard_type(operation_id, str, fn, "operation_id")
+    guard_not_empty(operation_id, fn, "operation_id")
+
+    # Guard: all schema source fields must exist in the first record
+    first_record_keys = set(records[0].keys())
+    missing_fields = set(schema.keys()) - first_record_keys
+    guard_condition(
+        len(missing_fields) == 0,
+        fn,
+        f"schema source fields {sorted(missing_fields)} not found in records, "
+        f"available fields: {sorted(first_record_keys)}",
+    )
+
+    # --- TRACE INPUT ---
+    trace_event(
+        f"{fn}:input",
+        f"record_count={len(records)}, schema_keys={sorted(schema.keys())}",
+        operation_id,
+    )
+    trace_data(f"{fn}:input_records", records, operation_id)
+
+    # --- BUSINESS LOGIC ---
+    transformed = []
+    for record in records:
+        new_record = {}
+        for old_field, new_field in schema.items():
+            value = record.get(old_field, "")
+            # Strip whitespace from string values
+            if isinstance(value, str):
+                value = value.strip()
+            new_record[new_field] = value
+        transformed.append(new_record)
+
+    # --- TRACE OUTPUT ---
+    new_field_names = sorted(transformed[0].keys()) if transformed else []
+    trace_data(f"{fn}:output", transformed, operation_id)
+    trace_event(
+        f"{fn}:output_detail",
+        f"transformed_count={len(transformed)}, new_fields={new_field_names}",
+        operation_id,
+    )
+
+    return transformed
+
+
+# ===========================================================================
+# PIPELINE FUNCTION 3: load_to_database
+# ===========================================================================
+
+def load_to_database(records: list[dict], db_config: dict, operation_id: str) -> int:
+    """Bulk insert records into a database table (file-based mock).
+
+    Guards: records type/presence, db_config keys, record key consistency.
+    Traces: input record count+target, output inserted count.
+    Verify: output file exists with expected record count.
+
+    Args:
+        records:      List of dicts to insert.
+        db_config:    Config dict with 'host' and 'table_name' keys.
+        operation_id: Correlation ID for distributed tracing.
+
+    Returns:
+        Count of inserted records.
+
+    Raises:
+        GuardError:  If any precondition fails.
+        VerifyError: If the write cannot be confirmed.
+    """
+    fn = "load_to_database"
+
+    # --- GUARDS ---
+    guard_type(records, list, fn, "records")
+    guard_not_empty(records, fn, "records")
+    guard_condition(
+        all(isinstance(r, dict) for r in records),
+        fn,
+        f"'records' expected list of dicts, "
+        f"found {type(records[0]).__name__} at index 0",
+    )
+
+    guard_type(db_config, dict, fn, "db_config")
+    guard_keys(db_config, {"host", "table_name"}, fn, "db_config")
+
+    guard_type(operation_id, str, fn, "operation_id")
+    guard_not_empty(operation_id, fn, "operation_id")
+
+    # Guard: all records must have consistent keys
+    expected_keys = set(records[0].keys())
+    for i, record in enumerate(records):
+        record_keys = set(record.keys())
+        guard_condition(
+            record_keys == expected_keys,
+            fn,
+            f"record at index {i} has inconsistent keys: "
+            f"expected {sorted(expected_keys)}, got {sorted(record_keys)}",
+        )
+
+    # --- TRACE INPUT ---
+    table_name = db_config["table_name"]
+    trace_event(
+        f"{fn}:input",
+        f"record_count={len(records)}, target_table='{table_name}'",
+        operation_id,
+    )
+    trace_data(f"{fn}:input_records", records, operation_id)
+
+    # --- SIDE EFFECT: Simulate bulk insert (write to JSON file) ---
+    output_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "pipeline_output.json",
+    )
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(records, f, indent=2, ensure_ascii=False)
+
+    # --- VERIFY: Confirm the write succeeded ---
+    verify_file_written(output_path, fn, min_size=1)
+
+    # Verify record count by reading back
+    with open(output_path, "r", encoding="utf-8") as f:
+        written_records = json.load(f)
+    verify_condition(
+        len(written_records) == len(records),
+        fn,
+        f"INSERT expected {len(records)} records, "
+        f"file contains {len(written_records)} records",
+    )
+
+    inserted_count = len(written_records)
+
+    # --- TRACE OUTPUT ---
+    trace_event(
+        f"{fn}:output",
+        f"inserted_count={inserted_count}",
+        operation_id,
+    )
+
+    return inserted_count
+
+
+# ===========================================================================
+# PIPELINE ORCHESTRATOR: run_pipeline
+# ===========================================================================
+
+def run_pipeline(filepath: str, schema: dict, db_config: dict) -> dict:
+    """Orchestrate the full CSV pipeline with a shared operation_id.
+
+    Guards: all inputs valid.
+    Traces: pipeline start and completion.
+
+    Args:
+        filepath:  Path to the CSV file.
+        schema:    Field renaming schema {old: new}.
+        db_config: Database configuration dict.
+
+    Returns:
+        Summary dict with operation_id, counts, and status.
+
+    Raises:
+        GuardError:  If any precondition fails.
+        VerifyError: If any verification fails.
+    """
+    fn = "run_pipeline"
+
+    # --- GUARDS ---
+    guard_type(filepath, str, fn, "filepath")
+    guard_not_empty(filepath, fn, "filepath")
+    guard_type(schema, dict, fn, "schema")
+    guard_not_empty(schema, fn, "schema")
+    guard_type(db_config, dict, fn, "db_config")
+    guard_keys(db_config, {"host", "table_name"}, fn, "db_config")
+
+    # Generate a single operation_id for the entire pipeline
+    operation_id = str(uuid.uuid4())
+
+    # --- TRACE: Pipeline start ---
+    trace_event(f"{fn}:start", "pipeline starting", operation_id)
+
+    # --- Stage 1: Ingest ---
+    records, operation_id = ingest_csv(filepath, operation_id)
+    records_ingested = len(records)
+
+    # --- Stage 2: Transform ---
+    transformed = transform_records(records, schema, operation_id)
+    records_transformed = len(transformed)
+
+    # --- Stage 3: Load ---
+    records_loaded = load_to_database(transformed, db_config, operation_id)
+
+    # --- TRACE: Pipeline completion ---
+    trace_event(
+        f"{fn}:complete",
+        f"ingested={records_ingested}, transformed={records_transformed}, "
+        f"loaded={records_loaded}",
+        operation_id,
+    )
+
+    summary = {
+        "operation_id": operation_id,
+        "records_ingested": records_ingested,
+        "records_transformed": records_transformed,
+        "records_loaded": records_loaded,
+        "status": "verified",
+    }
+
+    return summary
+
+
+# ===========================================================================
+# MAIN — End-to-end execution
+# ===========================================================================
+
+if __name__ == "__main__":
+    print("=" * 70)
+    print("CSV Pipeline — Bulwark AI Level 3 (Fully Bulwarked)")
+    print("=" * 70)
+
+    # Test data paths
+    test_csv = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "test_data.csv",
+    )
+
+    # Schema for transformation
+    schema = {
+        "first_name": "given_name",
+        "last_name": "family_name",
+        "email": "email_address",
+        "department": "dept",
+    }
+
+    # Database config (mock)
+    db_config = {
+        "host": "localhost:5432",
+        "table_name": "employees",
+    }
+
+    # Run the pipeline
+    result = run_pipeline(test_csv, schema, db_config)
+
+    print("\n" + "=" * 70)
+    print("Pipeline Result:")
+    print(json.dumps(result, indent=2))
+    print("=" * 70)
+
+    # Verify output file
+    output_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "pipeline_output.json",
+    )
+    with open(output_path, "r") as f:
+        output_data = json.load(f)
+    print(f"\nOutput file: {output_path}")
+    print(f"Records in output: {len(output_data)}")
+    print("Sample record:")
+    print(json.dumps(output_data[0], indent=2))
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

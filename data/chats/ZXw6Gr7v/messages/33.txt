@@ -1,0 +1,10 @@
+=== Step 1: Upload PDF to storage ===
+PDF size: 8770689 bytes
+Upload status: 200
+Upload response: {"Key":"project-documents/761c1d88-d1f1-4da1-8b53-441b9b2667c2/test-pipeline.pdf","Id":"f79e2749-fa82-40a7-85f0-e3e4bab980db"}
+
+=== Step 2: Create project_documents record ===
+Insert status: 201
+Insert response: [{"id":"aefe59d7-f05e-45ce-a624-d199447a8894","project_id":"761c1d88-d1f1-4da1-8b53-441b9b2667c2","title":"Test Pipeline PDF","description":null,"file_url":"761c1d88-d1f1-4da1-8b53-441b9b2667c2/test-pipeline.pdf","file_type":"application/pdf","file_size_bytes":8770689,"uploaded_by":null,"uploaded_at
+Document ID: aefe59d7-f05e-45ce-a624-d199447a8894
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

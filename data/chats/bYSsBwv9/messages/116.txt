@@ -1,0 +1,98 @@
+column_name       |        data_type
+-------------------------+--------------------------
+ id                      | uuid
+ organization_id         | uuid
+ trade_name              | text
+ version                 | integer
+ is_active               | boolean
+ definition              | jsonb
+ created_at              | timestamp with time zone
+ updated_at              | timestamp with time zone
+ scope                   | text
+ project_id              | uuid
+ parent_template_id      | uuid
+ copied_from_template_id | uuid
+ created_by              | uuid
+ updated_by              | uuid
+ library_id              | uuid
+ status                  | text
+ auto_generated          | boolean
+ generation_source       | text
+ generation_metadata     | jsonb
+ is_frozen               | boolean
+ trade_id                | uuid
+ sop_id                  | uuid
+Most commands optionally preceded by integer argument k.  Defaults in brackets.
+Star (*) indicates argument becomes new default.
+-------------------------------------------------------------------------------
+<space>                 Display next k lines of text [current screen size]
+z                       Display next k lines of text [current screen size]*
+<return>                Display next k lines of text [1]*
+d or ctrl-D             Scroll k lines [current scroll size, initially 11]*
+q or Q or <interrupt>   Exit from more
+s                       Skip forward k lines of text [1]
+f                       Skip forward k screenfuls of text [1]
+b or ctrl-B             Skip backwards k screenfuls of text [1]
+'                       Go to place where previous search started
+=                       Display current line number
+/<regular expression>   Search for kth occurrence of regular expression [1]
+n                       Search for kth occurrence of last r.e [1]
+!<cmd> or :!<cmd>       Execute <cmd> in a subshell
+v                       Start up '/usr/bin/vi' at current line
+ctrl-L                  Redraw screen
+:n                      Go to kth next file [1]
+:p                      Go to kth previous file [1]
+:f                      Display current file name and line number
+.                       Repeat previous command
+-------------------------------------------------------------------------------
+ outcome_id              | uuid
+ inheritance_depth       | integer
+ source_template_id      | uuid
+(25 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: ects: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === wo_projects columns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > >    column_name   |        data_type
+-----------------+--------------------------
+ id              | uuid
+ organization_id | uuid
+ name            | text
+ description     | text
+ status          | text
+ metadata        | jsonb
+ created_at      | timestamp with time zone
+ updated_at      | timestamp with time zone
+ project_type    | text
+ library_id      | uuid
+ outcome_id      | uuid
+(11 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === packages/config content ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > export const SUPABASE_URL = "http://127.0.0.1:54321";
+export const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+export const SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
+
+export const API_PORT = 3000;
+export const API_URL = `http://localhost:${API_PORT}`;
+
+export const WEB_DASHBOARD_PORT = 3001;
+export const WEB_DASHBOARD_URL = `http://localhost:${WEB_DASHBOARD_PORT}`;
+
+export const MATERIAL_ADMIN_PORT = 3002;
+export const MATERIAL_ADMIN_URL = `http://localhost:${MATERIAL_ADMIN_PORT}`;
+
+export const MOBILE_APP_PORT = 3003;
+export const MOBILE_APP_URL = `http://localhost:${MOBILE_APP_PORT}`;
+
+export const TENANT_PORTAL_PORT = 3005;
+export const TENANT_PORTAL_URL = `http://localhost:${TENANT_PORTAL_PORT}`;
+
+export const CORS_ORIGINS = [
+  WEB_DASHBOARD_URL,
+  MATERIAL_ADMIN_URL,
+  MOBILE_APP_URL,
+  TENANT_PORTAL_URL
+];
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === All .env files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

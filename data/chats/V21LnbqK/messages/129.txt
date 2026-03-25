@@ -1,0 +1,39 @@
+GitHub - life4/deal: 🤝 Design by contract for Python. Write bug-free code. Add a few decorators, get static analysis and tests for free.
+https://github.com/life4/deal
+A Python library for design by contract (DbC) and checking values, exceptions, and side-effects. In a nutshell, deal empowers you to write bug-free code. By adding a few decorators to your code, you get for free tests, static analysis, formal verification, and much more. Read intro to get started.
+
+GitHub - Parquery/icontract: Design-by-contract in Python3 with informative violation messages and inheritance
+https://github.com/Parquery/icontract
+Second, icontract allows inheritance of the contracts and supports weakining of the preconditions as well as strengthening of the postconditions and invariants. Notably, weakining and strengthening of the contracts is a feature indispensable for modeling many non-trivial class hierarchies. Please see Section Inheritance. To the best of our knowledge, there is currently no other Python library that supports inheritance of the contracts in a correct way.
+
+Deal — Deal documentation
+https://deal.readthedocs.io/
+¶ A Python library for design by contract (DbC) and checking values, exceptions, and side-effects. In a nutshell, deal empowers you to write bug-free code. By adding a few decorators to your code, you get for free tests, static analysis, formal verification, and much more. Read intro to get started.
+
+Deal Documentation @orsinium Mar 24, 2023
+https://deal.readthedocs.io/_/downloads/en/latest/pdf/
+This page provides a quick navigation by the documentation in case if you’re looking for something speciﬁc. ... Precondition – condition that must be true before the function is executed. @deal.pre(lambda *args: all(arg > 0 for arg in args)) ... Postcondition – condition that must be ...
+
+Using Design by Contract in Python - Stack Overflow
+https://stackoverflow.com/questions/8563464/using-design-by-contract-in-python
+
+
+static-analysis/README.md at master - GitHub
+https://github.com/analysis-tools-dev/static-analysis/blob/master/README.md
+cohesion ⚠️ — A tool for measuring Python class cohesion. deal — Design by contract for Python. Write bug-free code. By adding a few decorators to your ...
+
+Python-by-Contract Dataset Jiyang Zhang jiyang.zhang@utexas.edu
+https://jiyangzhang.github.io/assets/pdf/papers/PythonContract.pdf
+represents Python function; Pre-C. represents precondition; Post-C. represents postcondition; Inv.
+
+postconditions · GitHub Topics · GitHub
+https://github.com/topics/postconditions
+️ Assertive python design by contract toolkit for software validation. Simplify preconditions, postconditions, and invariants with easy-to-use decorators.
+
+Clarification requested for Expects/Ensures contract violation behavior
+https://github.com/isocpp/CppCoreGuidelines/issues/1561
+Jan 29, 2020 ... Let me first state the obvious: GSL_THROW_ON_CONTRACT_VIOLATION was very useful for testing precondition checks. Getting rid of this option ...
+
+deal · PyPI
+https://pypi.org/project/deal/
+A Python library for design by contract (DbC) and checking values, exceptions, and side-effects. In a nutshell, deal empowers you to write bug-free code. By adding a few decorators to your code, you get for free tests, static analysis, formal verification, and much more. Read intro to get started. Features Classic DbC: precondition, postcondition, invariant. Tracking exceptions and side ...

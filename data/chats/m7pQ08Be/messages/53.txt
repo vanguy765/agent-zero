@@ -1,0 +1,70 @@
+#### Why Availability Guards Are an Extension, Not Core
+
+The three core layers — Guard, Trace, Verify — share a key property: they can be added to *any* function without changing its signature, its callers, or its infrastructure. They're purely additive.
+
+Availability Guards are different. They're a *startup-time* concern, not a *per-function* concern. They require knowledge of your deployment topology (which services exist, where they live, what their health endpoints look like). Including them in the core would break the "add it to any function" simplicity that makes Bulwark easy to adopt.
+
+That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+
+---
+
+## 6. How to Add Bulwark to Your Project
+
+Ready to start? Here's a step-by-step guide. The most important thing to know: **you can do this one function at a time.** You don't need to refactor your entire codebase. Pick one function, add the layers, and expand from there.
+
+### Step 1: Copy the Helpers and Configure
+
+Grab the reference implementation for your language from the `reference/` directory:
+
+- **Python:** [`reference/bulwark.py`](reference/bulwark.py)
+- **TypeScript:** [`reference/bulwark.ts`](reference/bulwark.ts)
+
+Copy the file into your project. These helpers provide `guard()`, `guard_type()`, `guard_keys()`, `trace()`, `describe_shape()`, `verify()`, and `configure()` — all implemented with zero external dependencies.
+
+If you prefer, you can skip the helpers entirely and write raw `if/raise` statements. The helpers are a convenience, not a requirement.
+
+Then, at your application's startup (before any Bulwark-protected functions run), call `configure()` to set your runtime mode:
+
+```python
+# Python — at the top of your main entry point
+from bulwark import configure
+
+configure(mode='development')  # or 'staging' or 'production'
+```
+
+```typescript
+// TypeScript — at the top of your main entry point
+import { configure } from './bulwark';
+
+configure({ mode: 'development' });  // or 'staging' or 'production'
+```
+
+If you don't call `configure()`, Bulwark defaults to `development` mode with full verbosity — the safest starting point. See [Section 5.1](#51-configuring-bulwark-ai) for all configuration options.
+
+### Step 2: Pick Your First Function
+
+Start with a function that **reads from an external source** — an API call, a database query, or a file read. These are the most common sources of AI code failures because the data shape is unpredictable.
+
+Good first candidates:
+- A function that fetches data from a REST API
+- A function that reads configuration from a file
+- A function that queries a database and processes the results
+
+### Step 3: Add Guards at the Top
+
+At the very beginning of your function, before any business logic, add Guards that check:
+
+1. **Presence** — Is the data `None`/`null`/`undefined`?
+2. **Type** — Is it the type you expect (dict, list, string)?
+3. **Shape** — Does it have the keys/fields/indices you need?
+4. **Non-emptiness** — If it's a collection, does it have elements?
+
+```python
+def process_api_data(response):
+    # --- GUARD ---
+    guard_type(response, dict, "process_api_data", "response")
+    guard_keys(response, {"data", "status"}, "process_api_data", "response")
+    guard(len(response["data"]) > 0, "process_api_data",
+          "expected 'data' to be non-empty")
+    # --- END GUARD ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

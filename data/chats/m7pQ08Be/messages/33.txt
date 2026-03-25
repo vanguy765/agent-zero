@@ -1,0 +1,1340 @@
+/**
+ * Bulwark AI — TypeScript Reference Implementation
+ *
+ * Zero-dependency defensive coding primitives for AI-generated code.
+ * Implements the Guard-Trace-Verify standard using only built-in features.
+ *
+ * Version: 0.2.0-draft
+ * License: MIT
+ * Usage:  Copy this file into your project. No npm install needed.
+ *
+ * Quick start:
+ *   import { guardType, guardKeys, trace, verify, configure } from "./bulwark";
+ *
+ *   configure({ mode: "production" });
+ *
+ *   function process(data: unknown) {
+ *     guardType(data, "object", "process", "data");
+ *     guardKeys(data, ["id", "name"], "process", "data");
+ *     const checked = trace("afterGuard", data);
+ *     const result = await db.insert(checked);
+ *     verify(result.rowCount === 1, "process", "INSERT expected 1 row");
+ *   }
+ *
+ * Configuration:
+ *   // Via environment variables:
+ *   BULWARK_MODE=production          // development (default), staging, production
+ *   BULWARK_TRACE_LEVEL=INFO         // DEBUG (default), INFO, WARNING, ERROR, OFF
+ *   BULWARK_VERIFY_STRATEGY=full     // full (default), sampled, adaptive
+ *   BULWARK_VERIFY_SAMPLE_RATE=0.01  // For sampled strategy: verify 1% of ops
+ *
+ *   // Via code:
+ *   import { configure } from "./bulwark";
+ *   configure({ mode: "production", verifyStrategy: "sampled" });
+ */
+
+// ===========================================================================
+// Configuration
+// ===========================================================================
+
+type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
+type BulwarkMode = "development" | "staging" | "production";
+type TraceLevel = "DEBUG" | "INFO" | "WARNING" | "ERROR" | "OFF";
+type VerifyStrategy = "full" | "sampled" | "adaptive";
+
+const VALID_MODES = new Set<BulwarkMode>(["development", "staging", "production"]);
+const VALID_TRACE_LEVELS = new Set<TraceLevel>(["DEBUG", "INFO", "WARNING", "ERROR", "OFF"]);
+const VALID_VERIFY_STRATEGIES = new Set<VerifyStrategy>(["full", "sampled", "adaptive"]);
+
+/**
+ * Numeric priority for trace levels. Higher = less verbose.
+ * Used to decide whether a trace should produce output.
+ */
+const TRACE_LEVEL_PRIORITY: Record<TraceLevel, number> = {
+  DEBUG: 0,
+  INFO: 1,
+  WARNING: 2,
+  ERROR: 3,
+  OFF: 99,
+};
+
+/**
+ * Internal configuration state for Bulwark AI.
+ *
+ * Design decision: We use a mutable config object instead of module-level
+ * constants so that configuration can be changed at runtime (e.g., to
+ * increase trace verbosity during an incident without redeploying).
+ */
+interface BulwarkConfigState {
+  /** Controls default behavior of all layers */
+  mode: BulwarkMode;
+
+  /**
+   * Guards: always active. This setting exists only for extreme edge
+   * cases (e.g., benchmarking). In normal use, guards are NEVER disabled.
+   * See SPEC.md §6.2 for rationale.
+   */
+  guardsEnabled: boolean;
+
+  /**
+   * Traces: always present in code, output controlled by level.
+   * DEBUG   = full shape at every boundary (development default)
+   * INFO    = summary traces (type + size only)
+   * WARNING = only anomalies (null, empty)
+   * ERROR   = silent (but code is there, lower level to activate)
+   * OFF     = no trace output at all
+   */
+  traceLevel: TraceLevel;
+
+  /**
+   * Verifies: always present, strategy adapts to context.
+   * full     = verify every operation (development/staging default)
+   * sampled  = verify a percentage of operations (high-throughput production)
+   * adaptive = full for critical ops, sampled for high-throughput
+   */
+  verifyStrategy: VerifyStrategy;
+
+  /**
+   * For sampled strategy: what percentage of operations to verify.
+   * 0.01 = 1%, 0.05 = 5%, 1.0 = 100% (equivalent to "full")
+   */
+  verifySampleRate: number;
+}
+
+/** Read an environment variable safely (works in Node.js, returns undefined in browser) */
+function getEnv(key: string): string | undefined {
+  try {
+    return typeof process !== "undefined" && process.env ? process.env[key] : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Apply sensible defaults for a given mode */
+function applyModeDefaults(config: BulwarkConfigState, mode: BulwarkMode): void {
+  switch (mode) {
+    case "development":
+      config.traceLevel = "DEBUG";
+      config.verifyStrategy = "full";
+      break;
+    case "staging":
+      config.traceLevel = "DEBUG";
+      config.verifyStrategy = "full";
+      break;
+    case "production":
+      config.traceLevel = "INFO";
+      config.verifyStrategy = "adaptive";
+      break;
+  }
+}
+
+/** Create default configuration, then apply environment overrides */
+function createDefaultConfig(): BulwarkConfigState {
+  const config: BulwarkConfigState = {
+    mode: "development",
+    guardsEnabled: true,
+    traceLevel: "DEBUG",
+    verifyStrategy: "full",
+    verifySampleRate: 0.01,
+  };
+
+  // Environment variable overrides
+  const envMode = getEnv("BULWARK_MODE")?.toLowerCase() as BulwarkMode | undefined;
+  if (envMode && VALID_MODES.has(envMode)) {
+    config.mode = envMode;
+    applyModeDefaults(config, envMode);
+  }
+
+  const envTrace = getEnv("BULWARK_TRACE_LEVEL")?.toUpperCase() as TraceLevel | undefined;
+  if (envTrace && VALID_TRACE_LEVELS.has(envTrace)) {
+    config.traceLevel = envTrace;
+  }
+
+  const envVerify = getEnv("BULWARK_VERIFY_STRATEGY")?.toLowerCase() as VerifyStrategy | undefined;
+  if (envVerify && VALID_VERIFY_STRATEGIES.has(envVerify)) {
+    config.verifyStrategy = envVerify;
+  }
+
+  const envRate = getEnv("BULWARK_VERIFY_SAMPLE_RATE");
+  if (envRate) {
+    const rate = parseFloat(envRate);
+    if (!isNaN(rate) && rate > 0 && rate <= 1) {
+      config.verifySampleRate = rate;
+    }
+  }
+
+  if (getEnv("BULWARK_GUARDS") === "0") {
+    config.guardsEnabled = false;
+  }
+
+  return config;
+}
+
+// Module-level singleton
+const _config: BulwarkConfigState = createDefaultConfig();
+
+/**
+ * Configuration options accepted by `configure()`.
+ * All fields are optional — omitted fields keep their current value.
+ */
+export interface ConfigureOptions {
+  /** "development", "staging", or "production". Sets sensible defaults for all other settings. */
+  mode?: BulwarkMode;
+  /** Whether guards are active. Default true. WARNING: Setting false removes your primary defense. */
+  guardsEnabled?: boolean;
+  /** "DEBUG", "INFO", "WARNING", "ERROR", or "OFF". */
+  traceLevel?: TraceLevel;
+  /** "full", "sampled", or "adaptive". */
+  verifyStrategy?: VerifyStrategy;
+  /** Float 0.0-1.0. For sampled strategy, what fraction of operations to verify. */
+  verifySampleRate?: number;
+}
+
+/**
+ * Configure Bulwark AI runtime behavior.
+ *
+ * Call this once at application startup. Any field left undefined
+ * keeps its current value (from defaults or environment variables).
+ *
+ * @example
+ * // Production with sampled verification
+ * configure({ mode: "production", verifyStrategy: "sampled", verifySampleRate: 0.05 });
+ *
+ * // Development (verbose everything — the default)
+ * configure({ mode: "development" });
+ */
+export function configure(options: ConfigureOptions): void {
+  if (options.mode !== undefined) {
+    if (!VALID_MODES.has(options.mode)) {
+      throw new Error(
+        `BULWARK:configure | invalid mode '${options.mode}', ` +
+        `expected one of: ${[...VALID_MODES].sort().join(", ")}`
+      );
+    }
+    _config.mode = options.mode;
+    applyModeDefaults(_config, options.mode);
+  }
+
+  if (options.guardsEnabled !== undefined) {
+    _config.guardsEnabled = options.guardsEnabled;
+    if (!options.guardsEnabled) {
+      bulwarkLog(
+        "WARN",
+        "BULWARK:configure | guards DISABLED — this removes your " +
+        "primary defense against silent data failures. " +
+        "See SPEC.md §6.2 for why this is not recommended."
+      );
+    }
+  }
+
+  if (options.traceLevel !== undefined) {
+    const level = options.traceLevel.toUpperCase() as TraceLevel;
+    if (!VALID_TRACE_LEVELS.has(level)) {
+      throw new Error(
+        `BULWARK:configure | invalid traceLevel '${options.traceLevel}', ` +
+        `expected one of: ${[...VALID_TRACE_LEVELS].sort().join(", ")}`
+      );
+    }
+    _config.traceLevel = level;
+  }
+
+  if (options.verifyStrategy !== undefined) {
+    if (!VALID_VERIFY_STRATEGIES.has(options.verifyStrategy)) {
+      throw new Error(
+        `BULWARK:configure | invalid verifyStrategy '${options.verifyStrategy}', ` +
+        `expected one of: ${[...VALID_VERIFY_STRATEGIES].sort().join(", ")}`
+      );
+    }
+    _config.verifyStrategy = options.verifyStrategy;
+  }
+
+  if (options.verifySampleRate !== undefined) {
+    if (options.verifySampleRate <= 0 || options.verifySampleRate > 1) {
+      throw new Error(
+        `BULWARK:configure | verifySampleRate must be between ` +
+        `0.0 (exclusive) and 1.0 (inclusive), got ${options.verifySampleRate}`
+      );
+    }
+    _config.verifySampleRate = options.verifySampleRate;
+  }
+}
+
+/**
+ * Return current Bulwark configuration as a plain object.
+ * Useful for logging configuration at startup or debugging.
+ */
+export function getConfig(): Readonly<BulwarkConfigState> {
+  return { ..._config };
+}
+
+// ---------------------------------------------------------------------------
+// Logging
+// ---------------------------------------------------------------------------
+
+function bulwarkLog(level: LogLevel, message: string): void {
+  const timestamp = new Date().toISOString().replace("T", " ").slice(0, 19);
+  const prefix = `${timestamp} | ${level.padEnd(5)} |`;
+  switch (level) {
+    case "ERROR":
+      console.error(`${prefix} ${message}`);
+      break;
+    case "WARN":
+      console.warn(`${prefix} ${message}`);
+      break;
+    case "DEBUG":
+      // Use console.debug if available, fall back to console.log
+      (console.debug || console.log)(`${prefix} ${message}`);
+      break;
+    default:
+      console.log(`${prefix} ${message}`);
+  }
+}
+
+// ===========================================================================
+// LAYER 1: GUARD — Validate before processing
+//
+// Guards are ALWAYS active. They cost nanoseconds (typeof, "key" in obj)
+// and catch the most common AI failure modes: wrong data shape, missing
+// keys, unexpected types. See SPEC.md §3.1 and §6.2.
+// ===========================================================================
+
+/**
+ * Error thrown when a Guard validation fails.
+ * Extends Error directly (not a subclass of any built-in assertion type)
+ * so it is never stripped by minifiers or optimization passes.
+ */
+export class GuardError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GuardError";
+  }
+}
+
+/**
+ * Core guard primitive. Throws GuardError if condition is false.
+ *
+ * Guards are the first line of defense. They validate that data matches
+ * expectations BEFORE your function tries to use it. When a guard fails,
+ * it tells you (or the AI agent) exactly what was expected and what was
+ * received, so the fix is obvious.
+ *
+ * @param condition     - The boolean condition that must be true
+ * @param functionName  - Name of the function performing the guard
+ * @param message       - Diagnostic message (expected vs actual)
+ *
+ * @example
+ * guard(typeof data === "object", "process", `expected object, got ${typeof data}`);
+ */
+export function guard(
+  condition: boolean,
+  functionName: string,
+  message: string
+): asserts condition {
+  if (!_config.guardsEnabled) return;
+  if (!condition) {
+    const diag = `GUARD:${functionName} | ${message}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+}
+
+/**
+ * Guard that validates the runtime type of a value.
+ *
+ * This is the most common guard. AI agents frequently assume a function
+ * receives an object when it actually receives an array, or a string when
+ * it receives null.
+ *
+ * @example
+ * guardType(response, "object", "fetchPages", "apiResponse");
+ */
+export function guardType(
+  value: unknown,
+  expectedType: string,
+  functionName: string,
+  paramName: string = "input"
+): void {
+  const actualType =
+    value === null ? "null" : Array.isArray(value) ? "array" : typeof value;
+  guard(
+    actualType === expectedType,
+    functionName,
+    `'${paramName}' expected ${expectedType}, got ${actualType}`
+  );
+}
+
+/**
+ * Guard that validates required keys exist in an object.
+ *
+ * AI agents routinely access object properties that don't exist because
+ * they assumed the API response shape without checking. This guard catches
+ * that before the runtime error.
+ *
+ * @example
+ * guardKeys(response, ["pages", "metadata"], "processDoc", "apiResponse");
+ */
+export function guardKeys(
+  data: unknown,
+  requiredKeys: string[],
+  functionName: string,
+  paramName: string = "input"
+): void {
+  guard(
+    data !== null && data !== undefined && typeof data === "object",
+    functionName,
+    `'${paramName}' expected object, got ${data === null ? "null" : typeof data}`
+  );
+
+  const obj = data as Record<string, unknown>;
+  const available = Object.keys(obj);
+  const missing = requiredKeys.filter((k) => !(k in obj));
+
+  guard(
+    missing.length === 0,
+    functionName,
+    `'${paramName}' missing keys: [${missing.join(", ")}], ` +
+    `available: [${available.join(", ")}]`
+  );
+}
+
+/**
+ * Guard that validates a value is not null or undefined.
+ *
+ * @example
+ * guardNotNone(userId, "getUser", "userId");
+ */
+export function guardNotNone(
+  value: unknown,
+  functionName: string,
+  paramName: string = "input"
+): void {
+  guard(
+    value !== null && value !== undefined,
+    functionName,
+    `'${paramName}' is ${value === null ? "null" : "undefined"}`
+  );
+}
+
+/**
+ * Guard that validates a collection is not empty.
+ *
+ * AI agents love to write `process(results[0])` without checking if
+ * results is empty. This guard catches empty collections before they
+ * cause runtime errors.
+ *
+ * @example
+ * guardNotEmpty(pages, "processPages", "pagesList");
+ */
+export function guardNotEmpty(
+  value: unknown,
+  functionName: string,
+  paramName: string = "input"
+): void {
+  guardNotNone(value, functionName, paramName);
+
+  if (Array.isArray(value)) {
+    guard(
+      value.length > 0,
+      functionName,
+      `'${paramName}' is empty (array, length=0)`
+    );
+  } else if (typeof value === "string") {
+    guard(
+      value.length > 0,
+      functionName,
+      `'${paramName}' is empty (string, length=0)`
+    );
+  } else if (typeof value === "object" && value !== null) {
+    guard(
+      Object.keys(value as Record<string, unknown>).length > 0,
+      functionName,
+      `'${paramName}' is empty (object, 0 keys)`
+    );
+  }
+}
+
+/**
+ * Guard that validates a numeric value is within bounds.
+ *
+ * @example
+ * guardRange(pageCount, { min: 1, max: 10000 }, "parse", "pageCount");
+ */
+export function guardRange(
+  value: number,
+  bounds: { min?: number; max?: number },
+  functionName: string,
+  paramName: string = "input"
+): void {
+  if (bounds.min !== undefined) {
+    guard(
+      value >= bounds.min,
+      functionName,
+      `'${paramName}' value ${value} below minimum ${bounds.min}`
+    );
+  }
+  if (bounds.max !== undefined) {
+    guard(
+      value <= bounds.max,
+      functionName,
+      `'${paramName}' value ${value} above maximum ${bounds.max}`
+    );
+  }
+}
+
+// ===========================================================================
+// LAYER 2: TRACE — Log shape at phase boundaries
+//
+// Traces are your flight recorder. The code is ALWAYS present, but the
+// output respects the configured trace level. In production, you can
+// increase the level without redeploying to diagnose issues.
+// See SPEC.md §3.2 and §6.3.
+// ===========================================================================
+
+/**
+ * Describe the structural shape of data without exposing content.
+ *
+ * This function is the heart of the Trace layer. It tells you WHAT
+ * your data looks like (type, size, structure) without revealing
+ * WHAT'S IN IT (values, PII, secrets).
+ *
+ * @returns Shape description string like:
+ *   "object, keys=[id,name,pages], len=3"
+ *   "array, len=47, items=object{keys=[id,content]}"
+ *   "string, len=4096"
+ *   "null"
+ */
+export function describeShape(
+  data: unknown,
+  maxDepth: number = 2,
+  _depth: number = 0
+): string {
+  if (data === null) return "null";
+  if (data === undefined) return "undefined";
+
+  if (Array.isArray(data)) {
+    let shape = `array, len=${data.length}`;
+    if (data.length === 0) {
+      shape += " (EMPTY)";
+    } else if (_depth < maxDepth) {
+      const itemShape = describeShape(data[0], maxDepth, _depth + 1);
+      shape += `, items=${itemShape}`;
+    }
+    return shape;
+  }
+
+  if (typeof data === "object") {
+    const keys = Object.keys(data as Record<string, unknown>).sort();
+    let shape = `object, keys=[${keys.join(",")}], len=${keys.length}`;
+    if (_depth < maxDepth && keys.length > 0) {
+      const firstKey = keys[0];
+      const firstShape = describeShape(
+        (data as Record<string, unknown>)[firstKey],
+        maxDepth,
+        _depth + 1
+      );
+      shape += `, sample['${firstKey}']=${firstShape}`;
+    }
+    return shape;
+  }
+
+  if (typeof data === "string") {
+    return `string, len=${data.length}`;
+  }
+
+  return typeof data;
+}
+
+/** Get length of data safely, returning "?" if not applicable. */
+function safeLen(data: unknown): string {
+  if (data === null || data === undefined) return "?";
+  if (Array.isArray(data)) return String(data.length);
+  if (typeof data === "string") return String(data.length);
+  if (typeof data === "object") return String(Object.keys(data).length);
+  return "?";
+}
+
+/**
+ * Log the shape of data at a phase boundary. Non-destructive pass-through.
+ *
+ * The trace is always in your code, but what it outputs depends on the
+ * configured trace level:
+ *
+ * - DEBUG:    Full shape description (type, keys, nested structure)
+ * - INFO:     Summary only (type + size)
+ * - WARNING:  Only anomalies (null, empty data)
+ * - ERROR/OFF: Silent (but the code is here — lower the level to activate)
+ *
+ * @param label - Human-readable label for this phase boundary
+ * @param data  - The data to trace (returned unchanged)
+ * @returns The data, unchanged. Always.
+ *
+ * @example
+ * const raw = trace("afterFetch", await fetchDocument(url));
+ * const parsed = trace("afterParse", parseResponse(raw));
+ */
+export function trace<T>(label: string, data: T): T {
+  const configuredPriority = TRACE_LEVEL_PRIORITY[_config.traceLevel];
+
+  if (configuredPriority <= TRACE_LEVEL_PRIORITY.DEBUG) {
+    // Full shape — development mode
+    const shape = describeShape(data);
+    bulwarkLog("DEBUG", `TRACE:${label} | ${shape}`);
+  } else if (configuredPriority <= TRACE_LEVEL_PRIORITY.INFO) {
+    // Summary — production verbose mode
+    const typeName =
+      data === null ? "null" :
+      data === undefined ? "undefined" :
+      Array.isArray(data) ? "array" : typeof data;
+    bulwarkLog("INFO", `TRACE:${label} | ${typeName}, len=${safeLen(data)}`);
+  } else if (configuredPriority <= TRACE_LEVEL_PRIORITY.WARNING) {
+    // Only trace anomalies
+    if (
+      data === null ||
+      data === undefined ||
+      (Array.isArray(data) && data.length === 0) ||
+      (typeof data === "object" && data !== null && Object.keys(data).length === 0)
+    ) {
+      bulwarkLog("WARN", `TRACE:${label} | UNEXPECTED: ${describeShape(data)}`);
+    }
+  }
+  // ERROR and OFF: no output
+
+  return data; // Always pass-through, regardless of level
+}
+
+/**
+ * Trace at WARN level — use when shape is unexpected but non-fatal.
+ *
+ * This always emits regardless of traceLevel configuration, because
+ * it represents an anomaly worth recording.
+ */
+export function traceWarn<T>(label: string, data: T): T {
+  const shape = describeShape(data);
+  bulwarkLog("WARN", `TRACE:${label} | ANOMALY: ${shape}`);
+  return data;
+}
+
+// ===========================================================================
+// LAYER 3: VERIFY — Confirm side effects actually happened
+//
+// Verifies are always present in code. The STRATEGY adapts to context:
+// - full:     verify every operation (default, best for dev/staging)
+// - sampled:  verify a percentage of operations (high-throughput production)
+// - adaptive: full for critical ops, sampled for normal ops
+// See SPEC.md §3.3 and §6.4.
+// ===========================================================================
+
+/**
+ * Error thrown when a Verify confirmation fails.
+ */
+export class VerifyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "VerifyError";
+  }
+}
+
+/**
+ * Determine whether this operation should be verified based on strategy.
+ *
+ * @param critical - If true, always verify regardless of strategy.
+ *                   Use for payments, auth changes, deletions, etc.
+ * @returns true if this operation should be verified.
+ */
+function shouldVerify(critical: boolean = false): boolean {
+  // Critical operations are ALWAYS verified. No exceptions.
+  // See SPEC.md §3.3.5 "Critical Operations: Always Full Verify"
+  if (critical) return true;
+
+  const strategy = _config.verifyStrategy;
+
+  if (strategy === "full") return true;
+
+  if (strategy === "sampled" || strategy === "adaptive") {
+    return Math.random() < _config.verifySampleRate;
+  }
+
+  return true; // Unknown strategy: verify everything (safe default)
+}
+
+/**
+ * Core verify primitive. Throws VerifyError if condition is false.
+ *
+ * Verifies confirm that a side effect (database write, file write, API
+ * call) actually achieved its intended result. Without verification,
+ * your code might report "success" when nothing actually happened.
+ *
+ * The `critical` flag ensures that important operations (payments,
+ * auth changes, deletions) are ALWAYS verified, even when the verify
+ * strategy is set to "sampled" for high-throughput production use.
+ *
+ * @param condition     - The boolean condition that must be true
+ * @param functionName  - Name of the function performing the verify
+ * @param message       - Diagnostic message (expected vs actual)
+ * @param critical      - If true, always verify regardless of strategy
+ *
+ * @example
+ * verify(result.rowCount === 10, "save",
+ *        `INSERT expected 10 rows, affected ${result.rowCount}`);
+ *
+ * // Critical operation — always verified:
+ * verify(payment.status === "completed", "chargeCard",
+ *        `payment expected 'completed', got '${payment.status}'`,
+ *        true);
+ */
+export function verify(
+  condition: boolean,
+  functionName: string,
+  message: string,
+  critical: boolean = false
+): asserts condition {
+  if (!shouldVerify(critical)) return;
+  if (!condition) {
+    const diag = `VERIFY:${functionName} | ${message}`;
+    bulwarkLog("ERROR", diag);
+    throw new VerifyError(diag);
+  } else {
+    bulwarkLog("DEBUG", `VERIFY:${functionName} | OK — ${message}`);
+  }
+}
+
+/**
+ * Verify that a database operation affected the expected number of rows.
+ *
+ * Works with most Node.js database libraries (pg, mysql2, better-sqlite3,
+ * Prisma, Knex) by checking common property names for row count.
+ *
+ * @example
+ * const result = await db.query("INSERT INTO users ...", records);
+ * verifyRowcount(result, records.length, "saveUsers");
+ *
+ * // Critical: always verify deletions
+ * verifyRowcount(result, 1, "deleteUser", "DELETE", true);
+ */
+export function verifyRowcount(
+  result: Record<string, unknown>,
+  expected: number,
+  functionName: string,
+  operation: string = "INSERT",
+  critical: boolean = false
+): void {
+  if (!shouldVerify(critical)) return;
+
+  // Try common property names for affected row count
+  const actual =
+    (result.rowCount as number | undefined) ??
+    (result.rowcount as number | undefined) ??
+    (result.affectedRows as number | undefined) ??
+    (result.changes as number | undefined) ??
+    (result.count as number | undefined);
+
+  if (actual !== undefined && actual !== null) {
+    verify(
+      actual === expected,
+      functionName,
+      `${operation} expected ${expected} rows, affected ${actual}`,
+      critical
+    );
+  } else {
+    bulwarkLog(
+      "WARN",
+      `VERIFY:${functionName} | ${operation} rowcount unavailable — ` +
+      `manual verification recommended. Result keys: [${Object.keys(result).join(", ")}]`
+    );
+  }
+}
+
+/**
+ * Verify that an HTTP response has the expected status code.
+ * Works with fetch Response, axios response, or any object with a status property.
+ *
+ * @example
+ * const resp = await fetch(url, { method: "POST", body: JSON.stringify(data) });
+ * verifyResponseOk(resp, "createResource", 201);
+ */
+export function verifyResponseOk(
+  response: Record<string, unknown>,
+  functionName: string,
+  expectedStatus: number = 200,
+  critical: boolean = false
+): void {
+  if (!shouldVerify(critical)) return;
+
+  const status =
+    (response.status as number | undefined) ??
+    (response.statusCode as number | undefined);
+
+  verify(
+    status !== undefined && status !== null,
+    functionName,
+    `response object has no status property, available: [${Object.keys(response).join(", ")}]`,
+    critical
+  );
+
+  verify(
+    status === expectedStatus,
+    functionName,
+    `HTTP expected status ${expectedStatus}, got ${status}`,
+    critical
+  );
+}
+
+/**
+ * Verify that a file write operation produced a non-empty file.
+ * Node.js only — uses fs module.
+ *
+ * File verifications are cheap (stat call) so they always run
+ * regardless of verify strategy.
+ *
+ * @example
+ * fs.writeFileSync(path, JSON.stringify(data));
+ * verifyFileWritten(path, "exportResults");
+ */
+export function verifyFileWritten(
+  filepath: string,
+  functionName: string,
+  minSize: number = 1
+): void {
+  // File checks are so cheap we always run them
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const fs = require("fs");
+
+  if (!fs.existsSync(filepath)) {
+    const diag = `VERIFY:${functionName} | file '${filepath}' does not exist after write`;
+    bulwarkLog("ERROR", diag);
+    throw new VerifyError(diag);
+  }
+
+  const stats = fs.statSync(filepath);
+  if (stats.size < minSize) {
+    const diag =
+      `VERIFY:${functionName} | file '${filepath}' expected size >= ${minSize} bytes, ` +
+      `actual: ${stats.size} bytes`;
+    bulwarkLog("ERROR", diag);
+    throw new VerifyError(diag);
+  }
+
+  bulwarkLog(
+    "DEBUG",
+    `VERIFY:${functionName} | OK — file '${filepath}' exists, size=${stats.size} bytes`
+  );
+}
+
+// ===========================================================================
+// EXTENSION: AVAILABILITY GUARD
+//
+// Checks that an external dependency is reachable. Use at service startup
+// or pipeline initialization — NOT on every individual call.
+// See SPEC.md §10.1.
+// ===========================================================================
+
+/**
+ * Verify that an external dependency is reachable.
+ *
+ * Use this at service initialization, pipeline start, or health check
+ * endpoints. Do NOT use on every individual API call — that would add
+ * unacceptable latency.
+ *
+ * @param check         - A function that returns true if the dependency is available.
+ *                        Should have a timeout built in.
+ * @param functionName  - Name of the function performing the check.
+ * @param dependency    - Human-readable name of the dependency.
+ * @param message       - Optional custom error message.
+ *
+ * @example
+ * // At application startup:
+ * guardAvailable(
+ *   () => fetch("http://db:5432/health").then(r => r.status < 500),
+ *   "appStartup",
+ *   "database"
+ * );
+ *
+ * // Synchronous check:
+ * guardAvailable(
+ *   () => fs.existsSync("/mnt/data/input"),
+ *   "pipelineStart",
+ *   "input data directory"
+ * );
+ */
+export function guardAvailable(
+  check: () => boolean,
+  functionName: string,
+  dependency: string,
+  message?: string
+): void {
+  if (!_config.guardsEnabled) return;
+
+  let available: boolean;
+  try {
+    available = check();
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    const diag =
+      `GUARD:AVAILABLE:${functionName} | ` +
+      `${dependency} — check raised ${err.name}: ${err.message}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+
+  if (!available) {
+    const diag =
+      `GUARD:AVAILABLE:${functionName} | ` +
+      `${dependency} — ${message || "not available"}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+
+  bulwarkLog("INFO", `GUARD:AVAILABLE:${functionName} | ${dependency} — OK`);
+}
+
+/**
+ * Async version of guardAvailable for checks that return Promises.
+ *
+ * @example
+ * await guardAvailableAsync(
+ *   async () => {
+ *     const r = await fetch("http://api:3000/health", { signal: AbortSignal.timeout(5000) });
+ *     return r.status < 500;
+ *   },
+ *   "appStartup",
+ *   "api-service"
+ * );
+ */
+export async function guardAvailableAsync(
+  check: () => Promise<boolean>,
+  functionName: string,
+  dependency: string,
+  message?: string
+): Promise<void> {
+  if (!_config.guardsEnabled) return;
+
+  let available: boolean;
+  try {
+    available = await check();
+  } catch (e) {
+    const err = e instanceof Error ? e : new Error(String(e));
+    const diag =
+      `GUARD:AVAILABLE:${functionName} | ` +
+      `${dependency} — check raised ${err.name}: ${err.message}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+
+  if (!available) {
+    const diag =
+      `GUARD:AVAILABLE:${functionName} | ` +
+      `${dependency} — ${message || "not available"}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+
+  bulwarkLog("INFO", `GUARD:AVAILABLE:${functionName} | ${dependency} — OK`);
+}
+
+// ===========================================================================
+// DECORATORS — For class-based usage (TypeScript 5+ decorators)
+// ===========================================================================
+
+/**
+ * Method decorator that traces input/output shapes.
+ *
+ * @example
+ * class Pipeline {
+ *   @Traced("parseStage")
+ *   parse(rawData: unknown): ParsedData { ... }
+ * }
+ */
+export function Traced(label?: string) {
+  return function (
+    target: unknown,
+    context: ClassMethodDecoratorContext
+  ) {
+    const methodName = String(context.name);
+    const traceLabel = label || methodName;
+
+    return function (this: unknown, ...args: unknown[]) {
+      if (args.length > 0) {
+        trace(`${traceLabel}:input`, args[0]);
+      }
+      const result = (target as Function).apply(this, args);
+      trace(`${traceLabel}:output`, result);
+      return result;
+    };
+  };
+}
+
+// ===========================================================================
+// PIPELINE UTILITIES
+// ===========================================================================
+
+interface PipelineStage {
+  name: string;
+  func: (data: unknown) => unknown;
+  inputType?: string;
+  requiredKeys?: string[];
+  notEmpty?: boolean;
+}
+
+/**
+ * A simple pipeline runner with built-in Guard-Trace-Verify.
+ *
+ * Wraps a sequence of processing stages with automatic guards at
+ * each stage input and traces at each stage output.
+ *
+ * @example
+ * const pipeline = new BulwarkPipeline("documentProcessing");
+ * pipeline
+ *   .addStage("fetch", fetchDocument, { inputType: "string" })
+ *   .addStage("parse", parseResponse, { inputType: "object", requiredKeys: ["pages"] })
+ *   .addStage("transform", transformPages, { inputType: "array", notEmpty: true });
+ * const result = pipeline.run(documentUrl);
+ */
+export class BulwarkPipeline {
+  private name: string;
+  private stages: PipelineStage[] = [];
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  addStage(
+    name: string,
+    func: (data: unknown) => unknown,
+    opts: {
+      inputType?: string;
+      requiredKeys?: string[];
+      notEmpty?: boolean;
+    } = {}
+  ): BulwarkPipeline {
+    this.stages.push({
+      name,
+      func,
+      inputType: opts.inputType,
+      requiredKeys: opts.requiredKeys,
+      notEmpty: opts.notEmpty,
+    });
+    return this;
+  }
+
+  run(initialInput: unknown): unknown {
+    let data = initialInput;
+    bulwarkLog(
+      "INFO",
+      `PIPELINE:${this.name} | starting with ${this.stages.length} stages`
+    );
+    trace(`${this.name}:input`, data);
+
+    for (const stage of this.stages) {
+      const stageLabel = `${this.name}.${stage.name}`;
+
+      // GUARD
+      if (stage.inputType) {
+        guardType(data, stage.inputType, stageLabel, "stageInput");
+      }
+      if (stage.requiredKeys) {
+        guardKeys(data, stage.requiredKeys, stageLabel, "stageInput");
+      }
+      if (stage.notEmpty) {
+        guardNotEmpty(data, stageLabel, "stageInput");
+      }
+
+      // EXECUTE
+      data = stage.func(data);
+
+      // TRACE
+      trace(`${stageLabel}:output`, data);
+    }
+
+    bulwarkLog(
+      "INFO",
+      `PIPELINE:${this.name} | completed all ${this.stages.length} stages`
+    );
+    return data;
+  }
+}
+
+// ===========================================================================
+// SELF-TEST
+// ===========================================================================
+
+function selfTest(): void {
+  let passed = 0;
+  let failed = 0;
+
+  function test(name: string, fn: () => void): void {
+    try {
+      fn();
+      console.log(`  [PASS] ${name}`);
+      passed++;
+    } catch (e) {
+      console.log(`  [FAIL] ${name}: ${(e as Error).message}`);
+      failed++;
+    }
+  }
+
+  console.log("=".repeat(60));
+  console.log("Bulwark AI — TypeScript Reference Implementation Self-Test");
+  console.log(`Version: 0.2.0-draft`);
+  console.log(`Config: ${JSON.stringify(getConfig())}`);
+  console.log("=".repeat(60));
+
+  // --- Guard Tests ---
+  console.log("\n--- Guard Tests ---");
+
+  test("guard(true) passes", () => {
+    guard(true, "test", "should pass");
+  });
+
+  test("guard(false) raises GuardError", () => {
+    try {
+      guard(false, "test", "expected X, got Y");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("guardType(object) passes", () => {
+    guardType({ a: 1 }, "object", "test", "data");
+  });
+
+  test("guardType(array as object) raises", () => {
+    try {
+      guardType([1, 2], "object", "test", "data");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("guardKeys missing key raises", () => {
+    try {
+      guardKeys({ a: 1, b: 2 }, ["a", "c"], "test");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("guardKeys all present passes", () => {
+    guardKeys({ a: 1, b: 2 }, ["a", "b"], "test");
+  });
+
+  test("guardNotEmpty([1,2]) passes", () => {
+    guardNotEmpty([1, 2], "test", "data");
+  });
+
+  test("guardNotEmpty([]) raises", () => {
+    try {
+      guardNotEmpty([], "test", "data");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("guardRange(5, {min:1, max:10}) passes", () => {
+    guardRange(5, { min: 1, max: 10 }, "test", "val");
+  });
+
+  test("guardRange(15, {min:1, max:10}) raises", () => {
+    try {
+      guardRange(15, { min: 1, max: 10 }, "test", "val");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("GuardError is Error (not built-in assertion)", () => {
+    const e = new GuardError("test");
+    if (!(e instanceof Error)) throw new Error("not Error");
+    if (e.name !== "GuardError") throw new Error("wrong name");
+  });
+
+  // --- Trace Tests ---
+  console.log("\n--- Trace Tests ---");
+
+  test("trace returns data unchanged", () => {
+    const data = { a: 1 };
+    const result = trace("test", data);
+    if (result !== data) throw new Error("data changed");
+  });
+
+  test("trace(null) returns null", () => {
+    const result = trace("test", null);
+    if (result !== null) throw new Error("not null");
+  });
+
+  test("trace([]) returns []", () => {
+    const arr: number[] = [];
+    const result = trace("test", arr);
+    if (result !== arr) throw new Error("not same array");
+  });
+
+  // --- Shape Description Tests ---
+  console.log("\n--- Shape Description Tests ---");
+
+  const shapeCases: Array<[unknown, string]> = [
+    [null, "null"],
+    [42, "number"],
+    ["hello", "string, len=5"],
+    [[1, 2, 3], "array, len=3"],
+    [[], "array, len=0 (EMPTY)"],
+  ];
+  for (const [value, expectedPrefix] of shapeCases) {
+    const shape = describeShape(value);
+    test(`describeShape(${JSON.stringify(value)?.slice(0, 20)}) = ${shape.slice(0, 40)}`, () => {
+      if (!shape.startsWith(expectedPrefix)) {
+        throw new Error(`expected prefix '${expectedPrefix}', got '${shape}'`);
+      }
+    });
+  }
+
+  // --- Verify Tests ---
+  console.log("\n--- Verify Tests ---");
+
+  test("verify(true) passes", () => {
+    verify(true, "test", "should pass");
+  });
+
+  test("verify(false) raises VerifyError", () => {
+    try {
+      verify(false, "test", "INSERT expected 10, affected 0");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof VerifyError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("VerifyError is Error (not built-in assertion)", () => {
+    const e = new VerifyError("test");
+    if (!(e instanceof Error)) throw new Error("not Error");
+    if (e.name !== "VerifyError") throw new Error("wrong name");
+  });
+
+  // --- Configuration Tests ---
+  console.log("\n--- Configuration Tests ---");
+
+  test("configure({ mode: 'production' }) works", () => {
+    configure({ mode: "production" });
+  });
+
+  test("config reflects production mode", () => {
+    const cfg = getConfig();
+    if (cfg.mode !== "production") throw new Error("wrong mode");
+  });
+
+  test("configure({ mode: 'invalid' }) raises Error", () => {
+    try {
+      configure({ mode: "invalid" as BulwarkMode });
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof Error) || !(e as Error).message.includes("invalid mode")) {
+        throw new Error("wrong error");
+      }
+    }
+  });
+
+  // Reset to development for remaining tests
+  configure({ mode: "development" });
+
+  // --- Verify Strategy Tests ---
+  console.log("\n--- Verify Strategy Tests ---");
+
+  configure({ verifyStrategy: "sampled", verifySampleRate: 0.0001 });
+
+  let skipped = 0;
+  for (let i = 0; i < 100; i++) {
+    try {
+      verify(false, "test", "should mostly be skipped");
+      skipped++; // Didn't throw = was skipped
+    } catch (e) {
+      if (e instanceof VerifyError) {
+        // This one wasn't skipped
+      } else {
+        throw e;
+      }
+    }
+  }
+  test(`sampled strategy skips most verifies (${skipped}/100 skipped)`, () => {
+    if (skipped < 80) throw new Error(`only ${skipped} skipped`);
+  });
+
+  test("critical=true always verifies even when sampled", () => {
+    try {
+      verify(false, "test", "critical must verify", true);
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof VerifyError)) throw new Error("wrong error type");
+    }
+  });
+
+  // Reset
+  configure({ mode: "development" });
+
+  // --- Availability Guard Tests ---
+  console.log("\n--- Availability Guard Tests ---");
+
+  test("guardAvailable with true check passes", () => {
+    guardAvailable(() => true, "test", "testService");
+  });
+
+  test("guardAvailable with false check raises", () => {
+    try {
+      guardAvailable(() => false, "test", "testService");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("guardAvailable with exception raises GuardError", () => {
+    try {
+      guardAvailable(
+        () => { throw new Error("connection refused"); },
+        "test",
+        "testService"
+      );
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  // --- Pipeline Tests ---
+  console.log("\n--- Pipeline Tests ---");
+
+  const pipeline = new BulwarkPipeline("testPipeline");
+  pipeline
+    .addStage("double", (x) => (x as number[]).map((i) => i * 2), {
+      inputType: "array",
+      notEmpty: true,
+    })
+    .addStage("toObject", (x) => ({ results: x, count: (x as unknown[]).length }), {
+      inputType: "array",
+    });
+  const pipeResult = pipeline.run([1, 2, 3]);
+  test("pipeline produces correct result", () => {
+    const expected = JSON.stringify({ results: [2, 4, 6], count: 3 });
+    const actual = JSON.stringify(pipeResult);
+    if (actual !== expected) throw new Error(`wrong: ${actual}`);
+  });
+
+  // --- Summary ---
+  const total = passed + failed;
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`Results: ${passed}/${total} passed, ${failed} failed`);
+  if (failed === 0) {
+    console.log("All self-tests passed. Bulwark AI is operational.");
+  } else {
+    console.log(`WARNING: ${failed} test(s) failed!`);
+  }
+  console.log("=".repeat(60));
+}
+
+// Run self-test if executed directly
+if (require.main === module) {
+  selfTest();
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

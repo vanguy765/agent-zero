@@ -1,0 +1,43 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 292:    pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+293:    total_pages = len(pdf_pages)
+296:        job_id, total_pages=total_pages,
+303:        current_step="classifying_pages",
+306:    pages_result = {}
+331:        if page_no not in pages_result:
+332:            pages_result[page_no] = {
+336:        pages_result[page_no]["tables"].append(md_text)
+360:        if page_no not in pages_result:
+361:            pages_result[page_no] = {
+380:            photo_idx = len(pages_result[page_no]["site_photos"])
+388:            pages_result[page_no]["site_photos"].append({"image_url": photo_url})
+390:            diag_idx = len(pages_result[page_no]["diagrams"])
+398:            pages_result[page_no]["diagrams"].append({"image_url": diag_url})
+406:        for page_idx, page_pil in enumerate(pdf_pages):
+408:            if page_no not in pages_result:
+409:                pages_result[page_no] = {
+418:            pages_result[page_no]["page_image_url"] = page_url
+426:            pages_result[page_no]["thumbnail_url"] = thumb_url
+464:            if page_no not in pages_result:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 28:import tempfile
+33:from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, HTTPException, Query
+55:    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+148:# Helper: Save upload to temp file
+151:async def save_upload_to_temp(file: UploadFile) -> str:
+152:    """Save uploaded file to a temporary path."""
+153:    suffix = os.path.splitext(file.filename or "upload.pdf")[1]
+154:    fd, temp_path = tempfile.mkstemp(suffix=suffix)
+156:        content = await file.read()
+172:    file: UploadFile = File(...),
+173:    provider: str = Form(DEFAULT_PROVIDER),
+174:    supabase_url: str = Form(None),
+175:    supabase_key: str = Form(None),
+176:    tenant_name: str = Form(None),
+177:    project_name: str = Form(None),
+184:    temp_path = await save_upload_to_temp(file)
+187:        file_name=file.filename or "unknown.pdf",
+206:        "file": file.filename,
+271:    from docling.document_converter import DocumentConverter, PdfFormatOption
+272:    from docling.datamodel.base_models import InputFormat
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,20 @@
+✅ PROJECT_STATUS.md updated
+
+=== TD-5 ===
+### TD-5: ~~No LICENSE File~~ ✅ RESOLVED
+~~No LICENSE file exists in the repository root.~~ MIT License created. See `LICENSE` in repository root.
+
+### TD-6: ~~No .gitignore~~ ✅ RESOLVED
+
+=== OQ-3 ===
+### OQ-3: ~~BMAD Integration Depth~~ ✅ RESOLVED
+**Decision**: Skill-based integration implemented per ADR-019.
+
+Created `.bmad/skills/bulwark-defensive-coding.md` (353 lines) containing:
+
+=== BMAD bullet ===
+- ✅ BMAD integration implemented (`.bmad/skills/bulwark-defensive-coding.md`)
+- 📋 Launch strategy (outlined, not executed)
+
+### What Doesn't Exist Yet
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

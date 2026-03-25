@@ -1,0 +1,15 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Running processes ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# root        1301  0.0  0.7 1381720 125888 ?      Sl   Mar10   0:00 node /usr/local/bin/pnpm install --store-dir .pnpm-store/v3
+root        4155  0.0  0.6 1369884 111728 ?      Sl   00:10   0:00 node /usr/local/bin/pnpm install --store-dir .pnpm-store/v3
+root        4474  0.0  0.6 1369888 112112 ?      Sl   00:16   0:00 node /usr/local/bin/pnpm install
+root        5258  0.6  0.8 11902060 143624 ?     Sl   00:20   0:10 node node_modules/.bin/../vite/bin/vite.js --port 3004 --host 0.0.0.0
+root        5271  0.1  0.1 726516 17648 ?        Sl   00:20   0:02 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@esbuild+linux-x64@0.21.5/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.21.5 --ping
+root        5833  0.0  0.6 1237276 107224 ?      Sl   00:27   0:00 node /usr/local/bin/pnpm dev
+root        5845  0.0  0.0   2884  1728 ?        S    00:27   0:00 sh -c tsx watch src/index.ts
+root        5846  0.0  0.4 1066040 78896 ?       Sl   00:27   0:00 node /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/node_modules/.bin/../tsx/dist/cli.mjs watch src/index.ts
+root        5862  0.3  0.9 69152016 153116 ?     Sl   00:27   0:04 /usr/bin/node --require /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/preflight.cjs --import file:///a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/tsx@4.21.0/node_modules/tsx/dist/loader.mjs src/index.ts
+root        5875  0.1  0.0 1238344 11348 ?       Sl   00:27   0:01 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@esbuild+linux-x64@0.27.2/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.27.2 --ping
+root        5888  0.1  0.0 1239368 13464 ?       Sl   00:27   0:01 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@esbuild+linux-x64@0.27.2/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.27.2 --ping
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Ports in use ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === .env API URL ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

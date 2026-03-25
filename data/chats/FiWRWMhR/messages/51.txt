@@ -1,0 +1,12 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Build artifacts ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ./linter/.pytest_cache
+./linter/bulwark_lint/reporters/__pycache__
+./linter/bulwark_lint/rules/__pycache__
+./linter/bulwark_lint/__pycache__
+./linter/bulwark_lint.egg-info
+./linter/tests/__pycache__
+./reference/node_modules
+./reference/__pycache__
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Compiled/temp files ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

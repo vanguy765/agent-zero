@@ -1,0 +1,18 @@
+LIVE_TEST_PLAN.md updated successfully
+Total lines: 631
+
+Top-level sections:
+10:## 1. Executive Summary
+73:## 2. Test Scenarios
+218:## 3. Environment Setup
+242:## Bulwark Compliance Instructions
+267:## 4. Metrics Framework
+336:## 5. Test Results Template
+393:## 6. Analysis Framework
+438:## 7. Success Criteria
+469:## 8. Signals to Watch During Testing
+498:## 9. Version History
+506:## 10. Appendix: Quick Reference
+533:## Addendum A: Cross-Model Validation Protocol
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

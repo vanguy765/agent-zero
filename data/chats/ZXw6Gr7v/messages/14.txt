@@ -1,0 +1,10 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ✅ Fixed apps/api/.env
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# DOC_PARSER_URL=http://doc-parser:5000
+SUPABASE_URL=http://host.docker.internal:54321
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ✅ Fixed root .env
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+# Doc-Parser service URL (docker service name on shared agent-zero-network)
+DOC_PARSER_URL=http://doc-parser:5000
+PROGRAM_STATUS=develop_without_ai
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

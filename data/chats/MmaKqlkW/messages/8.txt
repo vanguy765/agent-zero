@@ -1,0 +1,36 @@
+/a0/usr/workdir/bulwark-ai/test-results
+/a0/usr/workdir/bulwark-ai/test-results/TEST_1.1_PROMPT.md
+/a0/usr/workdir/bulwark-ai/test-results/TEST_1.1_RESULTS.md
+---
+total 28
+drwxr-xr-x 1 root root  4096 Mar 16 04:45 .
+drwxr-xr-x 1 root root  4096 Mar 16 04:23 ..
+drwxr-xr-x 1 root root  4096 Mar 16 04:45 __pycache__
+-rw-r--r-- 1 root root  6374 Mar 16 04:38 TEST_1.1_PROMPT.md
+-rw-r--r-- 1 root root  6771 Mar 16 04:51 TEST_1.1_RESULTS.md
+-rw-r--r-- 1 root root 12074 Mar 16 04:45 user_sync.py
+---
+total 256
+drwxr-xr-x 1 root root  4096 Mar 16 04:23 .
+drwxr-xr-x 1 root root  4096 Mar 15 04:55 ..
+drwxr-xr-x 1 root root  4096 Mar 15 23:09 .bmad
+drwxr-xr-x 1 root root  4096 Mar 15 01:28 checklists
+-rw-r--r-- 1 root root  8949 Mar 15 04:50 CONTINUATION_PROMPT.md
+-rw-r--r-- 1 root root 33588 Mar 15 04:36 DECISIONS.md
+drwxr-xr-x 1 root root  4096 Mar 15 01:22 examples
+drwxr-xr-x 1 root root  4096 Mar 16 04:38 .git
+-rw-r--r-- 1 root root  1036 Mar 15 23:02 .gitignore
+-rw-r--r-- 1 root root 72062 Mar 15 23:04 GUIDE.md
+drwxr-xr-x 1 root root  4096 Mar 15 22:50 guides
+-rw-r--r-- 1 root root  1080 Mar 15 23:07 LICENSE
+drwxr-xr-x 1 root root  4096 Mar 16 04:43 linter
+-rw-r--r-- 1 root root 20474 Mar 16 02:13 LIVE_TEST_PLAN.md
+-rw-r--r-- 1 root root 10279 Mar 15 21:09 MARKETING_SEEDS.md
+-rw-r--r-- 1 root root 17928 Mar 15 23:09 PROJECT_STATUS.md
+drwxr-xr-x 1 root root  4096 Mar 15 22:14 prompts
+-rw-r--r-- 1 root root  7425 Mar 15 23:03 QUICKSTART.md
+-rw-r--r-- 1 root root 14759 Mar 15 04:15 README.md
+drwxr-xr-x 1 root root  4096 Mar 16 01:38 reference
+-rw-r--r-- 1 root root 51661 Mar 15 04:09 SPEC.md
+drwxr-xr-x 1 root root  4096 Mar 16 04:45 test-results
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

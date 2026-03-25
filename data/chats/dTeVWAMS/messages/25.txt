@@ -1,0 +1,83 @@
+=== Transition from 10.1 to 10.2 ===
+
+- Recovery commands run with the **current process permissions** — no privilege escalation
+- The command string is logged in full — operators can audit what was executed
+- In production, recovery commands SHOULD be restricted to known scripts in configured paths
+- A **dry-run mode** (log what would execute without running it) is RECOMMENDED for initial deployment
+
+### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+
+A Service Manifest centralizes dependency health checks, recovery procedures, severity classifications, and notification channels into a single declarative configuration. Instead of hard-coding recovery parameters in each `guard_available()` call, the manifest externalizes this knowledge — enabling operations teams to manage recovery without modifying application code.
+
+#### Motivation
+
+The Recovery sub-pattern (§10.1.2) solves the mechanics of automated recovery: detect, execute command, retry with backoff. But in systems with multiple dependencies, this creates a maintenance problem:
+
+- Recovery parameters are **scattered** across guard calls in different modules
+- Adding a new service requires **code changes**, not configuration changes
+\n=== Transition from 10.2 to 10.3 ===
+...
+GUARD:RECOVERY:run_pipeline | local_db — attempt 3/3: systemctl restart postgresql
+GUARD:RECOVERY:run_pipeline | local_db — command exit=1, waiting 20.0s
+GUARD:NOTIFICATION:run_pipeline | local_db — alerting slack, email, pagerduty
+GUARD:SERVICE:run_pipeline | local_db — FAILED after 3 attempts (total: 35.0s) | op=abc-123
+```
+
+### 10.3 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+
+An Idempotency Guard prevents duplicate execution when operations are retried.
+
+#### When to Use
+
+- AI agent retry loops (agent fails, framework re-executes)
+- Scheduled tasks that may overlap
+- API endpoints that may receive duplicate requests
+\n=== Transition from 10.3 to 10.4 ===
+        return existing[0]
+    
+    # ... proceed with creation
+```
+
+### 10.4 Confidence Annotation (FUTURE, not yet recommended)
+
+Confidence annotations would allow AI agents to self-label code sections with their certainty level.
+
+#### Why This Is Deferred
+
+Current AI models are poorly calibrated at self-assessment. They tend to either mark everything as high confidence (overconfident) or everything as low confidence (useless). This extension becomes valuable when AI models improve at expressing calibrated uncertainty.
+
+#### Proposed Format (for future use)
+
+```python
+\n=== End of LIVE_TEST_PLAN.md ===
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0.0 | 2025-03-15 | Initial test plan |
+
+---
+
+## 10. Appendix: Quick Reference
+
+### Bulwark Rules
+
+| Rule | Name | What It Checks |
+|------|------|-----------------|
+| BLW001 | Guard Present | Functions handling external data have input validation |
+| BLW002 | Verify After Mutation | DB/API/file mutations are followed by outcome checks |
+| BLW003 | Trace at Boundary | Data shape is logged at phase transitions |
+| BLW004 | No Bare Assert | `assert` statements replaced with `if/raise` |
+| BLW005 | Custom Error Types | `GuardError`/`VerifyError` used instead of generic exceptions |
+
+### Key File Locations
+
+| Artifact | Path |
+|----------|------|
+| BMAD Skill | `.bmad/skills/bulwark-defensive-coding.md` |
+| Linter | `linter/bulwark_lint/` |
+| System Prompt | `prompts/bulwark-system-prompt.md` |
+| Remediation Prompt | `prompts/bulwark-remediation-agent.md` |
+| Checklist | `checklists/bulwark-checklist.md` |
+| Spec | `SPEC.md` |
+| Guide | `GUIDE.md` |
+| Quick Start | `QUICKSTART.md` |
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

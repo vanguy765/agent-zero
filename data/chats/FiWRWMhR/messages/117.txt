@@ -1,0 +1,8 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# base.py				 blw003_trace_at_boundary.py   __init__.py
+blw001_guard_present.py		 blw004_no_bare_assert.py      __pycache__
+blw002_verify_after_mutation.py  blw005_custom_error_types.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# bulwark_lint/rules/blw001_guard_present.py:1:"""BLW001 — function-needs-guard
+bulwark_lint/rules/blw001_guard_present.py:95:    rule_id = "BLW001"
+bulwark_lint/rules/blw001_guard_present.py:96:    rule_name = "function-needs-guard"
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

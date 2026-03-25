@@ -1,0 +1,27 @@
+556c161 (HEAD -> main, origin/main) test: update Test 1.1 prompt with verified Supabase credentials
+d1dac37 test: add Test 1.1 prompt and results template
+6090c1b docs: add comprehensive live test plan for Bulwark × BMAD × Agent Zero
+1649d1c feat: initial commit — Bulwark AI v0.2.0-draft
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Test results directory ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# total 44
+drwxr-xr-x 1 root root  4096 Mar 16 04:58 .
+drwxr-xr-x 1 root root  4096 Mar 16 04:23 ..
+-rw-r--r-- 1 root root  7305 Mar 16 04:57 fetch_and_save.py
+drwxr-xr-x 1 root root  4096 Mar 16 04:57 __pycache__
+-rw-r--r-- 1 root root  6374 Mar 16 04:38 TEST_1.1_PROMPT.md
+-rw-r--r-- 1 root root  6771 Mar 16 04:51 TEST_1.1_RESULTS.md
+-rw-r--r-- 1 root root  7724 Mar 16 04:58 TEST_1.2_RESULTS.md
+-rw-r--r-- 1 root root 12074 Mar 16 04:45 user_sync.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Check for Test 1.1 results ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 121 test-results/TEST_1.1_RESULTS.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Check for Test 1.2 results ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 150 test-results/TEST_1.2_RESULTS.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Check for generated code ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 322 test-results/user_sync.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 201 test-results/fetch_and_save.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Git status ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

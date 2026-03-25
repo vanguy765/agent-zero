@@ -1,0 +1,154 @@
+---------------------------------------------------------------------------
+TimeoutError                              Traceback (most recent call last)
+File /opt/venv/lib/python3.13/site-packages/urllib3/connectionpool.py:534, in HTTPConnectionPool._make_request(self, conn, method, url, body, headers, retries, timeout, chunked, response_conn, preload_content, decode_content, enforce_content_length)
+    533 try:
+--> 534     response = conn.getresponse()
+    535 except (BaseSSLError, OSError) as e:
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/connection.py:571, in HTTPConnection.getresponse(self)
+    570 # Get the response from http.client.HTTPConnection
+--> 571 httplib_response = super().getresponse()
+    573 try:
+
+File /usr/lib/python3.13/http/client.py:1450, in HTTPConnection.getresponse(self)
+   1449 try:
+-> 1450     response.begin()
+   1451 except ConnectionError:
+
+File /usr/lib/python3.13/http/client.py:336, in HTTPResponse.begin(self)
+    335 while True:
+--> 336     version, status, reason = self._read_status()
+    337     if status != CONTINUE:
+
+File /usr/lib/python3.13/http/client.py:297, in HTTPResponse._read_status(self)
+    296 def _read_status(self):
+--> 297     line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+    298     if len(line) > _MAXLINE:
+
+File /usr/lib/python3.13/socket.py:719, in SocketIO.readinto(self, b)
+    718 try:
+--> 719     return self._sock.recv_into(b)
+    720 except timeout:
+
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+ReadTimeoutError                          Traceback (most recent call last)
+File /opt/venv/lib/python3.13/site-packages/requests/adapters.py:644, in HTTPAdapter.send(self, request, stream, timeout, verify, cert, proxies)
+    643 try:
+--> 644     resp = conn.urlopen(
+    645         method=request.method,
+    646         url=url,
+    647         body=request.body,
+    648         headers=request.headers,
+    649         redirect=False,
+    650         assert_same_host=False,
+    651         preload_content=False,
+    652         decode_content=False,
+    653         retries=self.max_retries,
+    654         timeout=timeout,
+    655         chunked=chunked,
+    656     )
+    658 except (ProtocolError, OSError) as err:
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/connectionpool.py:841, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, preload_content, decode_content, **response_kw)
+    839     new_e = ProtocolError("Connection aborted.", new_e)
+--> 841 retries = retries.increment(
+    842     method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+    843 )
+    844 retries.sleep()
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/util/retry.py:490, in Retry.increment(self, method, url, response, error, _pool, _stacktrace)
+    489 if read is False or method is None or not self._is_method_retryable(method):
+--> 490     raise reraise(type(error), error, _stacktrace)
+    491 elif read is not None:
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/util/util.py:39, in reraise(tp, value, tb)
+     38         raise value.with_traceback(tb)
+---> 39     raise value
+     40 finally:
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/connectionpool.py:787, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, preload_content, decode_content, **response_kw)
+    786 # Make the request on the HTTPConnection object
+--> 787 response = self._make_request(
+    788     conn,
+    789     method,
+    790     url,
+    791     timeout=timeout_obj,
+    792     body=body,
+    793     headers=headers,
+    794     chunked=chunked,
+    795     retries=retries,
+    796     response_conn=response_conn,
+    797     preload_content=preload_content,
+    798     decode_content=decode_content,
+    799     **response_kw,
+    800 )
+    802 # Everything went great!
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/connectionpool.py:536, in HTTPConnectionPool._make_request(self, conn, method, url, body, headers, retries, timeout, chunked, response_conn, preload_content, decode_content, enforce_content_length)
+    535 except (BaseSSLError, OSError) as e:
+--> 536     self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+    537     raise
+
+File /opt/venv/lib/python3.13/site-packages/urllib3/connectionpool.py:367, in HTTPConnectionPool._raise_timeout(self, err, url, timeout_value)
+    366 if isinstance(err, SocketTimeout):
+--> 367     raise ReadTimeoutError(
+    368         self, url, f"Read timed out. (read timeout={timeout_value})"
+    369     ) from err
+    371 # See the above comment about EAGAIN in Python 3.
+
+ReadTimeoutError: HTTPConnectionPool(host='doc-parser', port=5000): Read timed out. (read timeout=10)
+
+During handling of the above exception, another exception occurred:
+
+ReadTimeout                               Traceback (most recent call last)
+Cell In[1], line 7
+      4 url = f'http://doc-parser:5000/status/{job_id}'
+      6 for i in range(60):
+----> 7     resp = requests.get(url, timeout=10)
+      8     data = resp.json()
+      9     status = data.get('status', 'unknown')
+
+File /opt/venv/lib/python3.13/site-packages/requests/api.py:73, in get(url, params, **kwargs)
+     62 def get(url, params=None, **kwargs):
+     63     r"""Sends a GET request.
+     64
+     65     :param url: URL for the new :class:`Request` object.
+   (...)     70     :rtype: requests.Response
+     71     """
+---> 73     return request("get", url, params=params, **kwargs)
+
+File /opt/venv/lib/python3.13/site-packages/requests/api.py:59, in request(method, url, **kwargs)
+     55 # By using the 'with' statement we are sure the session is closed, thus we
+     56 # avoid leaving sockets open which can trigger a ResourceWarning in some
+     57 # cases, and look like a memory leak in others.
+     58 with sessions.Session() as session:
+---> 59     return session.request(method=method, url=url, **kwargs)
+
+File /opt/venv/lib/python3.13/site-packages/requests/sessions.py:589, in Session.request(self, method, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, proxies, hooks, stream, verify, cert, json)
+    584 send_kwargs = {
+    585     "timeout": timeout,
+    586     "allow_redirects": allow_redirects,
+    587 }
+    588 send_kwargs.update(settings)
+--> 589 resp = self.send(prep, **send_kwargs)
+    591 return resp
+
+File /opt/venv/lib/python3.13/site-packages/requests/sessions.py:703, in Session.send(self, request, **kwargs)
+    700 start = preferred_clock()
+    702 # Send the request
+--> 703 r = adapter.send(request, **kwargs)
+    705 # Total elapsed time of the request (approximately)
+    706 elapsed = preferred_clock() - start
+
+File /opt/venv/lib/python3.13/site-packages/requests/adapters.py:690, in HTTPAdapter.send(self, request, stream, timeout, verify, cert, proxies)
+    688     raise SSLError(e, request=request)
+    689 elif isinstance(e, ReadTimeoutError):
+--> 690     raise ReadTimeout(e, request=request)
+    691 elif isinstance(e, _InvalidHeader):
+    692     raise InvalidHeader(e, request=request)
+
+ReadTimeout: HTTPConnectionPool(host='doc-parser', port=5000): Read timed out. (read timeout=10)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 9,
+  "violations": [
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "_type_name() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 47,
+      "function_name": "_type_name"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "describe_shape() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 120,
+      "function_name": "describe_shape"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "test() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 340,
+      "function_name": "test"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "execute() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 512,
+      "function_name": "execute"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "_invoice_happy_path() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 527,
+      "function_name": "_invoice_happy_path"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "_invoice_happy_path() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 528,
+      "function_name": "_invoice_happy_path"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "_invoice_happy_path() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 529,
+      "function_name": "_invoice_happy_path"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "_invoice_happy_path() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 530,
+      "function_name": "_invoice_happy_path"
+    },
+    {
+      "rule_id": "BLW004",
+      "rule_name": "no-bare-assert",
+      "severity": "warning",
+      "message": "_invoice_happy_path() uses bare assert for validation instead of guard()",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py",
+      "line": 531,
+      "function_name": "_invoice_happy_path"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 9,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

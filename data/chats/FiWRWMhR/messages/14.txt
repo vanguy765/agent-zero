@@ -1,0 +1,68 @@
+sync: False
+export: False
+notify: False
+parse: True
+handle: True
+fetch: True
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# // sample_guarded.ts — Realistic TypeScript file WITH proper Bulwark patterns
+// This file should produce ZERO violations
+
+import { Hono } from "hono";
+import { db } from "./db";
+import { GuardError, VerifyError } from "./bulwark";
+
+const app = new Hono();
+
+// Properly guarded, verified, and traced
+export async function handleCreateUser(req: Request, env: Env): Promise<Response> {
+    guardType(req, "object", "handleCreateUser", "req");
+    guardType(env, "object", "handleCreateUser", "env");
+
+    const body = await req.json();
+    const name = body.name;
+    const email = body.email;
+
+    guardNotEmpty(name, "handleCreateUser", "name");
+    guardType(name, "string", "handleCreateUser", "name");
+    guardNotEmpty(email, "handleCreateUser", "email");
+    guard(email.includes("@"), "handleCreateUser", "email must contain @");
+
+    const result = await db.insert("users", { name, email });
+    verify(result.id !== undefined, "handleCreateUser", "INSERT must return id");
+
+    const traced = trace("afterCreateUser", { id: result.id });
+    return new Response(JSON.stringify(traced), { status: 201 });
+}
+
+// Properly guarded and verified
+export async function syncUserToExternalApi(userId: string, apiKey: string): Promise<void> {
+    guardType(userId, "string", "syncUserToExternalApi", "userId");
+    guardNotEmpty(userId, "syncUserToExternalApi", "userId");
+    guardType(apiKey, "string", "syncUserToExternalApi", "apiKey");
+
+    const user = await db.query("SELECT * FROM users WHERE id = ?", [userId]);
+
+    const response = await fetch("https://api.external.com/users", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}` },
+        body: JSON.stringify(user),
+    });
+
+    verifyResponseOk(response, "syncUserToExternalApi", "POST to external API");
+}
+
+// Properly guarded and traced
+export function parseUserPayload(rawData: string, format: string): UserPayload {
+    guardType(rawData, "string", "parseUserPayload", "rawData");
+    guardNotEmpty(rawData, "parseUserPayload", "rawData");
+    guardType(format, "string", "parseUserPayload", "format");
+
+    let parsed;
+    if (format === "json") {
+        parsed = JSON.parse(rawData);
+    } else if (format === "csv") {
+        const lines = rawData.split("\n");
+        parsed = lines.map(line => {
+            const [name, email] = line.split(",");
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

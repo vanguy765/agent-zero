@@ -1,0 +1,83 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 544 test-results/calculate_tax.py
+---
+#!/usr/bin/env python3
+"""Tax calculation module demonstrating selective Bulwark GTV pattern application.
+
+This module contains two functions with different Bulwark requirements:
+- calculate_tax: Pure utility function (Guards only)
+- calculate_invoice_total: Boundary + mutation function (full GTV)
+"""
+
+import logging
+from typing import Any
+
+# ---------------------------------------------------------------------------
+# Bulwark Infrastructure (minimal, zero-dependency)
+# ---------------------------------------------------------------------------
+
+log = logging.getLogger("bulwark")
+if not log.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter(
+        "%(asctime)s | %(levelname)-5s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    ))
+    log.addHandler(_handler)
+    log.setLevel(logging.DEBUG)
+
+
+class GuardError(Exception):
+    """Raised when a Guard validation fails."""
+    pass
+
+
+class VerifyError(Exception):
+    """Raised when a Verify confirmation fails."""
+    pass
+
+
+# --- Guard helpers ---
+
+def guard(condition: bool, function_name: str, message: str) -> None:
+    """Core guard primitive. Raises GuardError if condition is False."""
+    if not condition:
+        diag = f"GUARD:{function_name} | {message}"
+        log.error(diag)
+        raise GuardError(diag)
+
+
+def _type_name(t) -> str:
+    """Return a human-readable name for a type or tuple of types."""
+    if isinstance(t, tuple):
+        return "/".join(cls.__name__ for cls in t)
+    return t.__name__
+
+
+def guard_type(value: Any, expected_type, function_name: str,
+               param_name: str = "input") -> None:
+    """Guard that validates the type of a value."""
+    guard(
+        isinstance(value, expected_type),
+        function_name,
+        f"'{param_name}' expected {_type_name(expected_type)}, "
+        f"got {type(value).__name__}"
+    )
+
+
+def guard_not_none(value: Any, function_name: str,
+                   param_name: str = "input") -> None:
+    """Guard that validates a value is not None."""
+    guard(
+        value is not None,
+        function_name,
+        f"'{param_name}' is None"
+    )
+
+
+def guard_not_empty(value: Any, function_name: str,
+                    param_name: str = "input") -> None:
+    """Guard that validates a collection is not empty."""
+    guard_not_none(value, function_name, param_name)
+    if hasattr(value, "__len__"):
+        guard(
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

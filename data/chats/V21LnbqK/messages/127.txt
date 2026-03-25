@@ -1,0 +1,39 @@
+defensive-programming · GitHub Topics · GitHub
+https://github.com/topics/defensive-programming?o=desc&s=updated
+A small framework for defensive development with conditionally compiled assertions and logging tools. ... Provides assertion and logging utilities for runtime debugging in Unity. debugging csharp unity assert defensive-programming debughelper ...
+
+GitHub - microsoft/CodeContracts: Source code for the CodeContracts tools for .NET · GitHub
+https://github.com/microsoft/CodeContracts
+Code Contracts provide a language-agnostic way to express coding assumptions in .NET programs. The contracts take the form of pre-conditions, post-conditions, and object invariants.
+
+GitHub - 121aloksingh/OpenAgentsControl: AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode
+https://github.com/121aloksingh/OpenAgentsControl
+AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode - 121aloksingh/OpenAgentsControl
+
+Code Contracts - Microsoft Research
+https://www.microsoft.com/en-us/research/project/code-contracts/
+Code Contracts provide a language-agnostic way to express coding assumptions in .NET programs. The contracts take the form of preconditions, postconditions, and object invariants.
+
+GitHub - syntax-syndicate/OpenCode-OpenAgents: AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode
+https://github.com/syntax-syndicate/OpenCode-OpenAgents
+AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode - syntax-syndicate/OpenCode-OpenAgents
+
+GitHub - apiaryio/dredd: Language-agnostic HTTP API Testing Tool · GitHub
+https://github.com/apiaryio/dredd
+Dredd is a language-agnostic command-line tool for validating API description document against backend implementation of the API. ... Dredd reads your API description and step by step validates whether your API implementation replies with responses ...
+
+OpenAgentsControl/README.md at main · darrenhinde/OpenAgentsControl
+https://github.com/darrenhinde/OpenAgentsControl/blob/main/README.md
+AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode - OpenAgentsControl/README.md at main · darrenhinde/OpenAgentsControl
+
+GitHub - agno-agi/agno: Build, run, manage agentic software at scale. · GitHub
+https://github.com/agno-agi/agno
+Runtime approval enforcement.
+
+GitHub - darrenhinde/OpenAgentsControl: AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode · GitHub
+https://github.com/darrenhinde/OpenAgentsControl
+AI agent framework for plan-first development workflows with approval-based execution. Multi-language support (TypeScript, Python, Go, Rust) with automatic testing, code review, and validation built for OpenCode - darrenhinde/OpenAgentsControl
+
+GitHub - Sairyss/domain-driven-hexagon
+https://github.com/sairyss/domain-driven-hexagon
+No matter what language or framework is used, any application can benefit from principles described below. Note: code examples are adapted to TypeScript and ...

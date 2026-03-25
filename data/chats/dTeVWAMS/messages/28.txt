@@ -1,0 +1,11 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results# === Fixtures created ===
+total 4
+drwxr-xr-x 1 root root 4096 Mar 18 04:34 .
+drwxr-xr-x 1 root root 4096 Mar 18 04:34 ..
+-rwxr-xr-x 1 root root   89 Mar 18 04:34 health_cache.sh
+-rwxr-xr-x 1 root root  148 Mar 18 04:34 health_db.sh
+-rwxr-xr-x 1 root root   87 Mar 18 04:34 health_metrics.sh
+-rwxr-xr-x 1 root root  116 Mar 18 04:34 recover_cache.sh
+-rwxr-xr-x 1 root root  113 Mar 18 04:34 recover_db.sh
+-rw-r--r-- 1 root root 1450 Mar 18 04:34 services.json
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

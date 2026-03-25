@@ -18,6 +18,8 @@ services:
     volumes:
       - ./data:/a0/usr
       - ${VOICELOG_PATH}:/a0/usr/projects/timesheet_app/voicelog-scaffold
+      - /var/run/docker.sock:/var/run/docker.sock
+
     working_dir: /opt/agent-zero
     restart: unless-stopped
     networks:

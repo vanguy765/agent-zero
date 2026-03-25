@@ -1,0 +1,14 @@
+=== Mount points ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# C:\134 /a0/usr 9p rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5 0 0
+C:\134 /a0/usr/projects/timesheet_app/voicelog-scaffold 9p rw,noatime,aname=drvfs;path=C:\;uid=0;gid=0;metadata;symlinkroot=/mnt/host/,cache=5,access=client,msize=65536,trans=fd,rfd=5,wfd=5 0 0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === df for project path ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# Filesystem      Size  Used Avail Use% Mounted on
+C:\             476G  472G  4.5G 100% /a0/usr/projects/timesheet_app/voicelog-scaffold
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === findmnt ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# TARGET          SOURCE                       FSTYPE OPTIONS
+/a0/usr/projects/timesheet_app/voicelog-scaffold
+                C:\[/Users/3900X/Documents/GitHub/agentZero/voicelog-scaffold]
+                                             9p     rw,noatime,aname=drvfs;path=
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

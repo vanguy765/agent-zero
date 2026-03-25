@@ -1,0 +1,17 @@
+def determine_category(page_data: dict) -> str:
+    """Derive dominant page category from doc-parser page result."""
+    fp = len(page_data.get("floorplans", []))
+    tb = len(page_data.get("tables", []))
+    sp = len(page_data.get("site_photos", []))
+    dg = len(page_data.get("diagrams", []))
+    total_images = fp + sp + dg
+    total = total_images + tb
+    if total == 0:
+        return "text"
+    if total_images > 0 and tb > 0:
+        return "mixed"
+    if fp > 0 and fp >= sp and fp >= dg:
+        return "floorplan"
+    if sp > 0 and sp >= fp and sp >= dg:
+        return "site_photo"
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

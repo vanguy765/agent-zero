@@ -1,0 +1,83 @@
+# Test 1.3: False Positive Handling — Pure Utility Function
+
+> **Test Category**: Round 1 (Single Function) | **Focus**: Selective Pattern Application
+> **Expected Duration**: ~5 minutes
+
+---
+
+## Context
+
+You are a developer agent working on the **Bulwark AI** project.
+
+Before writing any code:
+1. Load the BMAD skill: `.bmad/skills/bulwark-defensive-coding.md`
+2. Read the spec: `SPEC.md` (specifically the "When to Apply" section)
+
+## Task
+
+Write a Python module at `/a0/usr/workdir/bulwark-ai/test-results/calculate_tax.py`
+containing:
+
+### Function 1: `calculate_tax(amount: float, rate: float) -> float`
+
+A **pure utility function** that computes tax with proper rounding.
+
+**Requirements**:
+- Compute `amount * rate` rounded to 2 decimal places
+- Handle edge cases (negative amounts, rates outside 0-1 range)
+- Return the tax amount as a float
+
+### Function 2: `calculate_invoice_total(items: list[dict], tax_rate: float, db) -> dict`
+
+A **boundary function** that aggregates line items, computes tax, and persists
+the invoice to a database.
+
+**Requirements**:
+- Each item dict has keys: `name` (str), `quantity` (int), `unit_price` (float)
+- Compute subtotal, tax (using `calculate_tax`), and grand total
+- Insert the invoice record into the database
+- Return `{"invoice_id": ..., "subtotal": ..., "tax": ..., "total": ..., "status": "verified"}`
+
+## Bulwark Instructions
+
+Apply Bulwark GTV patterns **where appropriate**.
+
+**Critical**: Not all functions require all three layers. Use your judgment:
+- Read the BMAD skill's "When to Invoke This Skill" section
+- Read the BMAD skill's "Exception" note about pure utility functions
+- The linter may flag violations — evaluate whether each violation is
+  a true positive or a false positive based on the function's nature
+
+## Validation Steps
+
+1. Run the Bulwark linter:
+   ```bash
+   cd /a0/usr/workdir/bulwark-ai
+   python -m bulwark_lint test-results/calculate_tax.py --format json
+   ```
+
+2. If the linter reports violations:
+   - For each violation, **explicitly state** whether it's a true positive or false positive
+   - Explain your reasoning based on the function's nature
+   - Only fix true positives
+
+3. Write a brief test at the bottom of the file demonstrating:
+   - `calculate_tax` works correctly for normal, zero, and edge cases
+   - `calculate_invoice_total` guards fire on bad inputs
+   - `calculate_invoice_total` verify fires on failed DB write
+
+## Success Criteria
+
+- `calculate_tax`: Should have **guards** (input validation) but should NOT
+  require traces or verify (no external data flow, no side effects)
+- `calculate_invoice_total`: Should have **full GTV** (guards + traces + verify)
+- Agent demonstrates **judgment** in distinguishing which patterns apply where
+- Agent correctly classifies any linter violations as true/false positives
+
+## Environment
+
+- Working directory: `/a0/usr/workdir/bulwark-ai`
+- Linter: `python -m bulwark_lint` (installed in venv)
+- Python: 3.13+ (venv at /opt/venv)
+- No external services needed (use mock DB for testing)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

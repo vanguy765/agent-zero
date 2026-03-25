@@ -1,0 +1,125 @@
+=== dev-health.sh ===
+#!/bin/bash
+# Health check — matches docs/ports.md port allocation contract
+
+PASS="✅"
+FAIL="❌"
+WARN="⚠️ "
+
+echo "=== Dev Stack Health Check ==="
+echo ""
+
+# ── Windows host services (not startable from container) ──
+echo "--- Windows Host (via host.docker.internal) ---"
+if curl -sf --connect-timeout 3 http://host.docker.internal:54321/rest/v1/ > /dev/null 2>&1; then
+  echo "$PASS Supabase Kong / API  → host.docker.internal:54321"
+else
+  echo "$FAIL Supabase Kong / API  → host.docker.internal:54321  ← run 'supabase start' on Windows"
+fi
+
+if curl -sf --connect-timeout 3 http://host.docker.internal:54323/ > /dev/null 2>&1; then
+  echo "$PASS Supabase Studio      → host.docker.internal:54323"
+else
+  echo "$WARN Supabase Studio      → host.docker.internal:54323  (Studio may not be exposed)"
+fi
+
+echo ""
+echo "--- Container Services ---"
+
+# API :3000
+if curl -sf --connect-timeout 3 http://localhost:3000/health > /dev/null 2>&1; then
+  echo "$PASS API (Hono)           → :3000  (Swagger: /ui)"
+else
+  echo "$FAIL API (Hono)           → :3000  ← pnpm --filter api dev"
+fi
+
+# Web Dashboard :3001
+if curl -sf --connect-timeout 2 http://localhost:3001/ > /dev/null 2>&1; then
+  echo "$PASS Web Dashboard        → :3001"
+else
+  echo "$WARN Web Dashboard        → :3001  (not running)"
+fi
+
+# Site Companion :3002
+if curl -sf --connect-timeout 2 http://localhost:3002/ > /dev/null 2>&1; then
+  echo "$PASS Site Companion       → :3002"
+else
+  echo "$WARN Site Companion       → :3002  (not running)"
+fi
+
+# Material Admin :3003
+if curl -sf --connect-timeout 2 http://localhost:3003/ > /dev/null 2>&1; then
+  echo "$PASS Material Admin       → :3003"
+else
+  echo "$WARN Material Admin       → :3003  (not running)"
+fi
+
+# Work Orders :3004
+if curl -sf --connect-timeout 2 http://localhost:3004/ > /dev/null 2>&1; then
+  echo "$PASS Work Orders          → :3004"
+else
+  echo "$WARN Work Orders          → :3004  (not running)"
+fi
+
+# Tenant Portal :3005
+if curl -sf --connect-timeout 2 http://localhost:3005/ > /dev/null 2>&1; then
+  echo "$PASS Tenant Portal        → :3005"
+else
+  echo "$WARN Tenant Portal        → :3005  (not running)"
+fi
+
+# Doc Parser :5000
+if curl -sf --connect-timeout 3 http://localhost:5000/health > /dev/null 2>&1 || \
+   curl -sf --connect-timeout 3 http://localhost:5000/ > /dev/null 2>&1; then
+  echo "$PASS Doc Parser           → :5000"
+else
+  echo "$FAIL Doc Parser           → :5000  ← cd doc-parser && python server.py"
+fi
+
+# NocoDB :8082
+if curl -sf --connect-timeout 2 http://localhost:8082/ > /dev/null 2>&1; then
+  echo "$PASS NocoDB               → :8082"
+else
+  echo "$WARN NocoDB               → :8082  (not running — see nocodb/docker-compose.yml)"
+fi
+
+echo ""
+echo "--- Fallback / Infrastructure ---"
+
+# Local PostgreSQL
+if pg_isready -h 127.0.0.1 -p 54322 -U postgres -q 2>/dev/null; then
+  echo "$PASS PostgreSQL (local)   → :54322"
+else
+  echo "$WARN PostgreSQL (local)   → :54322  (fallback unavailable)"
+fi
+
+# PostgREST proxy (fallback)
+if curl -sf --connect-timeout 2 http://localhost:54330/rest/v1/ > /dev/null 2>&1; then
+  echo "$PASS PostgREST Proxy      → :54330  (fallback ready)"
+else
+  echo "$WARN PostgREST Proxy      → :54330  (fallback not running)"
+fi
+
+echo ""
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === API supabase client setup ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/bom-action-requests.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-definitions.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/project-outcomes.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/reviews.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/taxonomy.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/todos.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/trades.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/type-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/units.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/voice.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/work-orders.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/a2a/skillRouter.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/services/doc-parser-client.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

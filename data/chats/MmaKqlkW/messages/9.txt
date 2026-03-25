@@ -1,0 +1,530 @@
+# Bulwark × BMAD × Agent Zero — Live Test Plan
+
+> **Version**: 1.0.0
+> **Date**: 2025-03-15
+> **System Under Test**: Claude Opus 4.6 via Agent Zero with BMAD methodology
+> **Objective**: Validate autonomous self-correcting code development using Bulwark defensive patterns
+
+---
+
+## 1. Executive Summary
+
+### What We're Testing
+
+An autonomous AI agent (Claude Opus 4.6 running inside Agent Zero) that:
+1. **Receives** a coding task
+2. **Loads** the BMAD Bulwark skill (`.bmad/skills/bulwark-defensive-coding.md`)
+3. **Generates** code following the Guard-Trace-Verify (GTV) pattern
+4. **Lints** its own output using `bulwark-lint --format json`
+5. **Self-corrects** any violations detected
+6. **Re-lints** to confirm compliance
+7. **Delivers** clean, defensively-coded output
+
+### The Self-Correction Loop
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    BMAD SKILL LAYER                      │
+│  .bmad/skills/bulwark-defensive-coding.md               │
+│  (7-step template, anti-patterns, QA checklist)         │
+└──────────────────────┬──────────────────────────────────┘
+                       │ instructs
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│                  AGENT WRITES CODE                       │
+│  Claude Opus 4.6 generates function/module              │
+└──────────────────────┬──────────────────────────────────┘
+                       │ output
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│                  DETECTION LAYER                         │
+│  bulwark-lint --format json                             │
+│  Rules: BLW001-BLW005                                   │
+└──────────┬───────────────────────────┬──────────────────┘
+           │ violations found           │ clean
+           ▼                            ▼
+┌──────────────────────┐    ┌──────────────────────────────┐
+│   REMEDIATION LOOP   │    │     DELIVERY                 │
+│   (max 3 iterations) │    │     Code passes to QA or     │
+│   Fix → Re-lint      │    │     user review              │
+└──────────┬───────────┘    └──────────────────────────────┘
+           │ still failing after 3
+           ▼
+┌──────────────────────────────────────────────────────────┐
+│              ESCALATION                                   │
+│  Flag for human review with diagnostic context           │
+│  Optional: invoke bulwark-remediation-agent.md           │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Confidence Assessment
+
+| Aspect | Confidence | Rationale |
+|--------|-----------|----------|
+| First-pass guard generation | 🟢 High (8/10) | Guards are mechanical — if/raise at function top |
+| First-pass trace placement | ��� Medium (6/10) | Requires understanding of "phase boundaries" |
+| First-pass verify accuracy | 🟡 Medium (5/10) | Requires domain knowledge of mutation outcomes |
+| Self-correction loop | 🟡 Medium (7/10) | JSON linter output is unambiguous |
+| False positive handling | 🟠 Moderate (5/10) | Regex linter has ~15% FP rate on utilities |
+| Multi-file coherence | 🟠 Moderate (4/10) | Cross-file trace correlation is complex |
+
+---
+
+## 2. Test Scenarios
+
+### Round 1: Single Function (Baseline)
+
+**Purpose**: Establish baseline metrics for the simplest case — one function with clear GTV requirements.
+
+#### Test 1.1: Greenfield Function Generation
+
+**Task Prompt**:
+```
+You are operating under the BMAD methodology.
+Load and follow the Bulwark defensive coding skill.
+
+Write a Python function `fetch_user_profile(user_id: str, api_client: HttpClient) -> UserProfile`
+that:
+1. Fetches user data from an external API
+2. Transforms the response into a UserProfile dataclass
+3. Saves the profile to a PostgreSQL database
+4. Returns the saved profile
+
+After writing code:
+1. Run: bulwark-lint <file> --format json
+2. Fix any violations found
+3. Re-lint to confirm zero violations
+4. Maximum 3 lint-fix cycles
+
+Environment: BULWARK_MODE=development
+```
+
+**Expected GTV Pattern**:
+- GUARD: Validate `user_id` is non-empty string, `api_client` is not None
+- TRACE: Log shape after API response, after transform
+- VERIFY: Confirm DB insert rowcount == 1
+- ERROR TYPES: `GuardError`, `VerifyError` (not bare assert)
+
+**Measurement Points**: See §4 Metrics
+
+#### Test 1.2: Remediation of Existing Code
+
+**Task Prompt**:
+```
+You are operating under the BMAD methodology.
+Load and follow the Bulwark defensive coding skill.
+
+Refactor the following function to comply with Bulwark defensive patterns:
+
+```python
+def fetch_and_save(url, db):
+    response = requests.get(url)
+    data = response.json()
+    db.execute("INSERT INTO records VALUES (?)", data)
+    return {"status": "ok"}
+```
+
+Run bulwark-lint after refactoring to verify compliance.
+```
+
+**Expected Violations in Original**:
+- BLW001: No guards on `url` or `db`
+- BLW002: No verify after INSERT
+- BLW003: No traces at boundaries
+- BLW005: No custom error types
+
+#### Test 1.3: False Positive Handling
+
+**Task Prompt**:
+```
+Write a pure utility function `calculate_tax(amount: float, rate: float) -> float`
+that computes tax with rounding.
+
+Apply Bulwark patterns where appropriate.
+Run bulwark-lint and use judgment on any violations — not all functions
+require all patterns.
+```
+
+**Expected Behavior**: Agent should recognize that a pure calculation function:
+- MAY need guards (validate amount >= 0, rate in valid range)
+- Does NOT need traces (no external data flow)
+- Does NOT need verify (no side effects)
+- Should NOT trigger BLW002 or BLW003
+
+---
+
+### Round 2: Module-Level (Integration)
+
+**Purpose**: Test GTV coherence across multiple functions with shared data flow.
+
+#### Test 2.1: Three-Function Pipeline
+
+**Task Prompt**:
+```
+Write a Python module with three functions that form a data pipeline:
+1. `ingest_csv(filepath: str) -> list[dict]` — reads and validates CSV data
+2. `transform_records(records: list[dict], schema: dict) -> list[dict]` — normalizes fields
+3. `load_to_database(records: list[dict], db_conn: Connection) -> int` — bulk inserts
+
+Each function must follow Bulwark GTV patterns.
+Traces should correlate across the pipeline (same operation_id).
+```
+
+**Key Measurements**:
+- Cross-function trace correlation
+- Guard consistency (output of function N matches guard expectations of function N+1)
+- Verify on the bulk insert
+
+#### Test 2.2: Error Recovery Chain
+
+**Task Prompt**:
+```
+Extend the pipeline from Test 2.1 with:
+- Availability guards on the database connection
+- Bounded retry (max 3 attempts) on the bulk insert
+- Recovery logging on each retry attempt
+- Circuit breaker pattern if all retries fail
+```
+
+---
+
+### Round 3: Real Codebase (Production)
+
+**Purpose**: Test against actual production code patterns.
+
+#### Test 3.1: TypeScript/SolidJS Component
+
+**Task Prompt**:
+```
+Refactor the following SolidJS component to comply with Bulwark patterns.
+Focus on the data fetching and state mutation logic.
+
+[paste actual component code]
+```
+
+#### Test 3.2: Hono API Route Handler
+
+**Task Prompt**:
+```
+Refactor the following Hono route handler to comply with Bulwark patterns.
+Note: Zod handles request body validation. Bulwark should handle
+function-level guards, traces, and mutation verification.
+
+[paste actual route handler]
+```
+
+---
+
+## 3. Environment Setup
+
+### Pre-Test Checklist
+
+```bash
+# 1. Verify linter is accessible
+which bulwark-lint || pip install -e /path/to/linter
+bulwark-lint --help
+
+# 2. Set environment
+export BULWARK_MODE=development
+
+# 3. Verify BMAD skill is loadable
+cat .bmad/skills/bulwark-defensive-coding.md | head -5
+
+# 4. Prepare test output directory
+mkdir -p test-results/round-{1,2,3}
+```
+
+### Agent Configuration
+
+The task prompt given to the agent should include:
+
+```markdown
+## Bulwark Compliance Instructions
+
+You are operating under the BMAD methodology.
+Load and follow the Bulwark defensive coding skill at:
+  .bmad/skills/bulwark-defensive-coding.md
+
+After writing or modifying code:
+1. Run: bulwark-lint <file> --format json
+2. Parse the JSON output for violations
+3. Fix any violations found
+4. Re-lint to confirm zero violations
+5. Maximum 3 lint-fix cycles (if violations persist, flag for human review)
+
+Environment: BULWARK_MODE=development
+
+Key rules:
+- BLW001: Every function handling external data needs guards
+- BLW002: Every mutation (DB/API/file) needs a verify
+- BLW003: Log data shape at phase boundaries (after fetch, after transform, before return)
+- BLW004: Never use bare `assert` — use `if/raise GuardError`
+- BLW005: Use `GuardError` and `VerifyError`, not generic exceptions
+```
+
+---
+
+## 4. Metrics Framework
+
+### 4.1 Primary Metrics (Per Test)
+
+#### A. Compliance Metrics
+
+| Metric | ID | Formula | Target |
+|--------|----|---------|--------|
+| **First-Pass Compliance Rate** | M-01 | `(functions passing lint on first generation) / (total functions)` × 100 | ≥ 70% |
+| **Self-Correction Success Rate** | M-02 | `(violations fixed within 3 iterations) / (total violations detected)` × 100 | ≥ 90% |
+| **Average Correction Cycles** | M-03 | `sum(iterations per function) / count(functions)` | ≤ 1.5 |
+| **Escalation Rate** | M-04 | `(functions requiring human intervention) / (total functions)` × 100 | ≤ 10% |
+| **Regression Rate** | M-05 | `(new violations introduced during fix) / (total fix attempts)` × 100 | ≤ 5% |
+
+#### B. Pattern Quality Metrics
+
+| Metric | ID | Scoring | Target |
+|--------|----|---------|--------|
+| **Guard Depth** | M-06 | 0=missing, 1=type-only, 2=type+range, 3=type+range+semantic | ≥ 2.0 avg |
+| **Trace Accuracy** | M-07 | 0=missing, 1=wrong-location, 2=correct-location, 3=correct+shape-metadata | ≥ 2.0 avg |
+| **Verify Completeness** | M-08 | 0=missing, 1=truthy-check, 2=specific-field, 3=full-outcome-validation | ≥ 2.0 avg |
+| **Error Type Correctness** | M-09 | 0=generic, 1=custom-but-wrong, 2=correct-type, 3=correct+context-message | ≥ 2.5 avg |
+| **False Positive Handling** | M-10 | 0=blindly-fixes, 1=adds-unnecessary-pattern, 2=correctly-skips, 3=explains-reasoning | ≥ 2.0 avg |
+
+#### C. Efficiency Metrics
+
+| Metric | ID | Measurement | Target |
+|--------|----|-------------|--------|
+| **Time to Compliance** | M-11 | Wall clock: task prompt → clean lint (seconds) | Baseline |
+| **Token Consumption** | M-12 | Total input+output tokens per function remediated | Baseline |
+| **Code Overhead** | M-13 | `(lines added by Bulwark patterns) / (total function lines)` × 100 | ≤ 40% |
+| **Linter Invocations** | M-14 | Number of times linter was called per function | ≤ 3 |
+
+#### D. Rule-Level Breakdown
+
+| Rule | First-Pass Pass Rate | Fix Rate | Common Failure Mode |
+|------|---------------------|----------|--------------------|
+| BLW001 (Guards) | __%  | __% | |
+| BLW002 (Verify) | __% | __% | |
+| BLW003 (Trace) | __% | __% | |
+| BLW004 (No Assert) | __% | __% | |
+| BLW005 (Error Types) | __% | __% | |
+
+### 4.2 Aggregate Metrics (Across All Tests)
+
+| Metric | Formula | Interpretation |
+|--------|---------|---------------|
+| **Overall Compliance Score** | Weighted average of M-01 through M-05 | Single number for "how well does the loop work" |
+| **Pattern Quality Index** | Average of M-06 through M-10 | Single number for "how good is the generated code" |
+| **Efficiency Index** | Normalized M-11 through M-14 | Single number for "how fast/cheap is compliance" |
+| **Bulwark Readiness Score** | `(Compliance × 0.4) + (Quality × 0.4) + (Efficiency × 0.2)` | Overall system readiness |
+
+### 4.3 Qualitative Observations
+
+Capture these during each test:
+
+- [ ] Did the agent load the BMAD skill without prompting?
+- [ ] Did the agent run the linter proactively?
+- [ ] Did the agent parse JSON output correctly?
+- [ ] Did the agent explain its fixes?
+- [ ] Did the agent handle false positives gracefully?
+- [ ] Did the agent maintain code readability after applying patterns?
+- [ ] Did the agent correlate traces across functions?
+- [ ] Did the agent use the 7-step template structure?
+- [ ] Did the agent distinguish between guard-worthy and pure functions?
+- [ ] Did the agent escalate appropriately when stuck?
+
+---
+
+## 5. Test Results Template
+
+### Test [ID]: [Name]
+
+**Date**: YYYY-MM-DD
+**Agent**: Claude Opus 4.6 / Agent Zero
+**Task**: [Brief description]
+
+#### Raw Results
+
+| Metric | Value | Target | Pass? |
+|--------|-------|--------|-------|
+| M-01: First-Pass Compliance | | ≥ 70% | |
+| M-02: Self-Correction Rate | | ≥ 90% | |
+| M-03: Avg Correction Cycles | | ≤ 1.5 | |
+| M-04: Escalation Rate | | ≤ 10% | |
+| M-05: Regression Rate | | ≤ 5% | |
+| M-06: Guard Depth | | ≥ 2.0 | |
+| M-07: Trace Accuracy | | ≥ 2.0 | |
+| M-08: Verify Completeness | | ≥ 2.0 | |
+| M-09: Error Type Correctness | | ≥ 2.5 | |
+| M-10: False Positive Handling | | ≥ 2.0 | |
+| M-11: Time to Compliance | | Baseline | |
+| M-12: Token Consumption | | Baseline | |
+| M-13: Code Overhead | | ≤ 40% | |
+| M-14: Linter Invocations | | ≤ 3 | |
+
+#### Rule Breakdown
+
+| Rule | First-Pass | After Fix | Failure Mode |
+|------|-----------|-----------|-------------|
+| BLW001 | | | |
+| BLW002 | | | |
+| BLW003 | | | |
+| BLW004 | | | |
+| BLW005 | | | |
+
+#### Qualitative Notes
+
+```
+[Paste observations, agent behavior notes, surprising outcomes]
+```
+
+#### Generated Code Sample
+
+```python
+# [Paste the final code output]
+```
+
+#### Linter Output (Final Pass)
+
+```json
+// [Paste final bulwark-lint JSON output]
+```
+
+---
+
+## 6. Analysis Framework
+
+### Failure Mode Taxonomy
+
+When tests fail, classify the root cause:
+
+| Category | Code | Description | Remediation |
+|----------|------|-------------|------------|
+| **Skill Gap** | F-SKL | Agent didn't follow BMAD skill instructions | Improve skill file clarity |
+| **Linter Blind Spot** | F-LNT | Linter missed a violation or false-flagged | Add/refine regex rules |
+| **Pattern Misapplication** | F-PAT | Agent applied pattern incorrectly (e.g., guard on wrong parameter) | Add anti-pattern examples to skill |
+| **Context Loss** | F-CTX | Agent forgot instructions mid-task (context window) | Shorten prompts, add reminders |
+| **Domain Ignorance** | F-DOM | Agent lacked domain knowledge for meaningful verify | Add domain-specific examples |
+| **Loop Divergence** | F-LOP | Fix introduced new violation (regression spiral) | Add regression check to remediation prompt |
+| **False Positive Confusion** | F-FPR | Agent tried to fix a non-issue | Improve FP guidance in skill |
+| **Scope Creep** | F-SCP | Agent over-applied patterns to pure/utility functions | Add exemption criteria to skill |
+
+### Improvement Cycle
+
+After each test round:
+
+```
+1. MEASURE  → Record all metrics from §4
+2. CLASSIFY → Tag failures using taxonomy from §6
+3. DIAGNOSE → Identify root cause (skill? linter? prompt? model?)
+4. IMPROVE  → Update the specific artifact:
+   ├── Skill file    → .bmad/skills/bulwark-defensive-coding.md
+   ├── Linter rules  → linter/bulwark_lint/rules/
+   ├── System prompt → prompts/bulwark-system-prompt.md
+   ├── Remediation   → prompts/bulwark-remediation-agent.md
+   └── Spec          → SPEC.md (if fundamental pattern issue)
+5. RE-TEST  → Run same scenario to confirm improvement
+6. COMMIT   → Version the changes with test results
+```
+
+### Improvement Priority Matrix
+
+| Impact \ Frequency | Rare (1 test) | Occasional (2-3 tests) | Frequent (4+ tests) |
+|-------------------|---------------|----------------------|--------------------|
+| **High** (blocks compliance) | Schedule fix | Fix this sprint | Fix immediately |
+| **Medium** (degrades quality) | Note for later | Schedule fix | Fix this sprint |
+| **Low** (cosmetic) | Ignore | Note for later | Schedule fix |
+
+---
+
+## 7. Success Criteria
+
+### Minimum Viable (v0.2.0 Release Gate)
+
+- [ ] M-01 ≥ 60% (first-pass compliance)
+- [ ] M-02 ≥ 80% (self-correction rate)
+- [ ] M-04 ≤ 20% (escalation rate)
+- [ ] All 5 BLW rules detected and fixable
+- [ ] Agent loads BMAD skill without explicit instruction
+
+### Target (v1.0.0 Release Gate)
+
+- [ ] M-01 ≥ 80% (first-pass compliance)
+- [ ] M-02 ≥ 95% (self-correction rate)
+- [ ] M-03 ≤ 1.2 (average correction cycles)
+- [ ] M-04 ≤ 5% (escalation rate)
+- [ ] M-05 ≤ 2% (regression rate)
+- [ ] Pattern Quality Index ≥ 2.5
+- [ ] Works across Python + TypeScript
+- [ ] Handles multi-function modules with trace correlation
+
+### Stretch (v2.0.0)
+
+- [ ] M-01 ≥ 90% (near-perfect first-pass)
+- [ ] Zero escalations on standard patterns
+- [ ] Cross-file trace correlation
+- [ ] Automatic BULWARK_MODE adaptation
+- [ ] Works with 4+ languages
+
+---
+
+## 8. Signals to Watch During Testing
+
+### Good Signs ✅
+
+| Signal | What It Means |
+|--------|---------------|
+| Agent loads skill before writing code | Instruction following is strong |
+| Guards appear at function top on first pass | Pattern internalization working |
+| Agent runs linter without being reminded | Autonomous loop is functioning |
+| Agent parses JSON and maps to specific lines | Machine-readable feedback works |
+| Agent explains why it skipped a pattern | Judgment, not just compliance |
+| Code remains readable after Bulwark patterns | Overhead is acceptable |
+| Agent uses `GuardError`/`VerifyError` naturally | Error type adoption is clean |
+
+### Warning Signs ⚠️
+
+| Signal | What It Means | Action |
+|--------|---------------|--------|
+| Agent uses bare `assert` | Didn't internalize BLW004 | Strengthen skill anti-patterns |
+| Guards check wrong parameters | Pattern misapplication | Add more guard examples |
+| Traces log actual values (not shapes) | Security risk, misunderstood trace | Clarify trace vs. debug logging |
+| Agent adds guards to pure math functions | Over-application | Add exemption criteria |
+| Fix introduces new violation | Regression spiral | Add regression check to prompt |
+| Agent ignores linter output | Loop is broken | Strengthen lint-fix instructions |
+| Agent loops >3 times on same violation | Stuck in remediation | Check if linter FP or agent confusion |
+| Verify only checks truthy return | Shallow verification | Add depth examples to skill |
+
+---
+
+## 9. Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0.0 | 2025-03-15 | Initial test plan |
+
+---
+
+## 10. Appendix: Quick Reference
+
+### Bulwark Rules
+
+| Rule | Name | What It Checks |
+|------|------|-----------------|
+| BLW001 | Guard Present | Functions handling external data have input validation |
+| BLW002 | Verify After Mutation | DB/API/file mutations are followed by outcome checks |
+| BLW003 | Trace at Boundary | Data shape is logged at phase transitions |
+| BLW004 | No Bare Assert | `assert` statements replaced with `if/raise` |
+| BLW005 | Custom Error Types | `GuardError`/`VerifyError` used instead of generic exceptions |
+
+### Key File Locations
+
+| Artifact | Path |
+|----------|------|
+| BMAD Skill | `.bmad/skills/bulwark-defensive-coding.md` |
+| Linter | `linter/bulwark_lint/` |
+| System Prompt | `prompts/bulwark-system-prompt.md` |
+| Remediation Prompt | `prompts/bulwark-remediation-agent.md` |
+| Checklist | `checklists/bulwark-checklist.md` |
+| Spec | `SPEC.md` |
+| Guide | `GUIDE.md` |
+| Quick Start | `QUICKSTART.md` |
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

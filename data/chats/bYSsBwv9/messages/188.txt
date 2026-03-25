@@ -1,0 +1,39 @@
+RESOLVED: /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/vite-plugin-solid/dist/cjs/index.cjs
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Quick vite config parse test ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# > > timeout: failed to run command ‘node_modules/.bin/vite’: No such file or directory
+vite/5.4.21 linux-x64 node-v22.22.0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# startup.md updated
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Tail of startup.md ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# **Cause:** The doc-parser FastAPI app has no root `/` endpoint — it returns `404 Not Found`. PowerShell's `Invoke-WebRequest` throws an exception on any non-2xx response, so the health check treated a running service as down.
+
+**Symptoms:** `Still waiting for doc-parser... (1/10)` through `(10/10)` even though `docker logs doc-parser-doc-parser-1` shows `Application startup complete` and `GET / HTTP/1.1" 404 Not Found`.
+
+**Fix (already applied):** `Test-DocParserReady` helper function treats both 200 and 404 as "service is up". Only connection refused/timeout counts as down.
+
+**Valid doc-parser endpoints:** `POST /parse/docling`, `POST /parse/hybrid`, `GET /status/{job_id}`, `GET /result/{job_id}`
+
+### `vite-plugin-solid` (and other packages) not found on Windows — MODULE_NOT_FOUND
+
+**Root cause:** pnpm's default `node-linker=isolated` creates Linux symlinks in `node_modules`. These symlinks don't resolve on Windows, causing `Cannot find module 'vite-plugin-solid'` (and similar errors) when running dev servers on the Windows host.
+
+**Permanent fix applied (2026-03-11):**
+A `.npmrc` was added to the project root with:
+```
+node-linker=hoisted
+store-dir=.pnpm-store
+```
+This makes pnpm create a **flat node_modules** (like npm/yarn) with no symlinks — works on both Linux (container) and Windows (host).
+
+**If node_modules get corrupted or re-installed with wrong linker:**
+```bash
+# In container:
+cd /a0/usr/projects/timesheet_app/voicelog-scaffold
+find . -name 'node_modules' -type d -not -path './.pnpm-store/*' -prune -exec rm -rf {} +
+pnpm install --no-frozen-lockfile
+```
+The `.npmrc` ensures hoisted mode is used automatically.
+
+**Do NOT delete `.npmrc`** — it is the cross-platform compatibility contract.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

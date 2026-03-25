@@ -1,0 +1,49 @@
+bulwark.ts:107:19 - error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+107     return typeof process !== "undefined" && process.env ? process.env[key] : undefined;
+                      ~~~~~~~
+
+bulwark.ts:107:46 - error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+107     return typeof process !== "undefined" && process.env ? process.env[key] : undefined;
+                                                 ~~~~~~~
+
+bulwark.ts:107:60 - error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+107     return typeof process !== "undefined" && process.env ? process.env[key] : undefined;
+                                                               ~~~~~~~
+
+bulwark.ts:800:14 - error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+800   const fs = require("fs");
+                 ~~~~~~~
+
+bulwark.ts:887:26 - error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+887     const { execSync } = require("child_process");
+                             ~~~~~~~
+
+bulwark.ts:906:24 - error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+906       const { exec } = require("child_process");
+                           ~~~~~~~
+
+bulwark.ts:985:41 - error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+985     const { execSync: execSyncSleep } = require("child_process");
+                                            ~~~~~~~
+
+bulwark.ts:1614:5 - error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+1614 if (require.main === module) {
+         ~~~~~~~
+
+bulwark.ts:1614:22 - error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+1614 if (require.main === module) {
+                          ~~~~~~
+
+
+Found 9 errors in the same file, starting at: bulwark.ts:107
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

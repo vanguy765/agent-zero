@@ -1,0 +1,17 @@
+import { Context } from 'hono';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+
+export const getScopedClient = (c: Context): SupabaseClient => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader ? authHeader.replace('Bearer ', '') : undefined;
+
+  // If no token, this client acts as Anonymous.
+  // If token is present, it acts as the User.
+  const options = token
+    ? { global: { headers: { Authorization: `Bearer ${token}` } } }
+    : {};
+
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,28 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---pg version dirs---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 18
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bin  lib
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---psql path---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# /usr/bin/psql
+lrwxrwxrwx 1 root root 37 Oct 11 10:36 /usr/bin/psql -> ../share/postgresql-common/pg_wrapper
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# total 106380
+drwxr-xr-x 1 root root        4096 Feb 23 23:19 .
+drwxr-xr-x 1 root root        4096 Feb  1 04:01 ..
+-rwxr-xr-x 1 root root       55720 Jun  4  2025 [
+lrwxrwxrwx 1 root root          31 Nov  8  2023 acorn -> ../share/nodejs/acorn/bin/acorn
+lrwxrwxrwx 1 root root          26 Jan 16 17:20 addr2line -> x86_64-linux-gnu-addr2line
+-rwxr-xr-x 1 root root       14736 Jan 17 10:41 ambiguous_words
+-rwxr-xr-x 1 root root       22920 Feb  3 07:45 apt
+-rwxr-xr-x 1 root root      100744 Feb  3 07:45 apt-cache
+-rwxr-xr-x 1 root root       27016 Feb  3 07:45 apt-cdrom
+-rwxr-xr-x 1 root root       26944 Feb  3 07:45 apt-config
+lrwxrwxrwx 1 root root          29 Feb  3 07:45 apt-extracttemplates -> /lib/apt/apt-extracttemplates
+-rwxr-xr-x 1 root root      334224 Feb  3 07:45 apt-ftparchive
+-rwxr-xr-x 1 root root       55688 Feb  3 07:45 apt-get
+-rwxr-xr-x 1 root root       76168 Feb  3 07:45 apt-mark
+-rwxr-xr-x 1 root root       43336 Feb  3 07:45 apt-sortpkgs
+lrwxrwxrwx 1 root root          19 Jan 16 17:20 ar -> x86_64-linux-gnu-ar
+lrwxrwxrwx 1 root root          45 Dec 26 23:38 arborist -> ../share/nodejs/@npmcli/arborist/bin/index.js
+-rwxr-xr-x 1 root root       43464 Jun  4  2025 arch
+lrwxrwxrwx 1 root root          19 Jan 16 17:20 as -> x86_64-linux-gnu-as
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---find pg binaries---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

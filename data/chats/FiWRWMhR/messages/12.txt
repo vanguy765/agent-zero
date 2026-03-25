@@ -1,0 +1,138 @@
+"""BLW003 — trace-at-boundary
+
+Functions at phase boundaries should have trace calls.
+"""
+
+import re
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# ---------------------------------------------------------------------------
+# Boundary indicators
+# ---------------------------------------------------------------------------
+
+# Function names suggesting a phase boundary
+_BOUNDARY_NAME_PATTERNS = re.compile(
+    r'\b(fetch|parse|transform|process|convert|load|extract|handle|middleware|'
+    r'serialize|deserialize|decode|encode|normalize|validate|sanitize|'
+    r'map|reduce|filter|aggregate|compile|render|format|translate|'
+    r'import|export|ingest|digest|pipeline|dispatch|route|resolve)\b',
+    re.IGNORECASE,
+)
+
+# Async function indicators (language-specific, checked via body/params context)
+_ASYNC_INDICATORS = re.compile(
+    r'\b(await|async|Promise|Future|asyncio|goroutine|go\s+func)\b',
+)
+
+# Accessor patterns — skip these
+_ACCESSOR_PREFIXES = ('get_', 'get', 'is_', 'is', 'has_', 'has', 'should_', 'can_')
+
+# Trace call patterns
+_TRACE_PATTERN = re.compile(
+    r'\btrace(?:_?[a-zA-Z]*)\s*\(',
+    re.IGNORECASE,
+)
+
+# Exclude false positives: traceback, stacktrace
+_TRACE_FALSE_POSITIVES = re.compile(
+    r'\b(traceback|stacktrace|stack_trace|traceError|backtrace)\b',
+    re.IGNORECASE,
+)
+
+# Decorator-based trace (Python)
+_TRACE_DECORATOR = re.compile(r'@\s*[Tt]raced?\b')
+
+
+def _is_accessor(func_name: str) -> bool:
+    """Check if function name suggests a simple accessor."""
+    lower = func_name.lower()
+    for prefix in _ACCESSOR_PREFIXES:
+        if lower.startswith(prefix) and len(lower) > len(prefix):
+            return True
+    return False
+
+
+def _is_boundary_function(func: FunctionInfo) -> bool:
+    """Heuristic: does this function appear to be at a phase boundary?"""
+    # Check function name
+    if _BOUNDARY_NAME_PATTERNS.search(func.name):
+        return True
+
+    # Check if async (likely I/O boundary)
+    if _ASYNC_INDICATORS.search(func.body):
+        return True
+
+    return False
+
+
+def _has_trace(func: FunctionInfo, source_before_func: str = "") -> bool:
+    """Check if function has trace calls (excluding false positives)."""
+    # Check for trace decorator above function (Python)
+    if _TRACE_DECORATOR.search(source_before_func):
+        return True
+
+    # Check body for trace calls
+    matches = _TRACE_PATTERN.findall(func.body)
+    if not matches:
+        return False
+
+    # Filter out false positives
+    body_without_fp = _TRACE_FALSE_POSITIVES.sub('', func.body)
+    return bool(_TRACE_PATTERN.search(body_without_fp))
+
+
+def _generate_fix_hint(func: FunctionInfo) -> str:
+    """Generate a suggested trace call."""
+    if func.language == "python":
+        return f'Consider adding: result = trace("after_{func.name}", data)'
+    elif func.language in ("typescript", "javascript"):
+        return f'Consider adding: const result = trace("after{func.name[0].upper()}{func.name[1:]}", data);'
+    elif func.language == "go":
+        return f'Consider adding: result = trace("after_{func.name}", data)'
+    return f'Consider adding a trace() call in {func.name}()'
+
+
+class TraceAtBoundaryRule(BaseRule):
+    """Functions at phase boundaries should have trace calls."""
+
+    rule_id = "BLW003"
+    rule_name = "trace-at-boundary"
+    description = "Functions at phase boundaries should have trace calls for observability."
+    severity = Severity.INFO
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip accessors
+        if _is_accessor(func.name):
+            return violations
+
+        # Skip very short functions (< 5 lines)
+        body_lines = [l for l in func.body.split('\n') if l.strip()]
+        if len(body_lines) < 5:
+            return violations
+
+        # Check if this looks like a boundary function
+        if not _is_boundary_function(func):
+            return violations
+
+        # Check for existing trace calls
+        if _has_trace(func):
+            return violations
+
+        # Boundary function without trace — violation
+        fix_hint = _generate_fix_hint(func)
+
+        violations.append(self._make_violation(
+            message=f"{func.name}() appears to be a phase boundary but has no trace call",
+            filepath=func.filepath,
+            line=func.start_line,
+            function_name=func.name,
+            fix_hint=fix_hint,
+        ))
+
+        return violations
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

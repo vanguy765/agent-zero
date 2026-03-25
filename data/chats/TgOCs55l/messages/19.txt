@@ -1,0 +1,331 @@
+-- =============================================================
+-- Migration: Document Tables
+-- Description: Project documents, document images, and image links
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: project_documents
+-- -----------------------------------------------
+
+CREATE TABLE public.project_documents (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    project_id uuid,
+    title text NOT NULL,
+    description text,
+    file_url text NOT NULL,
+    file_type text NOT NULL,
+    file_size_bytes bigint,
+    uploaded_by uuid,
+    uploaded_at timestamp with time zone DEFAULT now(),
+    metadata jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.project_documents
+    ADD CONSTRAINT project_documents_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: document_images
+-- -----------------------------------------------
+
+CREATE TABLE public.document_images (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    document_id uuid,
+    image_url text NOT NULL,
+    page_number integer,
+    image_type text,
+    caption text,
+    metadata jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.document_images
+    ADD CONSTRAINT document_images_pkey PRIMARY KEY (id);
+
+-- -----------------------------------------------
+-- Table: image_links
+-- -----------------------------------------------
+
+CREATE TABLE public.image_links (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    image_id uuid,
+    entity_type text NOT NULL,
+    entity_id uuid NOT NULL,
+    link_type text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.image_links
+    ADD CONSTRAINT image_links_pkey PRIMARY KEY (id);
+===PARSE_PDF===
+
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+import dotenv from 'dotenv';
+import postgres from 'postgres';
+
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse');
+
+// Load env vars
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
+
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  console.error('DATABASE_URL is not set');
+  process.exit(1);
+}
+const sql = postgres(connectionString);
+
+const PDF_PATH = path.join(__dirname, '../../../temp_analysis.pdf');
+
+// Regex patterns
+const UNIT_PAGE_REGEX = /UNIT\s+(\d+)/i;
+// Relaxed Regex (removed ^) and fixed Bathtub typo
+const ROW_REGEX = /(Ceiling|Walls|Floors|Entry|Interior|Bifold|Sink|Faucet|Lavatory|Toilet|Bathtub|Bathub|Countertop|Cabinets|Shelving|Vanity|Range|Fridge|Hood Fan)/i;
+
+async function parsePDF() {
+    console.log('Starting PDF parsing...');
+    if (!fs.existsSync(PDF_PATH)) {
+        console.error(`PDF not found at ${PDF_PATH}`);
+        process.exit(1);
+    }
+
+    const dataBuffer = fs.readFileSync(PDF_PATH);
+    const data = await pdf(dataBuffer);
+    const rawText = data.text;
+    
+    // Split by the header that appears on every page
+    const unitBlocks = rawText.split(/SCH'EYK HOUSING SOCIETY UNIT TURNOVER PROJECT/i);
+
+    let totalItemsInserted = 0;
+
+    for (const block of unitBlocks) {
+        // Look for "BH Unit XXX"
+        const unitMatch = block.match(/BH Unit\s+(\d+)/i);
+        if (!unitMatch) continue;
+
+        const unitNum = unitMatch[1];
+        
+        // 1. Insert Unit
+        const [unit] = await sql`
+            INSERT INTO units (unit_number, project_id)
+            VALUES (${unitNum}, '00000000-0000-0000-0000-000000000000')
+            ON CONFLICT (unit_number) DO UPDATE SET unit_number = EXCLUDED.unit_number
+            RETURNING id
+        `;
+
+        // 2. Parse Rows
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+        let currentSection = 'General';
+        
+        for (const line of lines) {
+            // Detect Section Headers
+            if (line.includes('1.0 FINISHES')) currentSection = 'Finishes';
+            else if (line.includes('2.0 DOORS')) currentSection = 'Doors';
+            else if (line.includes('3.0 LIGHT FIXTURES')) currentSection = 'Electrical';
+            else if (line.includes('4.0 KITCHEN PLUMBING')) currentSection = 'Plumbing';
+            else if (line.includes('5.0 BATHROOM PLUMBING')) currentSection = 'Plumbing';
+            else if (line.includes('6.0 MILLWORK')) currentSection = 'Millwork';
+            else if (line.includes('7.0 APPLIANCES')) currentSection = 'Appliances';
+            else if (line.includes('8.0 HEATING')) currentSection = 'Heating';
+            else if (line.includes('10.0 WINDOW')) currentSection = 'Windows';
+            
+            // Detect Item Row
+            const rowMatch = line.match(ROW_REGEX);
+            if (rowMatch) {
+                const item = rowMatch[1];
+                let action = line.replace(item, '').trim(); // Fallback action extraction
+                
+                // If the line *starts* with the item (fuzzy), assume the rest is action.
+                // Since regex is loose, 'item' might be in the middle.
+                // We'll try to split by the item match index.
+                const matchIndex = line.toLowerCase().indexOf(item.toLowerCase());
+                if (matchIndex >= 0) {
+                     action = line.substring(matchIndex + item.length).trim();
+                }
+
+                if (action.length > 100) action = action.substring(0, 100);
+
+                // Determine Trade
+                let trade = 'General';
+                const lowerItem = item.toLowerCase();
+                const lowerAction = action.toLowerCase();
+                const lowerSection = currentSection.toLowerCase();
+
+                if (lowerSection === 'plumbing') trade = 'Plumber';
+                else if (lowerSection === 'electrical' || lowerItem.includes('light')) trade = 'Electrician';
+                else if (lowerAction.includes('paint')) trade = 'Painter';
+                else if (lowerItem.includes('cabinet') || lowerItem.includes('countertop') || lowerItem.includes('shelf') || lowerItem.includes('vanity')) trade = 'Carpenter';
+                else if (lowerItem.includes('floor')) trade = 'Flooring';
+                else if (lowerItem.includes('door') || lowerItem.includes('entry') || lowerItem.includes('bifold')) trade = 'Carpenter';
+                else if (lowerSection === 'appliances') trade = 'Appliances';
+                else if (lowerSection === 'heating') trade = 'HVAC';
+
+                if (action.length > 0) { // Only insert if there is an action
+                    await sql`
+                        INSERT INTO unit_scope_items (unit_id, zone, category, item, action, trade, status)
+                        VALUES (${unit.id}, ${currentSection}, ${currentSection}, ${item}, ${action}, ${trade}, 'pending')
+                         ON CONFLICT DO NOTHING
+                    `;
+                    totalItemsInserted++;
+                }
+            }
+        }
+    }
+    
+    fs.writeFileSync(path.join(process.cwd(), 'parsing_result.txt'), `Parsing complete. Inserted ${totalItemsInserted} items.`);
+    console.log(`Parsing complete. Inserted ${totalItemsInserted} items.`);
+    await sql.end();
+}
+
+parsePDF().catch(console.error);
+===PARSE_PDF_V2===
+
+import fs from 'fs';
+import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import PDFParser from 'pdf2json';
+
+// Load env from site-companion
+const envPath = path.resolve(process.cwd(), 'apps/site-companion/.env');
+dotenv.config({ path: envPath });
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+const connectionString = process.env.DATABASE_URL;
+
+if (!supabaseUrl || !supabaseKey) {
+    console.error('Missing Supabase env vars');
+    process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const PDF_PATH = path.join(process.cwd(), 'temp_analysis.pdf');
+const OUT_PATH = path.join(process.cwd(), 'parsed_output.json');
+
+const ROW_REGEX = /(Ceiling|Walls|Floors|Entry|Interior|Bifold|Sink|Faucet|Lavatory|Toilet|Bathtub|Bathub|Countertop|Cabinets|Shelving|Vanity|Range|Fridge|Hood Fan)/i;
+
+async function parse() {
+    console.log('Starting PDF parsing with pdf2json...');
+    const pdfParser = new PDFParser();
+
+    pdfParser.on("pdfParser_dataError", errData => console.error(errData.parserError));
+    pdfParser.on("pdfParser_dataReady", async (pdfData) => {
+        console.log('PDF Data Ready. Processing...');
+        
+        // Flatten text for easier regex matching initially
+        // pdfData.formImage.Pages is array of pages
+        // Each Page has Texts array
+        // Each Text has R array (Run) with T (Text - encoded)
+
+        let fullText = "";
+
+        // Raw extraction
+        for (const page of pdfData.formImage.Pages) {
+            for (const textItem of page.Texts) {
+                // Decode URI component (pdf2json encodes text)
+                const decoded = decodeURIComponent(textItem.R[0].T);
+                fullText += decoded + "\n"; // Add newline to simulate rows for now
+            }
+        }
+        
+        console.log('Extracted raw text length:', fullText.length);
+        fs.writeFileSync(path.join(process.cwd(), 'debug_raw_v2.txt'), fullText);
+
+        const unitBlocks = fullText.split(/SCH'EYK HOUSING SOCIETY UNIT TURNOVER PROJECT/i);
+        console.log(`Found ${unitBlocks.length - 1} possible unit blocks.`);
+        
+        let totalItemsInserted = 0;
+
+        for (const block of unitBlocks) {
+             const unitMatch = block.match(/BH Unit\s+(\d+)/i);
+             if (!unitMatch) continue;
+             
+             const unitNum = unitMatch[1];
+             console.log(`Processing Unit ${unitNum}...`);
+             
+             // Upsert Unit
+             const { data: unit, error: unitError } = await supabase
+                .from('units')
+                .upsert({
+                    unit_number: unitNum,
+                    project_id: '00000000-0000-0000-0000-000000000000'
+                }, { onConflict: 'unit_number' })
+                .select()
+                .single();
+            
+             if (unitError) {
+                 console.error('Unit error:', unitError);
+                 continue;
+             }
+
+             // Parse rows
+             const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+             let currentSection = 'General';
+
+             for (const line of lines) {
+                if (line.includes('1.0 FINISHES')) currentSection = 'Finishes';
+                else if (line.includes('2.0 DOORS')) currentSection = 'Doors';
+                else if (line.includes('3.0 LIGHT FIXTURES')) currentSection = 'Electrical';
+                else if (line.includes('4.0 KITCHEN PLUMBING')) currentSection = 'Plumbing';
+                else if (line.includes('5.0 BATHROOM PLUMBING')) currentSection = 'Plumbing';
+                else if (line.includes('6.0 MILLWORK')) currentSection = 'Millwork';
+                else if (line.includes('7.0 APPLIANCES')) currentSection = 'Appliances';
+                else if (line.includes('8.0 HEATING')) currentSection = 'Heating';
+                else if (line.includes('10.0 WINDOW')) currentSection = 'Windows';
+
+                const rowMatch = line.match(ROW_REGEX);
+                if (rowMatch) {
+                    const item = rowMatch[1];
+                    let action = line.replace(item, '').trim();
+                    
+                    const matchIndex = line.toLowerCase().indexOf(item.toLowerCase());
+                    if (matchIndex >= 0) {
+                         action = line.substring(matchIndex + item.length).trim();
+                    }
+                    if (action.length > 100) action = action.substring(0, 100);
+
+                    // Determine Trade
+                    let trade = 'General';
+                    const lowerItem = item.toLowerCase();
+                    const lowerAction = action.toLowerCase();
+                    const lowerSection = currentSection.toLowerCase();
+
+                    if (lowerSection === 'plumbing') trade = 'Plumber';
+                    else if (lowerSection === 'electrical' || lowerItem.includes('light')) trade = 'Electrician';
+                    else if (lowerAction.includes('paint')) trade = 'Painter';
+                    else if (lowerItem.includes('cabinet') || lowerItem.includes('countertop') || lowerItem.includes('shelf') || lowerItem.includes('vanity')) trade = 'Carpenter';
+                    else if (lowerItem.includes('floor')) trade = 'Flooring';
+                    else if (lowerItem.includes('door') || lowerItem.includes('entry') || lowerItem.includes('bifold')) trade = 'Carpenter';
+                    else if (lowerSection === 'appliances') trade = 'Appliances';
+                    else if (lowerSection === 'heating') trade = 'HVAC';
+
+                    if (action.length > 0) {
+                        const { error: insertError } = await supabase.from('unit_scope_items').insert({
+                            unit_id: unit.id,
+                            zone: currentSection,
+                            category: currentSection,
+                            item: item,
+                            action: action,
+                            trade: trade,
+                            status: 'pending'
+                        });
+                        if (!insertError) totalItemsInserted++;
+                    }
+                }
+             }
+        }
+        
+        console.log(`Parsing complete. Inserted ${totalItemsInserted} items.`);
+    });
+
+    console.log('Loading PDF...');
+    pdfParser.loadPDF(PDF_PATH);
+}
+
+parse();
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

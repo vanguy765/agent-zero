@@ -1,0 +1,21 @@
+34:import { docParserRoutes } from './routes/doc-parser-routes';
+43:app.route('/delivery', deliveryRoute);
+44:app.route('/todos', todosRoute);
+45:app.route('/voice', voiceRoute);
+46:app.route('/materials', materials);
+47:app.route('/taxonomy', taxonomyRoute);
+48:app.route('/projects', projectDefinitionsRoute);
+49:app.route('/units', unitsRoute);
+50:app.route('/work-orders', workOrdersRoute);
+51:app.route('/work-orders', documentsRoute);
+52:app.route('/work-orders/trades', tradesRoute);
+53:app.route('/work-orders/project-outcomes', projectOutcomesRoute);
+54:app.route('/work-orders/type-orders', typeOrdersRoute);
+55:app.route('/work-orders/bom-action-requests', bomActionRequestsRoute);
+57:app.route('/reviews', reviewsRoute);
+58:app.route('/entity', entityCreationRoute);
+59:app.route('/onboard', onboardRoute);
+62:app.route('/doc-parser', docParserRoutes);
+65:app.route('', a2aRoute);       // /.well-known/agent.json
+66:app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

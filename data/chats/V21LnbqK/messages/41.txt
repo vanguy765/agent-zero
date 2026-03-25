@@ -1,0 +1,16 @@
+Image bytes length: 132
+First 4 bytes (PNG magic): b'PNG'
+
+=== Test 1: Current code style (contentType in dict) ===
+Response type: <class 'storage3.types.UploadResponse'>
+Response: UploadResponse(path='test-tenant/test-project/doc-parser/mime_test.png', full_path='project-documents/test-tenant/test-project/doc-parser/mime_test.png', fullPath='project-documents/test-tenant/test-project/doc-parser/mime_test.png')
+Content-Type header: text/plain; charset=UTF-8
+Status: 200
+
+=== Test 2: Using file_options kwarg ===
+Response: UploadResponse(path='test-tenant/test-project/doc-parser/mime_test2.png', full_path='project-documents/test-tenant/test-project/doc-parser/mime_test2.png', fullPath='project-documents/test-tenant/test-project/doc-parser/mime_test2.png')
+Content-Type header: image/png
+
+=== Test 3: Inspect upload method ===
+Signature: (path: 'str', file: 'Union[BufferedReader, bytes, FileIO, str, Path]', file_options: 'Optional[FileOptions]' = None) -> 'UploadResponse'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

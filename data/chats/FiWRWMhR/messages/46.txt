@@ -1,0 +1,126 @@
+No BMAD references found in project-templates/
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === AGENTS.md ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# # [Project Name] — Agent Context
+
+This file is the **single source of truth** for all AI assistants on this project.
+Edit this file, then run `scripts/sync-agent-context.ps1` to update Claude/Cursor/Windsurf.
+Agent Zero reads this file directly — no sync needed.
+
+---
+
+## Project Overview
+
+[What the app does in 2-3 sentences.]
+
+**Stack:** [e.g. Hono API · SolidJS · Supabase · Python service]
+
+---
+
+## Architecture
+
+```
+project-root/
+├── apps/
+│   ├── api/          # [description] — port XXXX
+│   └── web/          # [description] — port XXXX
+├── packages/
+│   └── shared/       # [description]
+└── [other dirs]
+```
+
+**Development workflow:** [e.g. Schema-first. Define in packages/schemas → API → UI]
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === ADR-019 ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 19. [ADR-019: BMAD Integration as Skill](#adr-019-bmad-integration-as-skill)
+20. [ADR-020: Launch Strategy](#adr-020-launch-strategy)
+21. [ADR-021: Linter Architecture](#adr-021-linter-architecture)
+22. [ADR-022: Configuration System Design](#adr-022-configuration-system-design)
+
+---
+
+## ADR-001: Project Name
+
+**Date**: 2026-03 (v0.1.0)
+**Status**: Accepted
+
+### Context
+The project needed a name that communicated defensive purpose, was memorable,
+searchable, and available as a GitHub namespace. Two finalists emerged:
+`assert-ai` and `bulwark-ai`.
+
+### Decision
+**`bulwark-ai`** was selected.
+
+### Alternatives Considered
+| Name | Pros | Cons |
+|------|------|------|
+| `assert-ai` | Familiar to developers, implies validation | Narrow semantic scope (assertions are just one pattern), poor SEO ("assert" is a language keyword with millions of results), suggests testing rather than defense |
+| `bulwark-ai` | Strong defensive narrative, broader semantic scope, better searchability, evokes protection/fortification | Less immediately technical, requires brief explanation |
+
+### Rationale
+"Bulwark" better represents the mission across all three layers. An assertion
+is a single check; a bulwark is a defensive structure. The name scales with
+the project's ambition — from simple guards to a complete defensive membrane.
+The word carries connotations of strength, protection, and deliberate
+--
+## ADR-019: BMAD Integration as Skill
+
+**Date**: 2026-03 (v0.2.0-draft)
+**Status**: Planned
+
+### Context
+The BMAD (Breakthrough Method for Agile AI-Driven Development) framework
+uses agent roles and skills. Bulwark could integrate as a core requirement
+or as an optional skill.
+
+### Decision
+Bulwark integrates as a **skill** in `.bmad/skills/`, not a core requirement.
+
+### Rationale
+- Skills are opt-in, matching Bulwark's additive philosophy
+- The Developer agent and QA agent can both reference the Bulwark skill
+- Skill format allows including the checklist and system prompt
+- Doesn't require BMAD framework modifications
+
+---
+
+## ADR-020: Launch Strategy
+
+**Date**: 2026-03 (v0.2.0-draft)
+**Status**: Planned
+
+### Context
+The project creator has no existing social media presence or developer
+following. Launch strategy must rely on content quality and platform
+algorithms rather than existing audience.
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === OQ-3 ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### OQ-3: BMAD Integration Depth
+**Question**: How deep should BMAD integration go?
+
+**Context**: Bulwark was designed to work as a BMAD "skill" but the
+integration spec hasn't been written. Sub-questions:
+- Should the Developer agent automatically apply Bulwark patterns?
+- Should the QA agent validate Bulwark compliance?
+- Should there be a dedicated Bulwark agent role?
+- How does Bulwark interact with BMAD's existing quality gates?
+
+**Leaning**: Skill-based integration where Developer and QA agents both
+reference Bulwark. No dedicated agent role (too heavy).
+
+### OQ-4: Compliance Badge
+**Question**: Should there be a "Bulwark Compliant" badge for projects?
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === SPEC.md BMAD reference ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# | Claude Projects | Project instructions | Persistent across conversations |
+| Aider | `.aider.conventions` | Loaded automatically |
+| BMAD Method | `.bmad/skills/bulwark-defensive-coding.md` | Invokable by Developer, QA agents |
+| Any LLM | System prompt | Universal |
+
+---
+
+## 9. Validation Checklist
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

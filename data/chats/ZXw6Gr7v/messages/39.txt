@@ -1,0 +1,17 @@
+=== Top-level result keys ===
+['confidence', 'engine', 'footer', 'job_id', 'pages', 'raw_llm_responses', 'summary', 'tables', 'thumbnails', 'timestamp', 'units']
+
+=== Pages count: 29 ===
+
+=== First page keys ===
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+Cell In[1], line 16
+     14 if pages:
+     15     print('\n=== First page keys ===')
+---> 16     print(sorted(pages[0].keys()))
+     17     print('\n=== First page data ===')
+     18     for k, v in pages[0].items():
+
+KeyError: 0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

@@ -1,0 +1,32 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Test REST API with service_role key ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > {
+    "swagger": "2.0",
+    "info": {
+        "description": "",
+        "title": "standard public schema",
+        "version": "14.3"
+    },
+    "host": "0.0.0.0:3000",
+    "basePath": "/",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json",
+        "application/vnd.pgrst.object+json;nulls=stripped",
+        "application/vnd.pgrst.object+json",
+        "text/csv"
+    ],
+    "produces": [
+        "application/json",
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Test DB connection via psql ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# bash: psql: command not found
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Summary ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# API URL:       http://172.21.0.1:54321
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# DB URL:        postgresql://postgres:postgres@172.21.0.1:54322/postgres
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Studio:        http://172.21.0.1:54323
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Project:       voicelog
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Status:        ✅ REACHABLE
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

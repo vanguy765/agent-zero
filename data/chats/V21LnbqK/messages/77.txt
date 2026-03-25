@@ -1,0 +1,15 @@
+Setting up criu (4.2-1)…
+Setting up python3-pycriu (4.2-1)…
+Processing triggers for libc-bin (2.42-5)…
+NAMESSTATUS
+agent-zero-agent-zero-1Up About a minute
+supabase_db_voicelogUp 18 minutes (healthy)
+supabase_studio_voicelogUp 18 minutes (healthy)
+supabase_pg_meta_voicelogUp 18 minutes (healthy)
+supabase_storage_voicelogUp 18 minutes (healthy)
+supabase_rest_voicelogUp 18 minutes
+supabase_realtime_voicelogUp 18 minutes (healthy)
+supabase_inbucket_voicelogUp 18 minutes (healthy)
+supabase_auth_voicelogUp 18 minutes (healthy)
+supabase_kong_voicelogUp 18 minutes (healthy)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

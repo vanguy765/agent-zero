@@ -1,0 +1,74 @@
+### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+
+A Service Manifest centralizes dependency health checks, recovery procedures, severity classifications, and notification channels into a single declarative configuration. Instead of hard-coding recovery parameters in each `guard_available()` call, the manifest externalizes this knowledge — enabling operations teams to manage recovery without modifying application code.
+
+#### Motivation
+
+The Recovery sub-pattern (§10.1.2) solves the mechanics of automated recovery: detect, execute command, retry with backoff. But in systems with multiple dependencies, this creates a maintenance problem:
+
+- Recovery parameters are **scattered** across guard calls in different modules
+- Adding a new service requires **code changes**, not configuration changes
+- There is no **severity model** — a failing cache and a failing database trigger identical behavior
+- There is no **notification layer** — failures are logged but not communicated
+
+The Service Manifest addresses all four problems by introducing a configuration-driven orchestration layer.
+
+#### When to Use
+
+- Systems with **3+ external dependencies** (databases, caches, APIs, message queues)
+- **AI agent workflows** where the agent cannot manually intervene on failures
+- **Unattended environments** (CI/CD, scheduled jobs, overnight batch processing)
+- Teams where **developers and operations** manage different concerns
+
+#### When NOT to Use
+
+- **Single-dependency applications** — use `guard_available()` directly (§10.1)
+- **Serverless functions** — cold start latency makes health-check-at-init impractical
+- **Systems where all dependencies are managed by the platform** (e.g., fully managed cloud services with built-in health monitoring)
+
+#### 10.2.1 Manifest Schema
+
+\n=== Key sections ===
+1:### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+5:#### Motivation
+16:#### When to Use
+23:#### When NOT to Use
+29:#### 10.2.1 Manifest Schema
+100:##### Schema Field Reference
+124:#### 10.2.2 Severity Model
+134:##### Severity-Driven Guard Behavior
+137:# Critical: raises GuardError on failure (blocks execution)
+140:# Warning: logs warning, returns False (caller decides)
+146:# Info: silent check, no logging on absence
+151:#### 10.2.3 Declarative Guard Function
+218:#### 10.2.4 Notification Channels
+223:# Channel registry — extend with custom channels as needed
+255:##### Notification MUST Rules
+262:#### 10.2.5 Manifest MUST Rules
+271:#### 10.2.6 Separation of Concerns
+287:#### 10.2.7 Diagnostic Format
+322:### 10.3 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+326:#### When to Use
+333:#### Why This Is an Extension, Not Core
+337:#### Pattern
+350:### 10.4 Confidence Annotation (FUTURE, not yet recommended)
+354:#### Why This Is Deferred
+358:#### Proposed Format (for future use)
+361:# CONFIDENCE: LOW — API response shape inferred from function name, not documentation
+362:# CONFIDENCE: HIGH — standard library pattern, well-established
+363:# CONFIDENCE: MEDIUM — based on similar patterns in training data
+\n=== MUST rules ===
+1:### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+247:                # Notification failure MUST NOT block the guard flow
+255:##### Notification MUST Rules
+257:- **N1: Notification failure MUST NOT block guard execution.** A failing Slack webhook must not prevent the application from handling the original service failure.
+258:- **N2: Notifications MUST be traced.** Every notification attempt (success or failure) MUST produce a trace event with the channel, service, and operation ID.
+259:- **N3: The `log` channel MUST always be available.** It requires no external dependencies and serves as the fallback notification mechanism.
+260:- **N4: Notification content MUST include the operation ID.** This enables correlation between the notification and the full trace log.
+262:#### 10.2.5 Manifest MUST Rules
+264:- **M1: The manifest MUST be validated at load time.** Missing required fields, unknown severity values, or invalid health check configurations MUST raise a `GuardError` immediately — not at first use.
+265:- **M2: The manifest MUST be read-only at runtime.** Guards MUST NOT modify the manifest. Configuration changes require a file update and reload.
+266:- **M3: Service identifiers MUST be stable.** Renaming a service ID is a breaking change — all `guard_service()` calls reference the ID.
+267:- **M4: Health check commands MUST be idempotent.** They MUST NOT modify system state. `pg_isready` is correct; `pg_ctl restart` is not a health check.
+268:- **M5: Recovery commands MUST follow §10.1.2 Recovery MUST Rules (R1–R6).** The manifest does not override the safety constraints of the Recovery sub-pattern.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

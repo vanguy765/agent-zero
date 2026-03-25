@@ -1,0 +1,13 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# sync script written
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# startup.md template written
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# total 8
+drwxr-xr-x 1 root root 4096 Mar 13  2026 .
+drwxr-xr-x 1 root root 4096 Mar 13 01:09 ..
+-rw-r--r-- 1 root root 1259 Mar 13  2026 a0proj-startup.md
+-rw-r--r-- 1 root root 1723 Mar 13 01:10 AGENTS.md
+drwxr-xr-x 1 root root 4096 Mar 13  2026 scripts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# total 4
+drwxr-xr-x 1 root root 4096 Mar 13  2026 .
+drwxr-xr-x 1 root root 4096 Mar 13  2026 ..
+-rw-r--r-- 1 root root 2147 Mar 13  2026 sync-agent-context.ps1
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

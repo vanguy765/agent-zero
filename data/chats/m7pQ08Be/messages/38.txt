@@ -1,0 +1,95 @@
+def guard_available(
+    check: Callable[[], bool],
+    function_name: str,
+    dependency: str,
+    message: Optional[str] = None,
+) -> None:
+    """Verify that an external dependency is reachable.
+
+    Use this at service initialization, pipeline start, or health check
+    endpoints. Do NOT use on every individual API call — that would add
+    unacceptable latency.
+
+    Args:
+        check:         A callable that returns True if the dependency is
+                       available. Should have a timeout built in.
+        function_name: Name of the function performing the check.
+        dependency:    Human-readable name of the dependency.
+        message:       Optional custom error message.
+
+    Example:
+        # At application startup:
+        guard_available(
+            check=lambda: requests.head("http://db:5432/health",
+                                        timeout=5).status_code < 500,
+            function_name="app_startup",
+            dependency="database",
+        )
+
+        # At pipeline start:
+        guard_available(
+            check=lambda: os.path.isdir("/mnt/data/input"),
+            function_name="pipeline_start",
+            dependency="input data directory",
+        )
+    """
+    if not _config.guards_enabled:
+        return
+
+    try:
+        available = check()
+    except Exception as e:
+        diag = (
+            f"GUARD:AVAILABLE:{function_name} | "
+            f"{dependency} — check raised {type(e).__name__}: {e}"
+        )
+        log.error(diag)
+        raise GuardError(diag) from e
+
+    if not available:
+        diag = (
+            f"GUARD:AVAILABLE:{function_name} | "
+            f"{dependency} — {message or 'not available'}"
+        )
+        log.error(diag)
+        raise GuardError(diag)
+
+    log.info(
+        f"GUARD:AVAILABLE:{function_name} | {dependency} — OK"
+    )
+
+
+# ===========================================================================
+# DECORATORS — Optional convenience wrappers
+# ===========================================================================
+
+def guarded(**type_specs):
+    """Decorator that adds type guards to function parameters.
+
+    Example:
+        @guarded(data=dict, user_id=str)
+        def process(data, user_id):
+            ...
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            import inspect
+            sig = inspect.signature(func)
+            bound = sig.bind(*args, **kwargs)
+            bound.apply_defaults()
+
+            for param_name, expected_type in type_specs.items():
+                if param_name in bound.arguments:
+                    value = bound.arguments[param_name]
+                    guard_type(
+                        value, expected_type, func.__name__, param_name
+                    )
+
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def traced(label: Optional[str] = None):
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

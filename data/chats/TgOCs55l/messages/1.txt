@@ -1,0 +1,99 @@
+benchmark_script.py	  Dockerfile		README.md
+benchmark_vision.py	  filter_floorplans.py	requirements.txt
+compare_methods.py	  hybrid.py		server.py
+confidence.py		  job_manager.py	slice_cv.py
+cv2_detect.py		  models.py		slice_surya.py
+decode_docling_images.py  preparse.py		templates
+detection.py		  prompts.py		verify_env.py
+docker-compose.yml	  __pycache__
+---
+# Document Parser API
+
+This service provides a multi-stage document parsing API using **IBM Docling**, **Tesseract OCR**, and **Claude 3.5 Sonnet**. It extracts text, tables, rendering parsed data to structured JSON and compressing images. It is built to mock uploading to a Supabase storage bucket.
+
+## Getting Started
+
+The service is configured to run automatically as a FastAPI server on port **5000** when you start the container. It uses ASGI BackgroundTasks to queue PDF processing asynchronously to avoid timeouts.
+
+### 1. Configure Environment
+Ensure your `.env` contains the required keys:
+```
+OPENROUTER_API_KEY=...
+```
+
+### 2. Start the Service
+```bash
+cd doc-parser
+docker-compose up -d --build doc-parser
+```
+This builds an environment with Deep Learning models (PyTorch, Docling) cached in the docker layers to start up fast.
+
+## Using the Agent Skill / Workflow
+
+To use this automatically inside an AI assistant prompt or chat:
+- **Slash Command**: Use `/parse-document`
+- **Natural Language**: "Run the parse-document workflow"
+
+This will automatically trigger the `.agents/workflows/parse-document.md` workflow, which spins up the docker container and runs the python processing script on the target PDF.
+
+## How to Call it Directly
+
+### 1. Via Python Script (Recommended)
+You can test the full pipeline directly via the `process_document.py` client.
+
+If you provide Supabase credentials, it will directly instruct the server to compress and stream the images into your Supabase bucket, returning only the URLs. If you don't provide credentials, it will fallback to local processing.
+
+```bash
+cd doc-parser
+python process_document.py \
+    --pdf demo.pdf \
+    --tenant demo_tenant \
+    --project demo_project \
+    --supabase-url "http://127.0.0.1:54321" \
+    --supabase-key "eyJhbGciOiJIUzI1NiIs..."
+```
+
+### 2. Via HTTP API
+
+The API endpoint handles heavy processing asynchronously and streams directly to your remote bucket for scale.
+
+#### Start the Job
+**`POST /parse/docling`**
+- **Form Data**:
+    - `file`: The PDF file to parse.
+    - `page`: (Optional) The specific page to parse.
+    - `provider`: (Optional) The OpenRouter LLM Provider, default `anthropic/claude-3.5-sonnet`.
+    - `supabase_url`: (Optional) The remote Supabase URL to stream results to.
+    - `supabase_key`: (Optional) The remote Supabase service key.
+    - `tenant_name`: (Optional) Used for bucket paths.
+    - `project_name`: (Optional) Used for bucket paths.
+
+**Returns**:
+```json
+{
+  "job_id": "ba09fac4-8299-474c-8955-bb0bcce3b39f6",
+  "status": "processing"
+}
+```
+
+#### Poll for Status
+**`GET /status/{job_id}`**
+Poll this endpoint every 10-15 seconds.
+
+**Returns** (When Completed):
+```json
+{
+  "status": "completed",
+  "result": {
+    "pages": { ... },
+    "footer_sample": { ... }
+  }
+}
+```
+
+## How It Works
+1. **Extraction (Docling)**: IBM Docling extracts all text, markdown tables, and cropped images from the PDF in a background asyncio thread.
+2. **Deterministic Filtering (Tesseract)**: The server uses deterministic logic (Color Variance + PyTesseract text density) to separate black-and-white Floorplans from standard Site Photos to avoid analyzing unimportant graphics.
+3. **AI Estimation (Claude 3.5)**: Claude 3.5 Sonnet analyzes the floorplans using a strict JSON schema to extract room areas, perimeters, and door/window counts.
+4. **Server-Side Math (FastAPI)**: The FastAPI server calculates net remaining wall area and gross square footages based on predefined architectural deductions and assumed 8 ft walls.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

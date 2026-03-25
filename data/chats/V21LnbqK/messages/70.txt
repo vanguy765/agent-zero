@@ -1,0 +1,21 @@
+9:        --supabase-url http://host.docker.internal:54321 \
+10:        --supabase-key <service_role_key> \
+48:    parser.add_argument("--supabase-url", required=True, help="Supabase URL")
+49:    parser.add_argument("--supabase-key", required=True, help="Supabase service role key")
+63:def submit_job(pdf_path: str, engine: str, supabase_url: str, supabase_key: str,
+68:        files = {"file": (os.path.basename(pdf_path), f, "application/pdf")}
+69:        data = {
+70:            "supabase_url": supabase_url,
+71:            "supabase_key": supabase_key,
+76:        resp = requests.post(url, files=files, data=data, timeout=60)
+115:def download_from_storage(supabase_url: str, supabase_key: str,
+118:    url = f"{supabase_url}/storage/v1/object/authenticated/{STORAGE_BUCKET}/{storage_path}"
+119:    headers = {"Authorization": f"Bearer {supabase_key}", "apikey": supabase_key}
+131:def save_artifacts(results: dict, output_dir: Path, supabase_url: str, supabase_key: str):
+179:            size = download_from_storage(supabase_url, supabase_key, thumb_path, local)
+188:                size = download_from_storage(supabase_url, supabase_key, fp_path, local)
+197:                size = download_from_storage(supabase_url, supabase_key, diag_path, local)
+206:                size = download_from_storage(supabase_url, supabase_key, photo_path, local)
+261:        args.supabase_url, args.supabase_key,
+272:    save_artifacts(results, output_dir, args.supabase_url, args.supabase_key)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

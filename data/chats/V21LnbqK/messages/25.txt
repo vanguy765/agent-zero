@@ -1,0 +1,26 @@
+=== Previous run job info ===
+{
+  "job_id": "efc586f3-dadc-4b94-be7a-417095e34288",
+  "status": "queued",
+  "engine": "hybrid",
+  "file": "Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf"
+}
+
+=== Engine used + page count ===
+Status: completed
+Engine: hybrid_page_render
+Page count: 29
+
+Page 1 keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  floorplan_dia_urls: ['test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_floorplan_dia_0_page_1.png']
+  thumbnail_url: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_1.png
+
+Page 2 keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  floorplan_dia_urls: ['test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_floorplan_dia_0_page_2.png']
+  thumbnail_url: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_2.png
+
+Page 3 keys: ['thumbnail_url', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'diagrams', 'tables', 'elements_detected']
+  floorplan_dia_urls: ['test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_floorplan_dia_0_page_3.png']
+  thumbnail_url: test-tenant/test-project/doc-parser/job_efc586f3-dadc-4b94-be7a-417095e34288_thumb_page_3.png
+
+(venv) root@d2d162d983f0:/a0/usr/workdir#

@@ -1,0 +1,116 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# def _extract_python_functions(source: str, filepath: str) -> List[FunctionInfo]:
+    """Extract functions from Python source using indentation-based body detection."""
+    lines = source.split('\n')
+    functions: List[FunctionInfo] = []
+
+    # Use stripped source for function detection to avoid matching
+    # def statements inside docstrings and string literals
+    clean_source = strip_strings_and_comments(source, "python")
+
+    for match in _PY_FUNC_RE.finditer(clean_source):
+        indent = match.group(1)
+        func_name = match.group(3)
+        params = match.group(4).strip()
+
+        # Find the line number of the def statement (1-indexed)
+        start_offset = match.start()
+        start_line = source[:start_offset].count('\n') + 1
+
+        # Determine indentation level of the def line
+        def_indent_len = len(indent.replace('\t', '    '))
+
+        # Collect body lines: everything indented deeper than the def line
+        body_lines: List[str] = []
+        end_line = start_line
+        i = start_line  # 0-indexed into lines array = start_line (since start_line is 1-indexed)
+
+        while i < len(lines):
+            line = lines[i]
+            stripped = line.strip()
+
+            if not stripped:  # blank line — include in body, keep going
+                body_lines.append(line)
+                end_line = i + 1
+                i += 1
+                continue
+
+            line_indent_len = len(line) - len(line.lstrip())
+            line_indent_len = len(line[:len(line) - len(line.lstrip())].replace('\t', '    '))
+
+            if line_indent_len > def_indent_len:
+                body_lines.append(line)
+                end_line = i + 1
+                i += 1
+            else:
+                break
+
+        # Strip trailing blank lines from body
+        while body_lines and not body_lines[-1].strip():
+            body_lines.pop()
+            end_line -= 1
+
+        if not body_lines:
+            end_line = start_line
+
+        body = '\n'.join(body_lines)
+
+        # Generate clean body (strings/comments stripped) for regex-based rule matching
+        clean_body = strip_strings_and_comments(body, "python")
+
+        functions.append(FunctionInfo(
+            name=func_name,
+            start_line=start_line,
+            end_line=end_line,
+            params=params,
+            body=body,
+            language="python",
+            filepath=filepath,
+            clean_body=clean_body,
+        ))
+
+    return functions
+
+
+# ---------------------------------------------------------------------------
+# TypeScript / JavaScript function extraction
+# ---------------------------------------------------------------------------
+
+# Pattern 1: function declarations
+#   [export [default]] [async] function name(params) [: ReturnType] {
+_TS_FUNC_DECL_RE = re.compile(
+    r'^[ \t]*(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+'
+    r'([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*(?::\s*[^{]+?)?\s*\{',
+    re.MULTILINE,
+)
+
+# Pattern 2: arrow functions / const assignments
+#   [export] const name = [async] (params) [: ReturnType] => {
+_TS_ARROW_RE = re.compile(
+    r'^[ \t]*(?:export\s+)?(?:const|let|var)\s+'
+    r'([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*[^=]+?)?\s*=\s*(?:async\s+)?'
+    r'(?:\([^)]*\)|[a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*[^=]+?)?\s*=>\s*\{',
+    re.MULTILINE,
+)
+
+# Pattern 2b: extract params from arrow functions more carefully
+_TS_ARROW_PARAMS_RE = re.compile(
+    r'=\s*(?:async\s+)?\(([^)]*)\)\s*(?::\s*[^=]+?)?\s*=>\s*\{',
+)
+
+# Pattern 3: class methods
+#   [async] methodName(params) [: ReturnType] {
+_TS_METHOD_RE = re.compile(
+    r'^[ \t]+(?:(?:public|private|protected|static|readonly|abstract|override)\s+)*'
+    r'(?:async\s+)?([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?:<[^>]*>)?\s*\(([^)]*)\)\s*(?::\s*[^{]+?)?\s*\{',
+    re.MULTILINE,
+)
+
+
+def _find_matching_brace(source: str, open_pos: int) -> int:
+    """Find the position of the closing brace matching the opening brace at open_pos."""
+    depth = 0
+    i = open_pos
+    in_string = None  # None, "'", '"', '`'
+    escape_next = False
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

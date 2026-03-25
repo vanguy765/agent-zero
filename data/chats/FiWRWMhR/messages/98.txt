@@ -1,0 +1,12 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 18:5. [Open Questions](#open-questions)
+19:6. [Known Gaps & Technical Debt](#known-gaps--technical-debt)
+237:## Open Questions
+331:## Known Gaps & Technical Debt
+335:### TD-1: ~~Checklist Needs Updating~~ ✅ RESOLVED
+339:### TD-2: ~~AI System Prompt Needs Updating~~ ✅ RESOLVED
+343:### TD-3: TypeScript Examples Missing
+347:### TD-4: Go and Bash Stubs Empty
+351:### TD-5: ~~No LICENSE File~~ ✅ RESOLVED
+354:### TD-6: ~~No .gitignore~~ ✅ RESOLVED
+357:### TD-7: ~~GUIDE.md Line Count~~ ✅ RESOLVED
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

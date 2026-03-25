@@ -1,0 +1,99 @@
+=== GET /templates route ===
+workOrdersRoute.get('/templates', async (c) => {
+    const supabase = getScopedClient(c);
+    const scope = c.req.query('scope'); // optional: 'system' | 'company' | 'project'
+
+    let query = supabase
+        .from('work_order_templates')
+        .select('*')
+        .eq('is_active', true);
+
+    if (scope) {
+        query = query.eq('scope', scope);
+    }
+
+    const { data, error } = await query.order('trade_name', { ascending: true });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+    return c.json(data);
+});
+
+// ============================================================================
+// TEMPLATE INHERITANCE / ASSIGNMENT ENDPOINTS
+// NOTE: These static-path routes MUST be registered before GET /templates/:id
+// ============================================================================
+
+// GET SYSTEM TEMPLATES (for company assignment picker)
+workOrdersRoute.get('/templates/system', async (c) => {
+    const supabase = getScopedClient(c);
+
+    const { data, error } = await supabase
+        .from('work_order_templates')
+        .select('*')
+
+=== dashboard-stats route (line 1330) ===
+// GET /dashboard-stats - Aggregated stats for the overview dashboard
+workOrdersRoute.get('/dashboard-stats', async (c) => {
+    const supabase = getScopedClient(c);
+
+    // 1. Work order counts per template
+    const { data: woData, error: woError } = await supabase
+        .from('work_orders')
+        .select('template_id, status');
+
+    if (woError) return c.json({ error: woError.message }, 500);
+
+    const templateWoCounts: Record<string, number> = {};
+    const templateWoStatusCounts: Record<string, Record<string, number>> = {};
+    for (const wo of (woData || [])) {
+        if (!wo.template_id) continue;
+        templateWoCounts[wo.template_id] = (templateWoCounts[wo.template_id] || 0) + 1;
+        if (!templateWoStatusCounts[wo.template_id]) templateWoStatusCounts[wo.template_id] = {};
+        templateWoStatusCounts[wo.template_id][wo.status] = (templateWoStatusCounts[wo.template_id][wo.status] || 0) + 1;
+    }
+
+    // 2. Unit stats per project
+    const { data: unitData, error: unitError } = await supabase
+        .from('units')
+        .select('project_id, status');
+
+    if (unitError) return c.json({ error: unitError.message }, 500);
+
+    const projectUnitStats: Record<string, { total: number; not_started: number; in_progress: number; completed: number }> = {};
+    for (const unit of (unitData || [])) {
+        if (!unit.project_id) continue;
+        if (!projectUnitStats[unit.project_id]) {
+            projectUnitStats[unit.project_id] = { total: 0, not_started: 0, in_progress: 0, completed: 0 };
+        }
+        projectUnitStats[unit.project_id].total++;
+        const s = unit.status as string;
+        if (s === 'not_started') projectUnitStats[unit.project_id].not_started++;
+        else if (s === 'in_progress') projectUnitStats[unit.project_id].in_progress++;
+        else if (s === 'completed') projectUnitStats[unit.project_id].completed++;
+    }
+
+    // 3. Type order compositions (bulk)
+    const { data: compData, error: compError } = await supabase
+        .from('type_order_compositions')
+        .select('composite_type_order_id, quantity, display_order, component:type_orders!component_type_order_id(id, name, code)')
+        .order('display_order', { ascending: true });
+
+    if (compError) return c.json({ error: compError.message }, 500);
+
+    const typeOrderCompositions: Record<string, Array<{ id: string; name: string; code: string; quantity: number }>> = {};
+    for (const comp of (compData || [])) {
+        const parentId = comp.composite_type_order_id;
+        if (!typeOrderCompositions[parentId]) typeOrderCompositions[parentId] = [];
+        const component = comp.component as any;
+        if (component) {
+            typeOrderCompositions[parentId].push({
+                id: component.id,
+                name: component.name,
+                code: component.code,
+                quantity: comp.quantity,
+            });
+
+=== Error handling patterns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

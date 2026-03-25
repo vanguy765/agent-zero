@@ -1,0 +1,15 @@
+17:   - [5.2 Availability Guards](#52-availability-guards)
+890:### 5.2 Availability Guards
+894:These are called **Availability Guards**, and they're an extension to the core standard — useful, but not required for Bulwark compliance.
+903:Availability Guards work like option 1. You check *once* at startup — "Can I reach the database? Is the API endpoint responding? Is the cache server available?" — and then proceed with confidence. You don't check before every single operation; that's what regular Guards and error handling are for.
+905:#### When to Use Availability Guards
+921:    """Availability Guard: verify the API is reachable before starting work."""
+926:                f"GUARD:availability | {base_url}/health returned "
+931:            f"GUARD:availability | cannot reach {base_url} — "
+936:            f"GUARD:availability | {base_url} did not respond "
+961:                `GUARD:availability | ${baseUrl}/health returned ` +
+968:                `GUARD:availability | ${baseUrl} did not respond ` +
+982:#### Why Availability Guards Are an Extension, Not Core
+986:Availability Guards are different. They're a *startup-time* concern, not a *per-function* concern. They require knowledge of your deployment topology (which services exist, where they live, what their health endpoints look like). Including them in the core would break the "add it to any function" simplicity that makes Bulwark easy to adopt.
+988:That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

@@ -1,0 +1,22 @@
+=== Verifying files are live on Windows via bind mount ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# total 36
+drwxrwxrwx 1 root root 4096 Mar 11 01:11 .
+drwxrwxrwx 1 root root 4096 Mar 11 00:57 ..
+-rwxrwxrwx 1 root root 2543 Feb 23 04:48 apply-migration.ps1
+-rwxr-xr-x 1 root root 1046 Feb 23 23:03 create-sysadmin.sh
+-rwxr-xr-x 1 root root 3288 Mar 11 01:28 dev-health.sh
+-rwxr-xr-x 1 root root 4184 Mar 11 01:28 dev-start.sh
+-rwxrwxrwx 1 root root 1263 Mar 11 02:53 kill-dev-servers.ps1
+-rwxrwxrwx 1 root root 5177 Mar 11 01:53 reset-and-start.ps1
+-rwxrwxrwx 1 root root 2706 Mar  6 00:01 test_page_8.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === kill-dev-servers.ps1 (already on Windows) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# # Kill All Dev Servers
+# Kills any Node.js processes listening on monorepo app ports (3000-3005)
+# Safe to run anytime before `pnpm dev`
+
+# Nuclear option first: kill ALL node.exe processes (recommended by docs/ports.md)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === reset-and-start.ps1 last modified ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# Modify: 2026-03-11 01:53:55.566464600 +0000
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

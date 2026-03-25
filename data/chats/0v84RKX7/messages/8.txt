@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 4,
+  "violations": [
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "_describe_shape() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py",
+      "line": 110,
+      "function_name": "_describe_shape"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "transform_records() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py",
+      "line": 265,
+      "function_name": "transform_records"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "load_to_database() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py",
+      "line": 350,
+      "function_name": "load_to_database"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "run_pipeline() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py",
+      "line": 448,
+      "function_name": "run_pipeline"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 4,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

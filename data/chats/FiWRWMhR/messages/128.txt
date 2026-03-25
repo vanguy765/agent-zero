@@ -1,0 +1,37 @@
+### Round 2: Module-Level (Integration)
+
+**Purpose**: Test GTV coherence across multiple functions with shared data flow.
+
+#### Test 2.1: Three-Function Pipeline
+
+**Task Prompt**:
+```
+Write a Python module with three functions that form a data pipeline:
+1. `ingest_csv(filepath: str) -> list[dict]` — reads and validates CSV data
+2. `transform_records(records: list[dict], schema: dict) -> list[dict]` — normalizes fields
+3. `load_to_database(records: list[dict], db_conn: Connection) -> int` — bulk inserts
+
+Each function must follow Bulwark GTV patterns.
+Traces should correlate across the pipeline (same operation_id).
+```
+
+**Key Measurements**:
+- Cross-function trace correlation
+- Guard consistency (output of function N matches guard expectations of function N+1)
+- Verify on the bulk insert
+
+#### Test 2.2: Error Recovery Chain
+
+**Task Prompt**:
+```
+Extend the pipeline from Test 2.1 with:
+- Availability guards on the database connection
+- Bounded retry (max 3 attempts) on the bulk insert
+- Recovery logging on each retry attempt
+- Circuit breaker pattern if all retries fail
+```
+
+---
+
+### Round 3: Real Codebase (Production)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

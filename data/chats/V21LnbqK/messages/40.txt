@@ -1,0 +1,50 @@
+=== Search for photo upload code paths ===
+7:      -> CV2 element detection on interesting pages (floorplans, photos,
+94:    Detected by: CV2 classify element type == "photo".
+95:    Processing: cropped, uploaded as job_{id}_photo_{i}_page_{N}.png,
+96:    stored in result["pages"][N]["site_photos"]. No LLM analysis.
+583:    4. CV2 Element Detection - detect floorplans, photos, diagrams, spec-tables
+957:        photo_crops: Dict[int, List[Image.Image]] = {}  # page_no -> [imgs]
+963:        photo_urls: Dict[int, List[str]] = {}
+1050:                elif el_type == "photo":
+1051:                    photo_crops.setdefault(page_no, []).append(cropped)
+1052:                    p_idx = len(photo_crops[page_no]) - 1
+1053:                    fname = f"job_{job_id}_photo_{p_idx}_page_{page_no}.png"
+1057:                            fname, page_no=page_no, image_type="site_photo"
+1060:                            photo_urls.setdefault(page_no, []).append(url)
+1068:                        photo_urls.setdefault(page_no, []).append(local_path)
+1093:        total_photos = sum(len(v) for v in photo_crops.values())
+1099:            f"{total_photos} photos, {total_diagrams} diagrams, "
+1524:            photo_urls=photo_urls,
+1563:    photo_urls: Dict[int, List[str]],
+1580:            "site_photos": [],
+1586:        # Collect photos for this page
+1587:        if page_no in photo_urls:
+1588:            page_data["site_photos"].extend(photo_urls[page_no])
+1618:    # Collect all photo URLs across pages
+1619:    all_photos = []
+1620:    for urls in photo_urls.values():
+1621:        all_photos.extend(urls)
+1636:        "photos_found": len(all_photos),
+
+=== Search for all upload calls ===
+436:async def upload_image_to_storage(
+456:            .upload(path, image_bytes, {"contentType": "image/png", "upsert": "true"})
+487:async def upload_table_to_storage(
+505:            .upload(path, content_bytes, {"contentType": "text/markdown", "upsert": "true"})
+681:                url = await upload_image_to_storage(
+986:                        url = await upload_image_to_storage(
+1015:                                fp_url = await upload_image_to_storage(
+1034:                                d_url = await upload_image_to_storage(
+1055:                        url = await upload_image_to_storage(
+1075:                        url = await upload_image_to_storage(
+1123:                url = await upload_table_to_storage(
+1187:                tbl_img_url = await upload_image_to_storage(
+1295:                url = await upload_table_to_storage(
+1355:                        url = await upload_table_to_storage(
+1388:                footer_url = await upload_table_to_storage(
+
+=== Check contentType in all upload calls ===
+456:            .upload(path, image_bytes, {"contentType": "image/png", "upsert": "true"})
+505:            .upload(path, content_bytes, {"contentType": "text/markdown", "upsert": "true"})
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

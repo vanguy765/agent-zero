@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "bulwark-lint"
+version = "1.0.0"
+description = "Static analysis linter for Bulwark AI defensive coding standard (Guard-Trace-Verify)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+keywords = ["linter", "static-analysis", "ai", "defensive-coding", "bulwark"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.scripts]
+bulwark-lint = "bulwark_lint.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bulwark_lint*"]
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

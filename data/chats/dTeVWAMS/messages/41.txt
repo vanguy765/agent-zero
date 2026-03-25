@@ -1,0 +1,30 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   .bmad/skills/bulwark-defensive-coding.md
+	modified:   CONTINUATION_PROMPT.md
+	modified:   README.md
+	modified:   checklists/bulwark-checklist.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+---
+ .bmad/skills/bulwark-defensive-coding.md |  47 ++++++++++++++
+ CONTINUATION_PROMPT.md                   | 104 ++++++++++++-------------------
+ README.md                                |  33 ++++++++++
+ checklists/bulwark-checklist.md          |  10 +++
+ 4 files changed, 129 insertions(+), 65 deletions(-)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > [main 1cb17cd] docs: update 4 files with §10.2 manifest references and test results
+ 4 files changed, 129 insertions(+), 65 deletions(-)
+Enumerating objects: 17, done.
+Counting objects: 100% (17/17), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (9/9), 4.17 KiB | 137.00 KiB/s, done.
+Total 9 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+To https://github.com/vanguy765/bulwark-ai.git
+   794f6bf..1cb17cd  main -> main
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

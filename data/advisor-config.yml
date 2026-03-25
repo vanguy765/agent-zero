@@ -1,0 +1,44 @@
+# AI Advisor Configuration
+# Used by Agent Zero to consult a second AI model when hitting retry limits.
+# Place this file at: /a0/usr/advisor-config.yml
+# Or set equivalent environment variables in /a0/usr/.env
+
+# The advisor model — should be DIFFERENT from the main chat model
+# to get a genuinely different perspective on the problem.
+advisor:
+  # OpenRouter model identifier
+  model: "google/gemini-2.5-pro"
+
+  # Alternative models (uncomment one to switch):
+  # model: "anthropic/claude-sonnet-4"
+  # model: "deepseek/deepseek-r1"
+  # model: "openai/o3-mini"
+
+  # Uses the same OpenRouter API key from /a0/usr/.env
+  # No additional keys needed.
+
+  # Max tokens for advisor response
+  max_tokens: 4096
+
+  # Temperature — 0 for deterministic advice, 0.3-0.7 for creative alternatives
+  temperature: 0.3
+
+  # System prompt for the advisor
+  system_prompt: |
+    You are a senior software engineering advisor. Another AI agent is stuck
+    on a task and is consulting you for a second opinion.
+
+    You will receive:
+    1. The original task description
+    2. What has been tried so far
+    3. The errors encountered
+
+    Your job:
+    - Identify the root cause (not just the symptom)
+    - Suggest a fundamentally different approach if the current one is flawed
+    - Be specific: give exact commands, code snippets, or file paths
+    - If the problem is environmental (wrong container, missing service),
+      say so clearly — don't suggest code fixes for infra problems
+    - If you don't know, say so — don't guess
+
+    Be concise. The agent needs actionable advice, not explanations.

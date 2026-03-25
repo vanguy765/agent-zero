@@ -1,0 +1,11 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# clusterdb   dropuser	      pg_config   pg_receivewal    psql
+createdb    pg_amcheck	      pg_dump	  pg_recvlogical   reindexdb
+createuser  pg_basebackup     pg_dumpall  pg_restore	   vacuumdb
+dropdb	    pg_combinebackup  pg_isready  pg_verifybackup
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# server not installed
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---check apt status---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ii  postgresql-client                                18+286                                    all          front-end programs for PostgreSQL (supported version)
+ii  postgresql-client-18                             18.1-2                                    amd64        front-end programs for PostgreSQL 18
+ii  postgresql-client-common                         286                                       all          manager for multiple PostgreSQL client versions
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,27 @@
+if os.getenv("PROGRAM_STATUS") == "develop_without_ai":
+        logger.info("DEVELOP_WITHOUT_AI: intercepting run_llm_extraction")
+        return json.dumps({
+            "unit_number": "DUMMY-101",
+            "unit_type": "1B1B",
+            "floor": 1,
+            "bedrooms": 1,
+            "bathrooms": 1,
+            "total_area_sf": 800,
+            "rooms": [],
+            "doors": [],
+--
+    if os.getenv("PROGRAM_STATUS") == "develop_without_ai":
+        logger.info("DEVELOP_WITHOUT_AI: intercepting run_text_llm")
+        return json.dumps({
+            "synthesis_applied": True,
+            "merged_units": [],
+            "notes": "DEVELOP_WITHOUT_AI synthesis fallback"
+        })
+
+    try:
+        import litellm
+        messages = [{
+---PDF CHECK---
+-rwxrwxrwx 1 root root 8770689 Jan 14 03:25 "../tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf"
+-rwxrwxrwx 1 root root 8770689 Feb 17 02:18 "../docs/workorders/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

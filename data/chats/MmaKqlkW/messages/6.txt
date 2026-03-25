@@ -1,0 +1,41 @@
+DEBUG | TRACE:fetch_and_store_user:inputs | {'type': 'dict', 'keys': ['supabase_key', 'supabase_url', 'user_id'], 'size': 3}
+DEBUG | connect_tcp.started host='jsonplaceholder.typicode.com' port=443 local_address=None timeout=10.0 socket_options=None
+DEBUG | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x752713e752b0>
+DEBUG | start_tls.started ssl_context=<ssl.SSLContext object at 0x752713e704b0> server_hostname='jsonplaceholder.typicode.com' timeout=10.0
+DEBUG | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x752713e35450>
+DEBUG | send_request_headers.started request=<Request [b'GET']>
+DEBUG | send_request_headers.complete
+DEBUG | send_request_body.started request=<Request [b'GET']>
+DEBUG | send_request_body.complete
+DEBUG | receive_response_headers.started request=<Request [b'GET']>
+DEBUG | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Date', b'Mon, 16 Mar 2026 04:45:58 GMT'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-credentials', b'true'), (b'Cache-Control', b'max-age=43200'), (b'etag', b'W/"1fd-+2Y3G3w049iSZtw5t1mzSnunngE"'), (b'expires', b'-1'), (b'nel', b'{"report_to":"heroku-nel","response_headers":["Via"],"max_age":3600,"success_fraction":0.01,"failure_fraction":0.1}'), (b'pragma', b'no-cache'), (b'report-to', b'{"group":"heroku-nel","endpoints":[{"url":"https://nel.heroku.com/reports?s=B1ewqFVC2XgTVnuGZ3LwZIqERpUgrerxs4pSIL5QSxw%3D\\u0026sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d\\u0026ts=1773619041"}],"max_age":3600}'), (b'reporting-endpoints', b'heroku-nel="https://nel.heroku.com/reports?s=B1ewqFVC2XgTVnuGZ3LwZIqERpUgrerxs4pSIL5QSxw%3D&sid=e11707d5-02a7-43ef-b45e-2cf4d2036f7d&ts=1773619041"'), (b'Server', b'cloudflare'), (b'vary', b'Origin, Accept-Encoding'), (b'via', b'2.0 heroku-router'), (b'x-content-type-options', b'nosniff'), (b'x-powered-by', b'Express'), (b'x-ratelimit-limit', b'1000'), (b'x-ratelimit-remaining', b'976'), (b'x-ratelimit-reset', b'1773619100'), (b'Age', b'17316'), (b'cf-cache-status', b'HIT'), (b'Content-Encoding', b'zstd'), (b'CF-RAY', b'9dd11c858ccf7daf-YVR'), (b'alt-svc', b'h3=":443"; ma=86400')])
+INFO | HTTP Request: GET https://jsonplaceholder.typicode.com/users/1 "HTTP/1.1 200 OK"
+DEBUG | receive_response_body.started request=<Request [b'GET']>
+DEBUG | receive_response_body.complete
+DEBUG | response_closed.started
+DEBUG | response_closed.complete
+DEBUG | close.started
+DEBUG | close.complete
+DEBUG | TRACE:fetch_and_store_user:after_fetch | {'type': 'dict', 'keys': ['address', 'company', 'email', 'id', 'name', 'phone', 'username', 'website'], 'size': 8}
+DEBUG | TRACE:fetch_and_store_user:after_fetch | status=200, keys=['address', 'company', 'email', 'id', 'name', 'phone', 'username', 'website']
+DEBUG | TRACE:fetch_and_store_user:after_transform | {'type': 'dict', 'keys': ['company_name', 'email', 'id', 'name', 'phone', 'synced_at'], 'size': 6}
+DEBUG | TRACE:fetch_and_store_user:after_transform | keys=['company_name', 'email', 'id', 'name', 'phone', 'synced_at'], types={'id': 'int', 'name': 'str', 'email': 'str', 'phone': 'str', 'company_name': 'str', 'synced_at': 'str'}
+DEBUG | connect_tcp.started host='172.21.0.1' port=54321 local_address=None timeout=10.0 socket_options=None
+DEBUG | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x752713e36ad0>
+DEBUG | send_request_headers.started request=<Request [b'POST']>
+DEBUG | send_request_headers.complete
+DEBUG | send_request_body.started request=<Request [b'POST']>
+DEBUG | send_request_body.complete
+DEBUG | receive_response_headers.started request=<Request [b'POST']>
+DEBUG | receive_response_headers.complete return_value=(b'HTTP/1.1', 201, b'Created', [(b'Content-Type', b'application/json; charset=utf-8'), (b'Content-Length', b'172'), (b'Connection', b'keep-alive'), (b'Date', b'Mon, 16 Mar 2026 04:45:57 GMT'), (b'Server', b'postgrest/14.3'), (b'Content-Range', b'*/*'), (b'Preference-Applied', b'resolution=merge-duplicates, return=representation'), (b'Content-Profile', b'public'), (b'Access-Control-Allow-Origin', b'*'), (b'X-Kong-Upstream-Latency', b'22'), (b'X-Kong-Proxy-Latency', b'4'), (b'Via', b'kong/2.8.1')])
+INFO | HTTP Request: POST http://172.21.0.1:54321/rest/v1/synced_users "HTTP/1.1 201 Created"
+DEBUG | receive_response_body.started request=<Request [b'POST']>
+DEBUG | receive_response_body.complete
+DEBUG | response_closed.started
+DEBUG | response_closed.complete
+DEBUG | close.started
+DEBUG | close.complete
+DEBUG | TRACE:fetch_and_store_user:after_upsert | status=201
+DEBUG | TRACE:fetch_and_store_user:verified_record | {'type': 'dict', 'keys': ['company_name', 'email', 'id', 'name', 'phone', 'synced_at'], 'size': 6}
+Result: {'id': 1, 'name': 'Leanne Graham', 'email': 'Sincere@april.biz', 'phone': '1-770-736-8031 x56442', 'company_name': 'Romaguera-Crona', 'synced_at': '2026-03-16T04:45:57.95845+00:00'}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

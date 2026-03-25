@@ -55,3 +55,142 @@ docs/site_specific_example.json
 https://www.youtube.com/watch?v=jA2Orke42Cg lions mane
 
 https://youtu.be/NSVAPzKdW8c?si=lNIfj7kSAHzhszDd
+
+
+
+
+knots
+https://www.youtube.com/shorts/V5JMWrBaeeg
+
+
+Life Hacks
+https://www.youtube.com/shorts/Uo1L2xPWmwA
+
+https://www.youtube.com/shorts/EHMKe2Cf04k
+https://www.youtube.com/shorts/Y6T6kaT0ik4
+
+
+
+body moves 
+https://www.youtube.com/shorts/lj5kng6Nmg4
+
+Here is a self-contained prompt you can paste into any new conversation:
+
+---
+
+```
+## Session Goal: Test the doc-parser Hono API integration
+
+Read AGENTS.md first:
+  /a0/usr/projects/timesheet_app/voicelog-scaffold/AGENTS.md
+
+Then read the workflow:
+  /a0/usr/projects/timesheet_app/voicelog-scaffold/.agents/workflows/parse-document.md
+
+---
+
+### Architecture (do not deviate from this)
+- Hono API:   http://localhost:3000  (Node.js, running on Windows)
+- Doc-parser: http://localhost:5000  (Docker container, running on Windows)
+- Agent Zero container does NOT run either service — only sends HTTP requests to them
+- NEVER attempt to start server.py or install Python packages locally
+
+### Prerequisites — confirm before testing
+1. Supabase is running → paste `supabase status` output so I have the service role key
+2. Hono API is running → `pnpm dev` in voicelog-scaffold on Windows (port 3000)
+3. Doc-parser container is running → `docker-compose up` in doc-parser/ on Windows (port 5000)
+4. Migration applied → `20260312000001_document_pages_ocr.sql` must be in Supabase
+5. A test PDF exists in Supabase storage with a matching row in `project_documents`
+   → If not, tell me and I will create a seed record
+
+---
+
+### Test Plan — run in this order
+
+#### Phase 1 — Health checks
+```bash
+# 1a. Hono API alive?
+curl -s http://localhost:3000/api/doc-parser/health | jq .
+# Expected: { status: "ok", docParser: { reachable: true } }
+
+# 1b. Doc-parser alive?
+curl -s http://localhost:5000/health | jq .
+# Expected: { status: "ok" } or similar
+```
+
+#### Phase 2 — Full pipeline (blocking)
+Replace <DOCUMENT_ID> with a real UUID from `project_documents`:
+```bash
+curl -s -X POST http://localhost:3000/api/doc-parser/pipeline \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<DOCUMENT_ID>", "engine": "hybrid"}' | jq .
+# Expected: { document_id, job_id, pages_persisted, ocr_tables_persisted, summary }
+```
+
+#### Phase 3 — Read endpoints (after pipeline completes)
+```bash
+# List all parsed pages
+curl -s "http://localhost:3000/api/doc-parser/documents/<DOCUMENT_ID>/pages" | jq .
+
+# Get page 1 detail
+curl -s "http://localhost:3000/api/doc-parser/documents/<DOCUMENT_ID>/pages/1" | jq .
+
+# List OCR results
+curl -s "http://localhost:3000/api/doc-parser/documents/<DOCUMENT_ID>/ocr" | jq .
+
+# OCR for page 1
+curl -s "http://localhost:3000/api/doc-parser/documents/<DOCUMENT_ID>/ocr/1" | jq .
+```
+
+#### Phase 4 — Single-page pipeline
+```bash
+curl -s -X POST http://localhost:3000/api/doc-parser/pipeline/page \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<DOCUMENT_ID>", "page_number": 1, "engine": "hybrid"}' | jq .
+# Expected: { document_id, page_number, page_id, ocr_tables_persisted }
+```
+
+#### Phase 5 — Idempotent reprocess
+```bash
+curl -s -X POST http://localhost:3000/api/doc-parser/pipeline/reprocess \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<DOCUMENT_ID>", "engine": "hybrid"}' | jq .
+# Expected: same as /pipeline but with reprocessed: true
+```
+
+#### Phase 6 — Document manager
+Replace <PROJECT_ID> with the `project_id` from the `project_documents` row:
+```bash
+# List documents for project
+curl -s "http://localhost:3000/api/doc-parser/projects/<PROJECT_ID>/documents" | jq .
+
+# Full document detail
+curl -s "http://localhost:3000/api/doc-parser/projects/<PROJECT_ID>/documents/<DOCUMENT_ID>" | jq .
+```
+
+---
+
+### Success Criteria
+| Test | Pass condition |
+|------|----------------|
+| Health check | `docParser.reachable: true` in response |
+| Full pipeline | `pages_persisted > 0`, no error field |
+| Pages list | Array of pages with `storage_url`, `thumbnail_url`, `category` |
+| Single page | `page_id` returned, DB row upserted |
+| Reprocess | `reprocessed: true` in response |
+| Doc manager | Document list includes the test document with `page_count` populated |
+
+### If doc-parser is unreachable (port 5000)
+Do NOT attempt to start it locally. Use `notify_user` type=warning and tell me:
+"Doc-parser container is not running. Please run `docker-compose up` in the doc-parser/ folder on Windows."
+Then stop and wait.
+
+### Source of truth
+- Route table: AGENTS.md → section "Hono API — doc-parser routes"
+- Workflow detail: .agents/workflows/parse-document.md
+- DB schema: supabase/migrations/20260312000001_document_pages_ocr.sql
+```
+
+---
+
+**Tip:** If you don't have a `project_documents` row yet, tell the new agent: *"Create a seed `project_documents` record pointing to a PDF in Supabase storage, then use that document_id for all tests."* It will handle the SQL insert.

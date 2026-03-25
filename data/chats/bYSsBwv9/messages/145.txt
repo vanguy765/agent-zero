@@ -1,0 +1,30 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work-orders package.json ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# {
+  "name": "work-orders",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 3004",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@repo/schemas": "workspace:*",
+    "@repo/config": "workspace:*",
+    "@solidjs/router": "^0.15.4",
+    "@supabase/supabase-js": "^2.91.1",
+    "solid-js": "^1.9.10"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest",
+    "vite": "^5.0.0",
+    "vite-plugin-solid": "^2.8.0"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === trying to run work-orders dev directly ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

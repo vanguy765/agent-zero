@@ -1,0 +1,10 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === README: manifest + test results ===
+5
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === BMAD: §10.2 ===
+8
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Checklist: manifest ===
+2
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Continuation: current state ===
+10
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Git diff stat ===

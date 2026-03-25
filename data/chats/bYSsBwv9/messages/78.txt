@@ -1,0 +1,37 @@
+psql:backups/20260310/schema.sql:16: ERROR:  extension "pg_net" is not available
+psql:backups/20260310/schema.sql:27: ERROR:  extension "pg_graphql" is not available
+psql:backups/20260310/schema.sql:34: ERROR:  schema "extensions" does not exist
+psql:backups/20260310/schema.sql:41: ERROR:  schema "extensions" does not exist
+psql:backups/20260310/schema.sql:48: ERROR:  extension "supabase_vault" is not available
+psql:backups/20260310/schema.sql:55: ERROR:  schema "extensions" does not exist
+psql:backups/20260310/schema.sql:62: ERROR:  extension "vector" is not available
+psql:backups/20260310/schema.sql:172: ERROR:  type public.vector does not exist
+psql:backups/20260310/schema.sql:175: ERROR:  type "public.vector" does not exist
+psql:backups/20260310/schema.sql:273: ERROR:  type public.vector does not exist
+psql:backups/20260310/schema.sql:276: ERROR:  type "public.vector" does not exist
+psql:backups/20260310/schema.sql:294: ERROR:  type "public.vector" does not exist
+psql:backups/20260310/schema.sql:297: ERROR:  relation "public.agent_memories" does not exist
+psql:backups/20260310/schema.sql:333: ERROR:  schema "extensions" does not exist
+psql:backups/20260310/schema.sql:336: ERROR:  relation "public.document_images" does not exist
+psql:backups/20260310/schema.sql:365: ERROR:  schema "extensions" does not exist
+psql:backups/20260310/schema.sql:368: ERROR:  relation "public.image_links" does not exist
+psql:backups/20260310/schema.sql:490: ERROR:  schema "extensions" does not exist
+psql:backups/20260310/schema.sql:493: ERROR:  relation "public.project_documents" does not exist
+psql:backups/20260310/schema.sql:873: ERROR:  schema "extensions" does not exist
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---schema done---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---check tables---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#  count
+-------
+    35
+(1 row)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+CREATE ROLE
+GRANT ROLE
+GRANT ROLE
+GRANT ROLE
+GRANT ROLE
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---roles created---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

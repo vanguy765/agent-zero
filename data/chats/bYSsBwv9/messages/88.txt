@@ -1,0 +1,108 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+	Is the server running locally and accepting connections on that socket?
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === SAMPLE DATA ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+	Is the server running locally and accepting connections on that socket?
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Dashboard.tsx ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 591 apps/work-orders/src/pages/Dashboard.tsx
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# import type { Component } from 'solid-js';
+import { createResource, createSignal, For, Show } from 'solid-js';
+import { A } from '@solidjs/router';
+import type { WorkOrderTemplate, TypeOrder, WOProject, DashboardStats } from '../lib/api';
+import { api } from '../lib/api';
+
+// ─── Sorting helpers ────────────────────────────────────────────────────────
+type SortDir = 'asc' | 'desc';
+
+function useSortable<T>(initial: keyof T) {
+    const [sortKey, setSortKey] = createSignal<keyof T>(initial);
+    const [sortDir, setSortDir] = createSignal<SortDir>('asc');
+
+    const toggle = (key: keyof T) => {
+        if (sortKey() === key) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(() => key);
+            setSortDir('asc');
+        }
+    };
+
+    const sorted = (items: T[]) => {
+        const k = sortKey();
+        const dir = sortDir();
+        return [...items].sort((a, b) => {
+            const av = a[k] as any;
+            const bv = b[k] as any;
+            if (av == null && bv == null) return 0;
+            if (av == null) return 1;
+            if (bv == null) return -1;
+            const cmp = typeof av === 'string'
+                ? av.localeCompare(bv)
+                : av < bv ? -1 : av > bv ? 1 : 0;
+            return dir === 'asc' ? cmp : -cmp;
+        });
+    };
+
+    const icon = (key: keyof T) => {
+        if (sortKey() !== key) return ' \u21d5';
+        return sortDir() === 'asc' ? ' \u2191' : ' \u2193';
+    };
+
+    return { sortKey, sortDir, toggle, sorted, icon };
+}
+
+// ─── Status badge helper ─────────────────────────────────────────────────────
+const STATUS_CLASSES: Record<string, string> = {
+    active:      'badge badge-success',
+    completed:   'badge badge-primary',
+    staged:      'badge badge-secondary',
+    paused:      'badge badge-warning',
+    archived:    'badge badge-secondary',
+    draft:       'badge badge-secondary',
+    inactive:    'badge badge-secondary',
+    frozen:      'badge badge-primary',
+};
+
+const statusBadge = (status: string) => (
+    <span class={STATUS_CLASSES[status] ?? 'badge badge-secondary'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+);
+
+const SortTh: Component<{ label: string; icon: string; onClick: () => void }> = (props) => (
+    <th
+        class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+        onClick={props.onClick}
+    >
+        {props.label}{props.icon}
+    </th>
+);
+
+// ─── Collapse toggle icon ────────────────────────────────────────────────────
+const CollapseIcon: Component<{ open: boolean }> = (props) => (
+    <svg
+        class="w-5 h-5 text-gray-400 transition-transform duration-200"
+        style={{ transform: props.open ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+        fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24"
+    >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+);
+
+// ─── Section wrapper with collapse ──────────────────────────────────────────
+const Section: Component<{
+    title: string;
+    count?: number;
+    linkHref: string;
+    linkLabel: string;
+    children: any;
+}> = (props) => {
+    const [open, setOpen] = createSignal(true);
+    return (
+        <section>
+            <div class="flex items-center justify-between mb-3">
+                <button
+                    class="flex items-center gap-2 group focus:outline-none"
+                    onClick={() => setOpen(o => !o)}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

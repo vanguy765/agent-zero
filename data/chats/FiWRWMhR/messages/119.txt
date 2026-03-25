@@ -1,0 +1,25 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# def _type_name(t) -> str:
+    """Return a human-readable name for a type or tuple of types."""
+    if isinstance(t, tuple):
+        return "/".join(cls.__name__ for cls in t)
+    return t.__name__
+
+
+def guard_type(value: Any, expected_type, function_name: str,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# def describe_shape(data: Any, max_depth: int = 2, _depth: int = 0) -> str:
+    """Describe the structural shape of data without exposing content."""
+    if data is None:
+        return "NoneType"
+    t = type(data).__name__
+    if isinstance(data, dict):
+        keys = sorted(data.keys())
+        shape = f"{t}, keys={keys}, len={len(data)}"
+        if _depth < max_depth and data:
+            first_key = next(iter(data))
+            first_shape = describe_shape(data[first_key], max_depth, _depth + 1)
+            shape += f", sample['{first_key}']={first_shape}"
+        return shape
+    if isinstance(data, (list, tuple)):
+        shape = f"{t}, len={len(data)}"
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

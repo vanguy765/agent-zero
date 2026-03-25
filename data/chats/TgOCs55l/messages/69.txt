@@ -1,0 +1,24 @@
+/a0/jsconfig.json
+---
+---
+agent.context.extras.md
+agent.extras.agent_info.md
+agent.extras.workdir_structure.md
+agent.system.behaviour_default.md
+agent.system.behaviour.md
+agent.system.datetime.md
+agent.system.main.communication_additions.md
+agent.system.main.communication.md
+agent.system.main.environment.md
+agent.system.main.md
+agent.system.main.role.md
+agent.system.main.solving.md
+agent.system.main.tips.md
+agent.system.main.tips.py
+agent.system.mcp_tools.md
+agent.system.memories.md
+agent.system.projects.active.md
+agent.system.projects.inactive.md
+agent.system.projects.main.md
+agent.system.response_tool_tips.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

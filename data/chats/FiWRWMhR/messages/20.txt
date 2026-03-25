@@ -1,0 +1,20 @@
+1:// sample_unguarded.ts — Realistic TypeScript file WITHOUT Bulwark patterns
+9:// BLW001: Has parameters but no guard calls
+25:    // BLW002: db.insert with no verify
+31:// BLW001: Has parameters but no guard calls
+32:// BLW002: Has HTTP POST mutation but no verify
+47:// BLW001: Has parameters but no guard
+65:// BLW002: File write with no verify
+72:// BLW001: Has parameter but no guard
+73:// BLW002: sendEmail with no verify
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 1:"""Sample unguarded Python module — should trigger BLW001-BLW005 violations."""
+7:# BLW001: Has parameters but no guard calls
+33:# BLW001: Has parameters but no guard
+34:# BLW002: db.insert with no verify
+46:# BLW001: Has parameters but no guard
+47:# BLW002: file write with no verify
+61:# BLW001: Has parameters but no guard
+62:# BLW002: sendEmail with no verify
+75:# BLW001: Has parameters but no guard
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

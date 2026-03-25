@@ -1,0 +1,77 @@
+============================================================
+Bulwark AI — TypeScript Reference Implementation Self-Test
+Version: 0.2.0-draft
+Config: {"mode":"development","guardsEnabled":true,"traceLevel":"DEBUG","verifyStrategy":"full","verifySampleRate":0.01}
+============================================================
+
+--- Guard Tests ---
+  [PASS] guard(true) passes
+2026-03-15 03:50:26 | ERROR | GUARD:test | expected X, got Y
+  [PASS] guard(false) raises GuardError
+  [PASS] guardType(object) passes
+2026-03-15 03:50:26 | ERROR | GUARD:test | 'data' expected object, got array
+  [PASS] guardType(array as object) raises
+2026-03-15 03:50:26 | ERROR | GUARD:test | 'input' missing keys: [c], available: [a, b]
+  [PASS] guardKeys missing key raises
+  [PASS] guardKeys all present passes
+  [PASS] guardNotEmpty([1,2]) passes
+2026-03-15 03:50:26 | ERROR | GUARD:test | 'data' is empty (array, length=0)
+  [PASS] guardNotEmpty([]) raises
+  [PASS] guardRange(5, {min:1, max:10}) passes
+2026-03-15 03:50:26 | ERROR | GUARD:test | 'val' value 15 above maximum 10
+  [PASS] guardRange(15, {min:1, max:10}) raises
+  [PASS] GuardError is Error (not built-in assertion)
+
+--- Trace Tests ---
+2026-03-15 03:50:26 | DEBUG | TRACE:test | object, keys=[a], len=1, sample['a']=number
+  [PASS] trace returns data unchanged
+2026-03-15 03:50:26 | DEBUG | TRACE:test | null
+  [PASS] trace(null) returns null
+2026-03-15 03:50:26 | DEBUG | TRACE:test | array, len=0 (EMPTY)
+  [PASS] trace([]) returns []
+
+--- Shape Description Tests ---
+  [PASS] describeShape(null) = null
+  [PASS] describeShape(42) = number
+  [PASS] describeShape("hello") = string, len=5
+  [PASS] describeShape([1,2,3]) = array, len=3, items=number
+  [PASS] describeShape([]) = array, len=0 (EMPTY)
+
+--- Verify Tests ---
+2026-03-15 03:50:26 | DEBUG | VERIFY:test | OK — should pass
+  [PASS] verify(true) passes
+2026-03-15 03:50:26 | ERROR | VERIFY:test | INSERT expected 10, affected 0
+  [PASS] verify(false) raises VerifyError
+  [PASS] VerifyError is Error (not built-in assertion)
+
+--- Configuration Tests ---
+  [PASS] configure({ mode: 'production' }) works
+  [PASS] config reflects production mode
+  [PASS] configure({ mode: 'invalid' }) raises Error
+
+--- Verify Strategy Tests ---
+  [PASS] sampled strategy skips most verifies (100/100 skipped)
+2026-03-15 03:50:26 | ERROR | VERIFY:test | critical must verify
+  [PASS] critical=true always verifies even when sampled
+
+--- Availability Guard Tests ---
+2026-03-15 03:50:26 | INFO  | GUARD:AVAILABLE:test | testService — OK
+  [PASS] guardAvailable with true check passes
+2026-03-15 03:50:26 | ERROR | GUARD:AVAILABLE:test | testService — not available
+  [PASS] guardAvailable with false check raises
+2026-03-15 03:50:26 | ERROR | GUARD:AVAILABLE:test | testService — check raised Error: connection refused
+  [PASS] guardAvailable with exception raises GuardError
+
+--- Pipeline Tests ---
+2026-03-15 03:50:26 | INFO  | PIPELINE:testPipeline | starting with 2 stages
+2026-03-15 03:50:26 | DEBUG | TRACE:testPipeline:input | array, len=3, items=number
+2026-03-15 03:50:26 | DEBUG | TRACE:testPipeline.double:output | array, len=3, items=number
+2026-03-15 03:50:26 | DEBUG | TRACE:testPipeline.toObject:output | object, keys=[count,results], len=2, sample['count']=number
+2026-03-15 03:50:26 | INFO  | PIPELINE:testPipeline | completed all 2 stages
+  [PASS] pipeline produces correct result
+
+============================================================
+Results: 31/31 passed, 0 failed
+All self-tests passed. Bulwark AI is operational.
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

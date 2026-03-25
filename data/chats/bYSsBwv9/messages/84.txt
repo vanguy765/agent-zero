@@ -1,0 +1,32 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > >        column_name       |        data_type
+-------------------------+--------------------------
+ id                      | uuid
+ organization_id         | uuid
+ trade_name              | text
+ version                 | integer
+ is_active               | boolean
+ definition              | jsonb
+ created_at              | timestamp with time zone
+ updated_at              | timestamp with time zone
+ scope                   | text
+ project_id              | uuid
+ parent_template_id      | uuid
+ copied_from_template_id | uuid
+ created_by              | uuid
+ updated_by              | uuid
+ library_id              | uuid
+ status                  | text
+ auto_generated          | boolean
+ generation_source       | text
+ generation_metadata     | jsonb
+ is_frozen               | boolean
+ trade_id                | uuid
+ sop_id                  | uuid
+ outcome_id              | uuid
+ inheritance_depth       | integer
+ source_template_id      | uuid
+(25 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > >
+
+[SYSTEM: Returning control to agent after 15 seconds since last output update. Process might be still running. Check previous outputs and decide whether to reset and continue or wait for more output is needed.] 

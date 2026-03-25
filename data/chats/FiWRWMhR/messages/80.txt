@@ -1,0 +1,7 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > languages.py patched successfully
+  ✅ Found: from bulwark_lint.text_utils import strip_strings_and_commen
+  ✅ Found: clean_body: str
+  ✅ Found: clean_source = strip_strings_and_comments(source, "python")
+  ✅ Found: for match in _PY_FUNC_RE.finditer(clean_source):
+  ✅ Found: clean_body=clean_body,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

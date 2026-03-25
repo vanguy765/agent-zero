@@ -1,0 +1,152 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load .env from project root (two levels up from apps/api/src)
+config({ path: resolve(__dirname, '../../../.env') });
+import { serve } from '@hono/node-server';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { swaggerUI } from '@hono/swagger-ui';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import { z } from 'zod';
+console.log('[API] Zod Version:', (z as any).version || 'undefined');
+console.log('[API] DOC_PARSER_URL is:', process.env.DOC_PARSER_URL);
+
+// Import Routes
+import { deliveryRoute } from './routes/delivery';
+import { todosRoute } from './routes/todos';
+import { voiceRoute } from './routes/voice';
+import materials from './routes/materials';
+import taxonomyRoute from './routes/taxonomy';
+import projectDefinitionsRoute from './routes/project-definitions';
+import unitsRoute from './routes/units';
+import { workOrdersRoute } from './routes/work-orders';
+import { documentsRoute } from './routes/documents';
+import { a2aRoute } from './routes/a2a';
+import { tradesRoute } from './routes/trades';
+import { projectOutcomesRoute } from './routes/project-outcomes';
+import { typeOrdersRoute } from './routes/type-orders';
+import { bomActionRequestsRoute } from './routes/bom-action-requests';
+
+import { reviewsRoute } from './routes/reviews';
+import { entityCreationRoute } from './routes/entity-creation';
+import { onboardRoute } from './routes/onboard';
+import { docParserRoutes } from './routes/doc-parser-routes';
+
+const app = new OpenAPIHono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors());
+
+// Routes
+app.route('/delivery', deliveryRoute);
+app.route('/todos', todosRoute);
+app.route('/voice', voiceRoute);
+app.route('/materials', materials);
+app.route('/taxonomy', taxonomyRoute);
+app.route('/projects', projectDefinitionsRoute);
+app.route('/units', unitsRoute);
+app.route('/work-orders', workOrdersRoute);
+app.route('/work-orders', documentsRoute);
+app.route('/work-orders/trades', tradesRoute);
+app.route('/work-orders/project-outcomes', projectOutcomesRoute);
+app.route('/work-orders/type-orders', typeOrdersRoute);
+app.route('/work-orders/bom-action-requests', bomActionRequestsRoute);
+
+app.route('/reviews', reviewsRoute);
+app.route('/entity', entityCreationRoute);
+app.route('/onboard', onboardRoute);
+
+// Doc-Parser Integration (P1-P7)
+app.route('/doc-parser', docParserRoutes);
+
+// A2A Protocol (Agent-to-Agent)
+app.route('', a2aRoute);       // /.well-known/agent.json
+app.route('/a2a', a2aRoute);   // POST /a2a (JSON-RPC endpoint)
+
+// The OpenAPI Documentation JSON
+app.doc('/doc', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'Construction Voice Platform API',
+    description: 'API for Web Dashboard, Site Companion, and Flutter Mobile App'
+  },
+});
+
+// The Swagger UI (Visual Documentation)
+app.get('/ui', swaggerUI({ url: '/doc' }));
+
+const port = 3000;
+console.log(`Server is running on port ${port}`);
+console.log(`Swagger UI available at http://localhost:${port}/ui`);
+
+serve({
+  fetch: app.fetch,
+  port
+});
+
+export type AppType = typeof app;
+=== SCHEMA ===
+CREATE OR REPLACE FUNCTION "public"."freeze_project_templates"() RETURNS "trigger"
+    UPDATE public.work_order_templates pt
+    FROM public.work_order_templates ct
+    WHERE pt.project_id = NEW.id
+      AND pt.scope = 'project'
+ALTER FUNCTION "public"."freeze_project_templates"() OWNER TO "postgres";
+CREATE OR REPLACE FUNCTION "public"."get_default_library_for_type"("p_project_type" "text") RETURNS "uuid"
+    WHERE project_type = p_project_type
+ALTER FUNCTION "public"."get_default_library_for_type"("p_project_type" "text") OWNER TO "postgres";
+CREATE OR REPLACE FUNCTION "public"."get_project_organization_id"("p_project_id" "uuid") RETURNS "uuid"
+    SELECT organization_id FROM wo_projects WHERE id = p_project_id;
+ALTER FUNCTION "public"."get_project_organization_id"("p_project_id" "uuid") OWNER TO "postgres";
+CREATE TABLE IF NOT EXISTS "public"."agent_memories" (
+CREATE TABLE IF NOT EXISTS "public"."bom_action_requests" (
+    "project_id" "uuid" NOT NULL,
+CREATE TABLE IF NOT EXISTS "public"."document_images" (
+CREATE TABLE IF NOT EXISTS "public"."entity_creation_log" (
+    CONSTRAINT "entity_creation_log_entity_type_check" CHECK (("entity_type" = ANY (ARRAY['work_order_template'::"text", 'room'::"text", 'unit'::"text", 'work_order'::"text"])))
+CREATE TABLE IF NOT EXISTS "public"."image_links" (
+CREATE TABLE IF NOT EXISTS "public"."metric_definitions" (
+CREATE TABLE IF NOT EXISTS "public"."organization_trades" (
+CREATE TABLE IF NOT EXISTS "public"."organizations" (
+CREATE TABLE IF NOT EXISTS "public"."pending_reviews" (
+    CONSTRAINT "pending_reviews_entity_type_check" CHECK (("entity_type" = ANY (ARRAY['work_order_template'::"text", 'room'::"text", 'work_order'::"text", 'unit'::"text"]))),
+CREATE TABLE IF NOT EXISTS "public"."portal_table_config" (
+CREATE TABLE IF NOT EXISTS "public"."project_documents" (
+    "project_id" "uuid",
+ALTER TABLE "public"."project_documents" OWNER TO "postgres";
+CREATE TABLE IF NOT EXISTS "public"."project_outcomes" (
+    CONSTRAINT "project_outcomes_scope_check" CHECK (("scope" = ANY (ARRAY['system'::"text", 'company'::"text"]))),
+ALTER TABLE "public"."project_outcomes" OWNER TO "postgres";
+CREATE TABLE IF NOT EXISTS "public"."rooms" (
+CREATE TABLE IF NOT EXISTS "public"."sop_dependencies" (
+CREATE TABLE IF NOT EXISTS "public"."sop_detailed_steps" (
+CREATE TABLE IF NOT EXISTS "public"."sop_executive_checklists" (
+CREATE TABLE IF NOT EXISTS "public"."sop_recommended_videos" (
+CREATE TABLE IF NOT EXISTS "public"."sop_ref_docs" (
+CREATE TABLE IF NOT EXISTS "public"."sop_sections" (
+CREATE TABLE IF NOT EXISTS "public"."sop_steps" (
+CREATE TABLE IF NOT EXISTS "public"."sop_sync_log" (
+CREATE TABLE IF NOT EXISTS "public"."sops" (
+CREATE TABLE IF NOT EXISTS "public"."template_libraries" (
+    "project_type" "text" NOT NULL,
+CREATE TABLE IF NOT EXISTS "public"."trade_outcome_assignments" (
+CREATE TABLE IF NOT EXISTS "public"."trades" (
+CREATE TABLE IF NOT EXISTS "public"."type_order_compositions" (
+CREATE TABLE IF NOT EXISTS "public"."type_order_default_work_orders" (
+    "work_order_template_id" "uuid" NOT NULL,
+ALTER TABLE "public"."type_order_default_work_orders" OWNER TO "postgres";
+CREATE TABLE IF NOT EXISTS "public"."type_orders" (
+    "project_id" "uuid",
+    CONSTRAINT "type_orders_scope_check" CHECK (("scope" = ANY (ARRAY['system'::"text", 'company'::"text", 'project'::"text"]))),
+    CONSTRAINT "valid_company_type" CHECK (((("scope" = 'company'::"text") AND ("organization_id" IS NOT NULL) AND ("project_id" IS NULL)) OR ("scope" <> 'company'::"text"))),
+    CONSTRAINT "valid_project_type" CHECK (((("scope" = 'project'::"text") AND ("organization_id" IS NOT NULL) AND ("project_id" IS NOT NULL)) OR ("scope" <> 'project'::"text"))),
+    CONSTRAINT "valid_system_type" CHECK (((("scope" = 'system'::"text") AND ("organization_id" IS NULL) AND ("project_id" IS NULL)) OR ("scope" <> 'system'::"text")))
+CREATE TABLE IF NOT EXISTS "public"."unit_documents" (
+CREATE TABLE IF NOT EXISTS "public"."unit_room_calculations" (
+CREATE TABLE IF NOT EXISTS "public"."unit_room_measurements" (
+CREATE TABLE IF NOT EXISTS "public"."unit_rooms" (
+CREATE TABLE IF NOT EXISTS "public"."units" (
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

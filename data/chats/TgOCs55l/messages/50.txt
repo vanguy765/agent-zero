@@ -1,0 +1,73 @@
+docParserRoutes.get('/projects/:projectId/documents/:documentId', async (c) => {
+  const projectId  = c.req.param('projectId');
+  const documentId = c.req.param('documentId');
+
+  const supabase = getScopedClient(c);
+
+  // Fetch document (verify it belongs to the project)
+  const { data: doc, error: docErr } = await supabase
+    .from('project_documents')
+    .select('id, title, description, file_url, file_type, file_size_bytes, uploaded_at, created_at, metadata')
+    .eq('id', projectId)
+    .eq('id', documentId)
+    .single();
+
+  // Re-query without project filter if the above returns nothing
+  // (project_id column check)
+  const { data: docRow, error: docRowErr } = await supabase
+    .from('project_documents')
+    .select('id, title, description, file_url, file_type, file_size_bytes, uploaded_at, created_at, metadata')
+    .eq('id', documentId)
+    .eq('project_id', projectId)
+    .single();
+
+  if (docRowErr || !docRow) {
+    if (docRowErr?.code === 'PGRST116') {
+      return c.json({ error: `Document ${documentId} not found in project ${projectId}` }, 404);
+    }
+    return c.json({ error: `Database query failed: ${docRowErr?.message}` }, 500);
+  }
+
+  // Fetch page summary — count per category
+  const { data: pages, error: pagesErr } = await supabase
+    .from('document_pages')
+    .select('page_number, category, thumbnail_url, storage_url')
+    .eq('document_id', documentId)
+    .order('page_number', { ascending: true });
+
+  // Fetch OCR table count
+  const { count: ocrCount } = await supabase
+    .from('ocr_results')
+    .select('id', { count: 'exact', head: true })
+    .eq('document_id', documentId);
+
+  // Build category breakdown
+  const categoryBreakdown: Record<string, number> = {};
+  for (const p of (pages ?? [])) {
+    const cat = p.category ?? 'unknown';
+    categoryBreakdown[cat] = (categoryBreakdown[cat] ?? 0) + 1;
+  }
+
+  return c.json({
+    ...docRow,
+    page_count:         pages?.length ?? 0,
+    ocr_table_count:    ocrCount ?? 0,
+    parsed:             (pages?.length ?? 0) > 0,
+    category_breakdown: categoryBreakdown,
+    pages: (pages ?? []).map((p: any) => ({
+      page_number:   p.page_number,
+      category:      p.category,
+      thumbnail_url: p.thumbnail_url,
+      storage_url:   p.storage_url,
+    })),
+  });
+});
+
+// ============================================================
+// GET /documents/:documentId/ocr/:pageNumber
+// OCR results for a single page (1-indexed).
+// Convenience shorthand — equivalent to
+//   GET /documents/:id/ocr?page_number=N
+// but returns the page metadata alongside the OCR rows.
+// ============================================================
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

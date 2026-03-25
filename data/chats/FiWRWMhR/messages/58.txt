@@ -1,0 +1,116 @@
+On branch main
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+	new file:   .bmad/skills/bulwark-defensive-coding.md
+	new file:   .gitignore
+	new file:   CONTINUATION_PROMPT.md
+	new file:   DECISIONS.md
+	new file:   GUIDE.md
+	new file:   LICENSE
+	new file:   MARKETING_SEEDS.md
+	new file:   PROJECT_STATUS.md
+	new file:   QUICKSTART.md
+	new file:   README.md
+	new file:   SPEC.md
+	new file:   checklists/bulwark-checklist.md
+	new file:   examples/bash/.gitkeep
+	new file:   examples/go/.gitkeep
+	new file:   examples/python/document_pipeline.py
+	new file:   examples/typescript/.gitkeep
+	new file:   guides/bulwark-x-pydantic.md
+	new file:   guides/bulwark-x-zod.md
+	new file:   linter/README.md
+	new file:   linter/bulwark_lint/__init__.py
+	new file:   linter/bulwark_lint/__main__.py
+	new file:   linter/bulwark_lint/cli.py
+	new file:   linter/bulwark_lint/config.py
+	new file:   linter/bulwark_lint/discovery.py
+	new file:   linter/bulwark_lint/engine.py
+	new file:   linter/bulwark_lint/languages.py
+	new file:   linter/bulwark_lint/reporters/__init__.py
+	new file:   linter/bulwark_lint/reporters/json_reporter.py
+	new file:   linter/bulwark_lint/reporters/terminal.py
+	new file:   linter/bulwark_lint/rules/__init__.py
+	new file:   linter/bulwark_lint/rules/base.py
+	new file:   linter/bulwark_lint/rules/blw001_guard_present.py
+	new file:   linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+	new file:   linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+	new file:   linter/bulwark_lint/rules/blw004_no_bare_assert.py
+	new file:   linter/bulwark_lint/rules/blw005_custom_error_types.py
+	new file:   linter/pyproject.toml
+	new file:   linter/tests/__init__.py
+	new file:   linter/tests/fixtures/sample_guarded.py
+	new file:   linter/tests/fixtures/sample_guarded.ts
+	new file:   linter/tests/fixtures/sample_unguarded.py
+	new file:   linter/tests/fixtures/sample_unguarded.ts
+	new file:   linter/tests/test_discovery.py
+	new file:   linter/tests/test_engine.py
+	new file:   linter/tests/test_rules.py
+	new file:   prompts/bulwark-remediation-agent.md
+	new file:   prompts/bulwark-system-prompt.md
+	new file:   reference/bulwark.js
+	new file:   reference/bulwark.py
+	new file:   reference/bulwark.ts
+	new file:   reference/package-lock.json
+	new file:   reference/package.json
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > > > > > > > [main (root-commit) 1649d1c] feat: initial commit — Bulwark AI v0.2.0-draft
+ 52 files changed, 15442 insertions(+)
+ create mode 100644 .bmad/skills/bulwark-defensive-coding.md
+ create mode 100644 .gitignore
+ create mode 100644 CONTINUATION_PROMPT.md
+ create mode 100644 DECISIONS.md
+ create mode 100644 GUIDE.md
+ create mode 100644 LICENSE
+ create mode 100644 MARKETING_SEEDS.md
+ create mode 100644 PROJECT_STATUS.md
+ create mode 100644 QUICKSTART.md
+ create mode 100644 README.md
+ create mode 100644 SPEC.md
+ create mode 100644 checklists/bulwark-checklist.md
+ create mode 100644 examples/bash/.gitkeep
+ create mode 100644 examples/go/.gitkeep
+ create mode 100644 examples/python/document_pipeline.py
+ create mode 100644 examples/typescript/.gitkeep
+ create mode 100644 guides/bulwark-x-pydantic.md
+ create mode 100644 guides/bulwark-x-zod.md
+ create mode 100644 linter/README.md
+ create mode 100644 linter/bulwark_lint/__init__.py
+ create mode 100644 linter/bulwark_lint/__main__.py
+ create mode 100644 linter/bulwark_lint/cli.py
+ create mode 100644 linter/bulwark_lint/config.py
+ create mode 100644 linter/bulwark_lint/discovery.py
+ create mode 100644 linter/bulwark_lint/engine.py
+ create mode 100644 linter/bulwark_lint/languages.py
+ create mode 100644 linter/bulwark_lint/reporters/__init__.py
+ create mode 100644 linter/bulwark_lint/reporters/json_reporter.py
+ create mode 100644 linter/bulwark_lint/reporters/terminal.py
+ create mode 100644 linter/bulwark_lint/rules/__init__.py
+ create mode 100644 linter/bulwark_lint/rules/base.py
+ create mode 100644 linter/bulwark_lint/rules/blw001_guard_present.py
+ create mode 100644 linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+ create mode 100644 linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+ create mode 100644 linter/bulwark_lint/rules/blw004_no_bare_assert.py
+ create mode 100644 linter/bulwark_lint/rules/blw005_custom_error_types.py
+ create mode 100644 linter/pyproject.toml
+ create mode 100644 linter/tests/__init__.py
+ create mode 100644 linter/tests/fixtures/sample_guarded.py
+ create mode 100644 linter/tests/fixtures/sample_guarded.ts
+ create mode 100644 linter/tests/fixtures/sample_unguarded.py
+ create mode 100644 linter/tests/fixtures/sample_unguarded.ts
+ create mode 100644 linter/tests/test_discovery.py
+ create mode 100644 linter/tests/test_engine.py
+ create mode 100644 linter/tests/test_rules.py
+ create mode 100644 prompts/bulwark-remediation-agent.md
+ create mode 100644 prompts/bulwark-system-prompt.md
+ create mode 100644 reference/bulwark.js
+ create mode 100644 reference/bulwark.py
+ create mode 100644 reference/bulwark.ts
+ create mode 100644 reference/package-lock.json
+ create mode 100644 reference/package.json
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Commit result ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

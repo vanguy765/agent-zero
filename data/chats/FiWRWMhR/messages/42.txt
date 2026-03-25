@@ -1,0 +1,24 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# # Bulwark AI — A Beginner's Companion Guide
+
+**Your friendly introduction to the Guard-Trace-Verify defensive coding standard**
+
+> This guide is a companion to the [formal specification (SPEC.md)](SPEC.md). You don't need to read the spec first — everything you need is right here.
+> **In a hurry?** See the [Quick Start guide (QUICKSTART.md)](QUICKSTART.md) — get Bulwark running in 5 minutes.
+
+---
+
+## Table of Contents
+
+1. [What Is Bulwark AI?](#1-what-is-bulwark-ai)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === TD-6 ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### TD-6: No .gitignore
+No `.gitignore` file for the repository. Needs to exclude:
+- `node_modules/`, `venv/`, `__pycache__/`
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === TD-7 ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### TD-7: GUIDE.md Line Count
+GUIDE.md is 1,570 lines. While comprehensive, it may benefit from being
+split into multiple guides (Quick Start, Deep Dive, Patterns Cookbook)
+if it continues to grow.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

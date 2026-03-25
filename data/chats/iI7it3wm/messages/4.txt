@@ -1,0 +1,39 @@
+Graph Memory for AI Agents (January 2026) - mem0.ai
+https://mem0.ai/blog/graph-memory-solutions-ai-agents
+The dual deployment model lets teams self-host the open-source version or use the managed service with built-in compliance. Hierarchical memory at user, session, and agent levels creates cross-session persistence that adapts as preferences change. For teams building AI agents that need relationship-aware context, Mem0 balances capability with simplicity.
+
+LangChain Memory vs Mem0 vs Zep: AI Memory Systems 2026
+https://www.index.dev/skill-vs-skill/ai-mem0-vs-zep-vs-langchain-memory
+Zep offers the best balance of speed and functionality with sub-100ms retrieval times, persistent storage, and automatic memory extraction, particularly strong for high-throughput conversational applications.
+
+Mem0 vs Zep (Graphiti): AI Agent Memory Compared (2026)
+https://vectorize.io/articles/mem0-vs-zep
+If you're building AI agents that need persistent memory, Mem0 and Zep are two of the most established options in the space — and they represent genuinely different philosophies about how agent memory should work. Mem0 combines a vector store with an optional knowledge graph. Zep builds everything around Graphiti, a temporal knowledge graph engine where time is a first-class dimension. Both ...
+
+Best AI Memory Tools (2026): Context, Knowledge, Long-Term
+https://alignify.co/tools/memory
+Implementing AI memory tools presents several challenges that require careful consideration. Data privacy and security are critical, especially when handling sensitive user information—ensure compliance with regulations like GDPR and HIPAA. Performance optimization is essential as memory operations can impact response times; consider caching strategies and efficient indexing. Data quality management requires robust validation and cleaning processes to maintain memory accuracy. Scalability planning is crucial for growing applications; choose tools that can handle increasing data volumes and use
+
+5 AI Agent Memory Systems Compared: Mem0, Zep, Letta, Supermemory, SuperLocalMemory (2026 Benchmark Data) - DEV Community
+https://dev.to/varun_pratapbhardwaj_b13/5-ai-agent-memory-systems-compared-mem0-zep-letta-supermemory-superlocalmemory-2026-benchmark-59p3
+The LoCoMo benchmark (Long Conversation Memory) is the most widely cited evaluation for this space — 81 question-answer pairs across long multi-session conversations. *Supermemory score estimated from limited published data. Key takeaway: Every system requiring cloud LLMs clusters between 83-92%. SuperLocalMemory Mode A achieves 74.8% with zero cloud dependency — demonstrating that mathematical retrieval captures most of the benchmark value without cloud compute. Mode C reaches 87.7%, competitive with the top tier. Model: Cloud-first, API-based. Memories stored on Mem0's servers.
+
+From Beta to Battle‑Tested: Picking Between Letta, Mem0 & Zep for AI Memory | by Calvin Ku | Asymptotic Spaghetti Integration | Medium
+https://medium.com/asymptotic-spaghetti-integration/from-beta-to-battle-tested-picking-between-letta-mem0-zep-for-ai-memory-6850ca8703d1
+A quick note: I previously wrote an article diving deep into Mem0’s capabilities (The AI Memory Challenge, Part 1: We Asked Mem0 to Remember Five Things). You might wonder why there isn’t a Part 2 comparing Letta and Zep using the same benchmarks. Frankly, based on my evaluation, neither Letta nor Zep feels quite ready for that kind of production-oriented stress test just yet.
+
+Mem0 vs Zep vs LangMem vs MemoClaw: AI Agent Memory Comparison 2026 - DEV Community
+https://dev.to/anajuliabit/mem0-vs-zep-vs-langmem-vs-memoclaw-ai-agent-memory-comparison-2026-1l1k
+The question is which memory solution to pick — and honestly, the answer depends on what you're building. This is a no-BS comparison of the four main options in 2026: Mem0, Zep, LangMem, and MemoClaw.
+
+Top 10 AI Memory Products 2026. The Emerging Memory Layer for Agents | by Bobur | Feb, 2026 | Medium
+https://medium.com/@bumurzaqov2/top-10-ai-memory-products-2026-09d7900b5ab1
+Mem0 is arguably the clearest example of “memory as a product.” Mem0 provides a dedicated memory layer that extracts “memories” from interactions, stores them, and retrieves them later for personalization and long-term coherence.
+
+Survey of AI Agent Memory Frameworks | Graphlit Blog
+https://www.graphlit.com/blog/survey-of-ai-agent-memory-frameworks
+Mem0.ai’s Comprehensive Search: – Versioned APIs (v1 and v2) with advanced logic (AND, OR, comparisons). – Batch operations for large-scale updates or deletions. – MMR-based reranking plus metadata-based filtering for refined retrieval. Zep’s Session Approach: – Detailed memory blocks incorporate transcripts, facts, and custom metadata.
+
+Mem0 vs Zep vs Claude-Mem: Best AI Agent Memory in 2026 | Serenities AI
+https://serenitiesai.com/articles/ai-agent-memory-why-2026-is-the-year-of-persistent-context
+Here's how they stack up: Mem0 combines vector-based semantic search with optional graph memory for entity relationships. The system maintains cross-session context through hierarchical memory at user, session, and agent levels.

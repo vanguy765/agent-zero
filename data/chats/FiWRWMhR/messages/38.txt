@@ -1,0 +1,4 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ### TD-1: ~~Checklist Needs Updating~~ ✅ RESOLVED
+~~The `bulwark-checklist.md` doesn't include Recovery (§10.1.2) or the
+configuration system.~~ Updated to v0.2.0 on 2026-03-15. Includes Recovery, Availability Guards, Configuration, Assert vs Raise, Verify Strategies, and linter rule mapping (BLW001–BLW005).
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

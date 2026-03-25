@@ -1,0 +1,56 @@
+
+--- calculate_tax: Normal Cases ---
+  [PASS] 100 * 0.1 = 10.0
+  [PASS] 99.99 * 0.0825 = 8.25 (rounding)
+
+--- calculate_tax: Zero/Edge Cases ---
+  [PASS] 0 * 0.1 = 0.0
+  [PASS] 100 * 0 = 0.0
+  [PASS] 0 * 0 = 0.0
+  [PASS] 100 * 1.0 = 100.0 (max rate)
+
+--- calculate_tax: Guard Rejection Cases ---
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_tax | 'amount' value -50 below minimum 0
+  [PASS] Rejects negative amount
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_tax | 'rate' value 1.5 above maximum 1
+  [PASS] Rejects rate > 1
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_tax | 'rate' value -0.1 below minimum 0
+  [PASS] Rejects negative rate
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_tax | 'amount' expected int/float, got str
+  [PASS] Rejects string amount
+
+--- calculate_invoice_total: Guard Rejection Cases ---
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_invoice_total | 'items' is empty (list, len=0)
+  [PASS] Rejects empty items list
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_invoice_total | 'items[0]' expected dict, got str
+  [PASS] Rejects non-dict item
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_invoice_total | 'items[0]' missing keys: ['quantity', 'unit_price'], available: ['name']
+  [PASS] Rejects item with missing keys
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_invoice_total | 'db' is None
+  [PASS] Rejects None db
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_invoice_total | 'tax_rate' value 1.5 above maximum 1
+  [PASS] Rejects tax_rate > 1
+2026-03-16 05:24:57 | ERROR | GUARD:calculate_invoice_total | 'items[0]['quantity']' value 0 below minimum 1
+  [PASS] Rejects zero quantity
+
+--- calculate_invoice_total: Verify on Failed DB Write ---
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:input_items | list, len=1, items=dict, keys=['name', 'quantity', 'unit_price'], len=3, sample['name']=str, len=6
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:input_tax_rate | float
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:before_db_write | dict, keys=['item_count', 'subtotal', 'tax', 'total'], len=4, sample['subtotal']=float
+2026-03-16 05:24:57 | ERROR | VERIFY:calculate_invoice_total | INSERT expected 1 row affected, got 0
+  [PASS] Verify fires on failed DB write (rowcount=0)
+
+--- calculate_invoice_total: Happy Path ---
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:input_items | list, len=2, items=dict, keys=['name', 'quantity', 'unit_price'], len=3, sample['name']=str, len=8
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:input_tax_rate | float
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:before_db_write | dict, keys=['item_count', 'subtotal', 'tax', 'total'], len=4, sample['subtotal']=float
+2026-03-16 05:24:57 | DEBUG | VERIFY:calculate_invoice_total | OK -- INSERT expected 1 row affected, got 1
+2026-03-16 05:24:57 | DEBUG | VERIFY:calculate_invoice_total | OK -- INSERT expected lastrowid, got 1
+2026-03-16 05:24:57 | DEBUG | TRACE:calculate_invoice_total:output | dict, keys=['invoice_id', 'status', 'subtotal', 'tax', 'total'], len=5, sample['invoice_id']=int
+  [PASS] Happy path with real SQLite DB
+
+============================================================
+Results: 18/18 passed, 0 failed
+All tests passed!
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

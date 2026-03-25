@@ -1,0 +1,16 @@
+Section from 6098 to 6870
+---CURRENT SECTION---
+### Hono API — doc-parser routes (`/api/doc-parser/*`)
+
+The Hono API (port 3000) wraps the doc-parser with Supabase integration.
+All routes accept/return JSON. `document_id` must exist in `project_documents`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/doc-parser/pipeline` | **Full pipeline** — submit + poll + persist `document_pages` + `ocr_results`. Blocks until complete. |
+| `POST` | `/api/doc-parser/parse` | Submit job, return `job_id` immediately (caller polls) |
+| `GET`  | `/api/doc-parser/status/:jobId` | Lightweight poll — safe every 2-5s |
+| `GET`  | `/api/doc-parser/results/:jobId` | Full results — fetch once after `completed` |
+| `GET`  | `/api/doc-parser/health` | Health check including doc-parser reachability |
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

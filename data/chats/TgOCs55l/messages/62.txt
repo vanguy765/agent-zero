@@ -1,0 +1,152 @@
+.from('project-documents')
+    .download(document.file_url);
+
+  if (downloadError || !fileData) {
+    throw Object.assign(
+      new Error(`Storage download failed: ${downloadError?.message ?? 'unknown'}`),
+      { status: 500 },
+    );
+  }
+
+  const pdfBuffer = await fileData.arrayBuffer();
+
+  // 3. Submit to doc-parser
+  const jobResponse: DocParserJobResponse = await submitParseJob(
+    pdfBuffer,
+    document.title || `document-${documentId}.pdf`,
+    engine,
+    {
+      supabaseUrl:  process.env.SUPABASE_URL,
+      supabaseKey:  process.env.SUPABASE_SERVICE_KEY,
+      projectName:  options.projectName || documentId,
+      tenantName:   options.tenantName,
+    },
+  );
+
+  const jobId = jobResponse.job_id;
+  console.log(`[pipeline] Job ${jobId} submitted (engine=${engine})`);
+
+  // 4. Poll until complete or timeout
+  const deadline = Date.now() + timeoutMs;
+  let status: DocParserStatus;
+
+  while (true) {
+    if (Date.now() > deadline) {
+      throw Object.assign(
+        new Error(`Pipeline timed out after ${timeoutMs / 1000}s`),
+        { status: 504, job_id: jobId },
+      );
+    }
+
+    status = await getJobStatus(jobId);
+    console.log(
+      `[pipeline] Job ${jobId} status=${status.status}` +
+      ` (${status.progress?.percent_complete ?? 0}%)`,
+    );
+
+    if (status.status === 'completed') break;
+    if (status.status === 'failed' || status.status === 'timeout') {
+      throw Object.assign(
+        new Error(`Doc-parser job ${status.status}: ${status.error ?? 'no details'}`),
+        { status: 502, job_id: jobId },
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+
+  // 5. Fetch full results
+  const rawResults = await getJobResults(jobId, false);
+  const result = rawResults.result;
+  if (!result) {
+    throw Object.assign(
+      new Error('Job completed but result payload is empty'),
+      { status: 502, job_id: jobId },
+    );
+  }
+
+  // 6. Persist document_pages
+  const pageEntries = Object.entries(result.pages || {});
+  const pageIdMap: Record<number, string> = {};
+
+  for (const [pageNumStr, pageData] of pageEntries) {
+    const pageNumber = parseInt(pageNumStr, 10);
+    const pd = pageData as any;
+
+    const { data: pageRow, error: pageErr } = await serviceClient
+      .from('document_pages')
+      .upsert(
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+        },
+        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+      )
+      .select('id')
+      .single();
+
+    if (pageErr) {
+      console.error(`[pipeline] document_pages upsert failed for page ${pageNumber}:`, pageErr.message);
+    } else if (pageRow) {
+      pageIdMap[pageNumber] = pageRow.id;
+    }
+  }
+
+  console.log(`[pipeline] Persisted ${Object.keys(pageIdMap).length}/${pageEntries.length} pages`);
+
+  // 7. Persist ocr_results
+  const tables: any[] = result.tables || [];
+  let ocrCount = 0;
+
+  for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+    const tbl = tables[tableIndex] as any;
+    const pageNumber: number | null = tbl?.page_number ?? tbl?.source_page ?? null;
+    const pageId = pageNumber !== null ? (pageIdMap[pageNumber] ?? null) : null;
+
+    const { error: ocrErr } = await serviceClient
+      .from('ocr_results')
+      .insert({
+        document_id:     documentId,
+        page_id:         pageId,
+        table_index:     tableIndex,
+        markdown:        tbl?.markdown ?? tbl?.content ?? null,
+        structured_data: tbl?.structured_data ?? tbl?.data ?? tbl ?? null,
+        confidence:      tbl?.confidence ?? null,
+      });
+
+    if (ocrErr) {
+      console.error(`[pipeline] ocr_results insert failed for table ${tableIndex}:`, ocrErr.message);
+    } else {
+      ocrCount++;
+    }
+  }
+
+  console.log(`[pipeline] Persisted ${ocrCount}/${tables.length} OCR table rows`);
+
+  return {
+    document_id:          documentId,
+    job_id:               jobId,
+    engine,
+    status:               'completed',
+    pages_persisted:      Object.keys(pageIdMap).length,
+    ocr_tables_persisted: ocrCount,
+    summary:              result.summary ?? null,
+    poll_url:             `/api/doc-parser/status/${jobId}`,
+    results_url:          `/api/doc-parser/results/${jobId}`,
+  };
+}
+
+// ============================================================
+// POST /parse
+// Accepts JSON { document_id, engine }
+// Fetches PDF from Supabase storage, forwards to doc-parser
+// Returns job_id immediately — caller must poll /status/:jobId
+// ============================================================
+
+docParserRoutes.post('/parse', async (c) => {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

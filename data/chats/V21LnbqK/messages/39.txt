@@ -1,0 +1,23 @@
+=== DISK ARTIFACTS PATH ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs
+
+=== Purging disk artifacts ===
+Disk purged. Contents:
+total 0
+drwxr-xr-x 1 root root 4096 Mar 14 01:12 .
+drwxr-xr-x 1 root root 4096 Mar 13 02:53 ..
+
+=== Purging Supabase storage ===
+Found 356 files to delete
+  Deleted batch 1: 50 files
+  Deleted batch 2: 50 files
+  Deleted batch 3: 50 files
+  Deleted batch 4: 50 files
+  Deleted batch 5: 50 files
+  Deleted batch 6: 50 files
+  Deleted batch 7: 50 files
+  Deleted batch 8: 6 files
+
+Total deleted: 356 files
+Remaining files: 0
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,36 @@
+=== packages/tsconfig contents ===
+base.json  package.json
+
+=== packages/tsconfig/package.json ===
+{
+  "name": "@repo/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "files": ["base.json"]
+}
+
+=== packages/schemas/src/index.ts (first 60 lines) ===
+export * from './todo';
+export * from './delivery';
+export * from './zod';
+export * from './materials';
+export * from './taxonomy';
+export * from './renovation';
+export * from './work-orders';
+
+=== apps/api/tsconfig.json ===
+{
+    "extends": "@repo/tsconfig/base.json",
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "ESNext",
+        "module": "ESNext",
+        "outDir": "dist"
+    },
+    "include": [
+        "src"
+    ]
+}
+=== node_modules/@repo symlinks in container ===
+ls: cannot access '/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/@repo/': No such file or directory
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api#

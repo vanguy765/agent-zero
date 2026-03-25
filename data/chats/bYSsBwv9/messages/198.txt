@@ -1,0 +1,13 @@
+=== .cmd files in root node_modules/.bin ===
+
+=== .cmd files in material-admin node_modules/.bin ===
+
+=== What vite binary actually is ===
+lrwxrwxrwx 1 root root 19 Mar 11 03:51 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.bin/vite -> ../vite/bin/vite.js
+
+=== pnpm install location ===
+# Cross-platform compatibility: hoisted mode creates flat node_modules
+# without symlinks, which works on both Linux (container) and Windows (host)
+node-linker=hoisted
+store-dir=.pnpm-store
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

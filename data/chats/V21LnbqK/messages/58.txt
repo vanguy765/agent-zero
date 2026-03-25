@@ -1,0 +1,7 @@
+=== Where doc-parser:5000 came from ===
+53:| ✅ To interact with doc-parser | Use HTTP via `http://doc-parser:5000` (shared `agent-zero-network`) or `http://localhost:5000` |
+66:| ✅ Edit code here, test via host | If HTTP from A0 container fails, tell user to test from Windows (`localhost:5000`) |
+68:| ❌ NEVER run end-to-end pipeline tests from A0 | For full pipeline tests, instruct user to run from Windows host where `localhost:5000` works |
+
+=== Testing all possible routes ===
+doc-parser:5000 -> (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

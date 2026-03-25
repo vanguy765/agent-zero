@@ -1,0 +1,403 @@
+# Bulwark AI — Project Status & Context
+
+> **Purpose**: This document provides the full project context for any new
+> contributor (human or AI) picking up development. It captures the evolution
+> narrative, competitive positioning, open questions, and creator vision that
+> cannot be reconstructed from the specification or code alone.
+>
+> **Last Updated**: 2026-03-14 (v0.2.0-draft)
+
+---
+
+## Table of Contents
+
+1. [Creator Vision](#creator-vision)
+2. [Project Evolution](#project-evolution)
+3. [Current State Assessment](#current-state-assessment)
+4. [Competitive Landscape](#competitive-landscape)
+5. [Open Questions](#open-questions)
+6. [Known Gaps & Technical Debt](#known-gaps--technical-debt)
+7. [Audience & Adoption Profile](#audience--adoption-profile)
+
+---
+
+## Creator Vision
+
+> *[To be written by the project creator. This section should capture: why you
+> started this project, what problem you personally encountered, who you're
+> building it for, and what success looks like to you. Even 3-5 sentences here
+> will dramatically improve continuity across development sessions.]*
+
+---
+
+## Project Evolution
+
+This section captures the development arc — the sequence of decisions and
+discoveries that shaped Bulwark into its current form. Understanding this
+sequence reveals what's mature (battle-tested through iteration) vs. what's
+recent (may need refinement).
+
+### Phase 1: Concept & Identity (Session 1)
+
+**Starting point**: The observation that AI-generated code fails in specific,
+predictable ways that traditional error handling doesn't catch:
+- Data arrives with wrong shape but passes type checks
+- Side effects are assumed to succeed without confirmation
+- Transformations happen invisibly with no structural logging
+
+**Key activities**:
+- Defined the three-layer defensive membrane concept (Guard/Trace/Verify)
+- Established the "convention over library" and "zero dependency" philosophy
+- Compared project names: `assert-ai` vs `bulwark-ai` → chose `bulwark-ai`
+  for stronger defensive narrative and better searchability
+- Created identity system with tagline: "The defensive membrane for AI-generated code"
+
+**Maturity**: ★★★★★ — The core concept is stable and well-validated.
+
+### Phase 2: Specification & Reference Implementations (Session 1-2)
+
+**Key activities**:
+- Wrote SPEC.md — the formal technical specification
+- Built Python reference implementation with embedded self-tests
+- Built TypeScript reference implementation with embedded self-tests
+- Created machine-readable validation checklist
+- Developed document processing pipeline example (Python)
+- Created AI system prompt snippet for LLM integration
+- Wrote professional README.md
+
+**Discovery**: Writing the pipeline example revealed that the spec needed
+clearer guidance on multi-stage processing. This led to the BulwarkPipeline
+extension.
+
+**Maturity**: ★★★★☆ — Solid implementations, well-tested (36/36 both languages).
+May need refinement as real-world usage reveals edge cases.
+
+### Phase 3: Configuration & Adaptive Behavior (Session 2-3)
+
+**Key activities**:
+- Analyzed runtime costs of each layer (nanoseconds → seconds)
+- Designed configuration system with three modes (dev/staging/production)
+- Implemented throughput-adaptive verify strategies (full/sampled/adaptive)
+- Established the "Guards always active" principle with cost justification
+- Added `critical=True` flag for high-value verify operations
+
+**Discovery**: The runtime cost analysis revealed a natural gradient that
+mapped perfectly to configuration behavior — cheap operations stay on,
+expensive operations adapt. This wasn't planned; it emerged from the analysis.
+
+**Maturity**: ★★★★☆ — Configuration system is implemented and tested.
+Adaptive strategy may need tuning with real-world throughput data.
+
+### Phase 4: Availability Guards & Recovery (Session 3-4)
+
+**Key activities**:
+- Implemented Availability Guards for startup-time dependency checking
+- Discussed idempotency guards → deferred as too invasive for v1.0
+- Prioritized availability over idempotency (additive vs. invasive)
+- Added self-healing Recovery extension to Availability Guards
+- Implemented exponential backoff with bounded retries
+- Updated all documentation (SPEC.md, GUIDE.md, README.md)
+
+**Discovery**: The user reported frequently running manual recovery scripts
+after availability failures. This real-world pain point drove the Recovery
+extension — transforming passive detection into active self-healing.
+
+**Maturity**: ★★★☆☆ — Implemented and tested but newer than core layers.
+Recovery commands execute via shell — security implications need more
+thought for production guidance.
+
+### Phase 5: Documentation Overhaul (Session 4)
+
+**Key activities**:
+- Created GUIDE.md — 1,570-line beginner-friendly companion
+- Restructured documentation into three tiers (README → GUIDE → SPEC)
+- Added analogies throughout (bouncers, security cameras, receipt checkers)
+- Ensured all v0.2.0 features documented with code examples in both languages
+- Validated all 72 tests passing (36 Python + 36 TypeScript)
+
+**Maturity**: ★★★★☆ — Comprehensive but may need updates as features evolve.
+
+### Phase 6: Architecture Records & Context Preservation (Session 5 — Current)
+
+**Key activities**:
+- Created DECISIONS.md — 22 Architecture Decision Records
+- Created PROJECT_STATUS.md (this document)
+- Prepared comprehensive continuation prompt for new development sessions
+- Identified next development priorities
+
+**Maturity**: ★★★★★ — Meta-documentation is complete.
+
+---
+
+## Current State Assessment
+
+### What's Production-Ready
+- ✅ Core three-layer framework (Guard/Trace/Verify)
+- ✅ Python reference implementation (36/36 tests)
+- ✅ TypeScript reference implementation (36/36 tests)
+- ✅ Configuration system with three modes
+- ✅ Throughput-adaptive verify strategies
+- ✅ Availability Guards with Recovery
+- ✅ BulwarkPipeline extension
+- ✅ Comprehensive documentation (README + GUIDE + SPEC)
+- ✅ Architecture Decision Records
+
+### What's Drafted but Not Implemented
+- 📋 Linter YAML configuration (discussed, schema drafted, no code)
+- 📋 BMAD integration concept (discussed, no implementation)
+- 📋 Launch strategy (outlined, not executed)
+
+### What Doesn't Exist Yet
+- ❌ Linter / static analysis CLI tool
+- ❌ Go reference implementation or examples
+- ❌ Bash reference implementation or examples
+- ❌ TypeScript worked examples (comparable to Python pipeline)
+- ❌ GitHub repository (no repo created, no LICENSE file)
+- ❌ CONTRIBUTING.md
+- ❌ VS Code extension
+- ❌ Cursor/Copilot rules files
+- ❌ CI/CD pipeline for running tests
+- ❌ Published package (intentionally — see ADR-003)
+
+---
+
+## Competitive Landscape
+
+Bulwark occupies a unique position. Understanding what exists and how
+Bulwark differs prevents the next developer from accidentally reinventing
+existing solutions or failing to articulate Bulwark's value.
+
+### What Exists
+
+| Category | Examples | What They Do |
+|----------|----------|-------------|
+| **Validation Libraries** | Pydantic (Python), Zod (TS), joi (JS), marshmallow | Schema-based data validation at boundaries |
+| **Contract Programming** | icontract (Python), ts-contract, DbC patterns | Pre/post-condition assertions on functions |
+| **Assertion Libraries** | assert (built-in), chai, power-assert | Boolean condition checking |
+| **Observability Platforms** | OpenTelemetry, Datadog, Sentry | Distributed tracing, metrics, error tracking |
+| **Testing Frameworks** | pytest, Jest, Mocha | Test-time validation |
+| **Type Systems** | TypeScript, mypy, Pyright | Compile/analysis-time type checking |
+
+### How Bulwark Differs
+
+**Bulwark is not a validation library.** Pydantic/Zod validate data against
+schemas at API boundaries. Bulwark validates data shape *inside* functions,
+at every phase boundary, including after transformations. Validation libraries
+don't trace data flow or verify side effects.
+
+**Bulwark is not contract programming.** Design by Contract defines
+pre/post-conditions as part of the function interface. Bulwark's guards
+are *internal* to the function — they don't change the function's contract
+with its callers. This is the key to additive adoption.
+
+**Bulwark is not an observability platform.** OpenTelemetry traces requests
+across services. Bulwark traces data *shape* within a single function.
+They're complementary — Bulwark operates at the function level,
+observability operates at the system level.
+
+**Bulwark is not a testing framework.** Tests validate behavior before
+deployment. Bulwark validates behavior *during* deployment. Guards run
+in production, not just in test suites.
+
+### Bulwark's Unique Value Proposition
+
+The specific gap Bulwark fills:
+
+1. **AI-specific failure modes**: LLMs generate code that *looks correct*
+   and *passes type checks* but silently produces wrong results. A function
+   that expects `{"name": str, "age": int}` might receive
+   `{"name": str, "years": int}` — valid dict, valid types, wrong keys.
+   Type systems and validation libraries don't catch this because the
+   *structure* is valid.
+
+2. **Side-effect blindness**: AI-generated code assumes `db.insert(record)`
+   succeeds. It doesn't verify. Traditional validation only checks inputs,
+   not outputs. Bulwark's Verify layer fills this gap.
+
+3. **Invisible transformations**: When AI generates a data pipeline, each
+   stage transforms data silently. If stage 3 of 7 produces wrong output,
+   you only discover it at stage 7 (or never). Bulwark's Trace layer makes
+   every stage boundary visible.
+
+4. **Zero-friction adoption**: Unlike Pydantic (requires schema definitions),
+   TypeScript (requires type annotations), or OpenTelemetry (requires
+   infrastructure), Bulwark requires *nothing* — add a few lines inside
+   your functions, done.
+
+### Positioning Statement
+
+> Bulwark AI is to AI-generated code what seatbelts are to cars: a lightweight
+> safety layer that's always on, doesn't slow you down, and saves you when
+> things go wrong. It's not a replacement for type systems, validation
+> libraries, or observability platforms — it's the defensive layer that
+> catches what they miss.
+
+---
+
+## Open Questions
+
+These are topics discussed but not fully resolved. They represent decision
+points for future development sessions.
+
+### OQ-1: Linter Architecture
+**Question**: Should the linter be a standalone CLI tool, a library, or both?
+
+**Context**: A YAML configuration schema was drafted for `.bulwark.yml` but
+no implementation exists. Key sub-questions:
+- What language should the linter be written in? (Python for ecosystem fit?
+  Go for single-binary distribution? Node for npm ecosystem?)
+- Should it use AST parsing (accurate but language-specific) or regex/pattern
+  matching (less accurate but language-agnostic)?
+- Should it integrate with existing linters (ESLint plugin, pylint plugin)
+  or be standalone?
+- What output formats? (terminal, JSON, SARIF for CI integration)
+
+**Leaning**: Standalone Python CLI with SARIF output for CI integration.
+AST parsing for Python/TypeScript, pattern matching for other languages.
+
+### OQ-2: License Selection
+**Question**: What open-source license?
+
+**Context**: MIT was mentioned in conversation but never formalized.
+Considerations:
+- MIT: Maximum adoption, minimum friction
+- Apache 2.0: Patent protection, contributor license
+- CC-BY for documentation, MIT for code?
+
+**Leaning**: MIT for everything (simplicity).
+
+### OQ-3: BMAD Integration Depth
+**Question**: How deep should BMAD integration go?
+
+**Context**: Bulwark was designed to work as a BMAD "skill" but the
+integration spec hasn't been written. Sub-questions:
+- Should the Developer agent automatically apply Bulwark patterns?
+- Should the QA agent validate Bulwark compliance?
+- Should there be a dedicated Bulwark agent role?
+- How does Bulwark interact with BMAD's existing quality gates?
+
+**Leaning**: Skill-based integration where Developer and QA agents both
+reference Bulwark. No dedicated agent role (too heavy).
+
+### OQ-4: Compliance Badge
+**Question**: Should there be a "Bulwark Compliant" badge for projects?
+
+**Context**: Badges (like "code coverage 95%") signal quality. A Bulwark
+badge could signal defensive coding practices. But:
+- What does "compliant" mean? (All functions guarded? Critical paths only?)
+- Who validates compliance? (Self-reported? Linter output? CI check?)
+- Is this premature before the linter exists?
+
+**Leaning**: Defer until linter exists. Badge = linter passes with zero errors.
+
+### OQ-5: AI-Generated vs. Hand-Written Code
+**Question**: Should Bulwark patterns differ for AI-generated vs. hand-written code?
+
+**Context**: AI-generated code has different failure modes than hand-written
+code. Should the standard acknowledge this? Possible differences:
+- AI code might need more aggressive guarding (every function vs. boundary only)
+- Hand-written code might use lighter patterns (guards at API boundaries only)
+- The linter could have different severity levels for AI-generated files
+
+**Leaning**: Same standard for both. The failure modes Bulwark catches
+(shape mismatches, unverified side effects) occur in hand-written code too.
+AI code just has them more frequently.
+
+### OQ-6: Recovery Command Security
+**Question**: How to handle security implications of shell command execution
+in Recovery?
+
+**Context**: `guard_available()` with `recovery_command` executes arbitrary
+shell commands. In production environments, this could be a security concern:
+- Should recovery commands be restricted to a whitelist?
+- Should they run in a sandboxed environment?
+- Is shell execution sufficient or should we support callable functions?
+
+**Leaning**: Document the security implications clearly. Recommend that
+recovery commands be defined in configuration, not in code. Support
+callable functions as an alternative to shell commands in a future version.
+
+### OQ-7: Versioning Strategy
+**Question**: How to version the specification vs. implementations?
+
+**Context**: The spec and implementations may evolve at different rates.
+- Should SPEC.md have its own version number?
+- Should reference implementations track the spec version?
+- What constitutes a breaking change in a convention-based standard?
+
+**Leaning**: Semantic versioning for the spec. Reference implementations
+track the spec version they implement. Breaking change = removing or
+changing the behavior of an existing function.
+
+---
+
+## Known Gaps & Technical Debt
+
+These are not open questions — they're known issues that need fixing.
+
+### TD-1: Checklist Needs Updating
+The `bulwark-checklist.md` doesn't include Recovery (§10.1.2) or the
+configuration system. Needs updating to match SPEC.md v0.2.0.
+
+### TD-2: AI System Prompt Needs Updating
+The `bulwark-system-prompt.md` was written for v0.1.0 and doesn't include
+recovery examples, configuration guidance, or availability guard patterns.
+
+### TD-3: TypeScript Examples Missing
+The `examples/typescript/` directory is empty. Need at least one worked
+example comparable to the Python document pipeline.
+
+### TD-4: Go and Bash Stubs Empty
+The `examples/go/` and `examples/bash/` directories exist but are empty.
+Either add content or remove the directories to avoid confusion.
+
+### TD-5: No LICENSE File
+No LICENSE file exists in the repository root. Needs to be created once
+license is decided (see OQ-2).
+
+### TD-6: No .gitignore
+No `.gitignore` file for the repository. Needs to exclude:
+- `node_modules/`, `venv/`, `__pycache__/`
+- `.env` files, IDE settings
+- Compiled JavaScript (or include it — decision needed)
+
+### TD-7: GUIDE.md Line Count
+GUIDE.md is 1,570 lines. While comprehensive, it may benefit from being
+split into multiple guides (Quick Start, Deep Dive, Patterns Cookbook)
+if it continues to grow.
+
+---
+
+## Audience & Adoption Profile
+
+### Primary Audience
+- **Solo developers using AI coding assistants** (Cursor, Copilot, Claude)
+  who want to catch AI mistakes before they reach production
+- **Small teams** adopting AI-assisted development who need a lightweight
+  quality standard
+- **AI agent developers** building autonomous systems that generate and
+  execute code without human review
+
+### Secondary Audience
+- **Enterprise teams** establishing coding standards for AI-assisted development
+- **Open-source maintainers** receiving AI-generated pull requests
+- **Educators** teaching defensive programming practices
+
+### Adoption Barriers (in order of severity)
+1. **Awareness**: Nobody knows Bulwark exists yet (no launch)
+2. **Tooling**: No linter means compliance checking is manual
+3. **Examples**: Limited real-world examples beyond the document pipeline
+4. **Language coverage**: Only Python and TypeScript have implementations
+5. **Integration**: No IDE extensions or AI assistant rules files
+
+### Adoption Accelerators (in order of impact)
+1. **Linter CLI**: Automated compliance checking removes friction
+2. **AI prompt integration**: Cursor/Copilot rules that auto-apply Bulwark
+3. **Hacker News launch**: High-signal audience, rewards novel ideas
+4. **Real-world case studies**: Before/after examples showing bugs caught
+5. **GitHub template**: `bulwark-starter` repo with pre-configured setup
+
+---
+
+*This document should be updated at the start of each development session
+to reflect current project state.*

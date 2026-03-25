@@ -1,0 +1,158 @@
+
+=== Step 0: Checking Docker socket ===
+✅ Docker socket available
+
+=== Step 0a: Checking Supabase ===
+✅ Supabase is already running on :54321
+
+=== Step 0b: Checking doc-parser ===
+⚠️ doc-parser not detected — attempting to start...
+   Restarting stopped doc-parser container...
+doc-parser-doc-parser-1
+   Waiting for doc-parser...
+   Still waiting... (1/10)
+✅ doc-parser is ready.
+
+=== Step 1: Killing dev servers ===
+   Killed dev processes
+
+=== Step 2: Resetting database ===
+   Found DB container: supabase_db_voicelog
+   Applying migrations from /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations...
+   → 20260217000001_extensions.sql
+CREATE EXTENSION
+   → 20260217000002_core_tables.sql
+ERROR:  multiple primary keys for table "template_libraries" are not allowed
+   → 20260217000003_work_order_tables.sql
+ERROR:  multiple primary keys for table "work_order_templates" are not allowed
+   → 20260217000004_unit_tables.sql
+ERROR:  multiple primary keys for table "unit_documents" are not allowed
+   → 20260217000005_document_tables.sql
+ERROR:  multiple primary keys for table "image_links" are not allowed
+   → 20260217000006_agent_memories.sql
+ERROR:  multiple primary keys for table "agent_memories" are not allowed
+   → 20260217000007_functions.sql
+ERROR:  function "upsert_agent_memory" already exists with same argument types
+   → 20260217000008_foreign_keys.sql
+ERROR:  constraint "work_orders_unit_id_fkey" for relation "work_orders" already exists
+   → 20260217000009_indexes.sql
+ERROR:  relation "idx_work_orders_unit" already exists
+   → 20260217000010_views.sql
+ERROR:  relation "v_unit_cost_sheet" already exists
+   → 20260217000011_triggers.sql
+ERROR:  trigger "update_work_orders_updated_at" for relation "work_orders" already exists
+   → 20260217000012_rls_policies.sql
+ERROR:  policy "Users can delete image links from their organization" for table "image_links" already exists
+   → 20260219000001_tenant_portal_config.sql
+INSERT 0 6
+   → 20260219000002_placeholder_recovery.sql
+CREATE TRIGGER
+   → 20260222000001_template_rls_manager_admin.sql
+ERROR:  policy "managers_admins_delete_templates" for table "work_order_templates" already exists
+   → 20260222000002_project_lifecycle_template_inheritance.sql
+UPDATE 0
+   → 20260222000003_user_template_prefs.sql
+ERROR:  policy "Service role full access to template prefs" for table "user_template_prefs" already exists
+   → 20260222000004_storage_buckets.sql
+DO
+   → 20260222000005_tenant_onboarding.sql
+NOTIFY
+   → 20260223000001_org_industry_description.sql
+NOTIFY
+   → 20260223000002_sysadmin_rls_policies.sql
+NOTIFY
+   → 20260228000001_sop_library.sql
+COMMENT
+   → 20260304000001_schema_evolution_phase1.sql
+CREATE TRIGGER
+   → 20260304000002_schema_evolution_seed.sql
+INSERT 0 0
+   → 20260310000001_sop_wo_bridge.sql
+NOTIFY
+   → 20260312000001_document_pages_ocr.sql
+DO
+✅ Migrations applied
+
+=== Step 3: Seeding users ===
+⚠️ User seeding failed
+
+=== Step 4: Creating sysadmin user ===
+✅ Sysadmin created (sysadmin@example.com / sysadmin123)
+
+=== Step 5: Starting dev servers ===
+=== Starting Dev Stack ===
+(Windows Supabase must already be running on host)
+
+[infra] Checking fallback PostgreSQL...
+  ⚠️  PostgreSQL not started — fallback unavailable
+[infra] Checking PostgREST proxy (fallback :54330)...
+  ⚠️  PostgREST proxy failed — check /tmp/postgrest-proxy.log
+
+[1/7] API (Hono) :3000
+  Starting API...
+  ⚠️  API still starting — check /tmp/api.log
+[2/7] Web Dashboard :3001
+  Starting web-dashboard on :3001...
+  ⚠️  web-dashboard still starting — check /tmp/web-dashboard.log
+[3/7] Site Companion :3002
+  Starting site-companion on :3002...
+  ⚠️  site-companion still starting — check /tmp/site-companion.log
+[4/7] Material Admin :3003
+  Starting material-admin on :3003...
+  ⚠️  material-admin still starting — check /tmp/material-admin.log
+[5/7] Work Orders :3004
+  Starting work-orders on :3004...
+  ⚠️  work-orders still starting — check /tmp/work-orders.log
+[6/7] Tenant Portal :3005
+  Starting tenant-portal on :3005...
+  ⚠️  tenant-portal still starting — check /tmp/tenant-portal.log
+[7/7] Doc Parser :5000
+  Starting Doc Parser...
+  ⚠️  Doc Parser still starting — check /tmp/doc-parser.log
+
+=== Stack Status ===
+=== Dev Stack Health Check ===
+
+--- Windows Host (via host.docker.internal) ---
+✅ Supabase Kong / API  → host.docker.internal:54321
+✅ Supabase Studio      → host.docker.internal:54323
+
+--- Container Services ---
+❌ API (Hono)           → :3000  ← pnpm --filter api dev
+⚠️  Web Dashboard        → :3001  (not running)
+⚠️  Site Companion       → :3002  (not running)
+⚠️  Material Admin       → :3003  (not running)
+⚠️  Work Orders          → :3004  (not running)
+⚠️  Tenant Portal        → :3005  (not running)
+✅ Doc Parser           → :5000
+⚠️  NocoDB               → :8082  (not running — see nocodb/docker-compose.yml)
+
+--- Fallback / Infrastructure ---
+⚠️  PostgreSQL (local)   → :54322  (fallback unavailable)
+⚠️  PostgREST Proxy      → :54330  (fallback not running)
+
+
+=== Final Health Check ===
+=== Dev Stack Health Check ===
+
+--- Windows Host (via host.docker.internal) ---
+✅ Supabase Kong / API  → host.docker.internal:54321
+✅ Supabase Studio      → host.docker.internal:54323
+
+--- Container Services ---
+❌ API (Hono)           → :3000  ← pnpm --filter api dev
+⚠️  Web Dashboard        → :3001  (not running)
+⚠️  Site Companion       → :3002  (not running)
+⚠️  Material Admin       → :3003  (not running)
+⚠️  Work Orders          → :3004  (not running)
+⚠️  Tenant Portal        → :3005  (not running)
+✅ Doc Parser           → :5000
+⚠️  NocoDB               → :8082  (not running — see nocodb/docker-compose.yml)
+
+--- Fallback / Infrastructure ---
+⚠️  PostgreSQL (local)   → :54322  (fallback unavailable)
+⚠️  PostgREST Proxy      → :54330  (fallback not running)
+
+
+=== Done ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

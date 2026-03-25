@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 2,
+  "violations": [
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "record_success() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline_resilient.py",
+      "line": 161,
+      "function_name": "record_success"
+    },
+    {
+      "rule_id": "BLW001",
+      "rule_name": "function-needs-guard",
+      "severity": "warning",
+      "message": "record_failure() has parameters but no guard calls",
+      "filepath": "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline_resilient.py",
+      "line": 179,
+      "function_name": "record_failure"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 2,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

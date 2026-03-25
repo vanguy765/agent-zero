@@ -1,0 +1,14 @@
+=== Current vite port assignments ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/material-admin/vite.config.ts:    port: 3003,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/site-companion/vite.config.ts:      port: 3002, // Ensuring port is correct (was 3003 in config but user sees 3002)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/tenant-portal/vite.config.ts:    port: 3005,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/web-dashboard/vite.config.ts:    port: 3001,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/work-orders/vite.config.ts:    port: 3004,
+
+=== Expected per ports.md ===
+3001 web-dashboard ✓
+3002 site-companion ✓
+3003 material-admin (FIXED from 3002)
+3004 work-orders ✓
+3005 tenant-portal ✓
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,7 @@
+M SPEC.md
+?? guides/service-manifest.md
+---
+1cb17cd (HEAD -> main, origin/main) docs: update 4 files with §10.2 manifest references and test results
+794f6bf test: Test 2.3 Service Manifest Guard — ALL SCENARIOS PASSED
+205b521 feat: add Test 2.3 Service Manifest Guard fixtures and prompt
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

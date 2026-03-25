@@ -1,0 +1,41 @@
+
+### Bind Mount — Container writes ARE Windows writes
+
+The project directory is a **9p bind mount** (WSL2/Docker):
+
+```
+/a0/usr/projects/timesheet_app/voicelog-scaffold/
+  └── maps directly to →
+C:\Users\3900X\Documents\GitHub\agentZero\voicelog-scaffold\
+```
+
+**Any file I write in the container is instantly live on Windows. No git push, no copy-paste needed.**
+
+Git is NOT configured in the container (no user.email/name/credentials). Use git on Windows for commits.
+
+---
+
+## Known Issues & Fixes
+
+### `work-orders#dev` fails with ELIFECYCLE exit code 1
+
+**Cause:** Zombie Node.js process still holding port 3004 from a previous session.
+
+**Fix:** Run `scripts/kill-dev-servers.ps1` on Windows before starting dev servers.
+- Uses `taskkill /F /IM node.exe` to force-kill ALL Node processes
+- Then clears ports 3000-3005 individually via `netstat`
+
+### `reset-and-start.ps1` — PowerShell parse error with `{{.Status}}`
+
+**Cause:** PowerShell misinterprets `{{.Status}}` double-braces as a nested script block.
+
+**Fix (already applied):** Assign the format string to a variable first:
+```powershell
+$fmt = '{{.Status}}'
+$status = docker inspect --format $fmt doc-parser 2>$null
+```
+
+### `reset-and-start.ps1` references `kill-dev-servers.ps1`
+
+The reset script calls `& "$PSScriptRoot\kill-dev-servers.ps1"` — there is only ONE copy of each script (in `scripts/`). Do not duplicate them.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

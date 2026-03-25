@@ -1,0 +1,59 @@
+25:import base64
+47:    classify_image, extract_floorplan_candidates, image_to_base64,
+50:from hybrid import process_hybrid, run_llm_extraction, upload_image_to_storage
+83:        supabase_url=SUPABASE_URL,
+128:    supabase_url: Optional[str] = None,
+132:    url = supabase_url or SUPABASE_URL
+134:    if not url or not key:
+138:        return create_client(url, key)
+174:    supabase_url: str = Form(None),
+196:        supabase_url,
+214:    supabase_url: str,
+233:                supabase_url, supabase_key,
+255:    supabase_url: str,
+262:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+274:    from pdf2image import convert_from_path
+277:    pipeline_options.generate_picture_images = True
+278:    pipeline_options.generate_table_images = True
+343:    floorplan_images = []
+346:        if not pic.image:
+349:            pil_img = pic.image.pil_image
+366:        classification = classify_image(pil_img)
+369:            b64 = image_to_base64(pil_img)
+370:            fp_idx = len(floorplan_images)
+371:            floorplan_images.append((page_no, pil_img, b64))
+373:                await upload_image_to_storage(
+376:                    page_no=page_no, image_type="floorplan",
+382:                await upload_image_to_storage(
+385:                    page_no=page_no, image_type="site_photo",
+391:                await upload_image_to_storage(
+394:                    page_no=page_no, image_type="diagram",
+398:        job_id, floorplans_found=len(floorplan_images),
+416:    for i, (page_no, pil_img, b64) in enumerate(floorplan_images):
+420:            current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_images)}",
+534:        floorplans_found=len(floorplan_images),
+541:        "floorplans_count": len(floorplan_images),
+564:    supabase_url: str = Form(None),
+574:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# ---MODELS---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# 32:    IMAGE_EXTRACTION = "image_extraction"
+53:        "docling_conversion", "classification", "image_extraction",
+56:    current_page: int = 0
+57:    total_pages: int = 0
+76:        # Add page-level granularity within page-looping phases
+77:        if self.total_pages > 0:
+78:            page_progress = self.current_page / self.total_pages
+81:                base = phase_weights[ProcessingPhase.CLASSIFICATION] + (page_progress * phase_range)
+84:                base = phase_weights[ProcessingPhase.IMAGE_EXTRACTION] + (page_progress * phase_range)
+87:                base = phase_weights[ProcessingPhase.LLM_ANALYSIS] + (page_progress * phase_range)
+134:    pages_count: int = 0
+229:    source_page: int = 0
+243:    cross_page_synthesis: bool = False
+246:    per_page: Dict[str, Any] = Field(default_factory=dict)
+254:    """Per-page extraction data (page-oriented format)."""
+255:    page_number: int = 0
+256:    full_page_image: Optional[str] = None  # URL or base64
+267:    Contains BOTH page-oriented and unit-oriented formats:
+268:    - pages: for doc-parser native consumers
+272:    pages: Dict[int, Any] = Field(default_factory=dict)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

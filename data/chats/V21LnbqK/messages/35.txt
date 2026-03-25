@@ -1,0 +1,7 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# Found 2 occurrences to replace
+Patch applied successfully
+  Line 462:             lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 31536000)
+  Line 464:         url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+  Line 513:             lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 31536000)
+  Line 515:         url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

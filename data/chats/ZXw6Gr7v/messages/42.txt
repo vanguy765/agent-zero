@@ -1,0 +1,31 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# 6:      -> Generate 400px thumbnails -> upload to Supabase
+15:      -> Assembly: build output, discard full-size page images
+22:                 heuristic on the full page render.
+30:      - The full-page sheet is saved as a floorplan_dia (context image).
+42:        DETECT_MIN = 15): page enters 6c fallback, full page image sent to
+127:    detect_elements_cv2, crop_element, create_thumbnail,
+162:    # Confidence assigned to a full-page fallback element when CV2 detection
+303:                {"type": "image_url", "image_url": {
+466:                    "image_url": path,
+513:                    "image_url": path,
+572:    2. Page Rendering        - render pages at 200 DPI; generate 400px thumbnails
+647:            current_step="rendering_pages",
+655:            current_step=f"rendered_{total_pages}_pages",
+659:        # Generate and upload thumbnails (400px wide)
+660:        thumbnail_urls: Dict[int, str] = {}
+668:                current_step=f"generating_thumbnail_page_{page_no}",
+671:            thumb = create_thumbnail(page_img, max_width=400)
+676:                    page_no=page_no, image_type="thumbnail"
+679:                    thumbnail_urls[page_no] = url
+687:                thumbnail_urls[page_no] = local_path
+689:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+823:                            "label": "full_page_fallback",
+835:                        "label": "full_page_fallback",
+1154:            # --- Get the spec-table crop (send crop, not full page) ----------
+1279:                    "image_url": tbl_img_url,
+1305:                "image_url": tbl_img_url,
+1442:                    unit["image_url"] = crop_url
+1456:                    "image_url": crop_url,
+1465:                    "image_url": crop_url,
+1513:            thumbnail_urls=thumbnail_urls,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,118 @@
+except Exception:
+            pass
+
+
+# ============================================================
+# Output Assembly
+# ============================================================
+
+def assemble_hybrid_output(
+    job_id: str,
+    unit_extractions: List[Dict[str, Any]],
+    table_urls: List[Dict[str, Any]],
+    thumbnail_urls: Dict[int, str],
+    floorplan_dia_urls: Dict[int, List[str]],
+    floorplan_urls: Dict[int, List[str]],
+    photo_urls: Dict[int, List[str]],
+    diagram_urls: Dict[int, List[str]],
+    raw_llm_responses: Dict[str, str],
+    total_pages: int,
+    page_elements: Dict[int, List[Dict[str, Any]]],
+    footer_sample: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Assemble final output from all pipeline phases."""
+
+    # Build per-page data
+    pages: Dict[str, Dict[str, Any]] = {}
+    for page_no in range(1, total_pages + 1):
+        page_key = str(page_no)
+        page_data: Dict[str, Any] = {
+            "thumbnail_url": thumbnail_urls.get(page_no, ""),
+            "floorplan_dia_urls": floorplan_dia_urls.get(page_no, []),
+            "floorplan_urls": floorplan_urls.get(page_no, []),
+            "site_photos": [],
+            "diagrams": [],
+            "tables": [],
+            "elements_detected": page_elements.get(page_no, []),
+        }
+
+        # Collect photos for this page
+        if page_no in photo_urls:
+            page_data["site_photos"].extend(photo_urls[page_no])
+
+        # Collect diagrams for this page
+        if page_no in diagram_urls:
+            page_data["diagrams"].extend(diagram_urls[page_no])
+
+        # Collect tables for this page
+        for t in table_urls:
+            if t.get("page_no") == page_no:
+                page_data["tables"].append({
+                    "markdown": t.get("markdown", ""),
+                    "url": t.get("url", ""),
+                    "image_url": t.get("image_url", ""),
+                    "source": t.get("source", "unknown"),
+                })
+
+        pages[page_key] = page_data
+
+    # Build units list
+    units = []
+    for u in unit_extractions:
+        unit = dict(u)
+        # Ensure image_url is set
+        if not unit.get("image_url"):
+            sp = unit.get("source_page")
+            if sp and sp in floorplan_urls:
+                urls_for_page = floorplan_urls[sp]
+                unit["image_url"] = urls_for_page[0] if urls_for_page else ""
+        units.append(unit)
+
+    # Collect all photo URLs across pages
+    all_photos = []
+    for urls in photo_urls.values():
+        all_photos.extend(urls)
+
+    all_diagrams = []
+    for urls in diagram_urls.values():
+        all_diagrams.extend(urls)
+
+    # Summary
+    total_floorplans = sum(len(v) for v in floorplan_urls.values())
+    total_floorplan_dias = sum(len(v) for v in floorplan_dia_urls.values())
+    summary = {
+        "total_pages": total_pages,
+        "units_found": len(units),
+        "floorplans_found": total_floorplans,
+        "floorplan_dias_found": total_floorplan_dias,
+        "tables_found": len(table_urls),
+        "photos_found": len(all_photos),
+        "diagrams_found": len(all_diagrams),
+        "thumbnails_count": len(thumbnail_urls),
+        "pages_with_elements": len(page_elements),
+    }
+
+    # Confidence
+    try:
+        confidence = calculate_confidence(
+            units, table_urls,
+            total_pages=total_pages,
+            floorplans_found=total_floorplans,
+        )
+    except Exception:
+        confidence = {"overall": HYBRID_PARAMS.FALLBACK_OVERALL_CONFIDENCE, "note": "confidence calculation failed"}
+
+    return {
+        "job_id": job_id,
+        "engine": "hybrid_page_render",
+        "timestamp": datetime.utcnow().isoformat(),
+        "summary": summary,
+        "confidence": confidence,
+        "units": units,
+        "pages": pages,
+        "tables": table_urls,
+        "footer": footer_sample,
+        "thumbnails": dict(thumbnail_urls),
+        "raw_llm_responses": {str(k): v for k, v in raw_llm_responses.items()},
+    }
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

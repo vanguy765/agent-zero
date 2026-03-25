@@ -1,0 +1,413 @@
+import type { Component } from 'solid-js';
+import { createResource, createSignal, For, Show } from 'solid-js';
+import { A } from '@solidjs/router';
+import type { WorkOrderTemplate, TypeOrder, WOProject, DashboardStats } from '../lib/api';
+import { api } from '../lib/api';
+
+// ─── Sorting helpers ────────────────────────────────────────────────────────
+type SortDir = 'asc' | 'desc';
+
+function useSortable<T>(initial: keyof T) {
+    const [sortKey, setSortKey] = createSignal<keyof T>(initial);
+    const [sortDir, setSortDir] = createSignal<SortDir>('asc');
+
+    const toggle = (key: keyof T) => {
+        if (sortKey() === key) {
+            setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortKey(() => key);
+            setSortDir('asc');
+        }
+    };
+
+    const sorted = (items: T[]) => {
+        const k = sortKey();
+        const dir = sortDir();
+        return [...items].sort((a, b) => {
+            const av = a[k] as any;
+            const bv = b[k] as any;
+            if (av == null && bv == null) return 0;
+            if (av == null) return 1;
+            if (bv == null) return -1;
+            const cmp = typeof av === 'string'
+                ? av.localeCompare(bv)
+                : av < bv ? -1 : av > bv ? 1 : 0;
+            return dir === 'asc' ? cmp : -cmp;
+        });
+    };
+
+    const icon = (key: keyof T) => {
+        if (sortKey() !== key) return ' ↕';
+        return sortDir() === 'asc' ? ' ↑' : ' ↓';
+    };
+
+    return { sortKey, sortDir, toggle, sorted, icon };
+}
+
+// ─── Status badge helper ─────────────────────────────────────────────────────
+const STATUS_CLASSES: Record<string, string> = {
+    active:      'badge badge-success',
+    completed:   'badge badge-primary',
+    staged:      'badge badge-secondary',
+    paused:      'badge badge-warning',
+    archived:    'badge badge-secondary',
+    draft:       'badge badge-secondary',
+    inactive:    'badge badge-secondary',
+    frozen:      'badge badge-primary',
+};
+
+const statusBadge = (status: string) => (
+    <span class={STATUS_CLASSES[status] ?? 'badge badge-secondary'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+    </span>
+);
+
+const SortTh: Component<{ label: string; icon: string; onClick: () => void }> = (props) => (
+    <th
+        class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 whitespace-nowrap"
+        onClick={props.onClick}
+    >
+        {props.label}{props.icon}
+    </th>
+);
+
+// ─── Template row type (augmented) ──────────────────────────────────────────
+interface TemplateRow {
+    id: string;
+    trade_name: string;
+    version: number;
+    status: string;
+    scope: string;
+    wo_count: number;
+    is_frozen: boolean;
+}
+
+// ─── Project row type (augmented) ───────────────────────────────────────────
+interface ProjectRow {
+    id: string;
+    name: string;
+    project_type: string;
+    status: string;
+    units_total: number;
+    units_completed: number;
+    units_in_progress: number;
+    pct_complete: number;
+}
+
+// ─── TypeOrder row type (augmented) ─────────────────────────────────────────
+interface ArchetypeRow {
+    id: string;
+    name: string;
+    code: string;
+    category: string;
+    description: string;
+    composition: string;
+    is_composite: boolean;
+}
+
+// ─── Project type labels ─────────────────────────────────────────────────────
+const PROJECT_TYPE_LABELS: Record<string, string> = {
+    residential_house:    'Residential House',
+    commercial_apartment: 'Commercial Apt',
+    office_commercial:    'Office/Commercial',
+    retail:               'Retail',
+    mixed_use:            'Mixed-Use',
+};
+
+const ptLabel = (t: string) => PROJECT_TYPE_LABELS[t] ?? t;
+
+// ─── Category labels ─────────────────────────────────────────────────────────
+const CAT_LABELS: Record<string, string> = {
+    interior:         'Interior',
+    exterior:         'Exterior',
+    pre_construction: 'Pre-Construction',
+    common:           'Common',
+};
+
+// ─── Main Dashboard ──────────────────────────────────────────────────────────
+const Dashboard: Component = () => {
+    // Raw data
+    const [templates] = createResource<WorkOrderTemplate[]>(() => api.getTemplates('company'));
+    const [typeOrders] = createResource<TypeOrder[]>(() => api.getTypeOrders());
+    const [projects]  = createResource<WOProject[]>(() => api.getProjects());
+    const [stats]     = createResource<DashboardStats>(() => api.getDashboardStats());
+
+    // ── Template rows ────────────────────────────────────────────────────────
+    const templateRows = (): TemplateRow[] => {
+        if (!templates() || !stats()) return [];
+        return (templates() ?? []).map(t => {
+            const effectiveStatus = t.is_frozen ? 'frozen' : (t.is_active ? 'active' : 'inactive');
+            return {
+                id:         t.id,
+                trade_name: t.trade_name,
+                version:    t.version,
+                status:     effectiveStatus,
+                scope:      t.scope,
+                wo_count:   stats()?.template_wo_counts?.[t.id] ?? 0,
+                is_frozen:  t.is_frozen ?? false,
+            };
+        });
+    };
+
+    // ── Project rows ─────────────────────────────────────────────────────────
+    const projectRows = (): ProjectRow[] => {
+        if (!projects()) return [];
+        return (projects() ?? []).map(p => {
+            const us = stats()?.project_unit_stats?.[p.id];
+            const total     = us?.total ?? 0;
+            const completed = us?.completed ?? 0;
+            const inProg    = us?.in_progress ?? 0;
+            const pct       = total > 0 ? Math.round((completed / total) * 100) : 0;
+            return {
+                id:                p.id,
+                name:              p.name,
+                project_type:      ptLabel(p.project_type),
+                status:            p.status,
+                units_total:       total,
+                units_completed:   completed,
+                units_in_progress: inProg,
+                pct_complete:      pct,
+            };
+        });
+    };
+
+    // ── Archetype rows ───────────────────────────────────────────────────────
+    const archetypeRows = (): ArchetypeRow[] => {
+        if (!typeOrders()) return [];
+        return (typeOrders() ?? []).map(to => {
+            const comps = stats()?.type_order_compositions?.[to.id] ?? [];
+            const composition = comps.length > 0
+                ? comps.map(c => c.quantity > 1 ? `${c.quantity}× ${c.name}` : c.name).join(', ')
+                : (to.is_composite ? '(no components)' : '—');
+            return {
+                id:          to.id,
+                name:        to.name,
+                code:        to.code,
+                category:    CAT_LABELS[to.category] ?? to.category,
+                description: to.description ?? '—',
+                composition,
+                is_composite: to.is_composite,
+            };
+        });
+    };
+
+    // ── Sorters ──────────────────────────────────────────────────────────────
+    const tSort = useSortable<TemplateRow>('trade_name');
+    const pSort = useSortable<ProjectRow>('name');
+    const aSort = useSortable<ArchetypeRow>('name');
+
+    const loading = () => templates.loading || typeOrders.loading || projects.loading || stats.loading;
+
+    return (
+        <div class="space-y-10">
+            {/* Page Header */}
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Overview</h1>
+                <p class="mt-1 text-gray-500">Company templates, space archetypes, and project status at a glance.</p>
+            </div>
+
+            <Show when={loading()}>
+                <div class="flex items-center gap-2 text-gray-500">
+                    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600" />
+                    Loading dashboard data…
+                </div>
+            </Show>
+
+            {/* ── Company Templates ─────────────────────────────────────── */}
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xl font-semibold text-gray-800">Company Templates</h2>
+                    <A href="/templates/company" class="text-sm text-primary-600 hover:underline">View all →</A>
+                </div>
+                <div class="card overflow-hidden p-0">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <SortTh label="Trade" icon={tSort.icon('trade_name')} onClick={() => tSort.toggle('trade_name')} />
+                                    <SortTh label="Version" icon={tSort.icon('version')} onClick={() => tSort.toggle('version')} />
+                                    <SortTh label="Status" icon={tSort.icon('status')} onClick={() => tSort.toggle('status')} />
+                                    <SortTh label="Work Orders" icon={tSort.icon('wo_count')} onClick={() => tSort.toggle('wo_count')} />
+                                    <th class="px-4 py-3" />
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <Show when={!templates.loading} fallback={
+                                    <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">Loading…</td></tr>
+                                }>
+                                    <Show when={templateRows().length > 0} fallback={
+                                        <tr><td colspan="5" class="px-4 py-6 text-center text-gray-400">No company templates found.</td></tr>
+                                    }>
+                                        <For each={tSort.sorted(templateRows())}>
+                                            {(row) => (
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                                        <A href={`/templates/${row.id}`} class="hover:text-primary-600 hover:underline">
+                                                            {row.trade_name}
+                                                        </A>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-600">v{row.version}</td>
+                                                    <td class="px-4 py-3">{statusBadge(row.status)}</td>
+                                                    <td class="px-4 py-3 text-gray-700">
+                                                        <span class="font-semibold">{row.wo_count}</span>
+                                                        <span class="text-gray-400 text-xs ml-1">WOs</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        <A href={`/templates/${row.id}`} class="text-xs text-primary-600 hover:underline">Details →</A>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </For>
+                                    </Show>
+                                </Show>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Space Archetypes ──────────────────────────────────────── */}
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xl font-semibold text-gray-800">Space Archetypes</h2>
+                    <A href="/settings/type-orders" class="text-sm text-primary-600 hover:underline">Manage →</A>
+                </div>
+                <div class="card overflow-hidden p-0">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <SortTh label="Name" icon={aSort.icon('name')} onClick={() => aSort.toggle('name')} />
+                                    <SortTh label="Code" icon={aSort.icon('code')} onClick={() => aSort.toggle('code')} />
+                                    <SortTh label="Category" icon={aSort.icon('category')} onClick={() => aSort.toggle('category')} />
+                                    <SortTh label="Description" icon={aSort.icon('description')} onClick={() => aSort.toggle('description')} />
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Composition</th>
+                                    <th class="px-4 py-3" />
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <Show when={!typeOrders.loading} fallback={
+                                    <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">Loading…</td></tr>
+                                }>
+                                    <Show when={archetypeRows().length > 0} fallback={
+                                        <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">No space archetypes found.</td></tr>
+                                    }>
+                                        <For each={aSort.sorted(archetypeRows())}>
+                                            {(row) => (
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                                        <A href="/settings/type-orders" class="hover:text-primary-600 hover:underline">
+                                                            {row.name}
+                                                        </A>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <code class="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">{row.code}</code>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <span class="badge badge-secondary text-xs">{row.category}</span>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-600 text-sm max-w-xs truncate" title={row.description}>
+                                                        {row.description}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-500 text-sm max-w-xs">
+                                                        <Show when={row.is_composite} fallback={
+                                                            <span class="text-gray-400 italic text-xs">Atomic</span>
+                                                        }>
+                                                            <span class="text-xs">{row.composition}</span>
+                                                        </Show>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        <A href="/settings/type-orders" class="text-xs text-primary-600 hover:underline">Details →</A>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </For>
+                                    </Show>
+                                </Show>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Projects ─────────────────────────────────────────────── */}
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xl font-semibold text-gray-800">Projects</h2>
+                    <A href="/projects" class="text-sm text-primary-600 hover:underline">View all →</A>
+                </div>
+                <div class="card overflow-hidden p-0">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <SortTh label="Project" icon={pSort.icon('name')} onClick={() => pSort.toggle('name')} />
+                                    <SortTh label="Type" icon={pSort.icon('project_type')} onClick={() => pSort.toggle('project_type')} />
+                                    <SortTh label="Status" icon={pSort.icon('status')} onClick={() => pSort.toggle('status')} />
+                                    <SortTh label="Units" icon={pSort.icon('units_total')} onClick={() => pSort.toggle('units_total')} />
+                                    <SortTh label="% Complete" icon={pSort.icon('pct_complete')} onClick={() => pSort.toggle('pct_complete')} />
+                                    <th class="px-4 py-3" />
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <Show when={!projects.loading} fallback={
+                                    <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">Loading…</td></tr>
+                                }>
+                                    <Show when={projectRows().length > 0} fallback={
+                                        <tr><td colspan="6" class="px-4 py-6 text-center text-gray-400">No projects found.</td></tr>
+                                    }>
+                                        <For each={pSort.sorted(projectRows())}>
+                                            {(row) => (
+                                                <tr class="hover:bg-gray-50 transition-colors">
+                                                    <td class="px-4 py-3 font-medium text-gray-900">
+                                                        <A href={`/projects/${row.id}`} class="hover:text-primary-600 hover:underline">
+                                                            {row.name}
+                                                        </A>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-gray-600 text-sm">{row.project_type}</td>
+                                                    <td class="px-4 py-3">{statusBadge(row.status)}</td>
+                                                    <td class="px-4 py-3 text-gray-700 text-sm">
+                                                        <Show when={row.units_total > 0} fallback={
+                                                            <span class="text-gray-400">—</span>
+                                                        }>
+                                                            <span class="font-semibold text-green-600">{row.units_completed}</span>
+                                                            <span class="text-gray-400"> / {row.units_total}</span>
+                                                            <Show when={row.units_in_progress > 0}>
+                                                                <span class="text-yellow-500 text-xs ml-1">({row.units_in_progress} active)</span>
+                                                            </Show>
+                                                        </Show>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <Show when={row.units_total > 0} fallback={
+                                                            <span class="text-gray-400 text-sm">—</span>
+                                                        }>
+                                                            <div class="flex items-center gap-2">
+                                                                <div class="flex-1 bg-gray-200 rounded-full h-2 min-w-16">
+                                                                    <div
+                                                                        class="bg-primary-600 h-2 rounded-full transition-all"
+                                                                        style={{ width: `${row.pct_complete}%` }}
+                                                                    />
+                                                                </div>
+                                                                <span class="text-xs font-medium text-gray-700 w-9 text-right">{row.pct_complete}%</span>
+                                                            </div>
+                                                        </Show>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        <A href={`/projects/${row.id}`} class="text-xs text-primary-600 hover:underline">Details →</A>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </For>
+                                    </Show>
+                                </Show>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+};
+
+export default Dashboard;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

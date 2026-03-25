@@ -1,0 +1,116 @@
+class HYBRID_PARAMS:  # namespace only — not instantiated
+
+    # ----------------------------------------------------------
+    # Fallback confidence values
+    # ----------------------------------------------------------
+
+    # Confidence assigned to a full-page fallback element when CV2 detection
+    # finds nothing and a page was already flagged as a floorplan by Docling.
+    FALLBACK_ELEMENT_CONFIDENCE: float = 0.5
+
+    # Overall confidence returned in the output when the confidence
+    # calculation itself throws an exception.
+    FALLBACK_OVERALL_CONFIDENCE: float = 0.5
+
+    # ----------------------------------------------------------
+    # P3 — Tesseract text-density disambiguation (sub-detected pages)
+    # ----------------------------------------------------------
+
+    # Minimum word-count ratio (winner / runner-up) required to boost the
+    # floorplan winner's confidence.  A ratio of 2.0 means the winner must
+    # have at least twice as many detected words as the second candidate.
+    P3_WINNER_RATIO_MIN: float = 2.0
+
+    # The winner must also have at least this many words in absolute terms
+    # before a confidence boost is applied (guards against 2/1 = 2.0 on
+    # nearly-blank crops).
+    P3_WINNER_MIN_WORDS: int = 5
+
+    # Confidence boost applied to the P3 floorplan winner when the ratio
+    # and word-count thresholds above are both met.
+    P3_WINNER_CONF_BOOST: float = 0.05
+
+    # Hard ceiling on confidence after the P3 boost.
+    P3_WINNER_CONF_CAP: float = 0.97
+
+    # ----------------------------------------------------------
+    # LLM bbox parsing — minimum element size
+    # ----------------------------------------------------------
+
+    # Minimum width or height of a parsed LLM bounding box as a fraction
+    # of page dimensions.  Boxes smaller than this on either axis are
+    # discarded as degenerate (stray pixels, OCR artifacts).
+    BBOX_MIN_DIM_RATIO: float = 0.02
+
+    # ----------------------------------------------------------
+    # Docling footer / title-block detection
+    # ----------------------------------------------------------
+
+    # Minimum number of FOOTER_KEYWORDS that must appear in a Docling table's
+    # markdown export for it to be classified as a footer/title-block row
+    # rather than a real data table.
+    FOOTER_KEYWORD_MIN: int = 3
+
+    # ----------------------------------------------------------
+    # Grid-score gate — page-level table/bbox triggering
+    # ----------------------------------------------------------
+
+    # Minimum grid score (min of HoughLinesP horizontal/vertical counts) for
+    # a page to be flagged as containing image-based table structure.  Used in
+    # two places: (1) deciding which pages need CV2 bbox detection, and (2)
+    # fallback table extraction on pages not covered by Docling.
+    # Lower than TABLE_GRID_SCORE_MIN (30) because we only need a rough signal
+    # here — precise routing happens later.
+    PAGE_GRID_DETECT_MIN: int = 15
+
+    # ----------------------------------------------------------
+    # P6 — Title-block bbox-signature deduplication
+    # ----------------------------------------------------------
+
+    # Tolerance (in normalised 0-1 units) for matching a title block's
+    # bounding-box signature against the first-seen template.
+    # Two title blocks are considered the same template if y_norm, h_norm,
+    # and w_norm all differ by at most this amount.
+    TITLE_BLOCK_SIG_TOL: float = 0.05
+
+    # ----------------------------------------------------------
+    # Spec-table extraction — grid-score gate
+    # ----------------------------------------------------------
+
+    # Minimum grid score (min of horizontal and vertical HoughLinesP counts)
+    # required to route a spec-table image through the fast Tesseract path.
+    # Set to 0 so Tesseract always runs first; the TABLE_TESSERACT_CONF_MIN
+    # gate below is the real quality arbiter.  Claude only runs when Tesseract
+    # confidence is too low (genuine sketch / handwriting).
+    TABLE_GRID_SCORE_MIN: int = 0
+
+    # Minimum mean Tesseract word-level confidence (0-100 scale) required to
+    # accept the Tesseract OCR output.  Falls back to Claude if below this.
+    # Lowered to 40 (from 60): title blocks score in the 40-55 range due to
+    # cell fragmentation even when text is cleanly readable.
+    TABLE_TESSERACT_CONF_MIN: float = 40.0
+
+    # ----------------------------------------------------------
+    # Spec-table adaptive upscaling
+    # ----------------------------------------------------------
+
+    # Target minimum pixel width for a spec-table crop before OCR.
+    # If the crop is narrower, it is upscaled proportionally (PIL LANCZOS).
+    # At 150 DPI a typical title block crops to ~600-900 px wide; 2000 px
+    # gives ~300 DPI equivalent which is Tesseract's reliable floor.
+    SPEC_TABLE_MIN_WIDTH_PX: int = 2000
+
+
+try:
+    import pytesseract as _pytesseract
+    import numpy as _np
+    import cv2 as _cv2
+    HAS_TESSERACT = True
+except ImportError:
+    HAS_TESSERACT = False
+
+
+
+# ============================================================
+# LLM Extraction Helpers
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

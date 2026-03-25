@@ -1,0 +1,11 @@
+'clear error message' found at lines: [987]
+
+--- Around line 987 ---
+985: Availability Guards are different. They're a *startup-time* concern, not a *per-function* concern. They require knowledge of your deployment topology (which services exist, where they live, what their health endpoints look like). Including them in the core would break the "add it to any function" simplicity that makes Bulwark easy to adopt.
+986:
+987: That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+988: ---
+989:
+990: ## 6. How to Add Bulwark to Your Project
+991:
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

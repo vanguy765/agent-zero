@@ -1,0 +1,91 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /opt/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /a0/usr/workdir/bulwark-ai/linter
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 59 items
+
+tests/test_discovery.py::TestDiscoverFiles::test_discover_multiple_extensions PASSED [  1%]
+tests/test_discovery.py::TestDiscoverFiles::test_discover_nonexistent_path PASSED [  3%]
+tests/test_discovery.py::TestDiscoverFiles::test_discover_python_files PASSED [  5%]
+tests/test_discovery.py::TestDiscoverFiles::test_discover_single_file PASSED [  6%]
+tests/test_discovery.py::TestDiscoverFiles::test_exclude_patterns PASSED [  8%]
+tests/test_discovery.py::TestDiscoverFiles::test_no_matching_extensions PASSED [ 10%]
+tests/test_engine.py::TestLanguageDetection::test_go PASSED              [ 11%]
+tests/test_engine.py::TestLanguageDetection::test_javascript PASSED      [ 13%]
+tests/test_engine.py::TestLanguageDetection::test_python PASSED          [ 15%]
+tests/test_engine.py::TestLanguageDetection::test_typescript PASSED      [ 16%]
+tests/test_engine.py::TestLanguageDetection::test_unsupported PASSED     [ 18%]
+tests/test_engine.py::TestFunctionExtraction::test_python_class_methods PASSED [ 20%]
+tests/test_engine.py::TestFunctionExtraction::test_python_functions PASSED [ 22%]
+tests/test_engine.py::TestFunctionExtraction::test_typescript_functions PASSED [ 23%]
+tests/test_engine.py::TestEngineIntegration::test_guarded_py_is_clean PASSED [ 25%]
+tests/test_engine.py::TestEngineIntegration::test_guarded_ts_is_clean PASSED [ 27%]
+tests/test_engine.py::TestEngineIntegration::test_lint_paths_integration PASSED [ 28%]
+tests/test_engine.py::TestEngineIntegration::test_severity_filtering PASSED [ 30%]
+tests/test_engine.py::TestEngineIntegration::test_unguarded_py_has_violations PASSED [ 32%]
+tests/test_engine.py::TestEngineIntegration::test_unguarded_ts_has_violations PASSED [ 33%]
+tests/test_engine.py::TestConfigLoading::test_default_config PASSED      [ 35%]
+tests/test_engine.py::TestConfigLoading::test_rule_disabled PASSED       [ 37%]
+tests/test_engine.py::TestConfigLoading::test_rule_enabled_check PASSED  [ 38%]
+tests/test_rules.py::TestBLW001GuardPresent::test_custom_guard_detected PASSED [ 40%]
+tests/test_rules.py::TestBLW001GuardPresent::test_no_violation_when_guard_present PASSED [ 42%]
+tests/test_rules.py::TestBLW001GuardPresent::test_skip_no_params PASSED  [ 44%]
+tests/test_rules.py::TestBLW001GuardPresent::test_skip_self_only PASSED  [ 45%]
+tests/test_rules.py::TestBLW001GuardPresent::test_skip_short_function PASSED [ 47%]
+tests/test_rules.py::TestBLW001GuardPresent::test_ts_guard_detected PASSED [ 49%]
+tests/test_rules.py::TestBLW001GuardPresent::test_violation_when_no_guard PASSED [ 50%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_custom_verify_detected PASSED [ 52%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_no_violation_read_only PASSED [ 54%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_no_violation_with_verify PASSED [ 55%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_db_insert_no_verify PASSED [ 57%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_file_write_no_verify PASSED [ 59%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_http_post_no_verify PASSED [ 61%]
+tests/test_rules.py::TestBLW002VerifyAfterMutation::test_violation_send_email_no_verify PASSED [ 62%]
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_async_boundary_detected PASSED [ 64%]
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_no_violation_with_trace PASSED [ 66%]
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_severity_is_info PASSED [ 67%]
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_skip_accessor PASSED [ 69%]
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_skip_short_function PASSED [ 71%]
+tests/test_rules.py::TestBLW003TraceAtBoundary::test_violation_boundary_no_trace PASSED [ 72%]
+tests/test_rules.py::TestBLW004NoBareAssert::test_no_violation_clean_code PASSED [ 74%]
+tests/test_rules.py::TestBLW004NoBareAssert::test_skip_test_file PASSED  [ 76%]
+tests/test_rules.py::TestBLW004NoBareAssert::test_skip_test_function PASSED [ 77%]
+tests/test_rules.py::TestBLW004NoBareAssert::test_violation_bare_assert_python PASSED [ 79%]
+tests/test_rules.py::TestBLW004NoBareAssert::test_violation_raise_valueerror PASSED [ 81%]
+tests/test_rules.py::TestBLW004NoBareAssert::test_violation_throw_new_error_ts PASSED [ 83%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_no_violation_with_class_def PASSED [ 84%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_no_violation_with_imports PASSED [ 86%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_severity_is_info PASSED [ 88%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_skip_no_guard_verify_usage PASSED [ 89%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_ts_import_detected PASSED [ 91%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_violation_guard_without_guard_error PASSED [ 93%]
+tests/test_rules.py::TestBLW005CustomErrorTypes::test_violation_verify_without_verify_error PASSED [ 94%]
+tests/test_rules.py::TestStringLiteralFalsePositives::test_blw001_ignores_def_in_docstring PASSED [ 96%]
+tests/test_rules.py::TestStringLiteralFalsePositives::test_blw002_ignores_mutation_in_docstring FAILED [ 98%]
+tests/test_rules.py::TestStringLiteralFalsePositives::test_blw004_ignores_assert_in_comment PASSED [100%]
+
+=================================== FAILURES ===================================
+__ TestStringLiteralFalsePositives.test_blw002_ignores_mutation_in_docstring ___
+
+self = <tests.test_rules.TestStringLiteralFalsePositives testMethod=test_blw002_ignores_mutation_in_docstring>
+
+    def test_blw002_ignores_mutation_in_docstring(self):
+        """BLW002 should not trigger on db.execute inside docstrings."""
+        rule = VerifyAfterMutationRule()
+        body = (
+            '    """Original code had db.execute("INSERT", data) without verify."""\n'
+            '    result = transform(data)\n'
+            '    return result'
+        )
+        func = _make_func(name="process", params="data", body=body)
+        violations = rule.check(func)
+>       self.assertEqual(len(violations), 0, "Should not flag mutation in docstring")
+E       AssertionError: 1 != 0 : Should not flag mutation in docstring
+
+tests/test_rules.py:336: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_rules.py::TestStringLiteralFalsePositives::test_blw002_ignores_mutation_in_docstring - AssertionError: 1 != 0 : Should not flag mutation in docstring
+========================= 1 failed, 58 passed in 0.81s =========================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

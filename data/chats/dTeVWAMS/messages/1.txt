@@ -1,0 +1,82 @@
+=== TEST 2.1 RESULTS ===
+# Test 2.1 Results: Three-Function Pipeline
+
+> **Date**: 2026-03-17
+> **Agent**: Agent Zero (developer profile) / Claude claude-opus-4.6
+> **Duration**: ~8 minutes
+> **Iterations**: 2 (code → lint → fix multi-line signatures → re-lint)
+
+---
+
+## Quantitative Metrics
+
+### Compliance Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| First-pass linter violations | 4 | 3 from multi-line signature parsing bug + 1 utility FP |
+| Final linter violations | 1 | `_describe_shape()` — classified as false positive |
+| Self-correction rate | 75% | (4 - 1) / 4 × 100 |
+| True positive violations fixed | 3 | Fixed by converting multi-line signatures to single-line |
+| False positives identified | 1 | `_describe_shape()` — private trace utility, no untrusted input |
+
+### Pattern Quality Metrics
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| Guard presence (all 4 functions) | 4 | 4 | ingest_csv, transform_records, load_to_database, run_pipeline |
+| Guard consistency (output→input) | 3 | 3 | ingest→transform, transform→load, orchestrator→all |
+| Trace correlation (shared op_id) | 4 | 4 | All 4 functions log with same operation_id |
+| Verify on mutation | 1 | 1 | load_to_database: verify_file_written + verify record count |
+| Custom error types | 1 | 1 | GuardError(Exception), VerifyError(Exception) |
+| No bare asserts | 1 | 1 | Zero bare asserts — confirmed via grep |
+| **Pattern Quality Total** | **14** | **14** | |
+
+### Cross-Function Coherence (NEW for Round 2)
+
+| Metric | Score | Max | Notes |
+|--------|-------|-----|-------|
+| operation_id generated once | 1 | 1 | Single uuid4() in run_pipeline orchestrator |
+| operation_id passed to all 3 funcs | 3 | 3 | Explicit parameter in ingest_csv, transform_records, load_to_database |
+| operation_id in all trace calls | 1 | 1 | Every trace_event/trace_data call includes op= |
+| ingest output → transform guard | 1 | 1 | ingest returns list[dict] → transform guards list[dict] |
+| transform output → load guard | 1 | 1 | transform returns list[dict] → load guards list[dict] |
+| Orchestrator manages flow | 1 | 1 | run_pipeline generates op_id, calls all 3 in sequence |
+| **Coherence Total** | **8** | **8** | |
+
+### Code Quality Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Total lines of code | 548 | Including docstrings and comments |
+
+=== CSV PIPELINE ===
+548 test-results/csv_pipeline.py
+
+=== PIPELINE OUTPUT ===
+[
+  {
+    "given_name": "Alice",
+    "family_name": "Smith",
+    "email_address": "alice@example.com",
+    "dept": "Engineering"
+  },
+  {
+    "given_name": "Bob",
+    "family_name": "Jones",
+    "email_address": "bob@example.com",
+    "dept": "Marketing"
+  },
+  {
+    "given_name": "Charlie",
+    "family_name": "Brown",
+    "email_address": "charlie@example.com",
+    "dept": "Engineering"
+  },
+  {
+    "given_name": "Diana",
+    "family_name": "Prince",
+    "email_address": "diana@example.com",
+    "dept": "Sales"
+  }
+](venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

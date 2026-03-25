@@ -1,0 +1,35 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === Before fix (lines 844-858) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#           body: JSON.stringify(updates),
+      });
+  }
+
+}
+
+  // Dashboard Stats
+  async getDashboardStats(): Promise<DashboardStats> {
+    return this.request<DashboardStats>('/dashboard-stats');
+  }
+
+
+export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > getDashboardStats at line 851 (0-indexed: 850)
+Context: ['}\n', '\n', '  // Dashboard Stats\n', '  async getDashboardStats(): Promise<DashboardStats> {\n', "    return this.request<DashboardStats>('/dashboard-stats');\n", '  }\n', '\n', '\n']
+Class closing brace at line 848
+Method block: lines 851 to 853
+Method content: "  async getDashboardStats(): Promise<DashboardStats> {\n    return this.request<DashboardStats>('/dashboard-stats');\n  }\n"
+File fixed!
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === After fix (lines 844-862) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#           body: JSON.stringify(updates),
+      });
+  }
+
+
+  // Dashboard Stats
+  async getDashboardStats(): Promise<DashboardStats> {
+    return this.request<DashboardStats>('/dashboard-stats');
+  }
+}
+
+
+export const api = new ApiClient(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

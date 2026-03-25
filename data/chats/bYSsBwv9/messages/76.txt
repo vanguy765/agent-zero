@@ -1,0 +1,13 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# pg_ctl: server is running (PID: 8839)
+/usr/lib/postgresql/18/bin/postgres "-D" "/tmp/pgdata"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---test connection---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#                                                    version
+--------------------------------------------------------------------------------------------------------------
+ PostgreSQL 18.3 (Debian 18.3-1+b1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 15.2.0-14) 15.2.0, 64-bit
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#                                                    version
+--------------------------------------------------------------------------------------------------------------
+ PostgreSQL 18.3 (Debian 18.3-1+b1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 15.2.0-14) 15.2.0, 64-bit
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---create db---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ERROR:  database "postgres" already exists
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# ---restore schema---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

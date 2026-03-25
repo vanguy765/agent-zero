@@ -1,0 +1,49 @@
+=== OUTPUT FILE ===
+[
+  {
+    "given_name": "Alice",
+    "family_name": "Smith",
+    "email_address": "alice@example.com",
+    "dept": "Engineering"
+  },
+  {
+    "given_name": "Bob",
+    "family_name": "Jones",
+    "email_address": "bob@example.com",
+    "dept": "Marketing"
+  },
+  {
+    "given_name": "Charlie",
+    "family_name": "Brown",
+    "email_address": "charlie@example.com",
+    "dept": "Engineering"
+  },
+  {
+    "given_name": "Diana",
+    "family_name": "Prince",
+    "email_address": "diana@example.com",
+    "dept": "Sales"
+  }
+]
+=== LINE COUNTS ===
+584 test-results/csv_pipeline_resilient.py
+
+=== GUARD/TRACE/VERIFY LINES ===
+90
+
+=== BARE ASSERTS ===
+None found
+
+=== FINAL LINTER ===
+{
+  "version": "1.0.0",
+  "files_scanned": 1,
+  "total_violations": 0,
+  "violations": [],
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  }
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

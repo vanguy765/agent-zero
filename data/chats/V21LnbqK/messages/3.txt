@@ -1,0 +1,72 @@
+if page_no not in pages_result:
+            pages_result[page_no] = {
+                "floorplans": [], "tables": [],
+                "site_photos": [], "diagrams": [],
+            }
+
+        classification = classify_image(pil_img)
+
+        if classification == "floorplan":
+            b64 = image_to_base64(pil_img)
+            fp_idx = len(floorplan_images)
+            fp_url = None
+            if sb_client:
+                fp_url = await upload_image_to_storage(
+                    pil_img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_floorplan_{fp_idx}_page_{page_no}.png",
+                    page_no=page_no, image_type="floorplan",
+                )
+            floorplan_images.append((page_no, pil_img, b64, fp_url))
+        elif classification == "site_photo":
+            photo_idx = len(pages_result[page_no]["site_photos"])
+            photo_url = None
+            if sb_client:
+                photo_url = await upload_image_to_storage(
+                    pil_img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_photo_{photo_idx}_page_{page_no}.png",
+                    page_no=page_no, image_type="site_photo",
+                )
+            pages_result[page_no]["site_photos"].append({"image_url": photo_url})
+        elif classification == "diagram":
+            diag_idx = len(pages_result[page_no]["diagrams"])
+            diag_url = None
+            if sb_client:
+                diag_url = await upload_image_to_storage(
+                    pil_img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_diagram_{diag_idx}_page_{page_no}.png",
+                    page_no=page_no, image_type="diagram",
+                )
+            pages_result[page_no]["diagrams"].append({"image_url": diag_url})
+
+    await job_manager.update_progress(
+        job_id, floorplans_found=len(floorplan_images),
+    )
+
+    # Upload full-page renders and thumbnails to storage
+    if sb_client:
+        for page_idx, page_pil in enumerate(pdf_pages):
+            page_no = page_idx + 1
+            if page_no not in pages_result:
+                pages_result[page_no] = {
+                    "floorplans": [], "tables": [],
+                    "site_photos": [], "diagrams": [],
+                }
+            page_url = await upload_image_to_storage(
+                page_pil, sb_client, tenant_name, project_name,
+                f"job_{job_id}_page_{page_no}_full.jpg",
+                page_no=page_no, image_type="page_render",
+            )
+            pages_result[page_no]["page_image_url"] = page_url
+            w, h = page_pil.size
+            thumb = page_pil.resize((400, int(h * 400 / w)))
+            thumb_url = await upload_image_to_storage(
+                thumb, sb_client, tenant_name, project_name,
+                f"job_{job_id}_page_{page_no}_thumb.jpg",
+                page_no=page_no, image_type="page_thumbnail",
+            )
+            pages_result[page_no]["thumbnail_url"] = thumb_url
+
+    # Phase 3: LLM Analysis (P1: rich prompts)
+    await job_manager.update_progress(
+        job_id,
+(venv) root@d2d162d983f0:/a0/usr/workdir#

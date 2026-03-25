@@ -1,0 +1,19 @@
+rm: cannot remove './node_modules/.pnpm/@babel+types@7.28.5/node_modules/@babel/types_tmp_4745/lib/validators': Directory not empty
+rm: cannot remove './node_modules/.pnpm/@supabase+auth-js@2.93.3/node_modules/@supabase/auth-js_tmp_4745/dist/main/lib': Directory not empty
+rm: cannot remove './node_modules/.pnpm/@supabase+auth-js@2.93.3/node_modules/@supabase/auth-js_tmp_4745/dist/module/lib': Directory not empty
+rm: cannot remove './node_modules/.pnpm/@supabase+realtime-js@2.97.0/node_modules/@supabase/realtime-js_tmp_4745/dist/main/lib': Directory not empty
+rm: cannot remove './node_modules/.pnpm/caniuse-lite@1.0.30001763/node_modules/caniuse-lite_tmp_4745/data/features': Directory not empty
+rm: cannot remove './node_modules/.pnpm/caniuse-lite@1.0.30001763/node_modules/caniuse-lite_tmp_4745/data/regions': Directory not empty
+rm: cannot remove './node_modules/.pnpm/enhanced-resolve@5.18.4/node_modules': Directory not empty
+rm: cannot remove './node_modules/.pnpm/hono@4.11.3': Directory not empty
+rm: cannot remove './node_modules/.pnpm/pdfjs-dist@5.4.624/node_modules': Directory not empty
+rm: cannot remove './node_modules/.pnpm/rollup@4.55.1/node_modules': Directory not empty
+rm: cannot remove './node_modules/.pnpm/semver@6.3.1/node_modules': Directory not empty
+rm: cannot remove './node_modules/.pnpm/solid-refresh@0.6.3_solid-js@1.9.10/node_modules/solid-refresh': Directory not empty
+rm: cannot remove './node_modules/.pnpm/tsx@4.21.0/node_modules': Directory not empty
+rm: cannot remove './node_modules/.pnpm/zod@3.25.76/node_modules/zod': Directory not empty
+rm: cannot remove './node_modules/.pnpm/@babel+helpers@7.28.4/node_modules/@babel': Directory not empty
+rm: cannot remove './node_modules/.pnpm/@babel+runtime@7.28.6/node_modules/@babel': Directory not empty
+rm: cannot remove './node_modules/.pnpm/hono@4.11.3/node_modules': Directory not empty
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# Done removing. Running fresh pnpm install...
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

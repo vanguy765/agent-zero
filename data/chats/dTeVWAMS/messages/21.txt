@@ -1,0 +1,113 @@
+=== SPEC: Recovery Section ===
+269:- Email/notification sends
+270-- Cache writes
+271-- External service state changes
+272-
+273-#### 3.3.3 Verify Requirements
+274-
+--
+728:An Availability Guard verifies that an external dependency (service, database, file system) is reachable before the application relies on it. Optionally, it can attempt **automated recovery** when a dependency is unavailable.
+729-
+730-#### When to Use
+731-
+732-- At **service initialization** (application startup)
+733-- At **pipeline start** (before a long-running job begins)
+734:- At **health check endpoints** (for orchestrators like Kubernetes)
+735:- **After connection errors** (circuit breaker recovery)
+736-
+737-#### When NOT to Use
+738-
+739-- **Not on every individual API call** — this would add seconds of latency per request
+740-- **Not for internal function calls** — only for external network/I/O dependencies
+--
+744:The detection phase checks whether a dependency is reachable. If the check fails and no recovery is configured, the guard fails loudly with a diagnostic message.
+745-
+746-##### Pattern
+747-
+748-```python
+749-# ✅ RIGHT: Check at initialization
+--
+753:        response = requests.head(base_url + "/health", timeout=5)
+754-        guard(response.status_code < 500, "PaymentClient.__init__",
+755-              f"Payment service at {base_url} returned {response.status_code}")
+756-        self.base_url = base_url
+757-
+758-# ❌ WRONG: Check on every call
+--
+760:        requests.head(self.base_url + "/health", timeout=5)  # Adds 200ms to EVERY charge!
+761-        return requests.post(f"{self.base_url}/charge", json={"amount": amount})
+762-```
+763-
+764-##### Diagnostic Format
+765-
+--
+773:The Recovery sub-pattern extends the Availability Guard with automated self-healing. When a dependency is unavailable and a recovery command is configured, the guard executes the command, waits, and re-checks availability. This bridges the gap between "a recovery script exists" and "someone has to manually run it."
+774-
+775-##### Motivation
+776-
+777:In practice, most infrastructure failures have known recovery procedures:
+778-- A Docker container needs `docker compose up -d <service>`
+779-- A system service needs `systemctl restart <service>`
+780-- A development environment needs a reset script
+781-
+782-These scripts exist but require manual invocation. The Recovery sub-pattern automates the trigger, turning "detect and complain" into "detect, fix, and continue."
+--
+785:- **AI agent workflows** — agents cannot manually run scripts; auto-recovery enables true autonomy
+786-- **Unattended execution** — scheduled tasks, CI/CD pipelines, overnight batch jobs
+787-- **Development environments** — services crash frequently; auto-restart saves developer time
+788-
+789-##### Recovery Parameters
+790-
+--
+793:| `recovery_command` | `string \| None` | `None` | Shell command or script path to execute when dependency is unavailable. If `None`, recovery is disabled (detection-only behavior). |
+794:| `max_retries` | `int` | `3` | Maximum number of recovery attempts before giving up. |
+795:| `retry_delay` | `float` | `5.0` | Seconds to wait after running recovery command before re-checking. |
+796:| `backoff_multiplier` | `float` | `2.0` | Multiply `retry_delay` by this factor after each failed attempt. Set to `1.0` for constant delay. |
+797-
+798-##### Recovery Behavior
+799-
+800-1. **Detection fails** — dependency is unavailable
+801:2. **If no `recovery_command`** — fail loudly (existing behavior, unchanged)
+802:3. **If `recovery_command` is set:**
+803:   a. Log the recovery attempt with attempt number and command
+804:   b. Execute the recovery command via subprocess
+805:   c. Wait `retry_delay` seconds (with backoff on subsequent attempts)
+806:   d. Re-run the availability check
+807-   e. If check passes → log success with attempt count and total elapsed time
+808-   f. If check fails and retries remain → go to (a) with incremented attempt
+809-   g. If check fails and no retries remain → fail loudly with full diagnostic
+810-
+811-##### Recovery MUST Rules
+--
+\n=== Test 2.2 Resilient Pipeline (guard patterns) ===
+6:- Bounded retry (max 3 attempts) on the bulk insert
+7:- Recovery logging on each retry attempt
+27:    guard_condition,
+28:    guard_keys,
+29:    guard_not_empty,
+30:    guard_type,
+62:    load stage, enabling validation of retry and circuit breaker logic.
+72:    """Stateful circuit breaker preventing repeated calls to a failing resource.
+77:        HALF_OPEN — Testing; one request is allowed to probe recovery.
+91:        """Initialize the circuit breaker.
+98:        guard_type(name, str, "CircuitBreaker.__init__", "name")
+99:        guard_not_empty(name, "CircuitBreaker.__init__", "name")
+100:        guard_type(failure_threshold, int, "CircuitBreaker.__init__", "failure_threshold")
+101:        guard_condition(failure_threshold > 0, "CircuitBreaker.__init__", "failure_threshold must be > 0")
+102:        guard_condition(isinstance(reset_timeout, (int, float)), "CircuitBreaker.__init__", f"'{"reset_timeout"}' expected int or float, got {type(reset_timeout).__name__}")
+103:        guard_condition(reset_timeout > 0, "CircuitBreaker.__init__", "reset_timeout must be > 0")
+113:        """Return the current circuit breaker state."""
+116:    def guard_circuit(self, operation_id: str) -> None:
+117:        """Guard that checks circuit breaker state before allowing a call.
+123:            GuardError: If the circuit is OPEN and timeout has not elapsed.
+125:        guard_type(operation_id, str, "CircuitBreaker.guard_circuit", "operation_id")
+126:        guard_not_empty(operation_id, "CircuitBreaker.guard_circuit", "operation_id")
+132:                    "circuit_breaker:blocked",
+139:                    f"GUARD:CircuitBreaker.guard_circuit | "
+140:                    f"circuit \"{self._name}\" is OPEN "
+148:                "circuit_breaker:state_change",
+155:                "circuit_breaker:check",
+167:        guard_type(operation_id, str, "CircuitBreaker.record_success", "operation_id")
+168:        guard_not_empty(operation_id, "CircuitBreaker.record_success", "operation_id")
+176:                "circuit_breaker:state_change",
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

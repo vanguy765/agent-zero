@@ -1,0 +1,31 @@
+=== GIT STATUS ===
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+=== GIT TAGS ===
+v0.2.0
+=== GIT REMOTE ===
+origin	https://github.com/vanguy765/bulwark-ai.git (fetch)
+origin	https://github.com/vanguy765/bulwark-ai.git (push)
+=== CHECKING FOR SECRETS ===
+./GUIDE.md
+./README.md
+./SPEC.md
+=== CHECKING FOR .env FILES ===
+=== CHECKING FOR API KEYS/TOKENS ===
+./linter/bulwark_lint/rules/blw001_guard_present.py
+./linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+./linter/tests/fixtures/sample_guarded.py
+./linter/tests/fixtures/sample_unguarded.py
+./reference/bulwark.js
+./reference/bulwark.py
+./reference/bulwark.ts
+./test-results/user_sync.py
+=== LICENSE ===
+MIT License
+
+Copyright (c) 2026 Bulwark AI Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

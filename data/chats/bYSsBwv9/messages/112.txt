@@ -1,0 +1,30 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === PostgREST log ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# 11/Mar/2026:00:41:11 +0000: Starting PostgREST 12.2.3...
+11/Mar/2026:00:41:11 +0000: Listening on port 54321
+11/Mar/2026:00:41:11 +0000: Listening for notifications on the "pgrst" channel
+11/Mar/2026:00:41:11 +0000: Successfully connected to PostgreSQL 18.3 (Debian 18.3-1+b1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 15.2.0-14) 15.2.0, 64-bit
+11/Mar/2026:00:41:11 +0000: Config reloaded
+11/Mar/2026:00:41:11 +0000: Schema cache queried in 5.4 milliseconds
+11/Mar/2026:00:41:11 +0000: Schema cache loaded 35 Relations, 32 Relationships, 4 Functions, 0 Domain Representations, 4 Media Type Handlers, 487 Timezones
+11/Mar/2026:00:51:18 +0000: Successfully connected to PostgreSQL 18.3 (Debian 18.3-1+b1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 15.2.0-14) 15.2.0, 64-bit
+11/Mar/2026:00:51:18 +0000: Config reloaded
+11/Mar/2026:00:51:18 +0000: Schema cache queried in 5.8 milliseconds
+11/Mar/2026:00:51:18 +0000: Schema cache loaded 35 Relations, 32 Relationships, 4 Functions, 0 Domain Representations, 4 Media Type Handlers, 487 Timezones
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Creating auth.jwt() function ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > NOTICE:  schema "auth" already exists, skipping
+CREATE SCHEMA
+GRANT
+CREATE FUNCTION
+ERROR:  syntax error at or near "::"
+LINE 9: $$::uuid;
+          ^
+CREATE FUNCTION
+GRANT
+               status
+-------------------------------------
+ auth functions created successfully
+(1 row)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

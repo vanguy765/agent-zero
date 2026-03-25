@@ -1,0 +1,32 @@
+436:async def upload_image_to_storage(
+437-    pil_image: Image.Image,
+438-    sb_client,
+439-    tenant_name: str,
+440-    project_name: str,
+441-    filename: str,
+442-    page_no: int = 1,
+443-    image_type: str = "doc-parser_extraction",
+444-) -> Optional[str]:
+445-    """Upload image to Supabase Storage and return public URL."""
+446-    if not sb_client:
+447-        return None
+448-    try:
+449-        buffered = BytesIO()
+450-        pil_image.save(buffered, format="PNG")
+451-        image_bytes = buffered.getvalue()
+452-        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+453-        upload_resp = await asyncio.to_thread(
+454-            lambda: sb_client.storage
+455-            .from_("project-documents")
+456-            .upload(path, image_bytes, {"contentType": "image/png", "upsert": "true"})
+457-        )
+458-        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+459-            raise Exception(f"Storage upload error: {upload_resp['error']}")
+460-        url_response = path  # Return storage path; frontend constructs authenticated URL
+461-        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+462-        try:
+463-            await asyncio.to_thread(
+464-                lambda: sb_client.table("document_images").insert({
+465-                    "document_id": doc_id,
+466-                    "image_url": path,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

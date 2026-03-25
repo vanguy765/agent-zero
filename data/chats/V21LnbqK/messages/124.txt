@@ -1,0 +1,198 @@
+# Phase 3+: Persist pages, images, OCR
+# ---------------------------------------------------------------------------
+
+def persist_results(sb: Client, document_id: str, results: dict):
+    """Persist hybrid engine results into relational tables.
+
+    Handles the actual hybrid output format:
+      - pages[N].floorplan_urls / floorplan_dia_urls  → list of URL strings
+      - pages[N].site_photos / diagrams               → list of URL strings
+      - pages[N].tables → list of dicts {markdown, url, image_url, source}
+      - pages[N].thumbnail_url → string
+    """
+    pages_result = results.get("pages", {})
+    summary = results.get("summary", {})
+    total_pages = summary.get("total_pages", len(pages_result))
+    log(f"Persisting {total_pages} pages ...")
+
+    page_id_map = {}  # page_number -> document_pages.id
+
+    # ── document_pages ──────────────────────────────────────────────────────
+    for page_no_key, page_data in pages_result.items():
+        page_no = int(page_no_key)
+        category = determine_category(page_data)
+        page_id = str(uuid.uuid4())
+
+        sb.table("document_pages").insert({
+            "id": page_id,
+            "document_id": document_id,
+            "page_number": page_no,
+            "storage_url": page_data.get("thumbnail_url"),  # best available full-page image
+            "thumbnail_url": page_data.get("thumbnail_url"),
+            "category": category,
+            "metadata": {
+                "floorplans": len(page_data.get("floorplan_urls", [])),
+                "floorplan_dias": len(page_data.get("floorplan_dia_urls", [])),
+                "tables": len(page_data.get("tables", [])),
+                "site_photos": len(page_data.get("site_photos", [])),
+                "diagrams": len(page_data.get("diagrams", [])),
+                "elements_detected": len(page_data.get("elements_detected", [])),
+            },
+        }).execute()
+
+        page_id_map[page_no] = page_id
+        log(f"  Page {page_no}: category={category}, id={page_id}")
+
+    # ── document_images ──────────────────────────────────────────────────────
+    image_count = 0
+    for page_no_key, page_data in pages_result.items():
+        page_no = int(page_no_key)
+
+        # Floorplan URLs (list of URL strings)
+        for img_url in page_data.get("floorplan_urls", []):
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "floorplan",
+                "metadata": {"source": "doc-parser"},
+            }).execute()
+            image_count += 1
+
+        # Floorplan diagrams / insets (list of URL strings)
+        for img_url in page_data.get("floorplan_dia_urls", []):
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "floorplan_dia",
+                "metadata": {"source": "doc-parser"},
+            }).execute()
+            image_count += 1
+
+        # Site photos (list of URL strings)
+        for img_url in page_data.get("site_photos", []):
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "site_photo",
+                "metadata": {"source": "doc-parser"},
+            }).execute()
+            image_count += 1
+
+        # Diagrams (list of URL strings)
+        for img_url in page_data.get("diagrams", []):
+            if not img_url:
+                continue
+            sb.table("document_images").insert({
+                "document_id": document_id,
+                "image_url": img_url,
+                "page_number": page_no,
+                "image_type": "diagram",
+                "metadata": {"source": "doc-parser"},
+            }).execute()
+            image_count += 1
+
+        # Table images (from table dicts that have image_url)
+        for tbl in page_data.get("tables", []):
+            if isinstance(tbl, dict) and tbl.get("image_url"):
+                sb.table("document_images").insert({
+                    "document_id": document_id,
+                    "image_url": tbl["image_url"],
+                    "page_number": page_no,
+                    "image_type": "table",
+                    "metadata": {"source": tbl.get("source", "doc-parser")},
+                }).execute()
+                image_count += 1
+
+    log(f"  Inserted {image_count} document_images rows")
+
+    # ── ocr_results (table markdown + structured data) ───────────────────────
+    ocr_count = 0
+    for page_no_key, page_data in pages_result.items():
+        page_no = int(page_no_key)
+        page_id = page_id_map.get(page_no)
+
+        for tbl_idx, tbl in enumerate(page_data.get("tables", [])):
+            # Tables are dicts: {markdown, url, image_url, source}
+            if isinstance(tbl, dict):
+                markdown = tbl.get("markdown", "")
+            elif isinstance(tbl, str):
+                markdown = tbl
+            else:
+                continue
+            if not markdown:
+                continue
+            parsed = parse_markdown_table(markdown)
+            confidence = parsed.pop("confidence", None)
+            sb.table("ocr_results").insert({
+                "document_id": document_id,
+                "page_id": page_id,
+                "table_index": tbl_idx,
+                "markdown": markdown,
+                "structured_data": parsed,
+                "confidence": confidence,
+            }).execute()
+            ocr_count += 1
+
+    log(f"  Inserted {ocr_count} ocr_results rows")
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main():
+    args = parse_args()
+
+    pdf_path = Path(args.pdf).resolve()
+    if not pdf_path.exists():
+        log(f"ERROR: PDF not found: {pdf_path}")
+        sys.exit(1)
+
+    if not args.supabase_key:
+        log("ERROR: --supabase-key is required (or set SUPABASE_SERVICE_ROLE_KEY).")
+        log("  Run `supabase status` on Windows to get the service_role_key.")
+        sys.exit(1)
+
+    log(f"PDF:          {pdf_path}")
+    log(f"Tenant:       {args.tenant}")
+    log(f"Project:      {args.project}")
+    log(f"Supabase URL: {args.supabase_url}")
+    log(f"API URL:      {args.api_url}")
+
+    sb: Client = create_client(args.supabase_url, args.supabase_key)
+
+    # Phase 1
+    document_id, file_url = upload_pdf(sb, pdf_path, args.tenant, args.project)
+
+    # Phase 2
+    raw_response = submit_and_poll(
+        args.api_url, pdf_path, args.tenant, args.project,
+        args.supabase_url, args.supabase_key, args.poll_interval,
+    )
+
+    # Save raw API response alongside PDF for debugging
+    results_path = pdf_path.parent / f"{pdf_path.stem}_pipeline_results.json"
+    results_path.write_text(json.dumps(raw_response, indent=2))
+    log(f"Raw results saved to {results_path}")
+
+    # Unwrap: API returns {job_id, status, result: {engine, pages, ...}}
+    results = raw_response.get("result", raw_response)
+
+    # Phases 3-5
+    persist_results(sb, document_id, results)
+
+    log("")
+    log(f"Done. document_id = {document_id}")
+    log(f"Summary: {json.dumps(results.get('summary', {}), indent=2)}")
+
+
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

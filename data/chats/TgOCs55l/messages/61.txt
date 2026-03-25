@@ -1,0 +1,17 @@
+181:          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+182:          thumbnail_url: pd?.thumbnail_url ?? null,
+562:          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+563:          thumbnail_url: pd?.thumbnail_url ?? null,
+703:    .select('id, document_id, page_number, storage_url, thumbnail_url, category, raw_text, created_at, updated_at')
+732:// Returns storage_url, thumbnail_url, category, raw_text,
+841:// file_size_bytes, uploaded_at, created_at, plus page_count
+865:      uploaded_at,
+887:    uploaded_at:     doc.uploaded_at,
+918:    .select('id, title, description, file_url, file_type, file_size_bytes, uploaded_at, created_at, metadata')
+933:    .select('page_number, category, thumbnail_url, storage_url')
+959:      thumbnail_url: p.thumbnail_url,
+960:      storage_url:   p.storage_url,
+986:    .select('id, page_number, category, storage_url, thumbnail_url, raw_text')
+1018:      storage_url:   pageRow.storage_url,
+1019:      thumbnail_url: pageRow.thumbnail_url,
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

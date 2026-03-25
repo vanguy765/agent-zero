@@ -1,0 +1,31 @@
+Refresh index: 100% (447/447), done.
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   apps/api/src/routes/work-orders.ts
+	modified:   apps/work-orders/src/lib/api.ts
+	modified:   apps/work-orders/src/pages/Dashboard.tsx
+	deleted:    backups/backup_data.sql
+	deleted:    backups/backup_schema.sql
+	deleted:    backups/full-backup-pre-phase3a.sql
+	deleted:    backups/full_dump_20260217.sql
+	deleted:    backups/pre-phase3a-test.sql
+	modified:   packages/config/src/index.ts
+	modified:   scripts/kill-dev-servers.ps1
+	modified:   scripts/reset-and-start.ps1
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	backups/20260310/
+	postgrest-proxy.js
+	scripts/dev-health.sh
+	scripts/dev-start.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# origin	https://github.com/vanguy765/voicelog-scaffold.git (fetch)
+origin	https://github.com/vanguy765/voicelog-scaffold.git (push)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

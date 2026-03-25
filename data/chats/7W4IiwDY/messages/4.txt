@@ -1,0 +1,94 @@
+=== sk- MATCHES ===
+./GUIDE.md:65:AI code generators do this constantly: `api_key = "sk-test-1234"`, `url = "https://example.com/api"`, `email = "user@example.com"`. These look like real values at a glance, but they're placeholders from training data.
+./README.md:30:| **Placeholder data in production** | Hardcoded `"sk-test-1234"` or `"https://example.com"` |
+./SPEC.md:57:| **F3** | Placeholder/demo data | Hardcoded test values, example URLs, or stub data left in production code | `api_key = "sk-test-1234"`, `url = "https://example.com/api"` |
+=== .gitignore ===
+# ============================================
+# Bulwark AI — .gitignore
+# ============================================
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+venv/
+.venv/
+env/
+.env
+*.env.local
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# ----- Node / TypeScript -----
+node_modules/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+*.js.map
+# Keep bulwark.js (compiled reference) — uncomment below to exclude:
+# reference/bulwark.js
+
+# ----- Go -----
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.test
+*.out
+vendor/
+
+# ----- IDE & Editors -----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# ----- OS -----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# ----- CI / Build Artifacts -----
+*.sarif
+coverage/
+.nyc_output/
+*.log
+tmp/
+.tmp/
+
+# ----- Secrets (never commit) -----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+=== EXISTING FILES CHECK ===
+ls: cannot access 'CONTRIBUTING.md': No such file or directory
+ls: cannot access 'CODE_OF_CONDUCT.md': No such file or directory
+ls: cannot access 'SECURITY.md': No such file or directory
+ls: cannot access 'CHANGELOG.md': No such file or directory
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

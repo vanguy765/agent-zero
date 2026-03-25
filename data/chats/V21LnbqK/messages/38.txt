@@ -1,0 +1,33 @@
+=== Supabase Storage: 356 files ===
+Job files: 354
+Test files: 2
+
+  Thumbnails: 29
+  Floorplan DIA: 28
+  Floorplans: 17
+  Diagrams: 35
+  Photos: 198
+  Tables: 46
+  Other: 1
+
+=== Sample files ===
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_10.png  (32581 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_11.png  (60734 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_12.png  (121572 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_14.png  (117993 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_15.png  (118331 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_16.png  (156388 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_17.png  (32701 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_18.png  (87665 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_19.png  (88088 bytes)
+  job_efc586f3-dadc-4b94-be7a-417095e34288_diagram_0_page_2.png  (12395 bytes)
+
+=== Disk artifacts: 7 files ===
+  diagnosis.md  (6624 bytes)
+  full_result.json  (569832 bytes)
+  job_info.json  (162 bytes)
+  manifest.json  (49116 bytes)
+  pages  (4096 bytes)
+  tables  (4096 bytes)
+  thumbnails.json  (3058 bytes)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

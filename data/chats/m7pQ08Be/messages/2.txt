@@ -1,0 +1,44 @@
+Bulwark AI — Document Pipeline Example
+Demonstrates Guard-Trace-Verify in a realistic pipeline
+
+
+======================================================================
+PIPELINE START: https://api.example.com/documents/123
+======================================================================
+2026-03-15 01:30:39 | INFO  | TRACE:after_fetch | dict, keys=['request_id', 'result', 'status'], len=3, sample['result']=dict, keys=['metadata', 'pages'], len=2, sample['pages']=list, len=4
+2026-03-15 01:30:39 | INFO  | TRACE:after_parse | list, len=4, items=dict, keys=['content', 'id', 'word_count'], len=3, sample['id']=int
+2026-03-15 01:30:39 | INFO  | TRACE:after_transform | list, len=4, items=dict, keys=['content', 'content_length', 'has_word_count', 'id', 'stage', 'word_count'], len=6, sample['id']=int
+2026-03-15 01:30:39 | INFO  | TRACE:after_store | dict, keys=['count', 'path', 'size_bytes', 'status'], len=4, sample['status']=str, len=8
+
+======================================================================
+PIPELINE COMPLETE: {'status': 'verified', 'path': '/tmp/bulwark-example-output.json', 'count': 4, 'size_bytes': 781}
+======================================================================
+
+Output file contents:
+  Records: 4
+  First record keys: ['id', 'content', 'word_count', 'content_length', 'has_word_count', 'stage']
+
+----------------------------------------------------------------------
+DEMO: Guard catches wrong data shape
+----------------------------------------------------------------------
+2026-03-15 01:30:39 | ERROR | GUARD:parse_response | 'api_response' missing keys: ['result'], available: ['pages', 'status']
+
+  CAUGHT: GUARD:parse_response | 'api_response' missing keys: ['result'], available: ['pages', 'status']
+  → An AI agent reading this error can self-correct immediately.
+
+----------------------------------------------------------------------
+DEMO: Guard catches empty results
+----------------------------------------------------------------------
+2026-03-15 01:30:39 | ERROR | GUARD:parse_response | 'pages' is empty (list, len=0)
+
+  CAUGHT: GUARD:parse_response | 'pages' is empty (list, len=0)
+  → Without Guard, code would silently process zero pages.
+
+----------------------------------------------------------------------
+DEMO: Verify catches phantom success
+----------------------------------------------------------------------
+
+======================================================================
+All demos complete. Bulwark AI caught every failure mode.
+======================================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

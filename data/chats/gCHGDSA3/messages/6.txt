@@ -1,0 +1,98 @@
+#### 3.3.1 Purpose
+
+Verifies confirm that side effects actually achieved their intended result. They prevent the **phantom success** pattern (F2) where code reports completion without confirming the operation occurred.
+
+**Why this matters:** AI agents love to write `db.insert(data)` followed by `return {"status": "success"}`. But what if the insert silently failed? What if it returned a 200 status but wrote zero rows? What if the file write succeeded but the disk was full and the file is 0 bytes? Verify catches all of these.
+
+#### 3.3.2 Applicability Rule
+
+> **A Verify is REQUIRED after every operation that produces side effects.**
+
+This includes:
+- Database writes (INSERT, UPDATE, DELETE)
+- File system writes (create, write, append, delete)
+- API calls that modify remote state (POST, PUT, PATCH, DELETE)
+- Queue/message publishes
+- Email/notification sends
+- Cache writes
+- External service state changes
+
+#### 3.3.3 Verify Requirements
+
+Every Verify MUST confirm at least one of:
+
+1. **Row count** — The expected number of rows were affected
+2. **Existence check** — The written resource exists and is readable
+3. **Content check** — A read-back confirms the written data matches (for critical operations)
+4. **Acknowledgment** — The receiving system acknowledged the operation (not just accepted the request)
+5. **State transition** — The target resource is now in the expected state
+
+#### 3.3.4 Verify Behavior
+
+- Verifies MUST fail **loudly** if the side effect cannot be confirmed
+- Verifies MUST emit a diagnostic message conforming to §4
+- Verifies SHOULD be **immediately** after the side-effect operation
+- Verifies SHOULD use the **lightest possible** confirmation method
+- Verifies MAY use a read-back query, existence check, or return value inspection
+- Verifies MUST follow the appropriate strategy for the throughput context (see §3.3.5)
+
+#### 3.3.5 Verify Strategies by Context
+
+Not all verifications cost the same. The standard requires verification but allows the **strategy** to adapt to throughput and criticality.
+
+##### Strategy Selection Matrix
+
+| Context | Strategy | Cost | Example |
+|---------|----------|------|---------|
+| **Single operations** (CRUD endpoints, <100 ops/min) | Per-operation read-back | Low | `SELECT id FROM orders WHERE id = ?` after INSERT |
+| **Batch operations** (bulk imports, ETL loads) | Aggregate verify after batch | Low | `SELECT COUNT(*) WHERE batch_id = ?` after batch INSERT |
+| **High-throughput streams** (>1000 ops/sec) | Statistical sampling | Minimal | Verify 1-5% of writes; alert if failure rate > threshold |
+| **Critical operations** (payments, auth, security) | Full per-operation verify | Medium | Read-back + idempotency check, regardless of throughput |
+| **File operations** (any throughput) | Existence + size check | Negligible | `os.path.exists()` + `os.path.getsize() > 0` |
+| **Async/queue operations** | Acknowledgment + deferred verify | Varies | Confirm publish ack; consumer verifies on receipt |
+
+##### Why Not Always Full Verification?
+
+Consider a data pipeline processing 10,000 events per second:
+
+```python
+# Full verify: DOUBLES database load (10K reads added to 10K writes)
+for event in stream:  # 10,000/sec
+    db.insert("events", event)
+    check = db.query("SELECT id FROM events WHERE id = ?", event.id)  # +10,000 queries/sec!
+```
+
+```python
+# Sampling verify: adds 1% overhead (100 reads per 10K writes)
+for i, event in enumerate(stream):
+    db.insert("events", event)
+    if i % 100 == 0:  # Verify 1% of writes
+        check = db.query("SELECT id FROM events WHERE id = ?", event.id)
+        verify(len(check) == 1, "process_stream", f"sampled verify failed at event {i}")
+```
+
+```python
+# Batch verify: ONE query after entire batch
+result = db.insert_many("events", batch)
+verify(result.rowcount == len(batch), "process_batch",
+       f"INSERT expected {len(batch)} rows, affected {result.rowcount}")
+```
+
+All three approaches satisfy the Verify requirement. The standard mandates **that** you verify, not **how** you verify. Choose the strategy that matches your throughput.
+
+##### Critical Operations: Always Full Verify
+
+Some operations are too important for sampling:
+
+- **Financial transactions** — Every payment must be verified
+- **Authentication/authorization changes** — Every permission change must be confirmed
+- **Data deletion** — Every DELETE must confirm the correct count was removed
+- **Security-sensitive writes** — Audit logs, encryption key storage, credential updates
+
+For these, use full per-operation verification regardless of throughput cost.
+
+#### 3.3.6 Verify Strategies by Side Effect Type
+
+| Side Effect | Preferred Verify Strategy | Fallback Strategy |
+|------------|--------------------------|-------------------|
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

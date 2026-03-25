@@ -1,0 +1,1029 @@
+/**
+ * Doc-Parser Proxy Routes for Hono API
+ *
+ * Integrates doc-parser service into the existing work-orders API.
+ * Provides engine selection, status polling, result retrieval,
+ * and a full end-to-end pipeline with Supabase DB persistence.
+ *
+ * Routes:
+ *   POST /api/doc-parser/parse                          - Parse document (engine selection, returns job_id)
+ *   POST /api/doc-parser/pipeline                       - Full pipeline: submit + poll + persist to DB
+ *   POST /api/doc-parser/pipeline/page                  - Single-page pipeline: extract page N, parse, persist
+ *   POST /api/doc-parser/pipeline/reprocess             - Re-run full pipeline (idempotent upsert)
+ *   GET  /api/doc-parser/status/:jobId                  - Lightweight status (poll-safe)
+ *   GET  /api/doc-parser/results/:jobId                 - Full results (fetch-once)
+ *   GET  /api/doc-parser/health                         - Service health check
+ *   GET  /api/doc-parser/documents/:documentId/pages    - List all parsed pages for a document
+ *   GET  /api/doc-parser/documents/:documentId/pages/:pageNumber - Get one parsed page
+ *   GET  /api/doc-parser/documents/:documentId/ocr      - List all OCR/table results for a document
+ */
+
+import { Hono } from 'hono';
+import { createClient } from '@supabase/supabase-js';
+import { PDFDocument } from 'pdf-lib';
+import { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { getScopedClient } from '../middleware/supabase';
+import {
+  submitParseJob,
+  getJobStatus,
+  getJobResults,
+  checkHealth,
+  mapToParseDocument,
+  type DocParserJobResponse,
+  type DocParserStatus,
+  type DocParserResult,
+} from '../services/doc-parser-client';
+
+const docParserRoutes = new Hono();
+
+// ============================================================
+// SHARED HELPERS
+// ============================================================
+
+/**
+ * Infer a page category from the raw page data returned by doc-parser.
+ */
+function inferPageCategory(pd: any): string {
+  if (pd?.has_floorplan || pd?.is_floorplan)                          return 'floorplan';
+  if (pd?.has_table || (pd?.table_count ?? 0) > 0)                   return 'table';
+  if (pd?.is_site_photo)                                              return 'site_photo';
+  if (pd?.is_diagram)                                                 return 'diagram';
+  if (pd?.has_text && (pd?.has_floorplan || pd?.has_table))          return 'mixed';
+  return 'text';
+}
+
+/**
+ * Core pipeline logic — shared by /pipeline and /pipeline/reprocess.
+ *
+ * Downloads the PDF from Supabase storage, submits it to doc-parser,
+ * polls until complete, then upserts document_pages + ocr_results.
+ *
+ * Returns a summary object ready to send as a JSON response.
+ */
+async function executePipeline(
+  documentId: string,
+  engine: 'docling' | 'hybrid',
+  options: {
+    pollIntervalMs?: number;
+    timeoutMs?: number;
+    tenantName?: string;
+    projectName?: string;
+  } = {},
+): Promise<{
+  document_id: string;
+  job_id: string;
+  engine: string;
+  status: string;
+  pages_persisted: number;
+  ocr_tables_persisted: number;
+  summary: any;
+  poll_url: string;
+  results_url: string;
+}> {
+  const pollIntervalMs = options.pollIntervalMs ?? 3000;
+  const timeoutMs      = options.timeoutMs      ?? 600_000;
+
+  const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  // 1. Fetch document metadata
+  const { data: document, error: fetchError } = await serviceClient
+    .from('project_documents')
+    .select('*')
+    .eq('id', documentId)
+    .single();
+
+  if (fetchError || !document) throw Object.assign(new Error('Document not found'), { status: 404 });
+  if (!document.file_type?.includes('pdf')) throw Object.assign(new Error('Document is not a PDF'), { status: 400 });
+
+  // 2. Download PDF from storage
+  const { data: fileData, error: downloadError } = await serviceClient.storage
+    .from('project-documents')
+    .download(document.file_url);
+
+  if (downloadError || !fileData) {
+    throw Object.assign(
+      new Error(`Storage download failed: ${downloadError?.message ?? 'unknown'}`),
+      { status: 500 },
+    );
+  }
+
+  const pdfBuffer = await fileData.arrayBuffer();
+
+  // 3. Submit to doc-parser
+  const jobResponse: DocParserJobResponse = await submitParseJob(
+    pdfBuffer,
+    document.title || `document-${documentId}.pdf`,
+    engine,
+    {
+      supabaseUrl:  process.env.SUPABASE_URL,
+      supabaseKey:  process.env.SUPABASE_SERVICE_KEY,
+      projectName:  options.projectName || documentId,
+      tenantName:   options.tenantName,
+    },
+  );
+
+  const jobId = jobResponse.job_id;
+  console.log(`[pipeline] Job ${jobId} submitted (engine=${engine})`);
+
+  // 4. Poll until complete or timeout
+  const deadline = Date.now() + timeoutMs;
+  let status: DocParserStatus;
+
+  while (true) {
+    if (Date.now() > deadline) {
+      throw Object.assign(
+        new Error(`Pipeline timed out after ${timeoutMs / 1000}s`),
+        { status: 504, job_id: jobId },
+      );
+    }
+
+    status = await getJobStatus(jobId);
+    console.log(
+      `[pipeline] Job ${jobId} status=${status.status}` +
+      ` (${status.progress?.percent_complete ?? 0}%)`,
+    );
+
+    if (status.status === 'completed') break;
+    if (status.status === 'failed' || status.status === 'timeout') {
+      throw Object.assign(
+        new Error(`Doc-parser job ${status.status}: ${status.error ?? 'no details'}`),
+        { status: 502, job_id: jobId },
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+
+  // 5. Fetch full results
+  const rawResults = await getJobResults(jobId, false);
+  const result = rawResults.result;
+  if (!result) {
+    throw Object.assign(
+      new Error('Job completed but result payload is empty'),
+      { status: 502, job_id: jobId },
+    );
+  }
+
+  // 6. Persist document_pages
+  const pageEntries = Object.entries(result.pages || {});
+  const pageIdMap: Record<number, string> = {};
+
+  for (const [pageNumStr, pageData] of pageEntries) {
+    const pageNumber = parseInt(pageNumStr, 10);
+    const pd = pageData as any;
+
+    const { data: pageRow, error: pageErr } = await serviceClient
+      .from('document_pages')
+      .upsert(
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+        },
+        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+      )
+      .select('id')
+      .single();
+
+    if (pageErr) {
+      console.error(`[pipeline] document_pages upsert failed for page ${pageNumber}:`, pageErr.message);
+    } else if (pageRow) {
+      pageIdMap[pageNumber] = pageRow.id;
+    }
+  }
+
+  console.log(`[pipeline] Persisted ${Object.keys(pageIdMap).length}/${pageEntries.length} pages`);
+
+  // 7. Persist ocr_results
+  const tables: any[] = result.tables || [];
+  let ocrCount = 0;
+
+  for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+    const tbl = tables[tableIndex] as any;
+    const pageNumber: number | null = tbl?.page_number ?? tbl?.source_page ?? null;
+    const pageId = pageNumber !== null ? (pageIdMap[pageNumber] ?? null) : null;
+
+    const { error: ocrErr } = await serviceClient
+      .from('ocr_results')
+      .insert({
+        document_id:     documentId,
+        page_id:         pageId,
+        table_index:     tableIndex,
+        markdown:        tbl?.markdown ?? tbl?.content ?? null,
+        structured_data: tbl?.structured_data ?? tbl?.data ?? tbl ?? null,
+        confidence:      tbl?.confidence ?? null,
+      });
+
+    if (ocrErr) {
+      console.error(`[pipeline] ocr_results insert failed for table ${tableIndex}:`, ocrErr.message);
+    } else {
+      ocrCount++;
+    }
+  }
+
+  console.log(`[pipeline] Persisted ${ocrCount}/${tables.length} OCR table rows`);
+
+  return {
+    document_id:          documentId,
+    job_id:               jobId,
+    engine,
+    status:               'completed',
+    pages_persisted:      Object.keys(pageIdMap).length,
+    ocr_tables_persisted: ocrCount,
+    summary:              result.summary ?? null,
+    poll_url:             `/api/doc-parser/status/${jobId}`,
+    results_url:          `/api/doc-parser/results/${jobId}`,
+  };
+}
+
+// ============================================================
+// POST /parse
+// Accepts JSON { document_id, engine }
+// Fetches PDF from Supabase storage, forwards to doc-parser
+// Returns job_id immediately — caller must poll /status/:jobId
+// ============================================================
+
+docParserRoutes.post('/parse', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId = body?.document_id;
+  const engine = (body?.engine || 'hybrid') as string;
+
+  if (!documentId) {
+    return c.json({ error: 'document_id is required' }, 400);
+  }
+
+  if (engine === 'claude-direct') {
+    return c.json({
+      error: 'claude-direct engine should be handled by existing route handler',
+      hint: 'This route only handles docling and hybrid engines',
+    }, 400);
+  }
+
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json(
+      { error: `Unknown engine: ${engine}. Use 'claude-direct', 'docling', or 'hybrid'.` },
+      400,
+    );
+  }
+
+  try {
+    const supabase = getScopedClient(c);
+    const { data: document, error: fetchError } = await supabase
+      .from('project_documents')
+      .select('*')
+      .eq('id', documentId)
+      .single();
+
+    if (fetchError || !document) {
+      return c.json({ error: 'Document not found' }, 404);
+    }
+    if (!document.file_type?.includes('pdf')) {
+      return c.json({ error: 'Document is not a PDF' }, 400);
+    }
+
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('project-documents')
+      .download(document.file_url);
+
+    if (downloadError || !fileData) {
+      console.error('[doc-parser] Storage download failed:', downloadError);
+      return c.json({ error: 'Failed to download document from storage' }, 500);
+    }
+
+    const pdfBuffer = await fileData.arrayBuffer();
+
+    const jobResponse = await submitParseJob(
+      pdfBuffer,
+      document.title || `document-${documentId}.pdf`,
+      engine as 'docling' | 'hybrid',
+      {
+        provider:    body?.provider || process.env.DEFAULT_LLM_PROVIDER,
+        tenantName:  body?.tenant_name,
+        projectName: body?.project_name || documentId,
+        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseKey: process.env.SUPABASE_SERVICE_KEY,
+      },
+    );
+
+    return c.json({
+      engine,
+      job_id:      jobResponse.job_id,
+      status:      jobResponse.status,
+      poll_url:    `/api/doc-parser/status/${jobResponse.job_id}`,
+      results_url: `/api/doc-parser/results/${jobResponse.job_id}`,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[doc-parser] Parse submission failed: ${message}`);
+    return c.json({ error: `Doc-parser submission failed: ${message}` }, 502);
+  }
+});
+
+// ============================================================
+// POST /pipeline
+// Full end-to-end pipeline — blocks until complete.
+// See executePipeline() for implementation details.
+//
+// Body: {
+//   document_id: string          (required)
+//   engine?: 'docling'|'hybrid'  (default: 'hybrid')
+//   poll_interval_ms?: number    (default: 3000)
+//   timeout_ms?: number          (default: 600000 = 10 min)
+//   tenant_name?: string
+//   project_name?: string
+// }
+// ============================================================
+
+docParserRoutes.post('/pipeline', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId = body?.document_id as string | undefined;
+  const engine     = (body?.engine || 'hybrid') as 'docling' | 'hybrid';
+
+  if (!documentId) return c.json({ error: 'document_id is required' }, 400);
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json({ error: `Unknown engine: ${engine}. Use 'docling' or 'hybrid'.` }, 400);
+  }
+
+  try {
+    const result = await executePipeline(documentId, engine, {
+      pollIntervalMs: Number(body?.poll_interval_ms ?? 3000),
+      timeoutMs:      Number(body?.timeout_ms      ?? 600_000),
+      tenantName:     body?.tenant_name,
+      projectName:    body?.project_name,
+    });
+    return c.json(result);
+  } catch (err: any) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[pipeline] Failed:', msg);
+    return c.json({ error: msg, job_id: err?.job_id ?? null }, err?.status ?? 502);
+  }
+});
+
+// ============================================================
+// POST /pipeline/reprocess
+// Idempotent re-run of the full pipeline for a document that
+// has already been parsed. Useful when doc-parser is updated
+// or results need refreshing. Uses upsert — safe to call
+// multiple times.
+//
+// Body: {
+//   document_id: string          (required)
+//   engine?: 'docling'|'hybrid'  (default: 'hybrid')
+//   poll_interval_ms?: number    (default: 3000)
+//   timeout_ms?: number          (default: 600000)
+//   tenant_name?: string
+//   project_name?: string
+// }
+// ============================================================
+
+docParserRoutes.post('/pipeline/reprocess', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId = body?.document_id as string | undefined;
+  const engine     = (body?.engine || 'hybrid') as 'docling' | 'hybrid';
+
+  if (!documentId) return c.json({ error: 'document_id is required' }, 400);
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json({ error: `Unknown engine: ${engine}. Use 'docling' or 'hybrid'.` }, 400);
+  }
+
+  try {
+    const result = await executePipeline(documentId, engine, {
+      pollIntervalMs: Number(body?.poll_interval_ms ?? 3000),
+      timeoutMs:      Number(body?.timeout_ms      ?? 600_000),
+      tenantName:     body?.tenant_name,
+      projectName:    body?.project_name,
+    });
+    return c.json({ ...result, reprocessed: true });
+  } catch (err: any) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[pipeline/reprocess] Failed:', msg);
+    return c.json({ error: msg, job_id: err?.job_id ?? null }, err?.status ?? 502);
+  }
+});
+
+// ============================================================
+// POST /pipeline/page
+// Single-page pipeline — extract page N from the PDF using
+// pdf-lib, submit that one-page PDF to doc-parser, poll until
+// complete, then upsert just that page into document_pages.
+//
+// Useful for:
+//   - Re-processing a single page after doc-parser updates
+//   - Targeted extraction / previewing one page cheaply
+//   - Debugging a specific page without re-running the whole doc
+//
+// Body: {
+//   document_id: string          (required)
+//   page_number: number          (required, 1-indexed)
+//   engine?: 'docling'|'hybrid'  (default: 'hybrid')
+//   poll_interval_ms?: number    (default: 3000)
+//   timeout_ms?: number          (default: 120000 = 2 min)
+//   tenant_name?: string
+//   project_name?: string
+// }
+// ============================================================
+
+docParserRoutes.post('/pipeline/page', async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const documentId  = body?.document_id as string | undefined;
+  const pageNumber  = Number(body?.page_number);
+  const engine      = (body?.engine || 'hybrid') as 'docling' | 'hybrid';
+  const pollMs      = Number(body?.poll_interval_ms ?? 3000);
+  const timeoutMs   = Number(body?.timeout_ms      ?? 120_000);
+
+  if (!documentId)          return c.json({ error: 'document_id is required' }, 400);
+  if (!pageNumber || pageNumber < 1) return c.json({ error: 'page_number must be a positive integer (1-indexed)' }, 400);
+  if (engine !== 'docling' && engine !== 'hybrid') {
+    return c.json({ error: `Unknown engine: ${engine}. Use 'docling' or 'hybrid'.` }, 400);
+  }
+
+  const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  // 1. Fetch document metadata
+  const { data: document, error: fetchError } = await serviceClient
+    .from('project_documents')
+    .select('*')
+    .eq('id', documentId)
+    .single();
+
+  if (fetchError || !document) return c.json({ error: 'Document not found' }, 404);
+  if (!document.file_type?.includes('pdf')) return c.json({ error: 'Document is not a PDF' }, 400);
+
+  // 2. Download full PDF from storage
+  const { data: fileData, error: downloadError } = await serviceClient.storage
+    .from('project-documents')
+    .download(document.file_url);
+
+  if (downloadError || !fileData) {
+    return c.json({ error: `Storage download failed: ${downloadError?.message ?? 'unknown'}` }, 500);
+  }
+
+  const fullPdfBuffer = await fileData.arrayBuffer();
+
+  // 3. Extract single page using pdf-lib
+  let singlePageBuffer: Uint8Array;
+  try {
+    const srcDoc  = await PDFDocument.load(fullPdfBuffer);
+    const totalPages = srcDoc.getPageCount();
+
+    if (pageNumber > totalPages) {
+      return c.json({
+        error: `page_number ${pageNumber} exceeds document length (${totalPages} pages)`,
+      }, 400);
+    }
+
+    const newDoc  = await PDFDocument.create();
+    const [page] = await newDoc.copyPages(srcDoc, [pageNumber - 1]); // 0-indexed
+    newDoc.addPage(page);
+    singlePageBuffer = await newDoc.save();
+
+    console.log(`[pipeline/page] Extracted page ${pageNumber}/${totalPages} from ${document.title}`);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[pipeline/page] pdf-lib extraction failed:', msg);
+    return c.json({ error: `PDF page extraction failed: ${msg}` }, 500);
+  }
+
+  // 4. Submit single-page PDF to doc-parser
+  let jobResponse: DocParserJobResponse;
+  try {
+    jobResponse = await submitParseJob(
+      singlePageBuffer.buffer as ArrayBuffer,
+      `${document.title || documentId}-page${pageNumber}.pdf`,
+      engine,
+      {
+        supabaseUrl:  process.env.SUPABASE_URL,
+        supabaseKey:  process.env.SUPABASE_SERVICE_KEY,
+        projectName:  body?.project_name || documentId,
+        tenantName:   body?.tenant_name,
+      },
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    return c.json({ error: `Doc-parser submission failed: ${msg}` }, 502);
+  }
+
+  const jobId = jobResponse.job_id;
+  console.log(`[pipeline/page] Job ${jobId} submitted for page ${pageNumber} (engine=${engine})`);
+
+  // 5. Poll until complete or timeout
+  const deadline = Date.now() + timeoutMs;
+  let status: DocParserStatus;
+
+  while (true) {
+    if (Date.now() > deadline) {
+      return c.json({ error: `Page pipeline timed out after ${timeoutMs / 1000}s`, job_id: jobId }, 504);
+    }
+
+    try {
+      status = await getJobStatus(jobId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      return c.json({ error: `Status poll failed: ${msg}`, job_id: jobId }, 502);
+    }
+
+    if (status.status === 'completed') break;
+    if (status.status === 'failed' || status.status === 'timeout') {
+      return c.json({
+        error: `Doc-parser job ${status.status}: ${status.error ?? 'no details'}`,
+        job_id: jobId,
+      }, 502);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollMs));
+  }
+
+  // 6. Fetch results
+  const rawResults = await getJobResults(jobId, false);
+  const result = rawResults.result;
+  if (!result) {
+    return c.json({ error: 'Job completed but result payload is empty', job_id: jobId }, 502);
+  }
+
+  // 7. Upsert just this page into document_pages
+  // doc-parser returns page 1 for a single-page PDF — remap to the real page number
+  const pageEntries = Object.entries(result.pages || {});
+  let persistedPageId: string | null = null;
+
+  // Take the first (and only) page from the result, map it to the real page_number
+  if (pageEntries.length > 0) {
+    const pd = pageEntries[0][1] as any;
+
+    const { data: pageRow, error: pageErr } = await serviceClient
+      .from('document_pages')
+      .upsert(
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,   // real page number in the original document
+          storage_url:   pd?.storage_url ?? pd?.image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+        },
+        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+      )
+      .select('id')
+      .single();
+
+    if (pageErr) {
+      console.error(`[pipeline/page] document_pages upsert failed:`, pageErr.message);
+    } else if (pageRow) {
+      persistedPageId = pageRow.id;
+    }
+  }
+
+  // 8. Persist any OCR tables found on this page
+  const tables: any[] = result.tables || [];
+  let ocrCount = 0;
+
+  for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+    const tbl = tables[tableIndex] as any;
+    const { error: ocrErr } = await serviceClient
+      .from('ocr_results')
+      .insert({
+        document_id:     documentId,
+        page_id:         persistedPageId,
+        table_index:     tableIndex,
+        markdown:        tbl?.markdown ?? tbl?.content ?? null,
+        structured_data: tbl?.structured_data ?? tbl?.data ?? tbl ?? null,
+        confidence:      tbl?.confidence ?? null,
+      });
+
+    if (!ocrErr) ocrCount++;
+  }
+
+  return c.json({
+    document_id:          documentId,
+    job_id:               jobId,
+    engine,
+    page_number:          pageNumber,
+    page_id:              persistedPageId,
+    status:               'completed',
+    ocr_tables_persisted: ocrCount,
+    summary:              result.summary ?? null,
+    poll_url:             `/api/doc-parser/status/${jobId}`,
+    results_url:          `/api/doc-parser/results/${jobId}`,
+  });
+});
+
+// ============================================================
+// GET /status/:jobId
+// Lightweight status for polling (poll-safe, small payload)
+// Safe to call every 2-5 seconds.
+// ============================================================
+
+docParserRoutes.get('/status/:jobId', async (c) => {
+  const jobId = c.req.param('jobId');
+
+  try {
+    const status: DocParserStatus = await getJobStatus(jobId);
+    const safeStatus = { ...status };
+    delete (safeStatus as any).result;
+    return c.json(safeStatus);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    if (message.includes('not found')) {
+      return c.json({ error: `Job ${jobId} not found` }, 404);
+    }
+    return c.json({ error: `Status check failed: ${message}` }, 502);
+  }
+});
+
+// ============================================================
+// GET /results/:jobId
+// Full results — fetch once after status confirms "completed".
+// Heavy payload. Includes ParsedDocument-compatible mapping.
+// ============================================================
+
+docParserRoutes.get('/results/:jobId', async (c) => {
+  const jobId = c.req.param('jobId');
+  const summaryOnly = c.req.query('summary') === 'true';
+
+  try {
+    const data = await getJobResults(jobId, summaryOnly);
+
+    if (summaryOnly) {
+      return c.json(data);
+    }
+
+    const result = data.result as DocParserResult | undefined;
+    if (result?.units) {
+      return c.json({
+        ...data,
+        parsed: mapToParseDocument(result, jobId),
+      });
+    }
+
+    return c.json(data);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    if (message.includes('not found')) {
+      return c.json({ error: `Results for job ${jobId} not found` }, 404);
+    }
+    return c.json({ error: `Results fetch failed: ${message}` }, 502);
+  }
+});
+
+// ============================================================
+// GET /health
+// Service health check with dependency status
+// ============================================================
+
+docParserRoutes.get('/health', async (c) => {
+  const health = await checkHealth();
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  return c.json(health, statusCode);
+});
+
+// ============================================================
+// GET /documents/:documentId/pages
+// List all parsed pages for a document from document_pages.
+//
+// Query params:
+//   ?category=floorplan|table|site_photo|diagram|mixed|text
+//   ?limit=50  (default 100)
+//   ?offset=0
+// ============================================================
+
+docParserRoutes.get('/documents/:documentId/pages', async (c) => {
+  const documentId = c.req.param('documentId');
+  const category   = c.req.query('category');
+  const limit      = Math.min(Number(c.req.query('limit')  ?? 100), 500);
+  const offset     = Number(c.req.query('offset') ?? 0);
+
+  const supabase = getScopedClient(c);
+
+  let query = supabase
+    .from('document_pages')
+    .select('id, document_id, page_number, storage_url, thumbnail_url, category, raw_text, created_at, updated_at')
+    .eq('document_id', documentId)
+    .order('page_number', { ascending: true })
+    .range(offset, offset + limit - 1);
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error('[doc-parser] document_pages query failed:', error.message);
+    return c.json({ error: `Database query failed: ${error.message}` }, 500);
+  }
+
+  return c.json({
+    document_id: documentId,
+    pages:       data ?? [],
+    count:       data?.length ?? 0,
+    offset,
+    limit,
+    ...(category ? { filter: { category } } : {}),
+  });
+});
+
+// ============================================================
+// GET /documents/:documentId/pages/:pageNumber
+// Get a single parsed page by its 1-indexed page number.
+// Returns storage_url, thumbnail_url, category, raw_text,
+// and full metadata blob.
+// ============================================================
+
+docParserRoutes.get('/documents/:documentId/pages/:pageNumber', async (c) => {
+  const documentId = c.req.param('documentId');
+  const pageNumber = Number(c.req.param('pageNumber'));
+
+  if (!pageNumber || pageNumber < 1) {
+    return c.json({ error: 'pageNumber must be a positive integer (1-indexed)' }, 400);
+  }
+
+  const supabase = getScopedClient(c);
+
+  const { data, error } = await supabase
+    .from('document_pages')
+    .select('*')
+    .eq('document_id', documentId)
+    .eq('page_number', pageNumber)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return c.json({
+        error: `Page ${pageNumber} not found for document ${documentId}. Has the document been parsed?`,
+      }, 404);
+    }
+    return c.json({ error: `Database query failed: ${error.message}` }, 500);
+  }
+
+  return c.json(data);
+});
+
+// ============================================================
+// GET /documents/:documentId/ocr
+// List all OCR / table extraction results for a document.
+//
+// Query params:
+//   ?page_number=N  (filter by source page)
+//   ?limit=50       (default 100)
+//   ?offset=0
+// ============================================================
+
+docParserRoutes.get('/documents/:documentId/ocr', async (c) => {
+  const documentId = c.req.param('documentId');
+  const pageNumber = c.req.query('page_number') ? Number(c.req.query('page_number')) : null;
+  const limit      = Math.min(Number(c.req.query('limit')  ?? 100), 500);
+  const offset     = Number(c.req.query('offset') ?? 0);
+
+  const supabase = getScopedClient(c);
+
+  // If filtering by page_number, join through document_pages
+  let query;
+  if (pageNumber !== null) {
+    // Get the page_id first, then filter ocr_results
+    const { data: pageRow, error: pageErr } = await supabase
+      .from('document_pages')
+      .select('id')
+      .eq('document_id', documentId)
+      .eq('page_number', pageNumber)
+      .single();
+
+    if (pageErr || !pageRow) {
+      return c.json({
+        error: `Page ${pageNumber} not found for document ${documentId}`,
+        document_id: documentId,
+        ocr_results: [],
+        count: 0,
+      }, 404);
+    }
+
+    query = supabase
+      .from('ocr_results')
+      .select('id, document_id, page_id, table_index, markdown, structured_data, confidence, created_at')
+      .eq('document_id', documentId)
+      .eq('page_id', pageRow.id)
+      .order('table_index', { ascending: true })
+      .range(offset, offset + limit - 1);
+  } else {
+    query = supabase
+      .from('ocr_results')
+      .select('id, document_id, page_id, table_index, markdown, structured_data, confidence, created_at')
+      .eq('document_id', documentId)
+      .order('table_index', { ascending: true })
+      .range(offset, offset + limit - 1);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('[doc-parser] ocr_results query failed:', error.message);
+    return c.json({ error: `Database query failed: ${error.message}` }, 500);
+  }
+
+  return c.json({
+    document_id: documentId,
+    ocr_results: data ?? [],
+    count:       data?.length ?? 0,
+    offset,
+    limit,
+    ...(pageNumber !== null ? { filter: { page_number: pageNumber } } : {}),
+  });
+});
+
+
+// ============================================================
+// GET /projects/:projectId/documents
+// List all documents belonging to a project (company scope).
+// Returns id, title, description, file_url, file_type,
+// file_size_bytes, uploaded_at, created_at, plus page_count
+// and ocr_table_count derived from child rows.
+//
+// Query params:
+//   ?limit=50    (default 100, max 500)
+//   ?offset=0
+// ============================================================
+
+docParserRoutes.get('/projects/:projectId/documents', async (c) => {
+  const projectId = c.req.param('projectId');
+  const limit     = Math.min(Number(c.req.query('limit')  ?? 100), 500);
+  const offset    = Number(c.req.query('offset') ?? 0);
+
+  const supabase = getScopedClient(c);
+
+  const { data, error } = await supabase
+    .from('project_documents')
+    .select(`
+      id,
+      title,
+      description,
+      file_url,
+      file_type,
+      file_size_bytes,
+      uploaded_at,
+      created_at,
+      document_pages ( count ),
+      ocr_results    ( count )
+    `)
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('[doc-parser] project documents query failed:', error.message);
+    return c.json({ error: `Database query failed: ${error.message}` }, 500);
+  }
+
+  // Flatten the count sub-selects into scalar fields
+  const documents = (data ?? []).map((doc: any) => ({
+    id:              doc.id,
+    title:           doc.title,
+    description:     doc.description,
+    file_url:        doc.file_url,
+    file_type:       doc.file_type,
+    file_size_bytes: doc.file_size_bytes,
+    uploaded_at:     doc.uploaded_at,
+    created_at:      doc.created_at,
+    page_count:      doc.document_pages?.[0]?.count ?? 0,
+    ocr_table_count: doc.ocr_results?.[0]?.count    ?? 0,
+    parsed:          (doc.document_pages?.[0]?.count ?? 0) > 0,
+  }));
+
+  return c.json({
+    project_id: projectId,
+    documents,
+    count:  documents.length,
+    offset,
+    limit,
+  });
+});
+
+// ============================================================
+// GET /projects/:projectId/documents/:documentId
+// Full document detail — metadata + page category breakdown
+// + OCR table count. No doc-parser call; DB only.
+// ============================================================
+
+docParserRoutes.get('/projects/:projectId/documents/:documentId', async (c) => {
+  const projectId  = c.req.param('projectId');
+  const documentId = c.req.param('documentId');
+
+  const supabase = getScopedClient(c);
+
+  // Fetch document — verify it belongs to the project
+  const { data: docRow, error: docRowErr } = await supabase
+    .from('project_documents')
+    .select('id, title, description, file_url, file_type, file_size_bytes, uploaded_at, created_at, metadata')
+    .eq('id', documentId)
+    .eq('project_id', projectId)
+    .single();
+
+  if (docRowErr || !docRow) {
+    if (docRowErr?.code === 'PGRST116') {
+      return c.json({ error: `Document ${documentId} not found in project ${projectId}` }, 404);
+    }
+    return c.json({ error: `Database query failed: ${docRowErr?.message}` }, 500);
+  }
+
+  // Fetch page summary — count per category
+  const { data: pages, error: pagesErr } = await supabase
+    .from('document_pages')
+    .select('page_number, category, thumbnail_url, storage_url')
+    .eq('document_id', documentId)
+    .order('page_number', { ascending: true });
+
+  // Fetch OCR table count
+  const { count: ocrCount } = await supabase
+    .from('ocr_results')
+    .select('id', { count: 'exact', head: true })
+    .eq('document_id', documentId);
+
+  // Build category breakdown
+  const categoryBreakdown: Record<string, number> = {};
+  for (const p of (pages ?? [])) {
+    const cat = p.category ?? 'unknown';
+    categoryBreakdown[cat] = (categoryBreakdown[cat] ?? 0) + 1;
+  }
+
+  return c.json({
+    ...docRow,
+    page_count:         pages?.length ?? 0,
+    ocr_table_count:    ocrCount ?? 0,
+    parsed:             (pages?.length ?? 0) > 0,
+    category_breakdown: categoryBreakdown,
+    pages: (pages ?? []).map((p: any) => ({
+      page_number:   p.page_number,
+      category:      p.category,
+      thumbnail_url: p.thumbnail_url,
+      storage_url:   p.storage_url,
+    })),
+  });
+});
+
+// ============================================================
+// GET /documents/:documentId/ocr/:pageNumber
+// OCR results for a single page (1-indexed).
+// Convenience shorthand — equivalent to
+//   GET /documents/:id/ocr?page_number=N
+// but returns the page metadata alongside the OCR rows.
+// ============================================================
+
+docParserRoutes.get('/documents/:documentId/ocr/:pageNumber', async (c) => {
+  const documentId = c.req.param('documentId');
+  const pageNumber = Number(c.req.param('pageNumber'));
+
+  if (!pageNumber || pageNumber < 1) {
+    return c.json({ error: 'pageNumber must be a positive integer (1-indexed)' }, 400);
+  }
+
+  const supabase = getScopedClient(c);
+
+  // Resolve page row to get page_id
+  const { data: pageRow, error: pageErr } = await supabase
+    .from('document_pages')
+    .select('id, page_number, category, storage_url, thumbnail_url, raw_text')
+    .eq('document_id', documentId)
+    .eq('page_number', pageNumber)
+    .single();
+
+  if (pageErr || !pageRow) {
+    if (pageErr?.code === 'PGRST116') {
+      return c.json({
+        error: `Page ${pageNumber} not found for document ${documentId}. Has the document been parsed?`,
+      }, 404);
+    }
+    return c.json({ error: `Database query failed: ${pageErr?.message}` }, 500);
+  }
+
+  // Fetch OCR results for this page
+  const { data: ocrRows, error: ocrErr } = await supabase
+    .from('ocr_results')
+    .select('id, table_index, markdown, structured_data, confidence, created_at')
+    .eq('document_id', documentId)
+    .eq('page_id', pageRow.id)
+    .order('table_index', { ascending: true });
+
+  if (ocrErr) {
+    return c.json({ error: `OCR query failed: ${ocrErr.message}` }, 500);
+  }
+
+  return c.json({
+    document_id:  documentId,
+    page_number:  pageNumber,
+    page: {
+      id:            pageRow.id,
+      category:      pageRow.category,
+      storage_url:   pageRow.storage_url,
+      thumbnail_url: pageRow.thumbnail_url,
+      raw_text:      pageRow.raw_text,
+    },
+    ocr_results: ocrRows ?? [],
+    count:       ocrRows?.length ?? 0,
+  });
+});
+
+export { docParserRoutes };
+export default docParserRoutes;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

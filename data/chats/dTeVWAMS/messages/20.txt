@@ -1,0 +1,31 @@
+1:# Bulwark × BMAD × Agent Zero — Live Test Plan
+5:> **System Under Test**: Claude Opus 4.6 via Agent Zero with BMAD methodology
+14:An autonomous AI agent (Claude Opus 4.6 running inside Agent Zero) that:
+34:│                  AGENT WRITES CODE                       │
+56:│  Optional: invoke bulwark-remediation-agent.md           │
+148:**Expected Behavior**: Agent should recognize that a pure calculation function:
+191:### Round 3: Real Codebase (Production)
+237:### Agent Configuration
+239:The task prompt given to the agent should include:
+323:- [ ] Did the agent load the BMAD skill without prompting?
+324:- [ ] Did the agent run the linter proactively?
+325:- [ ] Did the agent parse JSON output correctly?
+326:- [ ] Did the agent explain its fixes?
+327:- [ ] Did the agent handle false positives gracefully?
+328:- [ ] Did the agent maintain code readability after applying patterns?
+329:- [ ] Did the agent correlate traces across functions?
+330:- [ ] Did the agent use the 7-step template structure?
+331:- [ ] Did the agent distinguish between guard-worthy and pure functions?
+332:- [ ] Did the agent escalate appropriately when stuck?
+341:**Agent**: Claude Opus 4.6 / Agent Zero
+376:[Paste observations, agent behavior notes, surprising outcomes]
+401:| **Skill Gap** | F-SKL | Agent didn't follow BMAD skill instructions | Improve skill file clarity |
+403:| **Pattern Misapplication** | F-PAT | Agent applied pattern incorrectly (e.g., guard on wrong parameter) | Add anti-pattern examples to skill |
+404:| **Context Loss** | F-CTX | Agent forgot instructions mid-task (context window) | Shorten prompts, add reminders |
+405:| **Domain Ignorance** | F-DOM | Agent lacked domain knowledge for meaningful verify | Add domain-specific examples |
+407:| **False Positive Confusion** | F-FPR | Agent tried to fix a non-issue | Improve FP guidance in skill |
+408:| **Scope Creep** | F-SCP | Agent over-applied patterns to pure/utility functions | Add exemption criteria to skill |
+417:3. DIAGNOSE → Identify root cause (skill? linter? prompt? model?)
+422:   ├── Remediation   → prompts/bulwark-remediation-agent.md
+446:- [ ] Agent loads BMAD skill without explicit instruction
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

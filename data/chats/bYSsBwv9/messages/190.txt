@@ -1,0 +1,46 @@
+total 12
+drwxrwxrwx 1 root root 4096 Mar 11 03:51 .
+drwxrwxrwx 1 root root 4096 Feb 19 04:53 ..
+-rwxrwxrwx 1 root root  512 Feb 17 02:18 index.html
+drwxr-xr-x 1 root root 4096 Mar 11 03:51 node_modules
+-rwxrwxrwx 1 root root  733 Feb 17 02:18 package.json
+-rwxrwxrwx 1 root root  105 Feb 17 02:18 postcss.config.js
+drwxrwxrwx 1 root root 4096 Feb 17 02:18 public
+-rw-r--r-- 1 root root 3484 Feb 21 23:47 README.md
+drwxrwxrwx 1 root root 4096 Feb 17 02:18 src
+-rwxrwxrwx 1 root root  206 Feb 17 02:18 tailwind.config.js
+-rwxrwxrwx 1 root root  665 Feb 17 02:18 tsconfig.json
+-rwxrwxrwx 1 root root  219 Feb 17 02:18 tsconfig.node.json
+-rwxrwxrwx 1 root root  301 Feb 17 02:18 vite.config.ts
+---
+{
+  "name": "material-admin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
+    "@repo/logger": "workspace:*",
+    "@repo/schemas": "workspace:*",
+    "@repo/ui": "workspace:*",
+    "@repo/utils": "workspace:*",
+    "@supabase/supabase-js": "^2.90.1",
+    "solid-js": "^1.8.0"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.18",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "latest",
+    "vite": "^5.0.0",
+    "vite-plugin-solid": "^2.8.0"
+  }
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

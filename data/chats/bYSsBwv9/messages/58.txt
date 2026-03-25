@@ -1,0 +1,10 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# root          22  0.0  4.4 3522460 733756 ?      Sl   Mar10   0:14 python /a0/run_tunnel.py --dockerized=true --port=80 --tunnel_api_port=55520 --host=0.0.0.0 --code_exec_docker_enabled=false --code_exec_ssh_enabled=true
+root        1301  0.0  0.7 1381720 125888 ?      Sl   Mar10   0:00 node /usr/local/bin/pnpm install --store-dir .pnpm-store/v3
+root        4155  0.0  0.6 1369884 111728 ?      Sl   00:08   0:00 node /usr/local/bin/pnpm install --store-dir .pnpm-store/v3
+root        4474  0.1  0.6 1369888 112112 ?      Sl   00:14   0:00 node /usr/local/bin/pnpm install
+root        5258  2.7  0.8 11901036 141704 ?     Sl   00:19   0:09 node node_modules/.bin/../vite/bin/vite.js --port 3004 --host 0.0.0.0
+root        5271  0.3  0.1 726516 19252 ?        Sl   00:19   0:01 /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@esbuild+linux-x64@0.21.5/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.21.5 --ping
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---ports---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# bash: ss: command not found
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---api test---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

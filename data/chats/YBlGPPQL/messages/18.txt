@@ -1,0 +1,81 @@
+
+======================================================================
+Bulwark AI — Service Manifest Pipeline (Test 2.3)
+Operation ID: af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3
+Manifest:     ./fixtures/services.json
+======================================================================
+
+2026-03-18 04:45:13 | INFO  | TRACE:pipeline:start | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Starting service manifest pipeline
+2026-03-18 04:45:13 | INFO  | TRACE:pipeline:start | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Starting service manifest pipeline
+2026-03-18 04:45:13 | INFO  | TRACE:guard_service:start:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Guarding service 'local_db' for run_pipeline
+2026-03-18 04:45:13 | INFO  | TRACE:guard_service:start:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Guarding service 'local_db' for run_pipeline
+2026-03-18 04:45:13 | DEBUG | TRACE:manifest:loaded | dict, keys=['defaults', 'services', 'version'], len=3, sample['version']=str, len=3
+2026-03-18 04:45:13 | INFO  | GUARD:SERVICE:run_pipeline | local_db — checking health (command: ./fixtures/health_db.sh)
+2026-03-18 04:45:13 | INFO  | GUARD:SERVICE:run_pipeline | local_db — checking health (command: ./fixtures/health_db.sh)
+2026-03-18 04:45:13 | WARNING | GUARD:SERVICE:run_pipeline | local_db — unavailable (severity=critical)
+2026-03-18 04:45:13 | WARNING | GUARD:SERVICE:run_pipeline | local_db — unavailable (severity=critical)
+2026-03-18 04:45:13 | INFO  | TRACE:service:unavailable:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | local_db is DOWN (severity=critical)
+2026-03-18 04:45:13 | INFO  | TRACE:service:unavailable:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | local_db is DOWN (severity=critical)
+2026-03-18 04:45:13 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 1/3: ./fixtures/recover_db.sh
+2026-03-18 04:45:13 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — attempt 1/3: ./fixtures/recover_db.sh
+2026-03-18 04:45:13 | INFO  | TRACE:service:recovery:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Attempt 1/3: ./fixtures/recover_db.sh (delay=0.5s)
+2026-03-18 04:45:13 | INFO  | TRACE:service:recovery:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Attempt 1/3: ./fixtures/recover_db.sh (delay=0.5s)
+2026-03-18 04:45:13 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=0, waiting 0.5s
+2026-03-18 04:45:13 | INFO  | GUARD:RECOVERY:run_pipeline | local_db — command exit=0, waiting 0.5s
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | local_db — recovered after 1 attempt(s) ✓
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | local_db — recovered after 1 attempt(s) ✓
+2026-03-18 04:45:14 | INFO  | TRACE:service:recovered:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | local_db recovered after 1 attempt(s)
+2026-03-18 04:45:14 | INFO  | TRACE:service:recovered:local_db | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | local_db recovered after 1 attempt(s)
+2026-03-18 04:45:14 | INFO  | TRACE:pipeline:db_checked | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | local_db status: healthy
+2026-03-18 04:45:14 | INFO  | TRACE:pipeline:db_checked | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | local_db status: healthy
+2026-03-18 04:45:14 | INFO  | TRACE:guard_service:start:cache | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Guarding service 'cache' for run_pipeline
+2026-03-18 04:45:14 | INFO  | TRACE:guard_service:start:cache | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Guarding service 'cache' for run_pipeline
+2026-03-18 04:45:14 | DEBUG | TRACE:manifest:loaded | dict, keys=['defaults', 'services', 'version'], len=3, sample['version']=str, len=3
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | cache — checking health (command: ./fixtures/health_cache.sh)
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | cache — checking health (command: ./fixtures/health_cache.sh)
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | cache — healthy ✓
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | cache — healthy ✓
+2026-03-18 04:45:14 | INFO  | TRACE:service:healthy:cache | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | cache is available
+2026-03-18 04:45:14 | INFO  | TRACE:service:healthy:cache | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | cache is available
+2026-03-18 04:45:14 | INFO  | TRACE:pipeline:cache_checked | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | cache status: healthy
+2026-03-18 04:45:14 | INFO  | TRACE:pipeline:cache_checked | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | cache status: healthy
+2026-03-18 04:45:14 | INFO  | TRACE:guard_service:start:metrics_collector | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Guarding service 'metrics_collector' for run_pipeline
+2026-03-18 04:45:14 | INFO  | TRACE:guard_service:start:metrics_collector | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Guarding service 'metrics_collector' for run_pipeline
+2026-03-18 04:45:14 | DEBUG | TRACE:manifest:loaded | dict, keys=['defaults', 'services', 'version'], len=3, sample['version']=str, len=3
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | metrics_collector — checking health (command: ./fixtures/health_metrics.sh)
+2026-03-18 04:45:14 | INFO  | GUARD:SERVICE:run_pipeline | metrics_collector — checking health (command: ./fixtures/health_metrics.sh)
+2026-03-18 04:45:14 | WARNING | GUARD:SERVICE:run_pipeline | metrics_collector — unavailable (severity=info)
+2026-03-18 04:45:14 | WARNING | GUARD:SERVICE:run_pipeline | metrics_collector — unavailable (severity=info)
+2026-03-18 04:45:14 | INFO  | TRACE:service:unavailable:metrics_collector | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | metrics_collector is DOWN (severity=info)
+2026-03-18 04:45:14 | INFO  | TRACE:service:unavailable:metrics_collector | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | metrics_collector is DOWN (severity=info)
+2026-03-18 04:45:14 | INFO  | TRACE:pipeline:complete | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Pipeline finished: status=completed
+2026-03-18 04:45:14 | INFO  | TRACE:pipeline:complete | op=af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3 | Pipeline finished: status=completed
+2026-03-18 04:45:14 | DEBUG | VERIFY:run_pipeline | OK — Pipeline status expected completed or completed_degraded, got 'completed'
+2026-03-18 04:45:14 | DEBUG | VERIFY:run_pipeline | OK — Pipeline result must include local_db service status
+2026-03-18 04:45:14 | DEBUG | TRACE:pipeline:result | dict, keys=['degraded', 'operation_id', 'pipeline_status', 'services'], len=4, sample['operation_id']=str, len=36
+
+======================================================================
+Pipeline Result:
+{
+  "operation_id": "af4f5258-55ca-4c0e-80d4-1e4b7b47dcb3",
+  "services": {
+    "local_db": {
+      "status": "healthy",
+      "severity": "critical"
+    },
+    "cache": {
+      "status": "healthy",
+      "severity": "warning"
+    },
+    "metrics_collector": {
+      "status": "unavailable",
+      "severity": "info",
+      "skipped": true
+    }
+  },
+  "pipeline_status": "completed",
+  "degraded": false
+}
+======================================================================
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

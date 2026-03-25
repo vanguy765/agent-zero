@@ -1,0 +1,15 @@
+=== ALL GITHUB URLS IN README ===
+258:curl -o bulwark.py https://raw.githubusercontent.com/bulwark-ai/bulwark-ai/main/reference/bulwark.py
+261:curl -o bulwark.ts https://raw.githubusercontent.com/bulwark-ai/bulwark-ai/main/reference/bulwark.ts
+287:- **GitHub Copilot** — Add to `.github/copilot-instructions.md`
+=== ALL RAW URLS IN README ===
+258:curl -o bulwark.py https://raw.githubusercontent.com/bulwark-ai/bulwark-ai/main/reference/bulwark.py
+261:curl -o bulwark.ts https://raw.githubusercontent.com/bulwark-ai/bulwark-ai/main/reference/bulwark.ts
+=== CHECK GIT HISTORY FOR SECRETS ===
+=== INTERNAL DOCS THAT MIGHT NEED EXCLUSION ===
+CONTINUATION_PROMPT.md - Contains secret placeholder reference
+ANNOUNCEMENT_KICKOFF.md - Launch planning doc
+MARKETING_SEEDS.md - Marketing strategy
+PROJECT_STATUS.md - Internal project status
+LIVE_TEST_PLAN.md - Test planning
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,21 @@
+16:import { deliveryRoute } from './routes/delivery';
+17:import { todosRoute } from './routes/todos';
+18:import { voiceRoute } from './routes/voice';
+19:import materials from './routes/materials';
+20:import taxonomyRoute from './routes/taxonomy';
+21:import projectDefinitionsRoute from './routes/project-definitions';
+22:import unitsRoute from './routes/units';
+23:import { workOrdersRoute } from './routes/work-orders';
+24:import { documentsRoute } from './routes/documents';
+25:import { a2aRoute } from './routes/a2a';
+26:import { tradesRoute } from './routes/trades';
+27:import { projectOutcomesRoute } from './routes/project-outcomes';
+28:import { typeOrdersRoute } from './routes/type-orders';
+29:import { bomActionRequestsRoute } from './routes/bom-action-requests';
+31:import { reviewsRoute } from './routes/reviews';
+32:import { entityCreationRoute } from './routes/entity-creation';
+33:import { onboardRoute } from './routes/onboard';
+34:import { docParserRoutes } from './routes/doc-parser-routes';
+39:app.use('*', logger());
+40:app.use('*', cors());
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

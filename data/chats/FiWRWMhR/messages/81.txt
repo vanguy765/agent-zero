@@ -1,0 +1,8 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > ✅ BLW001 patched
+✅ BLW002 patched
+✅ BLW003 patched
+✅ BLW004 patched
+✅ BLW005 patched
+
+All rules patched!
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

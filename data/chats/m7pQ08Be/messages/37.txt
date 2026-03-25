@@ -1,0 +1,104 @@
+### 5.2 Availability Guards
+
+So far, we've talked about Guards that check *data* — is it the right type? Does it have the right keys? But there's another kind of check that's useful in real-world applications: checking whether an external service is even *reachable* before you try to use it.
+
+These are called **Availability Guards**, and they're an extension to the core standard — useful, but not required for Bulwark compliance.
+
+#### The Restaurant Analogy
+
+Imagine you're planning to drive across town to eat at a specific restaurant. You have two options:
+
+1. **Check once before you leave:** Call the restaurant, confirm they're open, then drive there. If they're closed, you save yourself the trip.
+2. **Call before every bite:** Drive to the restaurant, sit down, and before every single bite of food, call the restaurant to ask "are you still open?" That would be absurd.
+
+Availability Guards work like option 1. You check *once* at startup — "Can I reach the database? Is the API endpoint responding? Is the cache server available?" — and then proceed with confidence. You don't check before every single operation; that's what regular Guards and error handling are for.
+
+#### When to Use Availability Guards
+
+- ✅ **At application startup** — before your app begins serving requests
+- ✅ **At pipeline initialization** — before a batch job starts processing
+- ✅ **After a connection failure** — when re-establishing connectivity
+- ❌ **Before every function call** — that's too expensive and defeats the purpose
+- ❌ **Inside hot loops** — never; use regular error handling instead
+
+#### Code Example
+
+**Python:**
+
+```python
+import requests
+
+def check_api_available(base_url, timeout=5):
+    """Availability Guard: verify the API is reachable before starting work."""
+    try:
+        response = requests.get(f"{base_url}/health", timeout=timeout)
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"GUARD:availability | {base_url}/health returned "
+                f"status {response.status_code}, expected 200"
+            )
+    except requests.exceptions.ConnectionError:
+        raise RuntimeError(
+            f"GUARD:availability | cannot reach {base_url} — "
+            f"is the service running?"
+        )
+    except requests.exceptions.Timeout:
+        raise RuntimeError(
+            f"GUARD:availability | {base_url} did not respond "
+            f"within {timeout}s — service may be overloaded"
+        )
+
+# Use at startup:
+check_api_available("https://api.example.com")
+check_db_available(db_connection_string)  # similar pattern for databases
+
+# Then proceed with your normal Bulwark-protected functions
+run_pipeline()
+```
+
+**TypeScript:**
+
+```typescript
+async function checkApiAvailable(baseUrl: string, timeoutMs = 5000): Promise<void> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const response = await fetch(`${baseUrl}/health`, {
+            signal: controller.signal
+        });
+        if (!response.ok) {
+            throw new Error(
+                `GUARD:availability | ${baseUrl}/health returned ` +
+                `status ${response.status}, expected 200`
+            );
+        }
+    } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+            throw new Error(
+                `GUARD:availability | ${baseUrl} did not respond ` +
+                `within ${timeoutMs}ms — service may be overloaded`
+            );
+        }
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+// Use at startup:
+await checkApiAvailable('https://api.example.com');
+```
+
+#### Why Availability Guards Are an Extension, Not Core
+
+The three core layers — Guard, Trace, Verify — share a key property: they can be added to *any* function without changing its signature, its callers, or its infrastructure. They're purely additive.
+
+Availability Guards are different. They're a *startup-time* concern, not a *per-function* concern. They require knowledge of your deployment topology (which services exist, where they live, what their health endpoints look like). Including them in the core would break the "add it to any function" simplicity that makes Bulwark easy to adopt.
+
+That said, they're extremely useful in practice. If your application depends on external services, adding Availability Guards at startup is a smart move — it turns "mysterious timeout after 30 seconds" into "clear error message at startup."
+
+---
+
+## 6. How to Add Bulwark to Your Project
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

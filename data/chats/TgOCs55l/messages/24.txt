@@ -1,0 +1,14 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# CLI script: OK
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# --- server.py: floorplan tuple ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# 371:            fp_url = None
+373:                fp_url = await upload_image_to_storage(
+378:            floorplan_images.append((page_no, pil_img, b64, fp_url))
+443:    for i, (page_no, pil_img, b64, fp_url) in enumerate(floorplan_images):
+469:            floorplan_data["image_url"] = fp_url
+480:                {"error": str(e), "image_url": fp_url}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# --- server.py: page render block ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# 416:                page_no=page_no, image_type="page_render",
+418:            pages_result[page_no]["page_image_url"] = page_url
+424:                page_no=page_no, image_type="page_thumbnail",
+426:            pages_result[page_no]["thumbnail_url"] = thumb_url
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

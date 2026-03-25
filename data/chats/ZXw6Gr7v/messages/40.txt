@@ -1,0 +1,15 @@
+Pages type: <class 'dict'>
+Pages keys (first 5): ['1', '2', '3', '4', '5']
+
+=== Page 1 keys ===
+['diagrams', 'elements_detected', 'floorplan_dia_urls', 'floorplan_urls', 'site_photos', 'tables', 'thumbnail_url']
+
+=== Page 1 data ===
+  diagrams: None/empty
+  elements_detected: [{'type': 'floorplan', 'pixel_bbox': [61, 54, 3360, 1951], 'bbox': [0.0179, 0.0245, 0.9882, 0.8868], 'label': 'floorplan (layout-derived, 3299x1897px)
+  floorplan_dia_urls: ['default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_floorplan_dia_0_page_1.png']
+  floorplan_urls: None/empty
+  site_photos: None/empty
+  tables: [{'markdown': '{"unit_number": "DUMMY-101", "unit_type": "1B1B", "floor": 1, "bedrooms": 1, "bathrooms": 1, "total_area_sf": 800, "rooms": [], "doors"
+  thumbnail_url: default/aefe59d7-f05e-45ce-a624-d199447a8894/doc-parser/job_896d53c0-769c-4550-ab5d-74fc797ca7ab_thumb_page_1.png
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

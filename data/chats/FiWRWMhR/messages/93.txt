@@ -1,0 +1,19 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# M  linter/bulwark_lint/languages.py
+M  linter/bulwark_lint/rules/blw001_guard_present.py
+M  linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+M  linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+M  linter/bulwark_lint/rules/blw004_no_bare_assert.py
+M  linter/bulwark_lint/rules/blw005_custom_error_types.py
+A  linter/bulwark_lint/text_utils.py
+M  linter/tests/test_rules.py
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#  linter/bulwark_lint/languages.py                   |  21 ++-
+ linter/bulwark_lint/rules/blw001_guard_present.py  |   4 +-
+ .../rules/blw002_verify_after_mutation.py          |  12 +-
+ .../bulwark_lint/rules/blw003_trace_at_boundary.py |   6 +-
+ linter/bulwark_lint/rules/blw004_no_bare_assert.py |   4 +-
+ .../rules/blw005_custom_error_types.py             |  14 +-
+ linter/bulwark_lint/text_utils.py                  | 161 +++++++++++++++++++++
+ linter/tests/test_rules.py                         |  48 +++++-
+ 8 files changed, 250 insertions(+), 20 deletions(-)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,14 @@
+(venv) root@d2d162d983f0:/tmp/esbuild-install# added 1 package, and audited 2 packages in 327ms
+
+found 0 vulnerabilities
+(venv) root@d2d162d983f0:/tmp/esbuild-install# -rwxr-xr-x 1 root root 11100344 Mar 13 21:44 node_modules/@esbuild/linux-x64/bin/esbuild
+BINARY FOUND
+(venv) root@d2d162d983f0:/tmp/esbuild-install# 181:          storage_url:   pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+562:          storage_url:   pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+703:    .select('id, document_id, page_number, storage_url, thumbnail_url, category, raw_text, created_at, updated_at')
+732:// Returns storage_url, thumbnail_url, category, raw_text,
+933:    .select('page_number, category, thumbnail_url, storage_url')
+960:      storage_url:   p.storage_url,
+986:    .select('id, page_number, category, storage_url, thumbnail_url, raw_text')
+1018:      storage_url:   pageRow.storage_url,
+(venv) root@d2d162d983f0:/tmp/esbuild-install#

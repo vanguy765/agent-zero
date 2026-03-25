@@ -1,0 +1,818 @@
+# Bulwark AI — Architecture Decision Records
+
+> **Purpose**: This document captures every significant design decision made during
+> the development of Bulwark AI, including the context, alternatives considered,
+> and rationale for each choice. It exists to prevent re-debating settled questions
+> and to give any new contributor (human or AI) the full reasoning chain.
+>
+> **Format**: Each decision follows the ADR (Architecture Decision Record) pattern:
+> Context → Decision → Alternatives → Rationale → Consequences
+
+---
+
+## Table of Contents
+
+1. [ADR-001: Project Name](#adr-001-project-name)
+2. [ADR-002: Three-Layer Architecture](#adr-002-three-layer-architecture)
+3. [ADR-003: Zero-Dependency Philosophy](#adr-003-zero-dependency-philosophy)
+4. [ADR-004: Convention Over Library](#adr-004-convention-over-library)
+5. [ADR-005: Custom Exception Types](#adr-005-custom-exception-types)
+6. [ADR-006: Guards Always Active](#adr-006-guards-always-active)
+7. [ADR-007: Trace Configurability](#adr-007-trace-configurability)
+8. [ADR-008: Verify Throughput-Adaptive Strategies](#adr-008-verify-throughput-adaptive-strategies)
+9. [ADR-009: Availability Guards at Startup Only](#adr-009-availability-guards-at-startup-only)
+10. [ADR-010: Recovery as Optional Bounded Extension](#adr-010-recovery-as-optional-bounded-extension)
+11. [ADR-011: Idempotency Guards Deferred](#adr-011-idempotency-guards-deferred)
+12. [ADR-012: Availability Guards Prioritized Over Idempotency](#adr-012-availability-guards-prioritized-over-idempotency)
+13. [ADR-013: Runtime Cost Hierarchy](#adr-013-runtime-cost-hierarchy)
+14. [ADR-014: Pipeline as Extension Not Core](#adr-014-pipeline-as-extension-not-core)
+15. [ADR-015: Diagnostic Message Format](#adr-015-diagnostic-message-format)
+16. [ADR-016: Language Target Priority](#adr-016-language-target-priority)
+17. [ADR-017: Self-Testing Reference Implementations](#adr-017-self-testing-reference-implementations)
+18. [ADR-018: Three-Tier Documentation Structure](#adr-018-three-tier-documentation-structure)
+19. [ADR-019: BMAD Integration as Skill](#adr-019-bmad-integration-as-skill)
+20. [ADR-020: Launch Strategy](#adr-020-launch-strategy)
+21. [ADR-021: Linter Architecture](#adr-021-linter-architecture)
+22. [ADR-022: Configuration System Design](#adr-022-configuration-system-design)
+
+---
+
+## ADR-001: Project Name
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+The project needed a name that communicated defensive purpose, was memorable,
+searchable, and available as a GitHub namespace. Two finalists emerged:
+`assert-ai` and `bulwark-ai`.
+
+### Decision
+**`bulwark-ai`** was selected.
+
+### Alternatives Considered
+| Name | Pros | Cons |
+|------|------|------|
+| `assert-ai` | Familiar to developers, implies validation | Narrow semantic scope (assertions are just one pattern), poor SEO ("assert" is a language keyword with millions of results), suggests testing rather than defense |
+| `bulwark-ai` | Strong defensive narrative, broader semantic scope, better searchability, evokes protection/fortification | Less immediately technical, requires brief explanation |
+
+### Rationale
+"Bulwark" better represents the mission across all three layers. An assertion
+is a single check; a bulwark is a defensive structure. The name scales with
+the project's ambition — from simple guards to a complete defensive membrane.
+The word carries connotations of strength, protection, and deliberate
+fortification that align with the project's identity.
+
+### Consequences
+- Tagline established: "The defensive membrane for AI-generated code"
+- Identity system uses shield/fortification metaphors throughout documentation
+- The name naturally extends to sub-concepts: "Bulwark Guard", "Bulwark Trace", etc.
+
+---
+
+## ADR-002: Three-Layer Architecture
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+AI-generated code fails in three distinct ways that traditional error handling
+misses: (1) data arrives with wrong shape/type but passes type checks,
+(2) data flows through transformations invisibly with no structural logging,
+(3) side effects (DB writes, API calls) are assumed to succeed without
+confirmation. A defensive framework needs to address all three failure modes.
+
+### Decision
+Three layers mapping to the data lifecycle:
+- **Guard** → Input validation (data entry point)
+- **Trace** → Flow visibility (data in transit)
+- **Verify** → Output confirmation (data at rest / side effects)
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Two layers (validate + confirm) | Misses the visibility gap — you can validate inputs and confirm outputs but still have no idea what happened in between |
+| Four layers (adding "Transform") | Over-engineering — transformation logic is the developer's domain, not the defensive framework's. Adding a transform layer would make Bulwark opinionated about business logic |
+| Single layer (universal assert) | Too primitive — a single `assert` function can't distinguish between input validation, structural logging, and side-effect confirmation. Different failure modes need different responses |
+| Aspect-oriented / decorator-only | Too language-specific, too magical, harder to understand and debug |
+
+### Rationale
+The three layers map cleanly to a universal data lifecycle pattern:
+1. Data enters a function → **Guard** it
+2. Data flows through processing → **Trace** its shape
+3. Data causes external effects → **Verify** the effects
+
+This trichotomy is exhaustive (every operation on data falls into one of these
+categories) and minimal (removing any layer leaves a gap). It also maps to
+familiar analogies: bouncers (Guard), security cameras (Trace), receipt
+checkers (Verify).
+
+### Consequences
+- Every function interacting with external data should have all three layers
+- The layers are independent — you can adopt Guard without Trace or Verify
+- Documentation and tooling organized around the three-layer model
+- The checklist validates presence of each layer independently
+
+---
+
+## ADR-003: Zero-Dependency Philosophy
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+Adoption friction is the primary barrier for any new coding standard.
+Developers resist adding dependencies, especially for patterns that feel
+like they "should be simple." Package managers introduce version conflicts,
+security audit requirements, and organizational approval processes.
+
+### Decision
+Bulwark reference implementations use **zero external dependencies**.
+Only standard library features are permitted.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Published npm/pip package | Adds dependency management overhead, version pinning, security scanning. Creates a barrier where none should exist |
+| Framework plugin (pytest plugin, ESLint plugin) | Ties Bulwark to specific toolchains, excludes developers using other tools |
+| Monorepo with shared utilities | Organizational complexity for what should be a single-file solution |
+
+### Rationale
+The adoption path must be: **copy one file, start using it**. No `pip install`,
+no `npm install`, no package.json modifications, no lockfile updates, no
+security review of a new dependency. This is especially critical for
+AI-generated code, where the AI should be able to emit Bulwark patterns
+inline without requiring the user to install anything.
+
+The standard library of any modern language provides everything Bulwark needs:
+type checking, string formatting, logging, and exception handling.
+
+### Consequences
+- Reference implementations are single files (~400-600 lines each)
+- No build step required (except TypeScript → JavaScript compilation)
+- Cannot use advanced logging frameworks, assertion libraries, or testing utilities
+- Each language implementation must be self-contained
+- Updates require file replacement rather than version bumping
+
+---
+
+## ADR-004: Convention Over Library
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+Bulwark could be distributed as a library (importable package) or as a
+standard (documented conventions with optional reference implementations).
+
+### Decision
+Bulwark is a **standard/convention**, not a library. The SPEC.md document
+is the authoritative artifact. Reference implementations are conveniences
+that demonstrate the standard but are not required.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Library-first (package with API) | Libraries die when maintainers leave. Standards outlive implementations. A library also implies a specific API that may not fit every codebase |
+| Framework (opinionated structure) | Too invasive — requires restructuring existing code to fit the framework's patterns |
+
+### Rationale
+A developer who understands the Bulwark convention can implement it in any
+language, including ones without a reference implementation. The convention
+is simple enough to hold in your head:
+
+1. Validate inputs at function entry (Guard)
+2. Log data shapes at phase boundaries (Trace)
+3. Confirm side effects after mutations (Verify)
+
+If the reference implementation disappears tomorrow, the standard survives.
+This is the same philosophy behind REST (a convention, not a library) and
+12-Factor Apps (a standard, not a framework).
+
+### Consequences
+- SPEC.md is the source of truth, not any code file
+- Reference implementations may diverge in API details while conforming to the spec
+- Developers can write their own implementations without importing anything
+- AI coding assistants can emit Bulwark-compliant code without referencing a library
+
+---
+
+## ADR-005: Custom Exception Types
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+When a Guard or Verify check fails, the framework needs to raise an exception.
+The obvious choice is the language's built-in assertion error (`AssertionError`
+in Python, `Error` in JavaScript). However, test frameworks universally catch
+`AssertionError` as "test failure" rather than "application error."
+
+### Decision
+Bulwark defines custom exception types:
+- **`GuardError`** — raised when input validation fails
+- **`VerifyError`** — raised when side-effect confirmation fails
+
+Neither inherits from `AssertionError` (Python) or uses the `assert` keyword.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Use `AssertionError` | Test frameworks (pytest, Jest) catch these and report them as test failures rather than application errors. A Guard failure in production would be misclassified |
+| Use generic `RuntimeError`/`Error` | Too broad — caught by generic `except Exception` handlers, masking Bulwark failures behind catch-all error handling |
+| Return error codes instead of exceptions | Requires callers to check return values — the exact pattern AI-generated code fails to do |
+
+### Rationale
+Custom exception types serve two purposes:
+1. **Diagnostic clarity**: A `GuardError` in logs immediately tells you an input
+   validation failed, distinct from any other error type
+2. **Catch isolation**: `GuardError` and `VerifyError` are never accidentally
+   caught by `except Exception` patterns in test frameworks or generic error
+   handlers (unless explicitly caught)
+
+This ensures Bulwark failures are always visible and never silently swallowed.
+
+### Consequences
+- Developers must import or define `GuardError`/`VerifyError` types
+- Error handling code that catches `Exception` broadly will still catch these
+  (this is acceptable — the diagnostic message makes the source clear)
+- Test frameworks won't misclassify Bulwark failures as assertion failures
+
+---
+
+## ADR-006: Guards Always Active
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+A configuration system was introduced in v0.2.0 allowing different behavior
+in development, staging, and production. The question arose: should Guards
+be disableable in production for performance?
+
+### Decision
+**Guards are always active in all environments.** The `guards_enabled`
+configuration option exists but defaults to `true` and disabling it is
+strongly discouraged.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Disable guards in production | Guards are the primary defense against silent data corruption. Disabling them in the environment where data matters most defeats the purpose |
+| Make guards configurable per-function | Over-engineering — adds complexity for negligible performance benefit |
+| Compile-time guard removal (like C asserts) | Bulwark targets interpreted languages primarily; compile-time removal isn't universally available |
+
+### Rationale
+Guard operations are O(1) with nanosecond-scale cost:
+- Type check: ~50ns
+- Key presence check: ~100ns
+- Range comparison: ~20ns
+- Non-emptiness check: ~30ns
+
+Even at 100,000 function calls per second, Guards add less than 10ms of
+total overhead. The cost of a silent data mismatch reaching production
+(corrupted database, wrong API response, incorrect calculation) vastly
+exceeds any performance benefit from disabling Guards.
+
+**Guards are like seatbelts — you don't take them off because you're on
+the highway.**
+
+### Consequences
+- Configuration system includes `guards_enabled` for completeness but documentation
+  strongly warns against disabling
+- No performance-based argument for disabling Guards is accepted
+- Guards are the one layer that is truly "always on"
+
+---
+
+## ADR-007: Trace Configurability
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+Trace operations log structural information about data flowing through
+functions. While individually cheap (microseconds), high-volume systems
+may generate excessive log volume.
+
+### Decision
+Traces are configurable via standard log levels:
+- **Development**: `DEBUG` level (all traces visible)
+- **Staging**: `INFO` level (important traces visible)
+- **Production**: `WARNING`+ level (only anomalous traces visible)
+
+### Rationale
+This leverages existing logging infrastructure rather than inventing a new
+configuration mechanism. Every language has a logging framework with level
+filtering. Traces naturally map to `DEBUG`/`INFO` levels — they're
+informational, not actionable.
+
+The key insight: Traces have **zero runtime cost when filtered**. A log
+statement at `DEBUG` level in a production system configured for `WARNING`
+is a no-op after the level check (a single integer comparison).
+
+### Consequences
+- Trace output volume is controlled by existing logging configuration
+- No Bulwark-specific configuration needed for trace filtering
+- Developers can selectively enable traces for debugging without code changes
+
+---
+
+## ADR-008: Verify Throughput-Adaptive Strategies
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+Verify operations confirm side effects (e.g., reading back a database write).
+Unlike Guards and Traces, Verifies have **variable and potentially significant
+cost** — a database read-back might take 5-50ms. In high-throughput systems
+processing thousands of operations per second, verifying every operation is
+prohibitive.
+
+### Decision
+Three verification strategies:
+1. **Full**: Verify every operation (development, low-throughput production)
+2. **Sampled**: Verify a random percentage of operations (configurable rate)
+3. **Adaptive**: Automatically adjust verification rate based on throughput
+
+Additionally, a `critical=True` flag on individual verify() calls forces
+verification regardless of strategy.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Always verify everything | Impractical at scale — a system processing 10,000 DB writes/second can't read back every one |
+| Never verify in production | Defeats the purpose — production is where verification matters most |
+| Verify only on error | Errors are often silent (wrong data written successfully) — you can't trigger verification on an error you don't know about |
+
+### Rationale
+Sampling provides statistical confidence without linear cost scaling.
+At 10% sampling rate with 10,000 ops/second, you verify 1,000 ops/second —
+enough to detect systematic failures within seconds while adding only 10%
+of the full verification overhead.
+
+The `critical=True` flag ensures that high-value operations (financial
+transactions, security-sensitive writes) are always verified regardless
+of the global strategy.
+
+### Consequences
+- Configuration system must support strategy selection and sample rate
+- Individual verify() calls can override the global strategy
+- Monitoring should track verification rate and failure rate independently
+- Adaptive strategy requires throughput measurement (adds minor complexity)
+
+---
+
+## ADR-009: Availability Guards at Startup Only
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+Availability Guards check that external dependencies (databases, APIs,
+file systems) are reachable. The question: should these run at startup,
+per-request, or on a schedule?
+
+### Decision
+**Availability Guards run at application startup only**, not per-call.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Per-call availability checks | Adds 10-500ms latency to every request. A health check to a database before every query doubles query time |
+| Periodic background checks | Adds complexity (background threads, state management) beyond Bulwark's scope. This is the domain of health check frameworks and service meshes |
+| No availability checks | Leaves a gap — the application starts, assumes dependencies exist, and fails cryptically when they don't |
+
+### Rationale
+Startup is the optimal time for availability checks because:
+1. **One-time cost**: A 500ms health check at startup is invisible; at per-request it's catastrophic
+2. **Fail-fast**: If a dependency is missing at startup, the application fails immediately with a clear error rather than failing on the first request with a cryptic connection error
+3. **Deployment validation**: Availability Guards at startup validate that the deployment environment is correctly configured
+
+For runtime dependency monitoring, use dedicated health check endpoints
+and circuit breakers — these are infrastructure concerns, not defensive
+coding concerns.
+
+### Consequences
+- Availability Guards are called once during application initialization
+- They do not protect against runtime dependency failures (that's what circuit breakers are for)
+- Recovery (ADR-010) makes startup checks more robust by attempting to fix failures
+
+---
+
+## ADR-010: Recovery as Optional Bounded Extension
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+When an Availability Guard detects a missing dependency, the default behavior
+is to fail loudly. However, many failures are recoverable — a stopped service
+can be restarted, a missing directory can be created, a stale cache can be
+flushed. Users reported frequently running manual recovery scripts after
+Availability Guard failures.
+
+### Decision
+Extend `guard_available()` with optional recovery parameters:
+- `recovery_command`: Shell command to execute on failure
+- `max_retries`: Maximum recovery attempts (default: 3)
+- `retry_delay`: Initial delay between retries in seconds (default: 5)
+- `backoff_multiplier`: Exponential backoff factor (default: 2.0)
+
+Recovery is **optional** — omitting `recovery_command` preserves original
+behavior (detect and fail).
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Always require recovery | Not all failures are recoverable. Forcing a recovery command adds friction for simple "is it there?" checks |
+| Unlimited retries | Runaway recovery loops could cause cascading failures. Bounded retries with backoff are safer |
+| Recovery as separate function | Separating detection from recovery breaks the natural workflow: check → fix → recheck. Combining them in one call is more ergonomic |
+| Plugin/callback recovery | Over-engineering for v1.0. Shell commands cover 90% of recovery scenarios (restart service, create directory, flush cache) |
+
+### Rationale
+The recovery pattern transforms Availability Guards from passive detection
+into active self-healing:
+
+```
+Detect failure → Execute recovery → Wait with backoff → Recheck → Succeed or fail loudly
+```
+
+This is especially valuable for AI agent systems that operate autonomously —
+they can recover from transient failures without human intervention.
+
+Bounding retries prevents infinite loops. Exponential backoff prevents
+thundering herd problems. Full logging ensures recovery attempts are
+visible for debugging.
+
+### Consequences
+- `guard_available()` signature grows but remains backward-compatible
+- Recovery commands execute via shell — security implications must be documented
+- All recovery attempts are logged with timestamps and outcomes
+- Failed recovery (retries exhausted) still raises `GuardError` with full context
+
+---
+
+## ADR-011: Idempotency Guards Deferred
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Deferred to post-v1.0
+
+### Context
+Idempotency guards ensure that repeated execution of the same operation
+produces the same result. This is valuable for AI-generated code that may
+retry operations or process duplicate events. The question: should
+idempotency be part of the initial Bulwark release?
+
+### Decision
+**Idempotency guards are deferred to post-v1.0.**
+
+### Rationale
+Idempotency guards are fundamentally different from the other Bulwark layers
+because they are **invasive rather than additive**:
+
+| Property | Guard/Trace/Verify | Idempotency |
+|----------|-------------------|-------------|
+| Function signature | Unchanged | Must add idempotency key parameter |
+| Caller changes | None | Must generate and pass idempotency keys |
+| State requirements | Stateless | Requires persistent storage for seen keys |
+| Infrastructure | None | Needs Redis/DB/file for key storage |
+| Adoption effort | Add 1-3 lines inside function | Restructure function interface + callers + add storage |
+
+The core Bulwark value proposition is **trivial adoption**: add a few lines
+inside your functions, change nothing else. Idempotency breaks this promise
+by requiring architectural changes.
+
+### Consequences
+- v1.0 ships without idempotency guards
+- The concept is documented as a future direction in SPEC.md
+- When implemented, it will likely be a separate extension module
+- Developers needing idempotency today can implement it using standard patterns
+
+---
+
+## ADR-012: Availability Guards Prioritized Over Idempotency
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+Both Availability Guards and Idempotency Guards were proposed as extensions
+to the core three-layer framework. Limited development bandwidth required
+prioritization.
+
+### Decision
+**Availability Guards were implemented first.**
+
+### Rationale
+1. **Additive adoption**: Availability Guards follow the same additive pattern
+   as core Bulwark — add a call at startup, change nothing else
+2. **Universal applicability**: Every application has external dependencies;
+   not every application needs idempotency
+3. **Immediate value**: Availability Guards catch the most common deployment
+   failure (misconfigured environment) with the least effort
+4. **Natural extension**: Availability Guards extend the Guard layer naturally;
+   idempotency would require a new conceptual layer
+
+---
+
+## ADR-013: Runtime Cost Hierarchy
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+Different Bulwark layers have vastly different runtime costs. The configuration
+system needed to reflect this reality.
+
+### Decision
+Established cost hierarchy informing always-on vs. configurable behavior:
+
+```
+Guards (nanoseconds, O(1))     → Always active
+Traces (microseconds, O(1))    → Configurable via log level
+Verifies (milliseconds, O(1+)) → Configurable via strategy
+Availability (seconds, O(1))   → Startup only
+```
+
+### Rationale
+The hierarchy creates a natural configuration gradient:
+- **Negligible cost** → always on (Guards)
+- **Low cost** → filter by importance (Traces)
+- **Variable cost** → sample by throughput (Verifies)
+- **High cost** → run once (Availability)
+
+This means developers never need to make a "safety vs. performance" trade-off
+for Guards — the answer is always "keep them on." The trade-off only applies
+to Verifies in high-throughput scenarios.
+
+---
+
+## ADR-014: Pipeline as Extension Not Core
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+The `BulwarkPipeline` class provides multi-stage data processing with
+automatic Guard/Trace at each stage boundary. Should this be part of the
+core specification or an extension?
+
+### Decision
+**Pipeline is an extension**, not part of the core SPEC.md requirements.
+
+### Rationale
+The core Bulwark specification defines primitive operations (guard, trace,
+verify). The Pipeline is a composition pattern built from these primitives.
+Including it in the core spec would:
+1. Increase the minimum implementation surface for new language ports
+2. Impose an opinionated data processing pattern on users
+3. Blur the line between "defensive standard" and "application framework"
+
+The Pipeline demonstrates how Bulwark primitives compose but is not required
+for Bulwark compliance.
+
+---
+
+## ADR-015: Diagnostic Message Format
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+Bulwark errors and traces need a consistent, parseable message format
+that identifies the layer, function, and specific failure.
+
+### Decision
+Standard format: `<LAYER>:<function_name> | <details>`
+
+Examples:
+```
+GUARD:process_order | Missing required keys: ['customer_id', 'total']
+TRACE:transform_data | dict(3 keys: name,age,email)
+VERIFY:save_record | Expected 1 row inserted, got 0
+```
+
+### Rationale
+- **Parseable**: Log aggregation tools can filter by layer or function name
+- **Grep-friendly**: `grep "GUARD:" logs.txt` finds all guard failures
+- **Self-documenting**: The message tells you what failed, where, and why
+- **Consistent**: Same format across all languages and implementations
+
+---
+
+## ADR-016: Language Target Priority
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+Bulwark is language-agnostic by design, but reference implementations
+require prioritization.
+
+### Decision
+**Tier 1** (full reference implementation + tests): Python, TypeScript 
+**Tier 2** (planned): Go, Bash 
+**Tier 3** (community): All other languages
+
+### Rationale
+- **Python**: Most common language for AI-generated code, data pipelines,
+  and scripting. Primary audience for Bulwark.
+- **TypeScript**: Second most common for AI-generated code, covers the
+  web/Node.js ecosystem. Type system provides additional safety.
+- **Go**: Strong in infrastructure/DevOps where Bulwark's availability
+  guards are most valuable. Planned for post-launch.
+- **Bash**: Shell scripts are a common source of silent failures.
+  Planned for post-launch.
+
+---
+
+## ADR-017: Self-Testing Reference Implementations
+
+**Date**: 2026-03 (v0.1.0) 
+**Status**: Accepted
+
+### Context
+Reference implementations need tests. Should tests be in separate files
+or embedded in the implementation file?
+
+### Decision
+**Tests are embedded in the reference implementation files.** Running
+`python bulwark.py` or `node bulwark.js` executes all tests.
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Separate test files | Adds file management complexity, requires test runner configuration, breaks the "single file" promise |
+| No tests | Unacceptable for a defensive coding standard |
+| External test framework | Contradicts zero-dependency philosophy |
+
+### Rationale
+Embedded tests reinforce the zero-dependency philosophy. A developer can
+verify the implementation works by running a single command with no setup.
+The tests also serve as executable documentation — reading the test section
+shows exactly how each function is intended to be used.
+
+### Consequences
+- Reference files are larger (~400-600 lines including tests)
+- Tests use simple assert patterns rather than framework features
+- Test output is human-readable with pass/fail counts
+- 36 tests currently passing in both Python and TypeScript
+
+---
+
+## ADR-018: Three-Tier Documentation Structure
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+The project needs documentation serving three distinct audiences:
+browsers (quick evaluation), learners (understanding), and implementers
+(precise specification).
+
+### Decision
+Three-tier structure:
+1. **README.md** (~200 lines) — Landing page. Quick overview, code examples,
+   FAQ. Answers "what is this and should I care?"
+2. **GUIDE.md** (~1,570 lines) — Companion guide. Analogies, walkthroughs,
+   step-by-step examples. Answers "how do I use this and why?"
+3. **SPEC.md** (~900 lines) — Formal specification. Requirements, data types,
+   error conditions. Answers "what exactly must my implementation do?"
+
+### Rationale
+Each tier serves a different reading mode:
+- **README**: 30-second scan → "this looks useful, I'll try it"
+- **GUIDE**: 20-minute read → "I understand the philosophy and can apply it"
+- **SPEC**: Reference lookup → "what are the exact requirements for verify()?"
+
+Combining these into a single document would make it too long for browsers
+and too informal for implementers.
+
+---
+
+## ADR-019: BMAD Integration as Skill
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Planned
+
+### Context
+The BMAD (Breakthrough Method for Agile AI-Driven Development) framework
+uses agent roles and skills. Bulwark could integrate as a core requirement
+or as an optional skill.
+
+### Decision
+Bulwark integrates as a **skill** in `.bmad/skills/`, not a core requirement.
+
+### Rationale
+- Skills are opt-in, matching Bulwark's additive philosophy
+- The Developer agent and QA agent can both reference the Bulwark skill
+- Skill format allows including the checklist and system prompt
+- Doesn't require BMAD framework modifications
+
+---
+
+## ADR-020: Launch Strategy
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Planned
+
+### Context
+The project creator has no existing social media presence or developer
+following. Launch strategy must rely on content quality and platform
+algorithms rather than existing audience.
+
+### Decision
+Phased launch targeting high-signal platforms:
+1. **GitHub**: Optimized README, proper topics/tags, LICENSE (MIT)
+2. **Hacker News**: "Show HN" post emphasizing the problem (AI code fails silently)
+3. **dev.to / Hashnode**: Long-form article with real-world examples
+4. **Reddit**: r/programming, r/Python, r/typescript posts
+
+### Rationale
+- Hacker News rewards novel ideas over follower counts
+- GitHub discoverability comes from README quality and topic tags
+- dev.to/Hashnode articles provide SEO-friendly long-form content
+- Reddit communities evaluate content on merit
+
+---
+
+## ADR-021: Linter Architecture
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Planned (not yet implemented)
+
+### Context
+Manual compliance checking doesn't scale. A linter that scans source files
+for Bulwark pattern presence would accelerate adoption.
+
+### Decision
+YAML-configured static analysis tool that checks:
+- Functions receiving external data have Guards
+- Phase boundaries have Traces
+- Side-effect operations have Verifies
+- Startup code has Availability Guards for external dependencies
+
+### Design Notes
+- Configuration via `.bulwark.yml` in project root
+- Severity levels: error, warning, info
+- Exclude patterns for test files, generated code
+- Output formats: terminal, JSON, SARIF (for CI integration)
+- **Not yet implemented** — YAML config was drafted in conversation but
+  no code exists
+
+---
+
+## ADR-022: Configuration System Design
+
+**Date**: 2026-03 (v0.2.0-draft) 
+**Status**: Accepted
+
+### Context
+Different environments (development, staging, production) need different
+Bulwark behavior — primarily affecting trace verbosity and verify strategy.
+
+### Decision
+Single `configure()` function with named modes and individual overrides:
+
+```python
+configure(
+    mode="production",        # Preset: development|staging|production
+    guards_enabled=True,      # Override: always True recommended
+    trace_level="WARNING",    # Override: log level for traces
+    verify_strategy="sampled", # Override: full|sampled|adaptive
+    verify_sample_rate=0.1    # Override: sampling percentage
+)
+```
+
+### Alternatives Considered
+| Approach | Why Rejected |
+|----------|-------------|
+| Environment variables only | Not programmatically controllable, hard to test |
+| Config file (YAML/JSON) | Adds file management, parsing dependency |
+| Per-function configuration | Over-engineering, inconsistent behavior |
+| No configuration | One-size-fits-all doesn't work across dev/staging/prod |
+
+### Rationale
+A single function call with sensible presets covers 90% of use cases.
+Individual parameter overrides handle the remaining 10%. The function
+can be called once at application startup, keeping configuration
+centralized and predictable.
+
+Environment variable support (`BULWARK_MODE`) is recommended in documentation
+but not enforced — the configure() function is the primary interface.
+
+---
+
+## Version History
+
+| Version | Date | Key Decisions |
+|---------|------|---------------|
+| v0.1.0 | 2026-03 | ADR-001 through ADR-005, ADR-014 through ADR-017 |
+| v0.2.0-draft | 2026-03 | ADR-006 through ADR-013, ADR-018 through ADR-022 |
+
+---
+
+*This document is maintained alongside the Bulwark AI specification.
+New decisions should be appended with the next sequential ADR number.*

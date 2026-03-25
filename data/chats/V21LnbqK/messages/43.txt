@@ -1,0 +1,7 @@
+Upload: UploadResponse(path='test-tenant/test-project/doc-parser/mime_verify.png', full_path='project-documents/test-tenant/test-project/doc-parser/mime_verify.png', fullPath='project-documents/test-tenant/test-project/doc-parser/mime_verify.png')
+Traceback (most recent call last):
+  File "<string>", line 23, in <module>
+    print(f'Content-Type: {r.headers.get(content-type)}')
+                                         ^^^^^^^
+NameError: name 'content' is not defined
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,294 @@
+---
+description: Parse Architectural PDFs into structured JSON and persist to Supabase
+---
+# Document Parser Workflow
+
+This workflow processes architectural PDF documents to extract floorplans, tables, and site photos,
+perform AI-based structural analysis, and persist results to Supabase.
+
+Two approaches are available — choose based on your context:
+
+| Approach | Best for | Blocks caller? |
+|---|---|---|
+| **HTTP Pipeline** (`POST /api/doc-parser/pipeline`) | Other AIs, frontends, automation | Yes (polls internally) |
+| **Python CLI** (`parse_document_pipeline.py`) | Local dev, debugging, scripting | Yes |
+| **HTTP Proxy** (`POST /api/doc-parser/parse`) | Custom polling loops | No (returns job_id) |
+
+---
+
+## Prerequisites (all approaches)
+
+- Supabase running — `supabase start` on Windows
+- doc-parser container running — `docker compose up -d` in `doc-parser/` on Windows
+- Migration `20260312000001_document_pages_ocr.sql` applied
+- PDF already uploaded to `project-documents` storage bucket and recorded in `project_documents` table
+
+---
+
+
+## Approach 1 — Full Document Pipeline
+
+Handles the full pipeline internally: submit → poll → persist → return summary. Blocks until complete.
+
+```
+POST http://localhost:3000/api/doc-parser/pipeline
+Content-Type: application/json
+```
+
+```json
+{
+  "document_id": "<uuid from project_documents>",
+  "engine": "hybrid",
+  "poll_interval_ms": 3000,
+  "timeout_ms": 600000
+}
+```
+
+| Field | Required | Default | Notes |
+|---|---|---|---|
+| `document_id` | Yes | — | UUID from `project_documents` table |
+| `engine` | No | `hybrid` | `docling` or `hybrid` |
+| `poll_interval_ms` | No | `3000` | How often to poll doc-parser internally |
+| `timeout_ms` | No | `600000` | 10 min max wait before 504 |
+| `tenant_name` | No | — | Passed to doc-parser for storage namespacing |
+| `project_name` | No | `document_id` | Passed to doc-parser |
+
+```bash
+curl -X POST http://localhost:3000/api/doc-parser/pipeline \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<uuid>", "engine": "hybrid"}'
+```
+
+**Response:**
+```json
+{
+  "document_id": "<uuid>",
+  "job_id": "<doc-parser job id>",
+  "engine": "hybrid",
+  "status": "completed",
+  "pages_persisted": 12,
+  "ocr_tables_persisted": 4,
+  "summary": { "pages_count": 12, "floorplans_count": 3, "tables_count": 4 },
+  "poll_url": "/api/doc-parser/status/<job_id>",
+  "results_url": "/api/doc-parser/results/<job_id>"
+}
+```
+
+---
+
+## Approach 2 — Single-Page Pipeline
+
+Extract page N from the PDF using `pdf-lib`, parse only that page, upsert into `document_pages`.
+Useful for re-processing a specific page, previewing, or targeted extraction without re-running the whole document.
+
+> **Requires:** `pdf-lib` — run `pnpm install` on Windows after the `apps/api/package.json` change.
+
+```
+POST http://localhost:3000/api/doc-parser/pipeline/page
+Content-Type: application/json
+```
+
+```json
+{
+  "document_id": "<uuid>",
+  "page_number": 8,
+  "engine": "hybrid",
+  "timeout_ms": 120000
+}
+```
+
+| Field | Required | Default | Notes |
+|---|---|---|---|
+| `document_id` | Yes | — | UUID from `project_documents` table |
+| `page_number` | Yes | — | **1-indexed** page number |
+| `engine` | No | `hybrid` | `docling` or `hybrid` |
+| `poll_interval_ms` | No | `3000` | Internal poll interval |
+| `timeout_ms` | No | `120000` | 2 min default (single page is fast) |
+
+```bash
+curl -X POST http://localhost:3000/api/doc-parser/pipeline/page \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<uuid>", "page_number": 8, "engine": "hybrid"}'
+```
+
+**Response:**
+```json
+{
+  "document_id": "<uuid>",
+  "job_id": "<doc-parser job id>",
+  "engine": "hybrid",
+  "page_number": 8,
+  "page_id": "<document_pages row uuid>",
+  "status": "completed",
+  "ocr_tables_persisted": 1,
+  "poll_url": "/api/doc-parser/status/<job_id>",
+  "results_url": "/api/doc-parser/results/<job_id>"
+}
+```
+
+---
+
+## Approach 3 — Idempotent Reprocess
+
+Re-run the full pipeline for a document that has already been parsed.
+Safe to call multiple times — uses upsert on `document_id,page_number`.
+Useful when doc-parser is updated or results need refreshing.
+
+```
+POST http://localhost:3000/api/doc-parser/pipeline/reprocess
+Content-Type: application/json
+```
+
+Same body as `/pipeline`. Response is identical plus `"reprocessed": true`.
+
+```bash
+curl -X POST http://localhost:3000/api/doc-parser/pipeline/reprocess \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<uuid>", "engine": "hybrid"}'
+```
+
+---
+
+## Approach 4 — Read Endpoints (DB only, no doc-parser call)
+
+Query already-parsed results directly from the database. No doc-parser involved.
+Use these to browse results after any pipeline approach has run.
+
+```bash
+# List all pages for a document
+GET http://localhost:3000/api/doc-parser/documents/<documentId>/pages
+
+# Filter by category: floorplan | table | site_photo | diagram | mixed | text
+GET http://localhost:3000/api/doc-parser/documents/<documentId>/pages?category=floorplan
+
+# Paginate
+GET http://localhost:3000/api/doc-parser/documents/<documentId>/pages?limit=20&offset=0
+
+# Get a specific page by 1-indexed page number
+GET http://localhost:3000/api/doc-parser/documents/<documentId>/pages/8
+
+# List all OCR/table results
+GET http://localhost:3000/api/doc-parser/documents/<documentId>/ocr
+
+# Filter OCR by page
+GET http://localhost:3000/api/doc-parser/documents/<documentId>/ocr?page_number=8
+```
+
+**Pages response:**
+```json
+{
+  "document_id": "<uuid>",
+  "pages": [
+    {
+      "id": "<uuid>",
+      "page_number": 1,
+      "storage_url": "https://...",
+      "thumbnail_url": "https://...",
+      "category": "floorplan",
+      "raw_text": "...",
+      "created_at": "..."
+    }
+  ],
+  "count": 12,
+  "offset": 0,
+  "limit": 100
+}
+```
+
+**OCR response:**
+```json
+{
+  "document_id": "<uuid>",
+  "ocr_results": [
+    {
+      "id": "<uuid>",
+      "page_id": "<document_pages uuid>",
+      "table_index": 0,
+      "markdown": "| Col A | Col B |\n|---|---|\n| ... |",
+      "structured_data": {},
+      "confidence": 0.92
+    }
+  ],
+  "count": 4
+}
+```
+
+---
+
+## Approach 5 — HTTP Proxy (custom polling)
+
+Returns a `job_id` immediately. Caller is responsible for polling and DB persistence.
+
+```bash
+# 1. Submit
+curl -X POST http://localhost:3000/api/doc-parser/parse \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "<uuid>", "engine": "hybrid"}'
+# -> { "job_id": "...", "poll_url": "..." }
+
+# 2. Poll
+curl http://localhost:3000/api/doc-parser/status/<job_id>
+# -> { "status": "processing", "progress": { "percent_complete": 45 } }
+
+# 3. Fetch results
+curl http://localhost:3000/api/doc-parser/results/<job_id>
+```
+
+---
+
+## Approach 6 — Python CLI Pipeline
+
+Use when running locally or when you need direct control over the pipeline.
+
+### Run
+```bash
+python doc-parser/parse_document_pipeline.py \
+  --pdf path/to/file.pdf \
+  --tenant my_tenant \
+  --project my_project \
+  --supabase-url http://host.docker.internal:54321 \
+  --supabase-key <service_role_key>
+```
+
+### What it writes to Supabase
+| Table | Content |
+|---|---|
+| `project_documents` | One row — PDF metadata + storage URL |
+| `document_pages` | One row per page — category, storage_url, thumbnail_url |
+| `document_images` | One row per extracted image (floorplan/site_photo/diagram) |
+| `ocr_results` | One row per table — markdown + structured_data JSON |
+
+### Notes
+- `server.py` must be rebuilt in Docker after any changes: `docker compose up -d --build`
+- Raw results JSON saved alongside PDF as `<name>_pipeline_results.json` for debugging
+- `PROGRAM_STATUS=develop_without_ai` in `.env` skips LLM calls (mocked data)
+
+---
+
+## What pipeline endpoints write to Supabase
+
+| Table | Content |
+|---|---|
+| `document_pages` | One row per page — category, storage_url, thumbnail_url, raw_text, metadata |
+| `ocr_results` | One row per extracted table — markdown + structured_data JSON |
+
+> Uses `SUPABASE_SERVICE_ROLE_KEY` for DB writes (bypasses RLS).
+> The PDF must already exist in `project_documents` — upload it first via
+> `POST /work-orders/projects/:projectId/documents`.
+
+
+## Starting the doc-parser container (Windows)
+
+```powershell
+cd C:\Users\3900X\Documents\GitHub\agentZero\voicelog-scaffold\doc-parser
+docker compose up -d
+# or rebuild after server.py changes:
+docker compose up -d --build
+```
+
+## Health check
+```bash
+curl http://localhost:5000/health
+curl http://localhost:3000/api/doc-parser/health
+```
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

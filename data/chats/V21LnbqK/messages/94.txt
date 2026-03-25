@@ -1,0 +1,8 @@
+156:class HYBRID_PARAMS:  # namespace only — not instantiated
+171:    # P3 — Tesseract text-density disambiguation (sub-detected pages)
+198:    BBOX_MIN_DIM_RATIO: float = 0.02
+222:    # P6 — Title-block bbox-signature deduplication
+554:            if (bbox[2] - bbox[0]) < HYBRID_PARAMS.BBOX_MIN_DIM_RATIO or (bbox[3] - bbox[1]) < HYBRID_PARAMS.BBOX_MIN_DIM_RATIO:
+854:        # P3: Tesseract text-density disambiguation for sub-detected pages.
+920:        # P6: Title block bbox-signature deduplication.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

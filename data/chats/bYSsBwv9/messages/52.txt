@@ -1,0 +1,29 @@
+Progress: resolved 258, reused 3, downloaded 245, added 242
+Progress: resolved 258, reused 3, downloaded 245, added 243
+Progress: resolved 258, reused 3, downloaded 245, added 244
+Progress: resolved 258, reused 3, downloaded 246, added 244
+Progress: resolved 258, reused 3, downloaded 246, added 246
+Progress: resolved 258, reused 3, downloaded 247, added 246
+Progress: resolved 258, reused 3, downloaded 248, added 246
+Progress: resolved 258, reused 3, downloaded 248, added 247
+Progress: resolved 258, reused 3, downloaded 249, added 248
+Progress: resolved 258, reused 3, downloaded 249, added 249
+Progress: resolved 258, reused 3, downloaded 249, added 250
+Progress: resolved 258, reused 3, downloaded 250, added 250
+Progress: resolved 258, reused 3, downloaded 250, added 251
+Progress: resolved 258, reused 3, downloaded 250, added 252
+Progress: resolved 258, reused 3, downloaded 250, added 253
+Progress: resolved 258, reused 3, downloaded 251, added 253
+Progress: resolved 258, reused 3, downloaded 251, added 254
+Progress: resolved 258, reused 3, downloaded 252, added 254
+Progress: resolved 258, reused 3, downloaded 252, added 255
+ ERR_PNPM_EACCES  EACCES: permission denied, rename '/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+core@7.28.5/node_modules/@babel/core_tmp_4745' -> '/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/@babel+core@7.28.5/node_modules/@babel/core'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# lrwxrwxrwx 1 root root 97 Mar 11 00:18 apps/work-orders/node_modules/vite -> ../../../node_modules/.pnpm/vite@5.4.21_@types+node@25.0.10_lightningcss@1.30.2/node_modules/vite
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# /a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/.pnpm/vite@5.4.21_@types+node@25.0.10_lightningcss@1.30.2/node_modules/vite
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# no .npmrc
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# packages:
+  - "apps/*"
+  - "packages/*"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

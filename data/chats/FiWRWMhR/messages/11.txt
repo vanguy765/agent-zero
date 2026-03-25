@@ -1,0 +1,143 @@
+"""BLW001 — function-needs-guard
+
+Functions with parameters should contain at least one guard call.
+"""
+
+import re
+from typing import List
+
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+from bulwark_lint.languages import FunctionInfo
+
+# Guard call patterns — match any function call containing "guard" in its name
+_GUARD_PATTERN = re.compile(
+    r'\bguard(?:_?[a-zA-Z]*)\s*\(',
+    re.IGNORECASE,
+)
+
+# Python-only self/cls parameters
+_PYTHON_SELF_ONLY = re.compile(r'^\s*(self|cls)\s*$')
+_PYTHON_STRIP_SELF = re.compile(r'^\s*(self|cls)\s*,?\s*')
+
+
+def _parse_param_names(params: str, language: str) -> List[str]:
+    """Extract parameter names from raw parameter string."""
+    if not params.strip():
+        return []
+
+    cleaned = params
+
+    # Strip Python self/cls
+    if language == "python":
+        cleaned = _PYTHON_STRIP_SELF.sub('', cleaned)
+
+    if not cleaned.strip():
+        return []
+
+    names: List[str] = []
+    for part in cleaned.split(','):
+        part = part.strip()
+        if not part:
+            continue
+
+        # Handle type annotations
+        # Python: name: type = default
+        # TS/JS: name: type
+        # Go: name type
+        if language == "python":
+            name = part.split(':')[0].split('=')[0].strip()
+        elif language in ("typescript", "javascript"):
+            # Remove optional marker and type
+            name = part.split(':')[0].split('=')[0].strip()
+            name = name.lstrip('.')
+            # Handle destructuring — skip complex patterns
+            if '{' in name or '[' in name:
+                name = 'destructured'
+        elif language == "go":
+            # Go: name type or name, name type
+            tokens = part.split()
+            name = tokens[0] if tokens else part
+        else:
+            name = part.split(':')[0].split('=')[0].strip()
+
+        # Remove * and ** prefixes (Python)
+        name = name.lstrip('*')
+        # Remove ? suffix (TS optional)
+        name = name.rstrip('?')
+
+        if name and name not in ('self', 'cls'):
+            names.append(name)
+
+    return names
+
+
+def _generate_fix_hint(func: FunctionInfo, param_names: List[str]) -> str:
+    """Generate a suggested guard call based on function signature."""
+    hints: List[str] = []
+
+    for pname in param_names[:3]:  # Limit to first 3 params for readability
+        if func.language == "python":
+            hints.append(f'guard_type({pname}, expected_type, "{func.name}", "{pname}")')
+        elif func.language in ("typescript", "javascript"):
+            hints.append(f'guardType({pname}, "type", "{func.name}", "{pname}")')
+        elif func.language == "go":
+            hints.append(f'guard({pname} != nil, "{func.name}", "{pname} must not be nil")')
+
+    if len(param_names) > 3:
+        hints.append('...')
+
+    return 'Consider adding: ' + '; '.join(hints)
+
+
+class GuardPresentRule(BaseRule):
+    """Functions with parameters should contain at least one guard call."""
+
+    rule_id = "BLW001"
+    rule_name = "function-needs-guard"
+    description = "Functions with parameters should contain at least one guard call."
+    severity = Severity.WARNING
+
+    def check(self, func: FunctionInfo) -> List[Violation]:
+        violations: List[Violation] = []
+
+        # Skip: no parameters
+        if not func.params.strip():
+            return violations
+
+        # Skip: Python self/cls only
+        if func.language == "python" and _PYTHON_SELF_ONLY.match(func.params):
+            return violations
+
+        # Parse actual parameter names (excluding self/cls)
+        param_names = _parse_param_names(func.params, func.language)
+        if not param_names:
+            return violations
+
+        # Skip: very short functions (< 3 lines) — likely simple getters/wrappers
+        body_lines = [l for l in func.body.split('\n') if l.strip()]
+        if len(body_lines) < 3:
+            return violations
+
+        # Skip: private helpers with no real params (Python)
+        if func.language == "python" and func.name.startswith('_'):
+            real_params = _PYTHON_STRIP_SELF.sub('', func.params).strip()
+            if not real_params:
+                return violations
+
+        # Check for guard calls in function body
+        if _GUARD_PATTERN.search(func.body):
+            return violations
+
+        # No guard found — violation
+        fix_hint = _generate_fix_hint(func, param_names)
+
+        violations.append(self._make_violation(
+            message=f"{func.name}() has parameters but no guard calls",
+            filepath=func.filepath,
+            line=func.start_line,
+            function_name=func.name,
+            fix_hint=fix_hint,
+        ))
+
+        return violations
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

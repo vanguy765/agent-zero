@@ -1,0 +1,16 @@
+A  test-results/TEST_1.3_PROMPT.md
+A  test-results/TEST_1.3_RESULTS_TEMPLATE.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > > > [main a059cf4] test: add Test 1.3 prompt and scoring template (False Positive Handling)
+ 2 files changed, 230 insertions(+)
+ create mode 100644 test-results/TEST_1.3_PROMPT.md
+ create mode 100644 test-results/TEST_1.3_RESULTS_TEMPLATE.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (5/5), 3.71 KiB | 223.00 KiB/s, done.
+Total 5 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/vanguy765/bulwark-ai.git
+   de37510..a059cf4  main -> main
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

@@ -1,0 +1,41 @@
+=== Dockerfile ===
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-devel
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    libgl1 \
+    poppler-utils \
+    tesseract-ocr \
+    ninja-build \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Upgrade pip and install build dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir cython numpy
+
+# Detectron2 removed for benchmark phase
+# RUN pip install --no-cache-dir 'git+https://github.com/facebookresearch/detectron2.git'
+
+# 1. Install Massive AI Libraries First (This layer caches forever!)
+RUN pip install --no-cache-dir docling torch torchvision
+
+# 2. Then copy requirements.txt (with massive libraries removed from it)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set default command
+CMD ["/bin/bash"]
+
+=== docker-compose check ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/nocodb/docker-compose.yml
+
+=== requests available? ===
+requests OK: 2.32.5
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

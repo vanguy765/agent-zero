@@ -1,0 +1,8 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 391:## Live Test Results (Round 1)
+395:### Test 1.1: Greenfield Function Generation ✅
+403:### Test 1.2: Remediation of Existing Code ✅
+408:- **Finding (F-LNT)**: Linter regex matched code in docstrings → false positives.
+414:| Linter string literal blind spot | F-LNT | Added `text_utils.py` — strips strings/comments before scanning | ✅ RESOLVED |
+415:| Guard naming convention undocumented | F-SKL | Updated BMAD skill with explicit naming requirements | ✅ RESOLVED |
+416:| Linter detection patterns undocumented | F-SKL | Added detection pattern column to linter rules table | ✅ RESOLVED |
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

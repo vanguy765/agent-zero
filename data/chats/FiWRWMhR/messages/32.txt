@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+---
+  Created wheel for bulwark-lint: filename=bulwark_lint-1.0.0-0.editable-py3-none-any.whl size=4700 sha256=2bc1e59d8e9d4708ddd01ed82f78e1b4b032f68822f7a66a2c22ac253e99255e
+  Stored in directory: /tmp/pip-ephem-wheel-cache-_uj4ejjj/wheels/ea/f7/3a/a00a1881b04fbed9909c32650daf337cbb180c6e3e24633699
+Successfully built bulwark-lint
+Installing collected packages: bulwark-lint
+Successfully installed bulwark-lint-1.0.0
+---
+bulwark-lint 1.0.0
+---
+  74:1  warning  BLW002  verify-after-mutation     notifyUserCreated() has notification send but no verify call
+
+✖ 13 problems (0 errors, 13 warnings, 0 info)
+
+Files scanned: 1
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

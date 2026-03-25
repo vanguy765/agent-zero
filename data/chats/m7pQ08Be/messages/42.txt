@@ -1,0 +1,17 @@
+start_time = _time.monotonic()
+    current_delay = retry_delay
+
+    for attempt in range(1, max_retries + 1):
+        # Execute recovery command
+        log.info(
+            f"GUARD:RECOVERY:{function_name} | "
+            f"{dependency} — executing "{recovery_command}" "
+            f"(attempt {attempt}/{max_retries})"
+        )
+
+        try:
+            proc = subprocess.run(
+                recovery_command,
+                shell=True,
+                capture_output=True,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

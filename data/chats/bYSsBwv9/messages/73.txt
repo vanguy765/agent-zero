@@ -1,0 +1,72 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---supabase troubleshooting---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# # Supabase CLI Troubleshooting
+
+## Issue
+Supabase CLI is failing with error: `failed to parse environment file: .en`
+
+This appears to be a Windows-specific issue with the Supabase CLI trying to read an environment file.
+
+## Attempted Solutions
+1. ✅ Stopped existing Supabase instance: `supabase stop --project-id voicelog`
+2. ✅ Reinitialized Supabase: `supabase init`
+3. ❌ `supabase start` still fails with environment parsing error
+4. ❌ `supabase start --debug` shows it can't open `supabase\.temp\profile`
+
+## Alternative Approaches
+
+### Option 1: Use Docker Compose Directly
+Since Supabase uses Docker under the hood, we can bypass the CLI and use Docker Compose:
+
+```bash
+# Navigate to supabase directory
+cd supabase
+
+# Create a docker-compose.yml (Supabase generates this)
+# Then run:
+docker-compose up -d
+```
+
+### Option 2: Use Remote Supabase Instance
+Connect to a cloud Supabase instance instead of local:
+
+1. Create project at https://supabase.com
+2. Get connection details
+3. Update `.env` with remote credentials
+
+### Option 3: Apply Migrations Manually
+If we can get Supabase running through Docker Desktop directly:
+
+```bash
+# Connect to the postgres container
+docker exec -it supabase_db_voicelog psql -U postgres
+
+# Then run migrations manually
+\i supabase/migrations/20260201200500_create_work_orders.sql
+\i supabase/migrations/20260201200501_seed_work_orders.sql
+```
+
+### Option 4: Continue Without Database (Frontend First)
+We can develop the frontend and API structure without a running database:
+- Create mock data
+- Build UI components
+- Set up routing
+- Connect to DB later
+
+## Recommendation
+**Try Option 3 first** - Check if Docker Desktop has the Supabase containers running, then manually apply migrations.
+
+If that doesn't work, **Option 4** allows us to make progress on the frontend while troubleshooting the DB issue.
+
+## Next Steps if DB Works
+Once Supabase is running:
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# clusterdb   dropuser	      pg_config   pg_receivewal    psql
+createdb    pg_amcheck	      pg_dump	  pg_recvlogical   reindexdb
+createuser  pg_basebackup     pg_dumpall  pg_restore	   vacuumdb
+dropdb	    pg_combinebackup  pg_isready  pg_verifybackup
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# total 2.7M
+-rwxrwxrwx 1 root root 2.5M Mar 10 19:34 data.sql
+-rwxrwxrwx 1 root root 181K Mar 10 19:34 schema.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# ---
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# -rwxrwxrwx 1 root root 2.7M Mar  5 18:22 /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/seed.sql
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

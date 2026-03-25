@@ -1,0 +1,166 @@
+"""Core analysis engine for Bulwark linter.
+
+Orchestrates file reading, language detection, function extraction,
+rule execution, and violation collection.
+"""
+
+import logging
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from bulwark_lint.config import LintConfig
+from bulwark_lint.discovery import discover_files
+from bulwark_lint.languages import FunctionInfo, detect_language, extract_functions
+from bulwark_lint.rules import get_all_rules
+from bulwark_lint.rules.base import BaseRule, Severity, Violation
+
+logger = logging.getLogger(__name__)
+
+# Map severity strings to enum values
+_SEVERITY_MAP = {
+    "error": Severity.ERROR,
+    "warning": Severity.WARNING,
+    "info": Severity.INFO,
+}
+
+
+class LintEngine:
+    """Core linting engine.
+
+    Coordinates file discovery, function extraction, rule execution,
+    and violation filtering.
+    """
+
+    def __init__(self, config: LintConfig):
+        self.config = config
+        self.rules = self._load_rules()
+        self.min_severity = _SEVERITY_MAP.get(config.severity, Severity.WARNING)
+
+    def _load_rules(self) -> List[BaseRule]:
+        """Load and configure enabled rules based on config."""
+        all_rules = get_all_rules()
+        enabled: List[BaseRule] = []
+
+        for rule in all_rules:
+            if not self.config.is_rule_enabled(rule.rule_id):
+                logger.debug("Rule %s disabled by config", rule.rule_id)
+                continue
+
+            # Apply severity override from config
+            severity_override = self.config.get_rule_severity(rule.rule_id)
+            if severity_override and severity_override in _SEVERITY_MAP:
+                rule.severity = _SEVERITY_MAP[severity_override]
+
+            enabled.append(rule)
+
+        logger.info("Loaded %d rules: %s", len(enabled),
+                     ", ".join(r.rule_id for r in enabled))
+        return enabled
+
+    def lint_file(self, filepath: str) -> List[Violation]:
+        """Lint a single file and return violations.
+
+        Args:
+            filepath: Absolute path to the file.
+
+        Returns:
+            List of Violation objects found in the file.
+        """
+        violations: List[Violation] = []
+
+        # Read file
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read()
+        except OSError as exc:
+            logger.error("Cannot read %s: %s", filepath, exc)
+            return violations
+
+        # Detect language
+        language = detect_language(filepath)
+        if language is None:
+            logger.debug("Unsupported file type: %s", filepath)
+            return violations
+
+        # Extract functions
+        functions = extract_functions(content, filepath, language)
+        logger.debug("Extracted %d functions from %s", len(functions), filepath)
+
+        # Separate function-level and file-level rules
+        func_rules: List[BaseRule] = []
+        file_rules: List[BaseRule] = []
+        for rule in self.rules:
+            if rule.file_level:
+                file_rules.append(rule)
+            else:
+                func_rules.append(rule)
+
+        # Run function-level rules
+        for func in functions:
+            for rule in func_rules:
+                try:
+                    found = rule.check(func)
+                    violations.extend(found)
+                except Exception as exc:
+                    logger.error("Rule %s failed on %s:%s — %s",
+                                 rule.rule_id, filepath, func.name, exc)
+
+        # Run file-level rules
+        for rule in file_rules:
+            try:
+                found = rule.check_file(filepath, content, language)
+                violations.extend(found)
+            except Exception as exc:
+                logger.error("File rule %s failed on %s — %s",
+                             rule.rule_id, filepath, exc)
+
+        # Filter by minimum severity
+        violations = [
+            v for v in violations
+            if v.severity >= self.min_severity
+        ]
+
+        return violations
+
+    def lint_files(self, filepaths: List[str]) -> Dict[str, List[Violation]]:
+        """Lint multiple files.
+
+        Args:
+            filepaths: List of absolute file paths.
+
+        Returns:
+            Dict mapping filepath to list of violations.
+        """
+        results: Dict[str, List[Violation]] = {}
+
+        for filepath in filepaths:
+            violations = self.lint_file(filepath)
+            if violations:
+                results[filepath] = violations
+
+        return results
+
+    def lint_paths(self, paths: List[str]) -> Dict[str, List[Violation]]:
+        """Discover and lint files from paths.
+
+        Args:
+            paths: List of file or directory paths.
+
+        Returns:
+            Dict mapping filepath to list of violations.
+        """
+        filepaths = discover_files(
+            paths=paths,
+            extensions=self.config.extensions,
+            exclude=self.config.exclude,
+        )
+
+        logger.info("Linting %d files", len(filepaths))
+        return self.lint_files(filepaths)
+
+    @property
+    def files_scanned(self) -> int:
+        """Return count of files that would be scanned (for stats)."""
+        # This is set after lint_paths runs
+        return getattr(self, '_files_scanned', 0)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

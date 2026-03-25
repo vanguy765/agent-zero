@@ -1,0 +1,26 @@
+apps/api/src/index.ts
+apps/api/src/routes/doc-parser-routes.ts
+apps/api/src/routes/documents.ts
+apps/api/src/routes/entity-creation.ts
+apps/api/src/routes/materials.ts
+apps/api/src/routes/reviews.ts
+apps/api/src/routes/voice.ts
+apps/api/src/services/a2a/agentCard.ts
+apps/api/src/services/a2a/skillRouter.ts
+apps/api/src/services/a2a/skills/documents.ts
+apps/api/src/services/claudePdfParser.ts
+apps/api/src/services/doc-parser-client.ts
+apps/api/src/services/placeholderGenerator.ts
+---
+apps/api/src/index.ts
+apps/api/src/routes/doc-parser-routes.ts
+apps/api/src/routes/documents.ts
+apps/api/src/services/a2a/agentCard.ts
+apps/api/src/services/a2a/skillRouter.ts
+apps/api/src/services/a2a/skills/documents.ts
+apps/api/src/services/claudePdfParser.ts
+apps/api/src/services/pdfParser.ts
+---routes---
+apps/api/src/index.ts:app.route('/work-orders', documentsRoute);
+apps/api/src/index.ts:app.route('/doc-parser', docParserRoutes);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

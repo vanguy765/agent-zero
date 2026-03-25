@@ -1,0 +1,23 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 1:"""BLW002 — verify-after-mutation
+3:Functions containing side-effect operations should have verify calls.
+13:# Side-effect patterns (mutations)
+18:    (re.compile(r'\bdb\.(insert|update|delete|execute|run)\s*\(', re.IGNORECASE), "database mutation"),
+20:    (re.compile(r'\.(create|save|destroy|remove)\s*\(', re.IGNORECASE), "ORM mutation"),
+21:    (re.compile(r'\b(INSERT\s+INTO|UPDATE\s+\w|DELETE\s+FROM)\b', re.IGNORECASE), "raw SQL mutation"),
+22:    (re.compile(r'\bprisma\.', re.IGNORECASE), "Prisma mutation"),
+23:    (re.compile(r'\.mutate\s*\(', re.IGNORECASE), "mutation call"),
+27:    (re.compile(r'\bfs\.(write|append|mkdir|rm|unlink)', re.IGNORECASE), "filesystem mutation"),
+31:    # HTTP mutations
+36:    (re.compile(r'\bfetch\s*\([^)]*method\s*:\s*["\'](?:POST|PUT|PATCH|DELETE)', re.IGNORECASE), "HTTP mutation"),
+37:    (re.compile(r'\.(post|put|patch|delete)\s*\(', re.IGNORECASE), "HTTP mutation"),
+38:    (re.compile(r'\baxios\.(post|put|patch|delete)\s*\(', re.IGNORECASE), "Axios mutation"),
+55:    r'\bverify(?:_?[a-zA-Z]*)\s*\(',
+60:def _detect_mutations(body: str) -> List[str]:
+73:    has_mutation = any(p.search(body) for p, _ in _MUTATION_PATTERNS)
+74:    return has_read and not has_mutation
+77:def _generate_fix_hint(func: FunctionInfo, mutations: List[str]) -> str:
+78:    """Generate a suggested verify call based on mutation type."""
+79:    mutation = mutations[0] if mutations else "mutation"
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Running full test suite ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

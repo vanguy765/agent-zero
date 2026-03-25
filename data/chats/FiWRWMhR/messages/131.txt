@@ -1,0 +1,14 @@
+[main aad7dd6] Add Test 2.1 prompt, results template, and continuation prompt
+ 3 files changed, 391 insertions(+), 190 deletions(-)
+ create mode 100644 test-results/TEST_2.1_PROMPT.md
+ create mode 100644 test-results/TEST_2.1_RESULTS_TEMPLATE.md
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 6.38 KiB | 384.00 KiB/s, done.
+Total 6 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/vanguy765/bulwark-ai.git
+   eba4abd..aad7dd6  main -> main
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

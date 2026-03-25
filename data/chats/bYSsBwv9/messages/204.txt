@@ -1,0 +1,41 @@
+# Timesheet App — Agent Startup Instructions
+
+## ⚡ SESSION START PROTOCOL — Run this every session
+
+At the start of EVERY session, immediately run the health check and notify the user of any missing critical services:
+
+```bash
+bash /a0/usr/projects/timesheet_app/voicelog-scaffold/scripts/dev-health.sh
+```
+
+Then use the `notify_user` tool for each failing critical service:
+- **Supabase (Kong) down** → `notify_user` type=warning: "Supabase is not running on Windows. Please run `supabase start` in voicelog-scaffold on your Windows machine, then paste `supabase status` output here."
+- **Doc Parser down** → `notify_user` type=warning: "Doc Parser is not running (port 5000). Start it with: `cd doc-parser && python server.py`"
+
+Do NOT wait for the user to discover data issues — proactively notify at session start.
+
+---
+
+## Architecture Overview
+
+This project runs across TWO machines:
+
+| Where | What runs |
+|---|---|
+| **Windows host** | `supabase start` → full Supabase stack (Kong + PostgREST + GoTrue + Studio) |
+| **Docker container (me)** | Node.js API, SolidJS frontends, Doc Parser, dev servers |
+
+The container reaches the Windows Supabase stack via `host.docker.internal`.
+
+## Port map (source of truth: docs/ports.md)
+
+| Port  | Where          | Service                        | Start command |
+|-------|----------------|--------------------------------|---------------|
+| 3000  | Container      | API (Hono) — Swagger at /ui    | `pnpm --filter api dev` |
+| 3001  | Container      | Web Dashboard (SolidJS)        | `pnpm --filter web-dashboard dev` |
+| 3002  | Container      | Site Companion (SolidJS)       | `pnpm --filter site-companion dev` |
+| 3003  | Container      | Material Admin (SolidJS)       | `pnpm --filter material-admin dev` |
+| 3004  | Container      | Work Orders (SolidJS)          | `pnpm --filter work-orders dev` |
+| 3005  | Container      | Tenant Portal (SolidJS)        | `pnpm --filter tenant-portal dev` |
+| 5000  | Container      | Doc Parser (Python FastAPI)    | `cd doc-parser && python server.py` |
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

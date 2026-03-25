@@ -1,0 +1,30 @@
+=== TD-5 ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 354:### TD-5: No LICENSE File
+355-No LICENSE file exists in the repository root. Needs to be created once
+356-license is decided (see OQ-2).
+357-
+358-### TD-6: ~~No .gitignore~~ ✅ RESOLVED
+359-~~No `.gitignore` file for the repository.~~ Added comprehensive `.gitignore` (83 lines) covering Python, Node/TypeScript, Go, IDE/editor files, OS artifacts, CI build outputs, and secrets. Compiled JavaScript kept (not excluded).
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === OQ-3 ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 269:### OQ-3: BMAD Integration Depth
+270-**Question**: How deep should BMAD integration go?
+271-
+272-**Context**: Bulwark was designed to work as a BMAD "skill" but the
+273-integration spec hasn't been written. Sub-questions:
+274-- Should the Developer agent automatically apply Bulwark patterns?
+275-- Should the QA agent validate Bulwark compliance?
+276-- Should there be a dedicated Bulwark agent role?
+277-- How does Bulwark interact with BMAD's existing quality gates?
+278-
+279-**Leaning**: Skill-based integration where Developer and QA agents both
+280-reference Bulwark. No dedicated agent role (too heavy).
+281-
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === BMAD bullet ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 147:- 📋 BMAD integration concept (discussed, no implementation)
+269:### OQ-3: BMAD Integration Depth
+270:**Question**: How deep should BMAD integration go?
+272:**Context**: Bulwark was designed to work as a BMAD "skill" but the
+277:- How does Bulwark interact with BMAD's existing quality gates?
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

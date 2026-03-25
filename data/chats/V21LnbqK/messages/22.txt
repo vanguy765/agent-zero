@@ -1,0 +1,33 @@
+=== HELPER FUNCTIONS (should be near top) ===
+46:const DOC_PARSER_STORAGE_BUCKET = 'project-documents';
+51:const SIGNED_URL_EXPIRY_SECONDS = 3600;
+63:function buildStorageUrl(path: string | null | undefined): string | null {
+67:  const cleanPath = path.startsWith(`${DOC_PARSER_STORAGE_BUCKET}/`)
+68:    ? path.slice(DOC_PARSER_STORAGE_BUCKET.length + 1)
+70:  return `${SUPABASE_URL}/storage/v1/object/authenticated/${DOC_PARSER_STORAGE_BUCKET}/${cleanPath}`;
+76:function buildStorageUrls(paths: (string | null | undefined)[]): string[] {
+77:  return (paths ?? []).filter(Boolean).map((p) => buildStorageUrl(p)!).filter(Boolean);
+84:function resolvePageUrls<T extends Record<string, any>>(page: T): T {
+86:    page.storage_url = buildStorageUrl(page.storage_url);
+89:    page.thumbnail_url = buildStorageUrl(page.thumbnail_url);
+777:  const resolvedPages = (data ?? []).map((p: any) => resolvePageUrls({ ...p }));
+823:  return c.json(resolvePageUrls({ ...data }));
+1020:      thumbnail_url: buildStorageUrl(p.thumbnail_url),
+1021:      storage_url:   buildStorageUrl(p.storage_url),
+1079:      storage_url:   buildStorageUrl(pageRow.storage_url),
+1080:      thumbnail_url: buildStorageUrl(pageRow.thumbnail_url),
+
+=== RESOLVE CALLS IN READ ENDPOINTS ===
+63:function buildStorageUrl(path: string | null | undefined): string | null {
+76:function buildStorageUrls(paths: (string | null | undefined)[]): string[] {
+77:  return (paths ?? []).filter(Boolean).map((p) => buildStorageUrl(p)!).filter(Boolean);
+84:function resolvePageUrls<T extends Record<string, any>>(page: T): T {
+86:    page.storage_url = buildStorageUrl(page.storage_url);
+89:    page.thumbnail_url = buildStorageUrl(page.thumbnail_url);
+777:  const resolvedPages = (data ?? []).map((p: any) => resolvePageUrls({ ...p }));
+823:  return c.json(resolvePageUrls({ ...data }));
+1020:      thumbnail_url: buildStorageUrl(p.thumbnail_url),
+1021:      storage_url:   buildStorageUrl(p.storage_url),
+1079:      storage_url:   buildStorageUrl(pageRow.storage_url),
+1080:      thumbnail_url: buildStorageUrl(pageRow.thumbnail_url),
+(venv) root@d2d162d983f0:/a0/usr/workdir#

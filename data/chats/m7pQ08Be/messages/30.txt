@@ -1,0 +1,90 @@
+=== New Section 5.1: Configuring ===
+### 5.1 Configuring Bulwark AI
+
+Now that you understand *what* changes across environments, let's talk about *how* to tell Bulwark which environment you're in. There are two ways: environment variables and code configuration.
+
+#### Option A: Environment Variables
+
+Environment variables are settings you define *outside* your code — in your terminal, your Docker configuration, or your cloud platform's settings panel. They're the preferred way to configure Bulwark in production because you can change behavior without touching code.
+
+Here are the four environment variables Bulwark recognizes:
+
+| Variable | What It Controls | Values | Default |
+
+=== New Section 5.2: Availability Guards ===
+### 5.2 Availability Guards
+
+So far, we've talked about Guards that check *data* — is it the right type? Does it have the right keys? But there's another kind of check that's useful in real-world applications: checking whether an external service is even *reachable* before you try to use it.
+
+These are called **Availability Guards**, and they're an extension to the core standard — useful, but not required for Bulwark compliance.
+
+#### The Restaurant Analogy
+
+Imagine you're planning to drive across town to eat at a specific restaurant. You have two options:
+
+1. **Check once before you leave:** Call the restaurant, confirm they're open, then drive there. If they're closed, you save yourself the trip.
+
+=== Updated Step 1 ===
+### Step 1: Copy the Helpers and Configure
+
+Grab the reference implementation for your language from the `reference/` directory:
+
+- **Python:** [`reference/bulwark.py`](reference/bulwark.py)
+- **TypeScript:** [`reference/bulwark.ts`](reference/bulwark.ts)
+
+Copy the file into your project. These helpers provide `guard()`, `guard_type()`, `guard_keys()`, `trace()`, `describe_shape()`, `verify()`, and `configure()` — all implemented with zero external dependencies.
+
+If you prefer, you can skip the helpers entirely and write raw `if/raise` statements. The helpers are a convenience, not a requirement.
+
+Then, at your application's startup (before any Bulwark-protected functions run), call `configure()` to set your runtime mode:
+
+```python
+# Python — at the top of your main entry point
+
+=== README v0.2.0 Section ===
+## What's New in v0.2.0
+
+### 🔧 Runtime Configuration
+
+Bulwark now supports explicit configuration for runtime modes, trace verbosity, and verify strategies. Configure once at startup:
+
+**Environment variables:**
+
+```bash
+export BULWARK_MODE=production
+export BULWARK_TRACE_LEVEL=error
+export BULWARK_VERIFY_STRATEGY=adaptive
+export BULWARK_VERIFY_SAMPLE_RATE=0.1
+```
+
+**Or in code:**
+
+```python
+# Python
+from bulwark import configure
+configure(mode='production', verify_strategy='adaptive')
+```
+
+```typescript
+// TypeScript
+import { configure } from './bulwark';
+configure({ mode: 'production', verifyStrategy: 'adaptive' });
+```
+
+### 📊 Verify Strategies
+
+Not every verify needs a full read-back. Choose the right strategy for your scale:
+
+| Strategy | What It Does | When to Use |
+|----------|-------------|-------------|
+| **full** | Verifies every operation | Low-throughput, high-stakes |
+| **sampled** | Verifies a percentage of operations | High-throughput batch jobs |
+| **adaptive** | Starts full, reduces as confidence grows | Production systems at scale |
+
+> **Critical operations** (payments, auth, deletions) are **always** fully verified regardless of strategy. Mark them with the `critical` flag.
+
+### 🏥 Availability Guards (Extension)
+
+Check whether external services are reachable **at startup**, not per-call:
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

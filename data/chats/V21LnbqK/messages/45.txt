@@ -1,0 +1,61 @@
+=== Server startup ===
+"""Doc-parser FastAPI service.
+
+Integrates all priorities:
+- P1: Rich prompts (via prompts.py)
+- P2: Improved detection (via detection.py)
+- P3: Granular progress tracking (via job_manager.py)
+- P4: Persistent jobs, separate status/results endpoints, TTL cleanup
+- P5: Cross-page synthesis (via hybrid.py)
+- P6: Confidence scoring (via confidence.py)
+- P7: Hybrid engine mode (via hybrid.py)
+
+Endpoints:
+  POST /parse/docling       - Original Docling-only engine
+  POST /parse/hybrid        - Hybrid engine (Docling + Claude)
+  GET  /status/{job_id}     - Lightweight status (poll-safe)
+  GET  /results/{job_id}    - Full results (fetch-once after completed)
+  GET  /health              - Health check
+  GET  /jobs                - List all jobs
+  DELETE /jobs/{job_id}     - Cancel/delete a job
+"""
+import os
+import re
+import json
+import uuid
+import base64
+import asyncio
+import logging
+import tempfile
+import traceback
+from typing import Optional
+
+...
+# ============================================================
+
+@app.get("/result/{job_id}")
+async def get_result_legacy(job_id: str):
+    """Legacy endpoint - redirects to /results/{job_id}."""
+    return await get_results(job_id, summary=False)
+
+
+# ============================================================
+# Entry Point
+# ============================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "server:app",
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "5000")),
+        reload=os.getenv("ENV", "production") == "development",
+    )
+
+=== Check for compose files ===
+/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/nocodb/docker-compose.yml
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/hono/dist/cjs/compose.js
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/hono/dist/compose.js
+/a0/usr/projects/timesheet_app/voicelog-scaffold/node_modules/hono/dist/types/compose.d.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

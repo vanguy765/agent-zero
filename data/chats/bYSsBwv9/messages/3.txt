@@ -1,0 +1,15 @@
+export interface VoiceLog {
+    id: string;
+    createdAt: string;
+    transcription: string; // The raw text from the audio
+    summary?: string;      // AI generated summary if available
+    audioUrl?: string;     // Link to the original audio file
+    status: 'processing' | 'completed' | 'failed';
+}
+=== CLIENT ===
+import { hc } from 'hono/client';
+import type { AppType } from '../../api/src/index';
+import { API_URL } from '@repo/config';
+
+export const client = hc<AppType>(API_URL);
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

@@ -1,0 +1,24 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > [main 54e3fd6] docs: add service manifest guide, security considerations, and spec updates
+ 3 files changed, 377 insertions(+), 363 deletions(-)
+ create mode 100755 guides/service-manifest.md
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# > > > > > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 24 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (6/6), 6.86 KiB | 260.00 KiB/s, done.
+Total 6 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/vanguy765/bulwark-ai.git
+   1cb17cd..54e3fd6  main -> main
+Enumerating objects: 1, done.
+Counting objects: 100% (1/1), done.
+Writing objects: 100% (1/1), 398 bytes | 44.00 KiB/s, done.
+Total 1 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/vanguy765/bulwark-ai.git
+ * [new tag]         v0.2.0 -> v0.2.0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# Tag:
+v0.2.0
+HEAD:
+54e3fd6 (HEAD -> main, tag: v0.2.0, origin/main) docs: add service manifest guide, security considerations, and spec updates
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

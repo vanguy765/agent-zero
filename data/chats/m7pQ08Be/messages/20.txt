@@ -1,0 +1,18 @@
+Original: 1150 lines
+Section 5.1: 128 lines
+Section 5.2: 102 lines
+Step 1 new: 29 lines
+
+Step 1 at index 762, Step 2 at index 773
+Replacing lines 762 to 773 (11 lines)
+After Step 1 replacement: 1168 lines
+
+Section 6 at index 758, separator at index 756
+Combined new sections: 230 lines
+After sections insert: 1398 lines
+
+ToC line 5 at index 14: 5. [Runtime Modes: Not Everything Costs the Same](#5-runtime-modes-not-everything-costs-the-same)
+After ToC edit: 1400 lines
+
+=== GUIDE.md written: 1400 lines ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

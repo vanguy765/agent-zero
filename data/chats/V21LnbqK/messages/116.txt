@@ -1,0 +1,19 @@
+[pipeline] PDF:          /a0/usr/projects/timesheet_app/voicelog-scaffold/tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf
+[pipeline] Tenant:       default
+[pipeline] Project:      test_pipeline
+[pipeline] Supabase URL: http://host.docker.internal:54321
+[pipeline] API URL:      http://doc-parser:5000
+[pipeline] Uploading PDF to project-documents/default/test_pipeline/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf ...
+[pipeline] project_documents row created: 1ca2bfac-d004-415a-9ec6-c008d212629b
+[pipeline] Submitting to doc-parser /parse/docling ...
+[pipeline] Job submitted: d953f5a7-fb29-4fae-b9b7-5849b28ae274
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —
+[pipeline]   [processing] 0% —

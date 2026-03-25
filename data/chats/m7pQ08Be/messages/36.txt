@@ -1,0 +1,43 @@
+### 10.1 Availability Guard (RECOMMENDED for external dependencies)
+
+An Availability Guard verifies that an external dependency (service, database, file system) is reachable before the application relies on it.
+
+#### When to Use
+
+- At **service initialization** (application startup)
+- At **pipeline start** (before a long-running job begins)
+- At **health check endpoints** (for orchestrators like Kubernetes)
+- **After connection errors** (circuit breaker recovery)
+
+#### When NOT to Use
+
+- **Not on every individual API call** — this would add seconds of latency per request
+- **Not for internal function calls** — only for external network/I/O dependencies
+
+#### Pattern
+
+```python
+# ✅ RIGHT: Check at initialization
+class PaymentClient:
+    def __init__(self, base_url):
+        # GUARD:AVAILABLE — verify service is reachable at startup
+        response = requests.head(base_url + "/health", timeout=5)
+        guard(response.status_code < 500, "PaymentClient.__init__",
+              f"Payment service at {base_url} returned {response.status_code}")
+        self.base_url = base_url
+
+# ❌ WRONG: Check on every call
+    def charge(self, amount):
+        requests.head(self.base_url + "/health", timeout=5)  # Adds 200ms to EVERY charge!
+        return requests.post(f"{self.base_url}/charge", json={"amount": amount})
+```
+
+#### Diagnostic Format
+
+```
+GUARD:AVAILABLE:PaymentClient | service at https://pay.example.com returned 503
+GUARD:AVAILABLE:pipeline_start | database at db.internal:5432 connection refused
+```
+
+### 10.2 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

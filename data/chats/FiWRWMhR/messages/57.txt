@@ -1,0 +1,60 @@
+Initialized empty Git repository in /a0/usr/workdir/bulwark-ai/.git/
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Staged files ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# A  .bmad/skills/bulwark-defensive-coding.md
+A  .gitignore
+A  CONTINUATION_PROMPT.md
+A  DECISIONS.md
+A  GUIDE.md
+A  LICENSE
+A  MARKETING_SEEDS.md
+A  PROJECT_STATUS.md
+A  QUICKSTART.md
+A  README.md
+A  SPEC.md
+A  checklists/bulwark-checklist.md
+A  examples/bash/.gitkeep
+A  examples/go/.gitkeep
+A  examples/python/document_pipeline.py
+A  examples/typescript/.gitkeep
+A  guides/bulwark-x-pydantic.md
+A  guides/bulwark-x-zod.md
+A  linter/README.md
+A  linter/bulwark_lint/__init__.py
+A  linter/bulwark_lint/__main__.py
+A  linter/bulwark_lint/cli.py
+A  linter/bulwark_lint/config.py
+A  linter/bulwark_lint/discovery.py
+A  linter/bulwark_lint/engine.py
+A  linter/bulwark_lint/languages.py
+A  linter/bulwark_lint/reporters/__init__.py
+A  linter/bulwark_lint/reporters/json_reporter.py
+A  linter/bulwark_lint/reporters/terminal.py
+A  linter/bulwark_lint/rules/__init__.py
+A  linter/bulwark_lint/rules/base.py
+A  linter/bulwark_lint/rules/blw001_guard_present.py
+A  linter/bulwark_lint/rules/blw002_verify_after_mutation.py
+A  linter/bulwark_lint/rules/blw003_trace_at_boundary.py
+A  linter/bulwark_lint/rules/blw004_no_bare_assert.py
+A  linter/bulwark_lint/rules/blw005_custom_error_types.py
+A  linter/pyproject.toml
+A  linter/tests/__init__.py
+A  linter/tests/fixtures/sample_guarded.py
+A  linter/tests/fixtures/sample_guarded.ts
+A  linter/tests/fixtures/sample_unguarded.py
+A  linter/tests/fixtures/sample_unguarded.ts
+A  linter/tests/test_discovery.py
+A  linter/tests/test_engine.py
+A  linter/tests/test_rules.py
+A  prompts/bulwark-remediation-agent.md
+A  prompts/bulwark-system-prompt.md
+A  reference/bulwark.js
+A  reference/bulwark.py
+A  reference/bulwark.ts
+A  reference/package-lock.json
+A  reference/package.json
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === File count ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# 52
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

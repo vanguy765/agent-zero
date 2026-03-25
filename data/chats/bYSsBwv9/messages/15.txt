@@ -1,0 +1,41 @@
+236:            templates:work_order_templates(
+278:workOrdersRoute.get('/templates', async (c) => {
+283:        .from('work_order_templates')
+301:// NOTE: These static-path routes MUST be registered before GET /templates/:id
+305:workOrdersRoute.get('/templates/system', async (c) => {
+309:        .from('work_order_templates')
+322:workOrdersRoute.get('/templates/company', async (c) => {
+326:        .from('work_order_templates')
+339:workOrdersRoute.get('/templates/:id', async (c) => {
+344:        .from('work_order_templates')
+356:workOrdersRoute.post('/templates', async (c) => {
+371:        .from('work_order_templates')
+383:workOrdersRoute.patch('/templates/:id', async (c) => {
+402:        .from('work_order_templates')
+415:workOrdersRoute.delete('/templates/:id', async (c) => {
+420:        .from('work_order_templates')
+433:workOrdersRoute.get('/templates/project/:projectId', async (c) => {
+438:        .from('work_order_templates')
+449:    // For unfrozen templates with null definition, resolve from parent
+454:                    .from('work_order_templates')
+468:workOrdersRoute.post('/templates/assign-to-company', async (c) => {
+479:        .from('work_order_templates')
+491:        .from('work_order_templates')
+505:        .from('work_order_templates')
+525:workOrdersRoute.post('/templates/assign-to-project', async (c) => {
+536:        .from('work_order_templates')
+548:        .from('work_order_templates')
+571:        .from('work_order_templates')
+594:workOrdersRoute.delete('/templates/:id/unassign', async (c) => {
+618:        .from('work_order_templates')
+632:workOrdersRoute.get('/templates/prefs/hidden', async (c) => {
+647:workOrdersRoute.put('/templates/prefs/:templateId/hidden', async (c) => {
+723:workOrdersRoute.get('/templates/:id/sop', async (c) => {
+728:        .from('work_order_templates')
+738:            .from('work_order_templates')
+793:        .select('id, template_id, organization_id, work_order_templates!inner(sop_id, parent_template_id)')
+799:    let sopId = (wo as any).work_order_templates?.sop_id;
+800:    if (!sopId && (wo as any).work_order_templates?.parent_template_id) {
+802:            .from('work_order_templates')
+804:            .eq('id', (wo as any).work_order_templates.parent_template_id)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

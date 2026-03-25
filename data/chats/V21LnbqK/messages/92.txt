@@ -1,0 +1,63 @@
+1664 /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/hybrid.py
+====
+5:      -> Render each page as full-size image at 200 DPI
+6:      -> Generate 400px thumbnails -> upload to Supabase
+11:         crops (upscaled to 2000px min, adaptive-binarized, psm 11) with
+13:      -> LLM analysis on floorplan crops -> Unit-oriented output
+15:      -> Assembly: build output, discard full-size page images
+22:                 heuristic on the full page render.
+24:      - CV2 detect_elements_cv2() finds inset regions within the sheet.
+29:        crop queued for LLM unit analysis; False → saved as diagram.
+30:      - The full-page sheet is saved as a floorplan_dia (context image).
+31:      - Spec-table / title-block regions within the sheet are extracted
+38:      - Page does NOT enter pages_needing_bbox — CV2 detection is skipped.
+42:        DETECT_MIN = 15): page enters 6c fallback, full page image sent to
+44:      - No floorplan crop, no unit extraction — page contributes only to
+49:    These are labels and dimensions rendered on the floorplan sheet itself,
+67:      1. Crop the bbox region from the 200 DPI page render.
+69:         PIL LANCZOS — gives ~300 DPI equivalent for Tesseract.
+95:    Processing: cropped, uploaded as job_{id}_photo_{i}_page_{N}.png,
+114:from PIL import Image
+127:    detect_elements_cv2, crop_element, create_thumbnail,
+181:    # nearly-blank crops).
+192:    # LLM bbox parsing — minimum element size
+195:    # Minimum width or height of a parsed LLM bounding box as a fraction
+210:    # Grid-score gate — page-level table/bbox triggering
+214:    # a page to be flagged as containing image-based table structure.  Used in
+215:    # two places: (1) deciding which pages need CV2 bbox detection, and (2)
+222:    # P6 — Title-block bbox-signature deduplication
+226:    # bounding-box signature against the first-seen template.
+252:    # Target minimum pixel width for a spec-table crop before OCR.
+253:    # If the crop is narrower, it is upscaled proportionally (PIL LANCZOS).
+254:    # At 150 DPI a typical title block crops to ~600-900 px wide; 2000 px
+288:            "total_area_sf": 800,
+360:    """Reconstruct a markdown table from pytesseract tbl_data bounding boxes.
+437:    pil_image: Image.Image,
+483:        logger.warning(f"Image upload failed for {filename}: {e}")
+540:def parse_bbox_response(raw: str) -> List[Dict[str, Any]]:
+541:    """Parse LLM bounding box response into element list."""
+548:            bbox = el.get("bbox", [])
+549:            if len(bbox) != 4:
+551:            bbox = [max(0.0, min(1.0, float(v))) for v in bbox]
+552:            if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
+554:            if (bbox[2] - bbox[0]) < HYBRID_PARAMS.BBOX_MIN_DIM_RATIO or (bbox[3] - bbox[1]) < HYBRID_PARAMS.BBOX_MIN_DIM_RATIO:
+556:            el["bbox"] = bbox
+560:        logger.warning(f"Failed to parse bbox response: {e}")
+576:    """Execute the page-render hybrid pipeline.
+580:    2. Page Rendering        - render pages at 200 DPI; generate 400px thumbnails
+584:                               on pages that entered pages_needing_bbox
+585:    5. Element Cropping      - crop and upload each detected region; insets
+593:    7. LLM Floorplan Analysis - floorplan crops + table_context → unit JSON
+655:            current_step="rendering_pages",
+663:            current_step=f"rendered_{total_pages}_pages",
+667:        # Generate and upload thumbnails (400px wide)
+668:        thumbnail_urls: Dict[int, str] = {}
+673:            # Emit progress update for the rendering phase (Phase 2)
+676:                current_step=f"generating_thumbnail_page_{page_no}",
+679:            thumb = create_thumbnail(page_img, max_width=400)
+684:                    page_no=page_no, image_type="thumbnail"
+687:                    thumbnail_urls[page_no] = url
+695:                thumbnail_urls[page_no] = local_path
+697:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+752:        # Determine pages needing bounding box detection
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

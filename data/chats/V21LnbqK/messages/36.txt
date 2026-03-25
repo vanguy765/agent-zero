@@ -1,0 +1,23 @@
+=== UPLOAD TEST ===
+Returned URL: http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/signed_url_fix_test.png?token=eyJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJwcm9qZWN0LWRvY3VtZW50cy90ZXN0LXRlbmFudC90ZXN0LXByb2plY3QvZG9jLXBhcnNlci9zaWduZWRfdXJsX2ZpeF90ZXN0LnBuZyIsImlhdCI6MTc3MzQ0OTU0OCwiZXhwIjoxODA0OTg1NTQ4fQ.NnEjee0MVeTWRtHGtGA0L2l3znQ41ZrKs7Mrhjh-52U
+Is full URL: True
+Has token: True
+HTTP status: 200
+Content-Type: text/plain; charset=UTF-8
+Content-Length: 289 bytes
+PASS: True
+
+=== EXISTING IMAGE TEST ===
+Signed URL: http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-tenant/test-project/doc-parser/job_efc58...
+HTTP status: 200
+Content-Type: text/plain; charset=UTF-8
+Content-Length: 34395 bytes
+PASS: True
+
+=== SUMMARY ===
+Fix: upload_image_to_storage & upload_table_to_storage now return signed URLs
+Bucket: project-documents (PRIVATE)
+Expiry: 1 year (31536000 seconds)
+Before: bare path like 'test-tenant/test-project/doc-parser/job_..._thumb.png'
+After:  full signed URL like 'http://host.docker.internal:54321/storage/v1/object/sign/project-documents/test-...'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

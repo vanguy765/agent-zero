@@ -1,0 +1,21 @@
+728:An Availability Guard verifies that an external dependency (service, database, file system) is reachable before the application relies on it. Optionally, it can attempt **automated recovery** when a dependency is unavailable.
+735:- **After connection errors** (circuit breaker recovery)
+744:The detection phase checks whether a dependency is reachable. If the check fails and no recovery is configured, the guard fails loudly with a diagnostic message.
+771:#### 10.1.2 Recovery (OPTIONAL)
+773:The Recovery sub-pattern extends the Availability Guard with automated self-healing. When a dependency is unavailable and a recovery command is configured, the guard executes the command, waits, and re-checks availability. This bridges the gap between "a recovery script exists" and "someone has to manually run it."
+777:In practice, most infrastructure failures have known recovery procedures:
+782:These scripts exist but require manual invocation. The Recovery sub-pattern automates the trigger, turning "detect and complain" into "detect, fix, and continue."
+785:- **AI agent workflows** — agents cannot manually run scripts; auto-recovery enables true autonomy
+789:##### Recovery Parameters
+793:| `recovery_command` | `string \| None` | `None` | Shell command or script path to execute when dependency is unavailable. If `None`, recovery is disabled (detection-only behavior). |
+794:| `max_retries` | `int` | `3` | Maximum number of recovery attempts before giving up. |
+795:| `retry_delay` | `float` | `5.0` | Seconds to wait after running recovery command before re-checking. |
+798:##### Recovery Behavior
+801:2. **If no `recovery_command`** — fail loudly (existing behavior, unchanged)
+802:3. **If `recovery_command` is set:**
+803:   a. Log the recovery attempt with attempt number and command
+804:   b. Execute the recovery command via subprocess
+811:##### Recovery MUST Rules
+813:- **R1: Recovery MUST be optional.** Omitting `recovery_command` MUST produce identical behavior to the pre-recovery Availability Guard. No existing code breaks.
+814:- **R2: Recovery MUST be bounded.** The guard MUST NOT retry indefinitely. `max_retries` MUST be enforced.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

@@ -1,0 +1,72 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#     def lint_file(self, filepath: str) -> List[Violation]:
+        """Lint a single file and return violations.
+
+        Args:
+            filepath: Absolute path to the file.
+
+        Returns:
+            List of Violation objects found in the file.
+        """
+        violations: List[Violation] = []
+
+        # Read file
+        try:
+            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+                content = f.read()
+        except OSError as exc:
+            logger.error("Cannot read %s: %s", filepath, exc)
+            return violations
+
+        # Detect language
+        language = detect_language(filepath)
+        if language is None:
+            logger.debug("Unsupported file type: %s", filepath)
+            return violations
+
+        # Extract functions
+        functions = extract_functions(content, filepath, language)
+        logger.debug("Extracted %d functions from %s", len(functions), filepath)
+
+        # Separate function-level and file-level rules
+        func_rules: List[BaseRule] = []
+        file_rules: List[BaseRule] = []
+        for rule in self.rules:
+            if rule.file_level:
+                file_rules.append(rule)
+            else:
+                func_rules.append(rule)
+
+        # Run function-level rules
+        for func in functions:
+            for rule in func_rules:
+                try:
+                    found = rule.check(func)
+                    violations.extend(found)
+                except Exception as exc:
+                    logger.error("Rule %s failed on %s:%s — %s",
+                                 rule.rule_id, filepath, func.name, exc)
+
+        # Run file-level rules
+        for rule in file_rules:
+            try:
+                found = rule.check_file(filepath, content, language)
+                violations.extend(found)
+            except Exception as exc:
+                logger.error("File rule %s failed on %s — %s",
+                             rule.rule_id, filepath, exc)
+
+        # Filter by minimum severity
+        violations = [
+            v for v in violations
+            if v.severity >= self.min_severity
+        ]
+
+        return violations
+
+    def lint_files(self, filepaths: List[str]) -> Dict[str, List[Violation]]:
+        """Lint multiple files.
+
+        Args:
+            filepaths: List of absolute file paths.
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

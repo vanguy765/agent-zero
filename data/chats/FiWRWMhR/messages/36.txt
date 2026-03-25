@@ -1,0 +1,81 @@
+11:## Abstract
+17:### Why This Exists
+23:## Table of Contents
+42:## 1. Motivation
+44:### 1.1 The Problem
+51:### 1.2 AI-Specific Failure Taxonomy
+62:### 1.3 Why Existing Approaches Are Insufficient
+74:### 1.4 Design Philosophy
+86:## 2. Definitions
+104:## 3. The Three Layers
+106:### 3.1 Layer 1: GUARD
+108:#### 3.1.1 Purpose
+114:#### 3.1.2 Applicability Rule
+133:#### 3.1.3 Guard Requirements
+148:#### 3.1.4 Guard Behavior
+157:#### 3.1.5 Guard Anti-Patterns
+167:#### 3.1.6 Assert vs. Raise: Production Reliability
+188:### 3.2 Layer 2: TRACE
+190:#### 3.2.1 Purpose
+196:#### 3.2.2 Applicability Rule
+207:#### 3.2.3 Trace Requirements
+223:#### 3.2.4 Trace Behavior
+232:#### 3.2.5 Shape Description Format
+252:### 3.3 Layer 3: VERIFY
+254:#### 3.3.1 Purpose
+260:#### 3.3.2 Applicability Rule
+273:#### 3.3.3 Verify Requirements
+283:#### 3.3.4 Verify Behavior
+292:#### 3.3.5 Verify Strategies by Context
+296:##### Strategy Selection Matrix
+307:##### Why Not Always Full Verification?
+336:##### Critical Operations: Always Full Verify
+347:#### 3.3.6 Verify Strategies by Side Effect Type
+361:### 3.4 Decision Rules
+402:## 4. Diagnostic Message Format
+404:### 4.1 Structure
+422:### 4.2 Guard Message Requirements
+435:### 4.3 Trace Message Requirements
+447:### 4.4 Verify Message Requirements
+461:### 4.5 Severity Levels
+472:## 5. Compliance Levels
+474:### 5.1 Level 1: Guarded
+480:### 5.2 Level 2: Guarded + Traced
+486:### 5.3 Level 3: Fully Bulwarked
+494:## 6. Runtime Modes
+496:### 6.1 Overview
+510:### 6.2 Guards: MUST Be Always Active
+528:### 6.3 Traces: Always Present, Configurable Verbosity
+562:### 6.4 Verifies: Always Present, Strategy Adapts to Context
+584:### 6.5 Configuration Mechanism
+609:### 6.6 Runtime Mode Summary
+619:## 7. Language-Agnostic Implementation Guidelines
+621:### 7.1 Assertion Primitives
+631:### 7.2 Zero-Dependency Principle
+645:### 7.3 Performance Considerations
+655:## 8. AI Prompt Integration
+659:### 8.1 Minimum Viable Prompt Injection
+686:### 8.2 Integration Targets
+700:## 9. Validation Checklist
+722:## 10. Extension Layers
+726:### 10.1 Availability Guard (RECOMMENDED for external dependencies)
+730:#### When to Use
+737:#### When NOT to Use
+742:#### 10.1.1 Detection
+746:##### Pattern
+764:##### Diagnostic Format
+771:#### 10.1.2 Recovery (OPTIONAL)
+775:##### Motivation
+789:##### Recovery Parameters
+798:##### Recovery Behavior
+811:##### Recovery MUST Rules
+820:##### Pattern
+852:##### Diagnostic Format
+879:##### Security Considerations
+886:### 10.2 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+890:#### When to Use
+897:#### Why This Is an Extension, Not Core
+901:#### Pattern
+914:### 10.3 Confidence Annotation (FUTURE, not yet recommended)
+918:#### Why This Is Deferred
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

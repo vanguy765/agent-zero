@@ -1,0 +1,39 @@
+=== supabase middleware ===
+import { Context } from 'hono';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+
+export const getScopedClient = (c: Context): SupabaseClient => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader ? authHeader.replace('Bearer ', '') : undefined;
+
+  // If no token, this client acts as Anonymous.
+  // If token is present, it acts as the User.
+  const options = token
+    ? { global: { headers: { Authorization: `Bearer ${token}` } } }
+    : {};
+
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+};
+
+
+=== templates route (first 100 lines) ===
+Line 278: workOrdersRoute.get('/templates', async (c) => {
+Line 301: // NOTE: These static-path routes MUST be registered before GET /templates/:id
+Line 304: // GET SYSTEM TEMPLATES (for company assignment picker)
+Line 305: workOrdersRoute.get('/templates/system', async (c) => {
+Line 321: // GET COMPANY TEMPLATES (for project assignment picker)
+Line 322: workOrdersRoute.get('/templates/company', async (c) => {
+Line 339: workOrdersRoute.get('/templates/:id', async (c) => {
+Line 356: workOrdersRoute.post('/templates', async (c) => {
+Line 383: workOrdersRoute.patch('/templates/:id', async (c) => {
+Line 415: workOrdersRoute.delete('/templates/:id', async (c) => {
+Line 432: // GET PROJECT TEMPLATES (with parent definition resolution for lazy-copy)
+Line 433: workOrdersRoute.get('/templates/project/:projectId', async (c) => {
+Line 468: workOrdersRoute.post('/templates/assign-to-company', async (c) => {
+Line 525: workOrdersRoute.post('/templates/assign-to-project', async (c) => {
+Line 594: workOrdersRoute.delete('/templates/:id/unassign', async (c) => {
+Line 632: workOrdersRoute.get('/templates/prefs/hidden', async (c) => {
+Line 647: workOrdersRoute.put('/templates/prefs/:templateId/hidden', async (c) => {
+Line 723: workOrdersRoute.get('/templates/:id/sop', async (c) => {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

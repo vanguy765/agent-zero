@@ -1,0 +1,11 @@
+Original line count: 1150
+Line 15: 5. [Runtime Modes: Not Everything Costs the Same](#5-runtime-modes-not-everything-costs-the-same)
+Line 16: 6. [How to Add Bulwark to Your Project](#6-how-to-add-bulwark-to-your-project)
+Line 757: ---
+Line 758:
+Line 759: ## 6. How to Add Bulwark to Your Project
+Line 763: ### Step 1: Copy the Helper Functions
+Line 764:
+Line 775:
+Line 776: Start with a function that **reads from an external source** — an API call, a database query, or a file read. These are the most common sources of AI code failures because the data shape is unpredictable.
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

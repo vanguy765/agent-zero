@@ -1,0 +1,62 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#     status = await getJobStatus(jobId);
+    console.log(
+      `[pipeline] Job ${jobId} status=${status.status}` +
+      ` (${status.progress?.percent_complete ?? 0}%)`,
+    );
+
+    if (status.status === 'completed') break;
+    if (status.status === 'failed' || status.status === 'timeout') {
+      throw Object.assign(
+        new Error(`Doc-parser job ${status.status}: ${status.error ?? 'no details'}`),
+        { status: 502, job_id: jobId },
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+  }
+
+  // 5. Fetch full results
+  const rawResults = await getJobResults(jobId, false);
+  const result = rawResults.result;
+  if (!result) {
+    throw Object.assign(
+      new Error('Job completed but result payload is empty'),
+      { status: 502, job_id: jobId },
+    );
+  }
+
+  // 6. Persist document_pages
+  const pageEntries = Object.entries(result.pages || {});
+  const pageIdMap: Record<number, string> = {};
+
+  for (const [pageNumStr, pageData] of pageEntries) {
+    const pageNumber = parseInt(pageNumStr, 10);
+    const pd = pageData as any;
+
+    const { data: pageRow, error: pageErr } = await serviceClient
+      .from('document_pages')
+      .upsert(
+        {
+          document_id:   documentId,
+          page_number:   pageNumber,
+          storage_url:   pd?.floorplan_dia_urls?.[0] ?? pd?.storage_url ?? pd?.image_url ?? pd?.page_image_url ?? null,
+          thumbnail_url: pd?.thumbnail_url ?? null,
+          category:      inferPageCategory(pd),
+          raw_text:      pd?.raw_text ?? pd?.text ?? null,
+          metadata:      pd ?? null,
+        },
+        { onConflict: 'document_id,page_number', ignoreDuplicates: false },
+      )
+      .select('id')
+      .single();
+
+    if (pageErr) {
+      console.error(`[pipeline] document_pages upsert failed for page ${pageNumber}:`, pageErr.message);
+    } else if (pageRow) {
+      pageIdMap[pageNumber] = pageRow.id;
+    }
+  }
+
+  console.log(`[pipeline] Persisted ${Object.keys(pageIdMap).length}/${pageEntries.length} pages`);
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

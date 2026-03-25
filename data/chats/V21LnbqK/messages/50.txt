@@ -1,0 +1,19 @@
+=== Purge any storage from failed run ===
+Purged 335 files
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser# > > > > > > > >
+=== Starting fresh parse against LOCAL patched server ===
+Output directory: /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/artifacts/runs/20260314_012231
+Submitting /a0/usr/projects/timesheet_app/voicelog-scaffold/tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf to http://localhost:5000/parse/hybrid...
+Job submitted: 9a632284-8b38-4cfa-a1a0-e76b7b509fbf
+  [failed] 15.0% — converting_pdf_with_docling
+Traceback (most recent call last):
+  File "/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/save_parsed_pages.py", line 276, in <module>
+    main()
+    ~~~~^^
+  File "/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/save_parsed_pages.py", line 266, in main
+    poll_until_complete(job_id, args.timeout, args.poll_interval)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/save_parsed_pages.py", line 101, in poll_until_complete
+    raise RuntimeError(f"Job {state}: {status.get('error', 'no details')}")
+RuntimeError: Job failed: No module named 'docling'
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

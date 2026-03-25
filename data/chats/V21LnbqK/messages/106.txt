@@ -1,0 +1,80 @@
+=== upload_image_to_storage (cleaned) ===
+456:async def upload_image_to_storage(
+
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    image_type: str = "doc-parser_extraction",
+) -> Optional[str]:
+    """Upload image to Supabase Storage and return public URL."""
+    if not sb_client:
+        return None
+    try:
+        buffered = BytesIO()
+        pil_image.save(buffered, format="PNG")
+        image_bytes = buffered.getvalue()
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+        upload_resp = await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, image_bytes, file_options={"content-type": "image/png", "upsert": "true"})
+        )
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        # Return a signed URL (bucket is private); max expiry ~68 years
+        _signed = await asyncio.to_thread(
+            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 2147483647)
+        )
+        url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+        return url_response
+    except Exception as e:
+        logger.warning(f"Image upload failed for {filename}: {e}")
+        return None
+
+
+
+=== upload_table_to_storage (cleaned) ===
+491:async def upload_table_to_storage(
+
+    markdown_content: str,
+    sb_client,
+    tenant_name: str,
+    project_name: str,
+    filename: str,
+    page_no: int = 1,
+    table_type: str = "table",
+) -> Optional[str]:
+    """Upload table markdown to Supabase Storage."""
+    if not sb_client:
+        return None
+    try:
+        content_bytes = markdown_content.encode("utf-8")
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+        upload_resp = await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, content_bytes, file_options={"content-type": "text/markdown", "upsert": "true"})
+        )
+        # supabase-py 2.x raises StorageApiError on failure, but some versions return
+        # an error dict instead — check explicitly so the path is never returned on failure.
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        # Return a signed URL (bucket is private); max expiry ~68 years
+        _signed = await asyncio.to_thread(
+            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 2147483647)
+        )
+        url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+        logger.info(f"Table markdown uploaded: {path}")
+        return url_response
+    except Exception as e:
+        logger.warning(f"Table upload failed for {filename}: {e}")
+        return None
+
+
+# ============================================================
+# Bounding Box Parsing Helper
+# ============================================================
+
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

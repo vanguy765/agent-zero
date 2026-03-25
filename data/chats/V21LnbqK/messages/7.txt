@@ -1,0 +1,22 @@
+(venv) root@d2d162d983f0:/a0/usr/workdir# -rwxrwxrwx 1 root root 8770689 Jan 14 03:25 "/a0/usr/projects/timesheet_app/voicelog-scaffold/tests/test_seed/Sch'eyk DRAWINGS BH 10 08 2024rs_260113_165135.pdf"
+(venv) root@d2d162d983f0:/a0/usr/workdir# ---
+(venv) root@d2d162d983f0:/a0/usr/workdir# (venv) root@d2d162d983f0:/a0/usr/workdir# 4:--              document-images storage bucket.
+13:    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+37:    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+53:-- Storage bucket: document-images
+56:INSERT INTO storage.buckets (id, name, public, file_size_limit)
+57:VALUES ('document-images', 'document-images', false, 104857600)  -- 100 MiB
+97:-- RLS: document-images bucket
+105:      AND policyname = 'document_images_insert'
+107:    CREATE POLICY document_images_insert ON storage.objects
+109:        bucket_id = 'document-images' AND auth.role() = 'authenticated'
+119:      AND policyname = 'document_images_select'
+121:    CREATE POLICY document_images_select ON storage.objects
+123:        bucket_id = 'document-images' AND auth.role() = 'authenticated'
+133:      AND policyname = 'document_images_delete'
+135:    CREATE POLICY document_images_delete ON storage.objects
+137:        bucket_id = 'document-images' AND auth.role() = 'authenticated'
+(venv) root@d2d162d983f0:/a0/usr/workdir# ---
+(venv) root@d2d162d983f0:/a0/usr/workdir# (venv) root@d2d162d983f0:/a0/usr/workdir# (venv) root@d2d162d983f0:/a0/usr/workdir# ---
+(venv) root@d2d162d983f0:/a0/usr/workdir# SUPABASE_URL=http://127.0.0.1:54321
+(venv) root@d2d162d983f0:/a0/usr/workdir#

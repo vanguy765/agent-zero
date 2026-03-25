@@ -1,0 +1,28 @@
+./checklists/bulwark-checklist.md
+./DECISIONS.md
+./examples/python/document_pipeline.py
+./GUIDE.md
+./PROJECT_STATUS.md
+./prompts/bulwark-system-prompt.md
+./README.md
+./reference/bulwark.js
+./reference/bulwark.py
+./reference/bulwark.ts
+./reference/package.json
+./reference/package-lock.json
+./SPEC.md
+---
+  1013 SPEC.md
+  1569 GUIDE.md
+   360 README.md
+   818 DECISIONS.md
+   403 PROJECT_STATUS.md
+  4163 total
+---
+Results: 36/36 passed, 0 failed
+All self-tests passed. Bulwark AI is operational.
+============================================================
+Results: 36/36 passed, 0 failed
+All self-tests passed. Bulwark AI is operational.
+============================================================
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

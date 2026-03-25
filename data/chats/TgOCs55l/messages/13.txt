@@ -1,0 +1,19 @@
+---
+description: Parse Architectural PDFs into structured JSON and mock Supabase storage
+---
+# Document Parser Workflow
+
+This workflow processes architectural PDF documents to extract floorplans, tables, and site photos, perform AI-based structural analysis, and compress the outputs into a mock Supabase storage directory.
+
+## Steps
+
+1. **Start the Docker Container**
+   Ensure the `doc-parser` service is running in Docker.
+// turbo
+   `cd doc-parser && docker-compose up -d --build doc-parser`
+
+2. **Run the Processing Pipeline**
+   Execute the `process_document.py` script and pass the path to the PDF, along with the tenant and project names. This triggers the background docling task, waits for completion, and generates compressed JPEGs and JSON data.
+// turbo
+   `cd doc-parser && python process_document.py --pdf demo.pdf --tenant demo_tenant --project demo_project`
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

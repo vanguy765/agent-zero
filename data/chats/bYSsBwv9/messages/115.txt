@@ -1,0 +1,65 @@
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/dist/middleware/supabase.d.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/dist/services/a2a/skills/workOrders.d.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/dist/services/doc-parser-client.d.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/dist/services/pdfParser.d.ts
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/dist/services/placeholderGenerator.d.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# /a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts:import { createClient } from '@supabase/supabase-js';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts:import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/auth.ts:const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts:import { createClient, SupabaseClient } from '@supabase/supabase-js';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts:import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/middleware/supabase.ts:  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/bom-action-requests.ts:import { createClient } from '@supabase/supabase-js';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/bom-action-requests.ts:import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/bom-action-requests.ts:        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/bom-action-requests.ts:    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/doc-parser-routes.ts:        supabaseUrl: process.env.SUPABASE_URL,
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:import { createClient } from '@supabase/supabase-js';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/documents.ts:    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:import { createClient } from '@supabase/supabase-js';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:    return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/entity-creation.ts:  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+/a0/usr/projects/timesheet_app/voicelog-scaffold/apps/api/src/routes/onboard.ts:import { createClient } from '@supabase/supabase-js';
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Supabase middleware files ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# apps/api/src/middleware/auth.ts
+apps/api/src/middleware/supabase.ts
+apps/api/src/routes/bom-action-requests.ts
+apps/api/src/routes/doc-parser-routes.ts
+apps/api/src/routes/documents.ts
+apps/api/src/routes/entity-creation.ts
+apps/api/src/routes/onboard.ts
+apps/api/src/routes/project-definitions.ts
+apps/api/src/routes/project-outcomes.ts
+apps/api/src/routes/reviews.ts
+apps/api/src/routes/taxonomy.ts
+apps/api/src/routes/todos.ts
+apps/api/src/routes/trades.ts
+apps/api/src/routes/type-orders.ts
+apps/api/src/routes/units.ts
+apps/api/src/routes/voice.ts
+apps/api/src/routes/work-orders.ts
+apps/api/src/services/a2a/skillRouter.ts
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Supabase middleware content ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > import { Context } from 'hono';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@repo/config';
+
+export const getScopedClient = (c: Context): SupabaseClient => {
+  const authHeader = c.req.header('Authorization');
+  const token = authHeader ? authHeader.replace('Bearer ', '') : undefined;
+
+  // If no token, this client acts as Anonymous.
+  // If token is present, it acts as the User.
+  const options = token
+    ? { global: { headers: { Authorization: `Bearer ${token}` } } }
+    : {};
+
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+};
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === work_order_templates columns ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > >

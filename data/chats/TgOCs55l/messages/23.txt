@@ -1,0 +1,145 @@
+Name: supabase
+Version: 2.28.0
+Summary: Supabase client for Python.
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#             current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_images)}",
+        )
+
+        enriched_prompt = FLOORPLAN_PROMPT_RICH
+        if table_context:
+            enriched_prompt += (
+                "\n\nADDITIONAL CONTEXT from document schedules:\n\n"
+                + table_context
+            )
+
+        try:
+            result_str = await run_llm_extraction(provider, enriched_prompt, b64)
+            result_clean = re.sub(
+                r'```(?:json)?\s*|\s*```', '', result_str
+            ).strip()
+            floorplan_data = json.loads(result_clean)
+
+            if page_no not in pages_result:
+                pages_result[page_no] = {
+                    "floorplans": [], "tables": [],
+                    "site_photos": [], "diagrams": [],
+                }
+            pages_result[page_no]["floorplans"].append(floorplan_data)
+
+        except Exception as e:
+            logger.error(f"LLM analysis failed for page {page_no}: {e}")
+            if page_no not in pages_result:
+                pages_result[page_no] = {
+                    "floorplans": [], "tables": [],
+                    "site_photos": [], "diagrams": [],
+                }
+            pages_result[page_no]["floorplans"].append(
+                {"error": str(e)}
+            )
+
+    # Phase 4: Synthesis (P5)
+    synthesis_result = None
+    successful_fps = [
+        fp for page_data in pages_result.values()
+        for fp in page_data.get("floorplans", [])
+        if "error" not in fp
+    ]
+
+    if len(successful_fps) > 1 or (successful_fps and table_data):
+        await job_manager.update_progress(
+            job_id,
+            phase=ProcessingPhase.SYNTHESIS,
+            current_step="cross_page_synthesis",
+        )
+
+        try:
+            from hybrid import run_text_llm
+            from prompts import SYNTHESIS_PROMPT
+
+            synth_parts = [f"Total pages: {total_pages}"]
+            for idx, fp in enumerate(successful_fps):
+                synth_parts.append(
+                    f"\n--- Floorplan {idx + 1} ---\n"
+                    + json.dumps(fp, indent=2)
+                )
+            if table_data:
+                synth_parts.append("\n--- TABLES ---")
+                for pg, md in table_data:
+                    synth_parts.append(f"\nPage {pg}:\n{md}")
+
+            synth_str = await run_text_llm(
+                provider, SYNTHESIS_PROMPT, "\n".join(synth_parts)
+            )
+            synth_clean = re.sub(
+                r'```(?:json)?\s*|\s*```', '', synth_str
+            ).strip()
+            synthesis_result = json.loads(synth_clean)
+
+        except Exception as e:
+            logger.warning(f"Synthesis failed (non-fatal): {e}")
+            synthesis_result = {"error": str(e)}
+
+    # Assemble final result
+    result = {
+        "engine": "docling",
+        "pages": pages_result,
+        "footer_sample": footer_sample,
+        "synthesis": synthesis_result,
+    }
+
+    # Build units array from floorplan extractions
+    units = []
+    for page_no, page_data in pages_result.items():
+        for fp in page_data.get("floorplans", []):
+            if "error" in fp:
+                continue
+            units.append({
+                "unit_number": fp.get("unit_number", f"page_{page_no}"),
+                "unit_type": fp.get("unit_type", "unknown"),
+                "floor": fp.get("floor", 0),
+                "bedrooms": fp.get("bedrooms", 0),
+                "bathrooms": fp.get("bathrooms", 0),
+                "area_sf": fp.get("total_area_sf", 0),
+                "rooms": fp.get("rooms", []),
+                "doors": fp.get("doors", []),
+                "windows": fp.get("windows", []),
+                "fixtures": fp.get("fixtures", []),
+                "upgrades": fp.get("upgrades", []),
+                "general_notes": fp.get("general_notes", []),
+                "source_page": page_no,
+            })
+    result["units"] = units
+
+    # Confidence scoring (P6)
+    result["confidence"] = calculate_confidence(
+        units=units,
+        tables=[{"page_no": pg, "markdown": md} for pg, md in table_data],
+        synthesis=synthesis_result,
+        total_pages=total_pages,
+        floorplans_found=len(floorplan_images),
+    ).model_dump()
+
+    # Summary
+    result["summary"] = {
+        "units_count": len(units),
+        "pages_count": total_pages,
+        "floorplans_count": len(floorplan_images),
+        "tables_count": len(table_data),
+        "total_doors": sum(len(u.get("doors", [])) for u in units),
+        "total_windows": sum(len(u.get("windows", [])) for u in units),
+        "total_baseboard_ft": sum(
+            sum(r.get("baseboard_length_ft", 0) for r in u.get("rooms", []))
+            for u in units
+        ),
+        "has_footer": footer_sample is not None,
+    }
+
+    await job_manager.complete_job(job_id, result)
+
+
+# ============================================================
+# POST /parse/hybrid - Hybrid Engine (Priority 7)
+# ============================================================
+
+@app.post("/parse/hybrid")
+async def parse_hybrid(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

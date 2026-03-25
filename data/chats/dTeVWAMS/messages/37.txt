@@ -1,0 +1,31 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === GUIDE.md ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === QUICKSTART.md ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === README.md ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === BMAD skill ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Checklist ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === System prompt ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Remediation agent ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === CONTINUATION_PROMPT.md ===
+0
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === README test count ===
+AI code generation (LLMs, copilots, coding agents) produces code through **statistical pattern completion**, not runtime reasoning. The result: code that compiles, passes review, and runs — until it encounters reality.
+| **Placeholder data in production** | Hardcoded `"sk-test-1234"` or `"https://example.com"` |
+# If DB is up → passes instantly
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ---
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Line counts ===
+  1570 GUIDE.md
+   261 QUICKSTART.md
+   360 README.md
+   375 .bmad/skills/bulwark-defensive-coding.md
+   326 checklists/bulwark-checklist.md
+    94 CONTINUATION_PROMPT.md
+  2986 total
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

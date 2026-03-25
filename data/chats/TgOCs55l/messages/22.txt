@@ -1,0 +1,142 @@
+converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pipeline_options
+            )
+        }
+    )
+
+    result_doc_wrapper = await asyncio.to_thread(
+        converter.convert, temp_path
+    )
+    result_doc = result_doc_wrapper.document
+    pdf_pages = await asyncio.to_thread(convert_from_path, temp_path)
+    total_pages = len(pdf_pages)
+
+    await job_manager.update_progress(
+        job_id, total_pages=total_pages,
+    )
+
+    # Phase 2: Classification (P2: improved detection)
+    await job_manager.update_progress(
+        job_id,
+        phase=ProcessingPhase.CLASSIFICATION,
+        current_step="classifying_pages",
+    )
+
+    pages_result = {}
+    footer_sample = None
+    table_data = []
+
+    FOOTER_KEYWORDS = [
+        "project no", "drawn by", "checked by", "scale",
+        "sheet no", "date", "revision", "architect",
+    ]
+
+    # Process tables
+    for table in result_doc.tables:
+        md_text = table.export_to_markdown()
+        page_no = table.prov[0].page_no if table.prov else 1
+
+        is_footer = sum(
+            1 for kw in FOOTER_KEYWORDS if kw in md_text.lower()
+        ) >= 3
+
+        if is_footer:
+            if not footer_sample:
+                footer_sample = {"markdown": md_text, "page_no": page_no}
+            continue
+
+        table_data.append((page_no, md_text))
+
+        if page_no not in pages_result:
+            pages_result[page_no] = {
+                "floorplans": [], "tables": [],
+                "site_photos": [], "diagrams": [],
+            }
+        pages_result[page_no]["tables"].append(md_text)
+
+    await job_manager.update_progress(
+        job_id, tables_found=len(table_data),
+    )
+
+    # Process pictures with improved detection (P2)
+    floorplan_images = []
+
+    for pic in result_doc.pictures:
+        if not pic.image:
+            continue
+        try:
+            pil_img = pic.image.pil_image
+        except AttributeError:
+            continue
+
+        page_no = pic.prov[0].page_no if pic.prov else 1
+
+        await job_manager.update_progress(
+            job_id, current_page=page_no,
+            current_step=f"classifying_page_{page_no}",
+        )
+
+        if page_no not in pages_result:
+            pages_result[page_no] = {
+                "floorplans": [], "tables": [],
+                "site_photos": [], "diagrams": [],
+            }
+
+        classification = classify_image(pil_img)
+
+        if classification == "floorplan":
+            b64 = image_to_base64(pil_img)
+            fp_idx = len(floorplan_images)
+            floorplan_images.append((page_no, pil_img, b64))
+            if sb_client:
+                await upload_image_to_storage(
+                    pil_img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_floorplan_{fp_idx}_page_{page_no}.png",
+                    page_no=page_no, image_type="floorplan",
+                )
+        elif classification == "site_photo":
+            photo_idx = len(pages_result[page_no]["site_photos"])
+            pages_result[page_no]["site_photos"].append("detected")
+            if sb_client:
+                await upload_image_to_storage(
+                    pil_img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_photo_{photo_idx}_page_{page_no}.png",
+                    page_no=page_no, image_type="site_photo",
+                )
+        elif classification == "diagram":
+            diag_idx = len(pages_result[page_no]["diagrams"])
+            pages_result[page_no]["diagrams"].append("detected")
+            if sb_client:
+                await upload_image_to_storage(
+                    pil_img, sb_client, tenant_name, project_name,
+                    f"job_{job_id}_diagram_{diag_idx}_page_{page_no}.png",
+                    page_no=page_no, image_type="diagram",
+                )
+
+    await job_manager.update_progress(
+        job_id, floorplans_found=len(floorplan_images),
+    )
+
+    # Phase 3: LLM Analysis (P1: rich prompts)
+    await job_manager.update_progress(
+        job_id,
+        phase=ProcessingPhase.LLM_ANALYSIS,
+        current_step="starting_llm_analysis",
+    )
+
+    # Build table context for enrichment
+    table_context = ""
+    if table_data:
+        table_context = "\n\n".join([
+            f"--- Table from Page {pg} ---\n{md}"
+            for pg, md in table_data
+        ])
+
+    for i, (page_no, pil_img, b64) in enumerate(floorplan_images):
+        await job_manager.update_progress(
+            job_id,
+            current_page=page_no,
+            current_step=f"analyzing_floorplan_{i + 1}_of_{len(floorplan_images)}",
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

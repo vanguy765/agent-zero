@@ -1,0 +1,19 @@
+=== LINTER TEST COUNT ===
+tests/test_rules.py::TestMainBlockExclusion::test_blw001_still_flags_long_private_functions
+tests/test_rules.py::TestMainBlockExclusion::test_extract_functions_excludes_main_block
+tests/test_rules.py::TestMainBlockExclusion::test_extract_functions_works_without_main_block
+
+64 tests collected in 0.47s
+=== QUICKSTART.md (first 10 lines) ===
+# Bulwark AI — Quick Start
+
+> Get defensive coding in your project in 5 minutes.
+> For the full guide, see [GUIDE.md](GUIDE.md).
+
+## What Is Bulwark AI?
+
+A zero-dependency defensive coding standard that catches AI-generated code
+failures through three layers: **Guard · Trace · Verify**.
+
+=== CURL URLS IN README (check for wrong org) ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

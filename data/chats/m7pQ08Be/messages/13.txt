@@ -1,0 +1,1151 @@
+# Bulwark AI — A Beginner's Companion Guide
+
+**Your friendly introduction to the Guard-Trace-Verify defensive coding standard**
+
+> This guide is a companion to the [formal specification (SPEC.md)](SPEC.md). You don't need to read the spec first — everything you need is right here.
+
+---
+
+## Table of Contents
+
+1. [What Is Bulwark AI?](#1-what-is-bulwark-ai)
+2. [Why Does AI Code Fail?](#2-why-does-ai-code-fail)
+3. [The Three Layers Explained](#3-the-three-layers-explained)
+4. [The Decision Flowchart](#4-the-decision-flowchart)
+5. [Runtime Modes: Not Everything Costs the Same](#5-runtime-modes-not-everything-costs-the-same)
+6. [How to Add Bulwark to Your Project](#6-how-to-add-bulwark-to-your-project)
+7. [Common Mistakes](#7-common-mistakes)
+8. [Why We Made These Choices](#8-why-we-made-these-choices)
+9. [Glossary](#9-glossary)
+
+---
+
+## 1. What Is Bulwark AI?
+
+Bulwark AI is a defensive coding standard — a set of rules and patterns — designed to catch the mistakes that AI code generators make. If you've ever used ChatGPT, GitHub Copilot, Claude, or any AI coding assistant to write code, you've probably noticed that the code *looks* right, runs without syntax errors, and even passes a quick glance... but then breaks in weird, silent ways when it hits real data. Bulwark AI exists to make those invisible failures visible, loud, and easy to fix.
+
+Think of it this way: **Bulwark is like a building inspector for AI-generated code.** A building inspector doesn't design the building or lay the bricks — they walk through after construction and check that the wiring is up to code, the load-bearing walls are solid, and the fire exits actually open. Bulwark does the same thing for code. It wraps AI-generated functions in three layers of defense — Guard, Trace, and Verify — that catch problems before they cause damage.
+
+The best part? Bulwark AI is completely free, requires zero external libraries or packages, and works in any programming language. It's not a tool you install — it's a *convention* you follow. You can implement it using nothing more than `if` statements, `print` calls, and error handling that already exists in your language. You can adopt it one function at a time, without rewriting anything. And because it's a convention, not a dependency, it will never break your build, never get deprecated, and never introduce a security vulnerability through your supply chain.
+
+---
+
+## 2. Why Does AI Code Fail?
+
+Before we learn how to defend against AI code failures, let's understand *why* they happen. AI code generators don't think the way you do. They don't reason about what your code should do at runtime. Instead, they predict the most *statistically likely* next piece of code based on patterns they've seen in training data. The result is code that looks plausible but hasn't been "thought through."
+
+The Bulwark AI specification identifies six specific ways AI-generated code fails. Let's walk through each one in plain English.
+
+### F1: Silent Data Shape Mismatch
+
+**What it means:** The code assumes data looks one way, but it actually looks another way. The code doesn't check, so it either crashes with a confusing error or — worse — silently processes the wrong thing.
+
+**Imagine this:** You ask a friend to grab the milk from the fridge. They open the fridge, reach for the top shelf where milk "usually" is, grab the first container they touch, and pour it into your coffee. But today, someone moved the milk to the bottom shelf and put orange juice on top. Your friend didn't look — they just assumed. Now you have orange juice in your coffee.
+
+That's F1. The AI wrote `response["pages"]` because APIs "usually" return a `pages` key at the top level. But *this* API returns `{"result": {"pages": [...]}}`. The code never checked the actual shape of the data.
+
+### F2: Unverified Side Effects
+
+**What it means:** The code performs an action (like saving to a database or writing a file) and then reports "Done!" without ever checking whether the action actually worked.
+
+**Imagine this:** You order a pizza and the delivery app says "Delivered!" but no pizza arrived. The driver marked it as delivered without actually delivering it. The app trusted the driver's word instead of confirming the pizza was at your door. That's F2 — unverified side effects.
+
+AI-generated code loves to write `db.insert(data)` followed by `return {"status": "success"}`. But what if the insert silently failed? What if it returned a 200 status code but wrote zero rows? The code never checked.
+
+### F3: Placeholder and Demo Data
+
+**What it means:** The AI leaves hardcoded test values, example URLs, or stub data in the code that was meant to be replaced with real values.
+
+**Imagine this:** You're filling out a job application and you use a template. The template has "John Doe" as the name and "123 Example Street" as the address. You fill in your real name but forget to change the address. You submit the application with a fake address. That's F3.
+
+AI code generators do this constantly: `api_key = "sk-test-1234"`, `url = "https://example.com/api"`, `email = "user@example.com"`. These look like real values at a glance, but they're placeholders from training data.
+
+### F4: Confident Wrong Assumptions
+
+**What it means:** The code assumes something about the environment — a file exists, a service is running, a key is in a dictionary — without checking first.
+
+**Imagine this:** You're giving someone driving directions and you say, "Turn left at the gas station." But the gas station closed last month. You assumed it was still there because it was there last time you drove that route. That's F4 — the AI "remembers" patterns from its training data and assumes they still hold.
+
+AI code might write `config["database_url"]` without checking if `database_url` is actually in the config. It assumes the key exists because it "usually" does in the patterns it learned from.
+
+### F5: Happy-Path-Only Logic
+
+**What it means:** The code only handles the case where everything goes perfectly. It has no handling for empty results, missing data, null values, or error responses.
+
+**Imagine this:** You plan an outdoor wedding and book the venue, the caterer, the band, and the photographer. But you make zero plans for rain. No tent, no indoor backup, no rain date. You planned for the happy path (sunny day) and ignored every other possibility. That's F5.
+
+AI code loves to write `results = fetch_data(); process(results[0])`. What if `results` is empty? What if `fetch_data()` returns `None`? The AI didn't think about it because the "most likely" code pattern doesn't include error handling.
+
+### F6: Stale Pattern Application
+
+**What it means:** The AI uses outdated APIs, deprecated syntax, or patterns from old versions of libraries because that's what was in its training data.
+
+**Imagine this:** You visit a city you haven't been to in five years. You walk to your favorite restaurant, but it's now a shoe store. You're using a stale mental map. That's F6.
+
+A common example: AI code often writes `requests.get(url)` without a `timeout` parameter. Before version 2.28 of the `requests` library, this was the common pattern. But modern best practice requires a timeout to prevent your code from hanging forever. The AI learned the old pattern.
+
+### Summary: The Six Failure Modes
+
+| ID | Name | One-Line Summary |
+|----|------|------------------|
+| **F1** | Silent data shape mismatch | Code assumes data looks one way; it doesn't |
+| **F2** | Unverified side effects | Code says "done!" without checking if it actually worked |
+| **F3** | Placeholder/demo data | Fake test values left in production code |
+| **F4** | Confident wrong assumptions | Code assumes things about the environment without checking |
+| **F5** | Happy-path-only logic | No handling for empty, null, or error cases |
+| **F6** | Stale pattern application | Uses outdated APIs or deprecated patterns |
+
+---
+
+## 3. The Three Layers Explained
+
+Bulwark AI defends against these failures using three layers: **Guard**, **Trace**, and **Verify**. Each layer has a specific job, catches specific failure modes, and answers a specific question about your code.
+
+Let's explore each one.
+
+---
+
+### 3.1 Layer 1: Guard
+
+**One-sentence summary:** A Guard checks that the data coming into your function is the right type, shape, and structure *before* your code tries to use it.
+
+#### Real-World Analogy
+
+**Checking your ingredients before you start cooking.** If the recipe calls for 3 eggs and you have a bag of flour, stop NOW — don't try to make it work. Don't crack the flour bag into the bowl and hope for the best. Check your ingredients first, and if something is wrong, say so immediately.
+
+That's what a Guard does. Before your function processes any data, it checks: Is this data actually a dictionary? Does it have the keys I need? Is the list non-empty? If any of these checks fail, the Guard raises a clear error message that tells you (or the AI agent) exactly what went wrong.
+
+#### What It Catches
+
+Guards defend against:
+- **F1** — Silent data shape mismatch (the data doesn't have the structure you expected)
+- **F4** — Confident wrong assumptions (the code assumes a key exists, but it doesn't)
+- **F5** — Happy-path-only logic (the data is empty or null, and the code doesn't handle it)
+
+#### The Decision Question
+
+> **"If this data were wrong, would the code silently continue?"**
+>
+> If YES → Add a Guard.
+
+#### Code Example: Before and After
+
+Here's a function that fetches user data from an API. First, the version *without* a Guard:
+
+```python
+# ❌ WITHOUT Guard — silent failure waiting to happen
+import requests
+
+def get_user_email(api_response):
+    user = api_response["user"]
+    return user["email"]
+```
+
+What happens if `api_response` is `None`? You get `TypeError: 'NoneType' object is not subscriptable`. What if the API changed and now returns `{"data": {"user": {...}}}`? You get `KeyError: 'user'`. Neither error tells you what the function expected or what it actually received.
+
+Now, the same function *with* a Guard:
+
+```python
+# ✅ WITH Guard — fails loudly with a helpful message
+import requests
+
+def get_user_email(api_response):
+    # --- GUARD ---
+    if not isinstance(api_response, dict):
+        raise TypeError(
+            f"GUARD:get_user_email | expected dict, got {type(api_response).__name__}"
+        )
+    if "user" not in api_response:
+        raise ValueError(
+            f"GUARD:get_user_email | expected key 'user', "
+            f"got keys: {list(api_response.keys())}"
+        )
+    if not isinstance(api_response["user"], dict):
+        raise TypeError(
+            f"GUARD:get_user_email | expected 'user' to be dict, "
+            f"got {type(api_response['user']).__name__}"
+        )
+    if "email" not in api_response["user"]:
+        raise ValueError(
+            f"GUARD:get_user_email | expected key 'email' in 'user', "
+            f"got keys: {list(api_response['user'].keys())}"
+        )
+    # --- END GUARD ---
+
+    user = api_response["user"]
+    return user["email"]
+```
+
+Now if the API response is wrong, you get a message like:
+
+```
+GUARD:get_user_email | expected key 'user', got keys: ['data', 'status', 'meta']
+```
+
+That tells you *exactly* what happened and *exactly* how to fix it — even an AI agent can read that message and correct its own code.
+
+#### Using Helper Functions (Less Boilerplate)
+
+Writing all those `if` statements gets repetitive. The Bulwark reference implementation provides helper functions that do the same thing with less code:
+
+```python
+# ✅ WITH Guard helpers — same protection, less boilerplate
+def get_user_email(api_response):
+    # --- GUARD ---
+    guard_type(api_response, dict, "get_user_email", "api_response")
+    guard_keys(api_response, {"user"}, "get_user_email", "api_response")
+    guard_type(api_response["user"], dict, "get_user_email", "api_response.user")
+    guard_keys(api_response["user"], {"email"}, "get_user_email", "api_response.user")
+    # --- END GUARD ---
+
+    user = api_response["user"]
+    return user["email"]
+```
+
+These helpers (`guard_type`, `guard_keys`, `guard`) are defined in the reference implementation at `reference/bulwark.py`. They use `if/raise` internally, so they work even in optimized Python environments.
+
+---
+
+### 3.2 Layer 2: Trace
+
+**One-sentence summary:** A Trace records the *shape* of data (its type, size, and structure — but never its actual content) at every point where data flows from one processing stage to another.
+
+#### Real-World Analogy
+
+**Security cameras in a warehouse.** You don't watch them all day, but when something goes missing, you rewind the tape to see exactly where it happened. Did the package arrive at the loading dock? Yes — camera 1 shows it. Did it make it to the sorting area? Yes — camera 2 shows it. Did it reach the shelf? No — camera 3 shows the sorting area was empty at that time. Now you know the problem happened between sorting and shelving.
+
+Traces work the same way. In a data pipeline with four stages (fetch → parse → transform → store), if Stage 4 crashes, you need to know what Stage 3 handed it. Without Traces, you're debugging blind. With Traces, you can see the exact shape of the data at every handoff point.
+
+#### What It Catches
+
+Traces help diagnose:
+- **F1** — Silent data shape mismatch (you can see where the shape diverged from expectations)
+- **F5** — Happy-path-only logic (you can see when data became empty or null mid-pipeline)
+
+Traces don't *prevent* failures directly — they make failures **diagnosable**. They're your flight recorder.
+
+#### The Decision Question
+
+> **"Does data flow between processing phases here?"**
+>
+> If YES → Add a Trace.
+
+#### Code Example: Before and After
+
+Here's a data pipeline *without* Traces:
+
+```python
+# ❌ WITHOUT Trace — if transform_records fails, you have no idea what
+#    fetch_from_api or parse_response actually returned
+import requests
+
+def run_pipeline(url):
+    raw = requests.get(url, timeout=10).json()
+    records = parse_response(raw)
+    cleaned = transform_records(records)
+    save_to_database(cleaned)
+```
+
+If `transform_records` crashes, you'll see a stack trace pointing to a line inside that function. But you won't know *what* `records` looked like. Was it a list? Was it empty? Did it have the expected keys? You'd have to add print statements, re-run, and hope to reproduce the issue.
+
+Now, the same pipeline *with* Traces:
+
+```python
+# ✅ WITH Trace — every handoff point is recorded
+import logging
+import requests
+
+log = logging.getLogger(__name__)
+
+def describe_shape(data):
+    """Describe the shape of data without revealing its content."""
+    if data is None:
+        return "NoneType"
+    type_name = type(data).__name__
+    if isinstance(data, dict):
+        return f"dict, keys={sorted(data.keys())}, len={len(data)}"
+    if isinstance(data, list):
+        if len(data) == 0:
+            return "list, len=0 (EMPTY)"
+        first_shape = describe_shape(data[0])
+        return f"list, len={len(data)}, items={first_shape}"
+    if isinstance(data, str):
+        return f"str, len={len(data)}"
+    return type_name
+
+def trace(label, data):
+    """Log the shape of data at a phase boundary. Returns data unchanged."""
+    shape = describe_shape(data)
+    log.info(f"TRACE:{label} | {shape}")
+    return data  # Always pass-through — never modifies data
+
+def run_pipeline(url):
+    raw = requests.get(url, timeout=10).json()
+    raw = trace("after_fetch", raw)
+
+    records = parse_response(raw)
+    records = trace("after_parse", records)
+
+    cleaned = transform_records(records)
+    cleaned = trace("after_transform", cleaned)
+
+    save_to_database(cleaned)
+```
+
+Now your logs show:
+
+```
+TRACE:after_fetch | dict, keys=['meta', 'result'], len=2
+TRACE:after_parse | list, len=47, items=dict, keys=['content', 'id', 'score'], len=3
+TRACE:after_transform | list, len=47, items=dict, keys=['embedding', 'id', 'text'], len=3
+```
+
+If `transform_records` crashes, you can see exactly what `after_parse` produced. No guessing, no re-running, no adding print statements after the fact.
+
+#### Important: Shape, Not Content
+
+Notice that Traces log the *shape* of data (type, length, keys) but never the *content* (actual values). This is intentional for two reasons:
+
+1. **Security** — Traces are safe to leave in production logs. They'll never accidentally log passwords, API keys, personal data, or credit card numbers.
+2. **Performance** — Describing the shape of a 10MB JSON object takes microseconds. Logging the entire content takes milliseconds and fills your disk.
+
+---
+
+### 3.3 Layer 3: Verify
+
+**One-sentence summary:** A Verify confirms that a side effect (a database write, a file save, an API call that changes something) actually achieved its intended result.
+
+#### Real-World Analogy
+
+**Checking your bank balance after a transfer.** The banking app said "Transfer complete!" but did the money actually move? You open your account and check. If the balance didn't change, something went wrong — and you want to know about it *now*, not three weeks later when rent bounces.
+
+That's what a Verify does. After your code writes to a database, saves a file, or calls an API that modifies something, the Verify checks: Did it actually work? Did the right number of rows get inserted? Does the file exist and have content? Did the API return a confirmation, not just a "request received" acknowledgment?
+
+#### What It Catches
+
+Verifies defend against:
+- **F2** — Unverified side effects (the code says "done!" but the operation didn't actually succeed)
+
+#### The Decision Question
+
+> **"Does this function produce side effects?"**
+>
+> If YES → Add a Verify.
+
+A "side effect" is any operation that changes something outside your function: writing to a database, creating a file, sending an email, publishing to a message queue, or calling an API that modifies remote state.
+
+#### Code Example: Before and After
+
+Here's a function that saves records to a database *without* a Verify:
+
+```python
+# ❌ WITHOUT Verify — assumes the insert worked because no exception was raised
+def save_records(db, records):
+    result = db.insert_many("documents", records)
+    return {"status": "success", "count": len(records)}
+```
+
+This code reports success based on the *assumption* that `insert_many` worked. But what if the database accepted the request but wrote zero rows? What if it wrote only 30 of 47 records? The function would still return `{"status": "success", "count": 47}` — a lie.
+
+Now, the same function *with* a Verify:
+
+```python
+# ✅ WITH Verify — confirms the write actually happened
+def save_records(db, records):
+    result = db.insert_many("documents", records)
+
+    # --- VERIFY ---
+    if result.rowcount != len(records):
+        raise RuntimeError(
+            f"VERIFY:save_records | INSERT expected {len(records)} rows, "
+            f"affected {result.rowcount} rows — FAIL"
+        )
+    # --- END VERIFY ---
+
+    return {"status": "success", "count": result.rowcount}
+```
+
+Now if only 30 of 47 records were inserted, you get:
+
+```
+VERIFY:save_records | INSERT expected 47 rows, affected 30 rows — FAIL
+```
+
+You know immediately that something went wrong, how many records were lost, and which function had the problem.
+
+#### Another Example: File Writing
+
+```python
+# ✅ WITH Verify — confirms the file was actually written
+import os
+
+def write_report(filepath, content):
+    with open(filepath, "w") as f:
+        f.write(content)
+
+    # --- VERIFY ---
+    if not os.path.exists(filepath):
+        raise RuntimeError(
+            f"VERIFY:write_report | file {filepath} expected to exist after write — FAIL"
+        )
+    file_size = os.path.getsize(filepath)
+    if file_size == 0:
+        raise RuntimeError(
+            f"VERIFY:write_report | file {filepath} expected size > 0, "
+            f"actual size: 0 bytes — FAIL"
+        )
+    # --- END VERIFY ---
+
+    return {"status": "success", "path": filepath, "size": file_size}
+```
+
+---
+
+### Layer Summary
+
+| Layer | Job | Analogy | Catches | Decision Question |
+|-------|-----|---------|---------|-------------------|
+| **Guard** | Validate inputs before processing | Checking ingredients before cooking | F1, F4, F5 | "If this data were wrong, would the code silently continue?" |
+| **Trace** | Record data shape at handoff points | Security cameras in a warehouse | F1, F5 (diagnosis) | "Does data flow between processing phases here?" |
+| **Verify** | Confirm side effects actually worked | Checking bank balance after a transfer | F2 | "Does this function produce side effects?" |
+
+---
+
+## 4. The Decision Flowchart
+
+Now that you understand the three layers, how do you decide which ones to add to a given function? It comes down to three questions.
+
+### The Three Questions
+
+**Question 1: "Could bad data sneak through here without anyone noticing?"**
+
+If your function receives data from an API, a database, a file, user input, or another function — and if wrong data would cause it to silently produce garbage instead of crashing — you need a **Guard**.
+
+**Question 2: "Is data being handed off from one stage to another here?"**
+
+If your function sits at a boundary in a pipeline — where data flows from fetching to parsing, from parsing to transforming, from transforming to storing — you need a **Trace** at that boundary.
+
+**Question 3: "Does this function change something in the outside world?"**
+
+If your function writes to a database, saves a file, sends an email, publishes a message, or calls an API that modifies state — you need a **Verify** after that operation.
+
+A single function can need one, two, or all three layers. Let's walk through five examples.
+
+---
+
+### Example 1: A Function That Fetches Data from an API
+
+```python
+def fetch_weather(city):
+    response = requests.get(f"https://api.weather.com/v1/{city}", timeout=10)
+    data = response.json()
+    return data["forecast"]
+```
+
+**Question 1 — Could bad data sneak through?** Yes. The API might return an error object instead of a forecast. The `"forecast"` key might not exist. → **Guard needed.**
+
+**Question 2 — Is data being handed off between stages?** Not really — this is a single-stage function. → **No Trace needed** (unless it's part of a larger pipeline).
+
+**Question 3 — Does it change the outside world?** No, it only reads. → **No Verify needed.**
+
+**Result: Guard only.**
+
+```python
+def fetch_weather(city):
+    # --- GUARD ---
+    if not isinstance(city, str) or len(city) == 0:
+        raise ValueError(
+            f"GUARD:fetch_weather | expected non-empty str for 'city', "
+            f"got {type(city).__name__}: {repr(city)[:50]}"
+        )
+    # --- END GUARD ---
+
+    response = requests.get(f"https://api.weather.com/v1/{city}", timeout=10)
+    data = response.json()
+
+    # --- GUARD (on received data) ---
+    guard_type(data, dict, "fetch_weather", "api_response")
+    guard_keys(data, {"forecast"}, "fetch_weather", "api_response")
+    # --- END GUARD ---
+
+    return data["forecast"]
+```
+
+---
+
+### Example 2: A Function That Writes a File
+
+```python
+def save_report(filepath, report_data):
+    with open(filepath, "w") as f:
+        json.dump(report_data, f)
+```
+
+**Question 1 — Could bad data sneak through?** Yes. `report_data` could be `None` or the wrong type. → **Guard needed.**
+
+**Question 2 — Data handed off between stages?** No. → **No Trace needed.**
+
+**Question 3 — Does it change the outside world?** Yes — it writes a file. → **Verify needed.**
+
+**Result: Guard + Verify.**
+
+```python
+import json
+import os
+
+def save_report(filepath, report_data):
+    # --- GUARD ---
+    if not isinstance(filepath, str) or len(filepath) == 0:
+        raise ValueError(
+            f"GUARD:save_report | expected non-empty str for 'filepath', "
+            f"got {type(filepath).__name__}"
+        )
+    if not isinstance(report_data, dict):
+        raise TypeError(
+            f"GUARD:save_report | expected dict for 'report_data', "
+            f"got {type(report_data).__name__}"
+        )
+    # --- END GUARD ---
+
+    with open(filepath, "w") as f:
+        json.dump(report_data, f)
+
+    # --- VERIFY ---
+    if not os.path.exists(filepath):
+        raise RuntimeError(
+            f"VERIFY:save_report | file {filepath} expected to exist after write — FAIL"
+        )
+    size = os.path.getsize(filepath)
+    if size == 0:
+        raise RuntimeError(
+            f"VERIFY:save_report | file {filepath} expected size > 0, "
+            f"actual size: 0 bytes — FAIL"
+        )
+    # --- END VERIFY ---
+```
+
+---
+
+### Example 3: A Pure Data Transformer
+
+```python
+def normalize_scores(records):
+    max_score = max(r["score"] for r in records)
+    return [{**r, "score": r["score"] / max_score} for r in records]
+```
+
+**Question 1 — Could bad data sneak through?** Yes. `records` could be empty (causing `max()` to fail), or items might not have a `"score"` key. → **Guard needed.**
+
+**Question 2 — Data handed off between stages?** Only if this is part of a pipeline. If it is, add a Trace before and after. For a standalone function → **No Trace needed.**
+
+**Question 3 — Does it change the outside world?** No — it returns new data without modifying anything external. → **No Verify needed.**
+
+**Result: Guard only.**
+
+```python
+def normalize_scores(records):
+    # --- GUARD ---
+    if not isinstance(records, list):
+        raise TypeError(
+            f"GUARD:normalize_scores | expected list, got {type(records).__name__}"
+        )
+    if len(records) == 0:
+        raise ValueError(
+            f"GUARD:normalize_scores | expected non-empty list, got empty list"
+        )
+    for i, r in enumerate(records):
+        if not isinstance(r, dict):
+            raise TypeError(
+                f"GUARD:normalize_scores | expected dict at index {i}, "
+                f"got {type(r).__name__}"
+            )
+        if "score" not in r:
+            raise ValueError(
+                f"GUARD:normalize_scores | expected key 'score' at index {i}, "
+                f"got keys: {list(r.keys())}"
+            )
+    # --- END GUARD ---
+
+    max_score = max(r["score"] for r in records)
+    return [{**r, "score": r["score"] / max_score} for r in records]
+```
+
+---
+
+### Example 4: A Database CRUD Function
+
+```python
+def update_user_email(db, user_id, new_email):
+    db.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, user_id))
+```
+
+**Question 1 — Could bad data sneak through?** Yes. `user_id` could be `None`, `new_email` could be empty. → **Guard needed.**
+
+**Question 2 — Data handed off between stages?** No. → **No Trace needed.**
+
+**Question 3 — Does it change the outside world?** Yes — it modifies a database row. → **Verify needed.**
+
+**Result: Guard + Verify.**
+
+```python
+def update_user_email(db, user_id, new_email):
+    # --- GUARD ---
+    if user_id is None:
+        raise ValueError(
+            f"GUARD:update_user_email | 'user_id' must not be None"
+        )
+    if not isinstance(new_email, str) or len(new_email) == 0:
+        raise ValueError(
+            f"GUARD:update_user_email | expected non-empty str for 'new_email', "
+            f"got {type(new_email).__name__}"
+        )
+    # --- END GUARD ---
+
+    result = db.execute(
+        "UPDATE users SET email = ? WHERE id = ?", (new_email, user_id)
+    )
+
+    # --- VERIFY ---
+    if result.rowcount == 0:
+        raise RuntimeError(
+            f"VERIFY:update_user_email | UPDATE expected 1 row affected, "
+            f"affected 0 rows — user_id may not exist — FAIL"
+        )
+    if result.rowcount > 1:
+        raise RuntimeError(
+            f"VERIFY:update_user_email | UPDATE expected 1 row affected, "
+            f"affected {result.rowcount} rows — possible data integrity issue — FAIL"
+        )
+    # --- END VERIFY ---
+```
+
+---
+
+### Example 5: A Full Pipeline (All Three Layers)
+
+```python
+def ingest_and_store(api_url, db):
+    raw = requests.get(api_url, timeout=10).json()
+    records = parse_response(raw)
+    enriched = enrich_records(records)
+    db.insert_many("documents", enriched)
+```
+
+**Question 1 — Could bad data sneak through?** Yes — at every stage. → **Guards needed.**
+
+**Question 2 — Data handed off between stages?** Yes — fetch → parse → enrich → store. → **Traces needed at each boundary.**
+
+**Question 3 — Does it change the outside world?** Yes — it writes to a database. → **Verify needed.**
+
+**Result: Guard + Trace + Verify (Fully Bulwarked).**
+
+```python
+import logging
+import requests
+
+log = logging.getLogger(__name__)
+
+def ingest_and_store(api_url, db):
+    # --- GUARD (input) ---
+    if not isinstance(api_url, str) or not api_url.startswith("http"):
+        raise ValueError(
+            f"GUARD:ingest_and_store | expected valid URL string, "
+            f"got {type(api_url).__name__}: {repr(api_url)[:80]}"
+        )
+    # --- END GUARD ---
+
+    # Stage 1: Fetch
+    raw = requests.get(api_url, timeout=10).json()
+    raw = trace("after_fetch", raw)
+
+    # --- GUARD (fetched data) ---
+    guard_type(raw, dict, "ingest_and_store", "api_response")
+    guard_keys(raw, {"data"}, "ingest_and_store", "api_response")
+    # --- END GUARD ---
+
+    # Stage 2: Parse
+    records = parse_response(raw)
+    records = trace("after_parse", records)
+
+    # Stage 3: Enrich
+    enriched = enrich_records(records)
+    enriched = trace("before_db_write", enriched)
+
+    # Stage 4: Store (side effect)
+    result = db.insert_many("documents", enriched)
+
+    # --- VERIFY ---
+    if result.rowcount != len(enriched):
+        raise RuntimeError(
+            f"VERIFY:ingest_and_store | INSERT expected {len(enriched)} rows, "
+            f"affected {result.rowcount} rows — FAIL"
+        )
+    # --- END VERIFY ---
+
+    log.info(
+        f"VERIFY:ingest_and_store | INSERT expected {len(enriched)} rows, "
+        f"affected {result.rowcount} rows — OK"
+    )
+```
+
+### Quick Reference: Which Layers Does Each Example Need?
+
+| Example | Guard | Trace | Verify | Why |
+|---------|:-----:|:-----:|:------:|-----|
+| API fetch | ✅ | — | — | Receives external data, no side effects |
+| File writer | ✅ | — | ✅ | Receives data + writes a file |
+| Data transformer | ✅ | — | — | Receives data, pure computation |
+| Database CRUD | ✅ | — | ✅ | Receives data + modifies database |
+| Full pipeline | ✅ | ✅ | ✅ | Receives data + multiple stages + writes to DB |
+
+---
+
+## 5. Runtime Modes: Not Everything Costs the Same
+
+You might be thinking: "All these checks sound great, but won't they slow down my code?" Great question. The answer is: **it depends on the layer**, and Bulwark AI is designed with this in mind.
+
+### The Car Analogy
+
+Think of the three layers like safety features in a car:
+
+🟢 **Guards = Seatbelt.** Always on. Costs nothing. You buckle up every single time you get in the car, whether you're driving to the grocery store or across the country. It takes half a second and could save your life. You would never say, "I'm just going to the store, I'll skip the seatbelt." Guards are the same — they cost nanoseconds (billionths of a second) and catch the most dangerous failures. **You never turn them off.**
+
+🟡 **Traces = Dashcam.** Always recording, but you only review the footage after an incident. You can set the video quality to save storage — maybe 4K during a road trip through unfamiliar territory, but 720p for your daily commute. The camera is always there, always running, but how much detail it captures can be adjusted. Traces work the same way — the code is always present, but you can turn the verbosity up or down depending on the environment.
+
+🔵 **Verifies = Vehicle inspection.** How thorough the inspection is depends on the context. Going on a cross-country trip? Full bumper-to-bumper inspection. Running to the grocery store? Quick check — tires look fine, gas tank isn't empty, good to go. Managing a taxi fleet? Spot-check a few cars each day; you can't inspect every car before every ride. Verifies work the same way — full verification for critical operations, lighter strategies for high-throughput scenarios.
+
+### What Changes Across Environments
+
+| Layer | Development | Staging / CI | Production |
+|-------|------------|-------------|------------|
+| **Guard** | ✅ Active — crash with diagnostic | ✅ Active — crash with diagnostic | ✅ Active — crash with diagnostic |
+| **Trace** | ✅ Verbose — full shape at every boundary | ✅ Verbose — full shape for test visibility | ⚙️ Configurable — summary or silent, but code stays |
+| **Verify** | ✅ Full — read-back every operation | ✅ Full — catch issues before production | ⚙️ Adapts — full, batch, or sampled based on throughput |
+
+### Guards: Never Turned Off
+
+This is worth repeating: **Guards are never turned off.** Not in development, not in staging, not in production. Here's why:
+
+- A Guard that checks `isinstance(data, dict)` takes about 50 nanoseconds.
+- The function it protects (a database query, an API call) takes 5-500 milliseconds.
+- That means the Guard adds less than 0.001% overhead.
+- The failures Guards catch — wrong data shape from an API, missing keys from a database result — happen *in production*, when real services change their response formats.
+
+Disabling Guards in production would be like removing your seatbelt on the highway because "the road looks clear." The danger is exactly where you can't predict it.
+
+### Traces: Always Present, Volume Adjustable
+
+Trace *code* is always in your source files. But the *output* (the log lines) is controlled by your logging configuration:
+
+- **Development:** Set log level to `DEBUG`. You see full shape descriptions at every boundary. Great for understanding data flow.
+- **Staging:** Set log level to `DEBUG` or `INFO`. Full visibility for catching issues in testing.
+- **Production:** Set log level to `INFO` or `WARNING`. At `INFO`, you get summary traces (type and size only). At `WARNING` or above, traces are silent — but the code is still there. If a production issue occurs, you lower the log level and immediately see the data flow without deploying new code.
+
+### Verifies: Strategy Adapts to Throughput
+
+Verification is always required, but *how* you verify adapts to your situation:
+
+| Scenario | Strategy | Why |
+|----------|----------|-----|
+| A CRUD endpoint handling 50 requests/minute | Full per-operation read-back | 50 extra queries/minute is negligible |
+| A batch import of 10,000 records | One aggregate check after the batch | `SELECT COUNT(*) WHERE batch_id = ?` — one query instead of 10,000 |
+| A streaming pipeline at 10,000 events/second | Verify a 1-5% sample | Full verification would double database load |
+| A payment processing function | Full per-operation, always | Too critical for sampling — every transaction matters |
+
+The key insight: **the standard requires *that* you verify, not *how* you verify.** Choose the strategy that matches your throughput and criticality.
+
+---
+
+## 6. How to Add Bulwark to Your Project
+
+Ready to start? Here's a step-by-step guide. The most important thing to know: **you can do this one function at a time.** You don't need to refactor your entire codebase. Pick one function, add the layers, and expand from there.
+
+### Step 1: Copy the Helper Functions
+
+Grab the reference implementation for your language from the `reference/` directory:
+
+- **Python:** [`reference/bulwark.py`](reference/bulwark.py)
+- **TypeScript:** [`reference/bulwark.ts`](reference/bulwark.ts)
+
+Copy the file into your project. These helpers provide `guard()`, `guard_type()`, `guard_keys()`, `trace()`, `describe_shape()`, and `verify()` — all implemented with zero external dependencies.
+
+If you prefer, you can skip the helpers entirely and write raw `if/raise` statements. The helpers are a convenience, not a requirement.
+
+### Step 2: Pick Your First Function
+
+Start with a function that **reads from an external source** — an API call, a database query, or a file read. These are the most common sources of AI code failures because the data shape is unpredictable.
+
+Good first candidates:
+- A function that fetches data from a REST API
+- A function that reads configuration from a file
+- A function that queries a database and processes the results
+
+### Step 3: Add Guards at the Top
+
+At the very beginning of your function, before any business logic, add Guards that check:
+
+1. **Presence** — Is the data `None`/`null`/`undefined`?
+2. **Type** — Is it the type you expect (dict, list, string)?
+3. **Shape** — Does it have the keys/fields/indices you need?
+4. **Non-emptiness** — If it's a collection, does it have elements?
+
+```python
+def process_api_data(response):
+    # --- GUARD ---
+    guard_type(response, dict, "process_api_data", "response")
+    guard_keys(response, {"data", "status"}, "process_api_data", "response")
+    guard(len(response["data"]) > 0, "process_api_data",
+          "expected 'data' to be non-empty")
+    # --- END GUARD ---
+
+    # ... your business logic here
+```
+
+### Step 4: Add Traces at Boundaries
+
+If your function is part of a pipeline (data flows through multiple stages), add a `trace()` call at each handoff point:
+
+```python
+def run_pipeline(raw_input):
+    parsed = parse(raw_input)
+    parsed = trace("after_parse", parsed)
+
+    transformed = transform(parsed)
+    transformed = trace("after_transform", transformed)
+
+    store(transformed)
+```
+
+If your function is standalone (not part of a pipeline), you can skip this step for now.
+
+### Step 5: Add Verifies After Writes
+
+If your function writes to a database, saves a file, sends an email, or makes any other change to the outside world, add a Verify immediately after:
+
+```python
+    result = db.insert_many("records", data)
+
+    # --- VERIFY ---
+    verify(result.rowcount == len(data), "my_function",
+           f"INSERT expected {len(data)} rows, affected {result.rowcount}")
+    # --- END VERIFY ---
+```
+
+### Step 6: Run Your Code
+
+Run your code as normal. One of two things will happen:
+
+1. **It works.** Your data was the right shape all along. The Guards, Traces, and Verifies are now in place as a safety net for when things change.
+
+2. **It crashes with a diagnostic message.** Something like:
+   ```
+   GUARD:process_api_data | expected key 'data', got keys: ['results', 'pagination']
+   ```
+   This is *good*. The message tells you exactly what's wrong and how to fix it. Update your code to match the actual data shape, and you've just prevented a silent failure.
+
+### Step 7: Repeat
+
+Pick the next function. Add layers. Over time, your codebase becomes progressively more defended. There's no deadline — every function you bulwark is one fewer place for silent failures to hide.
+
+---
+
+## 7. Common Mistakes
+
+Here are the five most common mistakes people make when adopting Bulwark AI, and how to avoid them.
+
+---
+
+### Mistake 1: Silent Coercion with `data = data or {}`
+
+**The wrong way:**
+
+```python
+# ❌ WRONG — silently masks missing data
+def process_config(config):
+    config = config or {}
+    db_url = config.get("database_url", "sqlite:///default.db")
+    # ...
+```
+
+**Why it's wrong:** If `config` is `None`, this silently replaces it with an empty dictionary and then uses a default database URL. Your function runs without error, but it's connected to the wrong database. You won't find out until data is missing or corrupted. This violates the defense against F5 (happy-path-only logic) — you're papering over a problem instead of surfacing it.
+
+**The right way:**
+
+```python
+# ✅ RIGHT — fails loudly if config is missing
+def process_config(config):
+    # --- GUARD ---
+    if config is None:
+        raise ValueError(
+            "GUARD:process_config | 'config' must not be None"
+        )
+    if not isinstance(config, dict):
+        raise TypeError(
+            f"GUARD:process_config | expected dict, got {type(config).__name__}"
+        )
+    if "database_url" not in config:
+        raise ValueError(
+            f"GUARD:process_config | expected key 'database_url', "
+            f"got keys: {list(config.keys())}"
+        )
+    # --- END GUARD ---
+
+    db_url = config["database_url"]
+    # ...
+```
+
+---
+
+### Mistake 2: Catching Exceptions and Ignoring Them
+
+**The wrong way:**
+
+```python
+# ❌ WRONG — swallows the error, continues with bad state
+def fetch_user(user_id):
+    try:
+        response = requests.get(f"/api/users/{user_id}", timeout=10)
+        return response.json()
+    except Exception:
+        return None  # Caller has no idea something went wrong
+```
+
+**Why it's wrong:** This catches *every* exception — network errors, JSON parsing errors, timeouts — and returns `None`. The calling code has no idea the fetch failed. It might pass `None` to the next function, which might pass it further, and eventually something crashes far from the original problem. This is the definition of a silent failure.
+
+**The right way:**
+
+```python
+# ✅ RIGHT — catches specific errors, fails loudly for unexpected ones
+def fetch_user(user_id):
+    # --- GUARD ---
+    if user_id is None:
+        raise ValueError("GUARD:fetch_user | 'user_id' must not be None")
+    # --- END GUARD ---
+
+    try:
+        response = requests.get(f"/api/users/{user_id}", timeout=10)
+        response.raise_for_status()
+    except requests.exceptions.Timeout:
+        raise RuntimeError(
+            f"GUARD:fetch_user | API request timed out after 10s for user {user_id}"
+        )
+    except requests.exceptions.HTTPError as e:
+        raise RuntimeError(
+            f"GUARD:fetch_user | API returned status {e.response.status_code} "
+            f"for user {user_id}"
+        )
+
+    data = response.json()
+
+    # --- GUARD (on response) ---
+    guard_type(data, dict, "fetch_user", "api_response")
+    guard_keys(data, {"user"}, "fetch_user", "api_response")
+    # --- END GUARD ---
+
+    return data["user"]
+```
+
+---
+
+### Mistake 3: Logging Actual Data Values in Traces
+
+**The wrong way:**
+
+```python
+# ❌ WRONG — logs actual data content (security risk!)
+def trace_data(label, data):
+    log.info(f"TRACE:{label} | data={data}")
+    return data
+
+# This might output:
+# TRACE:after_fetch | data={'user': 'alice', 'ssn': '123-45-6789', 'password': 'hunter2'}
+```
+
+**Why it's wrong:** Traces are meant to be safe to leave in production logs. If you log actual values, you risk exposing passwords, API keys, personal information, credit card numbers, and other sensitive data. Anyone with access to your logs can see it. This is a security incident waiting to happen.
+
+**The right way:**
+
+```python
+# ✅ RIGHT — logs shape only, never content
+def trace(label, data):
+    shape = describe_shape(data)
+    log.info(f"TRACE:{label} | {shape}")
+    return data
+
+# This outputs:
+# TRACE:after_fetch | dict, keys=['password', 'ssn', 'user'], len=3
+```
+
+The shape tells you everything you need for debugging (type, keys, size) without revealing any sensitive values.
+
+---
+
+### Mistake 4: Verifying the Status Code but Not the Response Body
+
+**The wrong way:**
+
+```python
+# ❌ WRONG — trusts the status code blindly
+def create_order(api_client, order_data):
+    response = api_client.post("/orders", json=order_data)
+    if response.status_code == 201:
+        return {"status": "success"}  # But did the order actually get created?
+```
+
+**Why it's wrong:** A 201 status code means the server *accepted* your request, but it doesn't guarantee the order was created correctly. The response body might contain `{"id": null}` or `{"error": "insufficient inventory"}` with a 201 status. Some APIs return success status codes even when the operation partially failed. Checking only the status code is like checking that the mail truck drove past your house — it doesn't mean your package was delivered.
+
+**The right way:**
+
+```python
+# ✅ RIGHT — verifies the response body contains the expected result
+def create_order(api_client, order_data):
+    # --- GUARD ---
+    guard_type(order_data, dict, "create_order", "order_data")
+    guard_keys(order_data, {"items", "customer_id"}, "create_order", "order_data")
+    # --- END GUARD ---
+
+    response = api_client.post("/orders", json=order_data)
+
+    # --- VERIFY ---
+    if response.status_code != 201:
+        raise RuntimeError(
+            f"VERIFY:create_order | POST /orders expected status 201, "
+            f"got {response.status_code} — FAIL"
+        )
+    body = response.json()
+    if not isinstance(body, dict) or "id" not in body:
+        raise RuntimeError(
+            f"VERIFY:create_order | expected response with 'id' key, "
+            f"got keys: {list(body.keys()) if isinstance(body, dict) else type(body).__name__} — FAIL"
+        )
+    if body["id"] is None:
+        raise RuntimeError(
+            f"VERIFY:create_order | expected non-null 'id' in response, "
+            f"got None — FAIL"
+        )
+    # --- END VERIFY ---
+
+    return {"status": "success", "order_id": body["id"]}
+```
+
+---
+
+### Mistake 5: Using Bare `assert` in Python Production Code
+
+**The wrong way:**
+
+```python
+# ❌ WRONG — assert is stripped by python -O
+def process_payment(payment):
+    assert isinstance(payment, dict), "GUARD:process_payment | expected dict"
+    assert "amount" in payment, "GUARD:process_payment | missing 'amount'"
+    assert payment["amount"] > 0, "GUARD:process_payment | amount must be positive"
+    # ...
+```
+
+**Why it's wrong:** In Python, when you run your application with the `-O` (optimize) flag (`python -O app.py`), *all* `assert` statements are completely removed. Your Guards vanish. Your function runs without any protection. Some deployment tools and production configurations enable this flag by default. Your Guards look like they're there in the source code, but at runtime, they don't exist.
+
+**The right way:**
+
+```python
+# ✅ RIGHT — explicit if/raise is never stripped
+def process_payment(payment):
+    # --- GUARD ---
+    if not isinstance(payment, dict):
+        raise TypeError(
+            f"GUARD:process_payment | expected dict, got {type(payment).__name__}"
+        )
+    if "amount" not in payment:
+        raise ValueError(
+            f"GUARD:process_payment | expected key 'amount', "
+            f"got keys: {list(payment.keys())}"
+        )
+    if not isinstance(payment["amount"], (int, float)) or payment["amount"] <= 0:
+        raise ValueError(
+            f"GUARD:process_payment | expected 'amount' > 0, "
+            f"got {payment['amount']}"
+        )
+    # --- END GUARD ---
+
+    # ... process the payment
+```
+
+Or, use the Bulwark helper functions which use `if/raise` internally:
+
+```python
+# ✅ ALSO RIGHT — helpers use if/raise under the hood
+def process_payment(payment):
+    # --- GUARD ---
+    guard_type(payment, dict, "process_payment", "payment")
+    guard_keys(payment, {"amount"}, "process_payment", "payment")
+    guard(payment["amount"] > 0, "process_payment",
+          f"expected 'amount' > 0, got {payment['amount']}")
+    # --- END GUARD ---
+
+    # ... process the payment
+```
+
+---
+
+## 8. Why We Made These Choices
+
+Bulwark AI's design might seem opinionated. It is — and every opinion has a reason. Here are the most common "why?" questions and their answers.
+
+### Why convention over library?
+
+A library is a dependency, and dependencies come with risks. They get abandoned by maintainers, compromised by attackers, or locked to specific language versions. A convention is just a set of rules you follow using tools that already exist in your language — `if` statements, `raise`/`throw`, and `print`/`log`. You can implement Bulwark AI in Python, TypeScript, Go, Rust, Bash, or any language that will exist ten years from now. No package manager required, no supply chain risk, no version conflicts.
+
+### Why three layers instead of just input validation?
+
+Input validation (Guards) catches bad data coming in — but that's only one-third of the problem. Guards don't tell you *where* in a multi-stage pipeline the data went wrong; that's what Traces are for. And Guards don't confirm that your database write or file save actually worked; that's what Verifies are for. Each layer addresses a different category of failure. Together, they form a complete defensive membrane. Separately, they leave gaps.
+
+### Why structured error messages?
+
+Unstructured errors like `KeyError: 'pages'` require a human to read the stack trace, understand the context, and figure out the fix. That takes minutes. A structured message like `GUARD:process_pages | expected key 'pages', got keys: ['result', 'metadata']` can be understood in seconds — by a human *or* by an AI agent. This is the key insight: error messages aren't just for humans anymore. They're an API for the next debugging agent, whether that agent is you, your teammate, or an AI system that can read the error and self-correct.
+
+### Why are Guards always on but Traces configurable?
+
+It comes down to cost. A Guard (`isinstance(data, dict)`) takes about 50 nanoseconds — effectively free. A Trace (format a string + write a log line) takes 5-50 microseconds. That's still fast, but at high throughput (millions of operations per hour), the log *volume* becomes significant — not the CPU cost, but the I/O and storage cost of all those log lines. Guards have no such scaling concern, so they stay on everywhere. Traces stay in the code but their output volume is adjustable.
+
+### Why is Idempotency an extension, not core?
+
+The three core layers — Guard, Trace, Verify — share a crucial property: you can add them to any existing function without changing its signature, its callers, or its infrastructure. They're purely additive. Idempotency is different. It requires adding a new parameter (an idempotency key), setting up storage (a database column or cache), and making policy decisions about duplicate handling. It's important for retry-heavy workflows, but it's a different *kind* of thing — an architectural pattern, not a defensive annotation. Including it in the core would break the "add it to any function without changing its interface" promise.
+
+---
+
+## 9. Glossary
+
+| Term | Definition |
+|------|------------|
+| **Guard** | A check at the start of a function that validates the type, shape, and presence of incoming data before the function processes it. |
+| **Trace** | A log entry at a pipeline boundary that records the structural description of data (type, size, keys) without recording actual values. |
+| **Verify** | A check after a side-effect operation (like a database write) that confirms the operation actually achieved its intended result. |
+| **Side effect** | Any operation that changes state outside the current function — writing to a database, saving a file, sending an email, or calling an API that modifies something. |
+| **Phase boundary** | A point in your code where data is handed from one processing stage to another, such as from a fetch stage to a parse stage. |
+| **Shape** | The structural description of data: its type, length or size, keys or fields, and nested structure — but explicitly *not* the actual values or content. |
+| **Diagnostic message** | A structured error or log message emitted by a Guard, Trace, or Verify, following the format `LAYER:function_name \| details`. |
+| **Bulwarked function** | A function that has all the Bulwark layers it needs (as determined by the three decision questions) properly implemented. |
+| **Runtime mode** | The environment-specific configuration that controls how Bulwark layers behave — Guards are always active, Traces adjust verbosity, and Verifies adapt their strategy. |
+
+---
+
+## What's Next?
+
+You now understand the full Bulwark AI standard. Here's what to do:
+
+1. **Copy the helpers** from `reference/bulwark.py` (or `reference/bulwark.ts`) into your project.
+2. **Pick one function** — ideally one that reads from an API or database.
+3. **Add Guards** at the top.
+4. **Run it.** If it crashes, the diagnostic message tells you exactly what to fix.
+5. **Expand** to more functions, one at a time.
+
+For the formal specification with every technical detail, see [SPEC.md](SPEC.md).
+
+For the validation checklist to verify your implementation, see [checklists/bulwark-checklist.md](checklists/bulwark-checklist.md).
+
+For the AI prompt snippet to make your AI coding assistant follow Bulwark, see [prompts/bulwark-system-prompt.md](prompts/bulwark-system-prompt.md).
+
+---
+
+*Bulwark AI is an open standard. Contributions welcome at github.com/bulwark-ai/bulwark-ai*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

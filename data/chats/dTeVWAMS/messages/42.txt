@@ -1,0 +1,34 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === GUIDE.md: Security + cross-ref ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === guides/service-manifest.md ===
+364 guides/service-manifest.md
+
+1:### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+5:#### Motivation
+16:#### When to Use
+23:#### When NOT to Use
+29:#### 10.2.1 Manifest Schema
+100:##### Schema Field Reference
+124:#### 10.2.2 Severity Model
+134:##### Severity-Driven Guard Behavior
+137:# Critical: raises GuardError on failure (blocks execution)
+140:# Warning: logs warning, returns False (caller decides)
+146:# Info: silent check, no logging on absence
+151:#### 10.2.3 Declarative Guard Function
+218:#### 10.2.4 Notification Channels
+223:# Channel registry — extend with custom channels as needed
+255:##### Notification MUST Rules
+262:#### 10.2.5 Manifest MUST Rules
+271:#### 10.2.6 Separation of Concerns
+287:#### 10.2.7 Diagnostic Format
+322:### 10.3 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+326:#### When to Use
+333:#### Why This Is an Extension, Not Core
+337:#### Pattern
+350:### 10.4 Confidence Annotation (FUTURE, not yet recommended)
+354:#### Why This Is Deferred
+358:#### Proposed Format (for future use)
+361:# CONFIDENCE: LOW — API response shape inferred from function name, not documentation
+362:# CONFIDENCE: HIGH — standard library pattern, well-established
+363:# CONFIDENCE: MEDIUM — based on similar patterns in training data
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

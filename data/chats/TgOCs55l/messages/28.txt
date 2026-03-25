@@ -1,0 +1,193 @@
+-- =============================================================
+-- Migration: Document Pages & OCR Results
+-- Description: Per-page parse results, OCR table data, and
+--              document-images storage bucket.
+-- =============================================================
+
+-- -----------------------------------------------
+-- Table: document_pages
+-- -----------------------------------------------
+
+CREATE TABLE public.document_pages (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+    page_number integer NOT NULL,
+    storage_url text,
+    thumbnail_url text,
+    category text CHECK (category IN (
+        'floorplan', 'table', 'site_photo', 'diagram', 'text', 'mixed'
+    )),
+    raw_text text,
+    metadata jsonb,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.document_pages
+    ADD CONSTRAINT document_pages_pkey PRIMARY KEY (id);
+
+CREATE UNIQUE INDEX document_pages_document_page_idx
+    ON public.document_pages (document_id, page_number);
+
+-- -----------------------------------------------
+-- Table: ocr_results
+-- -----------------------------------------------
+
+CREATE TABLE public.ocr_results (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    document_id uuid REFERENCES public.project_documents(id) ON DELETE CASCADE,
+    page_id uuid REFERENCES public.document_pages(id) ON DELETE CASCADE,
+    table_index integer NOT NULL DEFAULT 0,
+    markdown text,
+    structured_data jsonb,
+    confidence float,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE ONLY public.ocr_results
+    ADD CONSTRAINT ocr_results_pkey PRIMARY KEY (id);
+
+CREATE INDEX ocr_results_document_idx ON public.ocr_results (document_id);
+CREATE INDEX ocr_results_page_idx ON public.ocr_results (page_id);
+
+-- -----------------------------------------------
+-- Storage bucket: document-images
+-- -----------------------------------------------
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('document-images', 'document-images', false, 104857600)  -- 100 MiB
+ON CONFLICT (id) DO NOTHING;
+
+-- -----------------------------------------------
+-- RLS: document_pages
+-- -----------------------------------------------
+
+ALTER TABLE public.document_pages ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY document_pages_select ON public.document_pages
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY document_pages_insert ON public.document_pages
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY document_pages_update ON public.document_pages
+    FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY document_pages_delete ON public.document_pages
+    FOR DELETE USING (auth.role() = 'authenticated');
+
+-- -----------------------------------------------
+-- RLS: ocr_results
+-- -----------------------------------------------
+
+ALTER TABLE public.ocr_results ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY ocr_results_select ON public.ocr_results
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY ocr_results_insert ON public.ocr_results
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY ocr_results_update ON public.ocr_results
+    FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY ocr_results_delete ON public.ocr_results
+    FOR DELETE USING (auth.role() = 'authenticated');
+
+-- -----------------------------------------------
+-- RLS: document-images bucket
+-- -----------------------------------------------
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects'
+      AND policyname = 'document_images_insert'
+  ) THEN
+    CREATE POLICY document_images_insert ON storage.objects
+      FOR INSERT WITH CHECK (
+        bucket_id = 'document-images' AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects'
+      AND policyname = 'document_images_select'
+  ) THEN
+    CREATE POLICY document_images_select ON storage.objects
+      FOR SELECT USING (
+        bucket_id = 'document-images' AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage' AND tablename = 'objects'
+      AND policyname = 'document_images_delete'
+  ) THEN
+    CREATE POLICY document_images_delete ON storage.objects
+      FOR DELETE USING (
+        bucket_id = 'document-images' AND auth.role() = 'authenticated'
+      );
+  END IF;
+END $$;
+=== parse-document.md ===
+---
+description: Parse Architectural PDFs into structured JSON and mock Supabase storage
+---
+# Document Parser Workflow
+
+This workflow processes architectural PDF documents to extract floorplans, tables, and site photos, perform AI-based structural analysis, and compress the outputs into a mock Supabase storage directory.
+
+## Steps
+
+1. **Start the Docker Container**
+   Ensure the `doc-parser` service is running in Docker.
+// turbo
+   `cd doc-parser && docker-compose up -d --build doc-parser`
+
+2. **Run the Processing Pipeline**
+   Execute the `process_document.py` script and pass the path to the PDF, along with the tenant and project names. This triggers the background docling task, waits for completion, and generates compressed JPEGs and JSON data.
+// turbo
+   `cd doc-parser && python process_document.py --pdf demo.pdf --tenant demo_tenant --project demo_project`
+
+## Full Supabase Pipeline (parse_document_pipeline.py)
+
+Use this when you want pages, images, and OCR results persisted to Supabase.
+
+### Prerequisites
+- Supabase running (`supabase start` on Windows)
+- doc-parser container running (`docker compose up -d` in `doc-parser/` on Windows)
+- Service role key from `supabase status` output
+- Migration `20260312000001_document_pages_ocr.sql` applied (`supabase db reset` or `apply-migration.ps1`)
+
+### Run
+```
+python doc-parser/parse_document_pipeline.py \
+  --pdf path/to/file.pdf \
+  --tenant my_tenant \
+  --project my_project \
+  --supabase-url http://host.docker.internal:54321 \
+  --supabase-key <service_role_key>
+```
+
+### What it writes to Supabase
+| Table | Content |
+|---|---|
+| `project_documents` | One row — PDF metadata + storage URL |
+| `document_pages` | One row per page — category, storage_url, thumbnail_url |
+| `document_images` | One row per extracted image (floorplan/site_photo/diagram) |
+| `ocr_results` | One row per table — markdown + structured_data JSON |
+
+### Notes
+- `server.py` must be rebuilt in Docker after any changes: `docker compose up -d --build`
+- Raw results JSON saved alongside PDF as `<name>_pipeline_results.json` for debugging
+- `PROGRAM_STATUS=develop_without_ai` in `.env` skips LLM calls (mocked floorplan data)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

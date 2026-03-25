@@ -1,0 +1,31 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > > === PYTHON TEST ===
+'def fetch_and_save(url, db):\n    """                \n                                \n                                    \n                                                          \n    """\n    guard_type(url, str, "              ", "   ")\n    result = db.execute("                              ", data)\n    verify(result.rowcount == 1, "              ", "              ")\n'
+
+--- Cleaned output ---
+def fetch_and_save(url, db):
+    """
+                                
+                                    
+                                                          
+    """
+    guard_type(url, str, "              ", "   ")
+    result = db.execute("                              ", data)
+    verify(result.rowcount == 1, "              ", "              ")
+
+
+'def fetch_and_save' matches: 1 (should be 1, not 2)
+  Found at line 1
+'db.execute' matches: 1 (should be 1, not 2)
+
+=== PYTHON COMMENT TEST ===
+#
+real_code = 1  #
+
+'def foo' in comments: 0 (should be 0)
+'guard_type' in comments: 0 (should be 0)
+
+=== LINE COUNT PRESERVATION ===
+Original lines: 9
+Cleaned lines:  9
+Match: True
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

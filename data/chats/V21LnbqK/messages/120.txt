@@ -1,0 +1,40 @@
+9:  5. Fetch /results
+10:  6. Insert document_pages (one per page, with storage_url, thumbnail_url, category)
+12:  8. Insert ocr_results (one per table, with markdown + structured_data)
+84:    """Derive dominant page category from hybrid engine page result.
+161:    result = sb.table("project_documents").insert({
+170:    if hasattr(result, "error") and result.error:
+171:        raise RuntimeError(f"project_documents insert failed: {result.error}")
+183:    """Submit PDF to /parse/docling, poll until done, return results."""
+217:    log("Fetching results ...")
+218:    results_resp = requests.get(f"{api_url}/results/{job_id}", timeout=30)
+219:    results_resp.raise_for_status()
+220:    return results_resp.json()
+224:# Phase 3+: Persist pages, images, OCR
+227:def persist_results(sb: Client, document_id: str, results: dict):
+228:    """Persist hybrid engine results into relational tables.
+231:      - pages[N].floorplan_urls / floorplan_dia_urls  → list of URL strings
+232:      - pages[N].site_photos / diagrams               → list of URL strings
+233:      - pages[N].tables → list of dicts {markdown, url, image_url, source}
+234:      - pages[N].thumbnail_url → string
+236:    pages_result = results.get("pages", {})
+237:    summary = results.get("summary", {})
+238:    total_pages = summary.get("total_pages", len(pages_result))
+239:    log(f"Persisting {total_pages} pages ...")
+241:    page_id_map = {}  # page_number -> document_pages.id
+243:    # ── document_pages ──────────────────────────────────────────────────────
+244:    for page_no_key, page_data in pages_result.items():
+249:        sb.table("document_pages").insert({
+271:    for page_no_key, page_data in pages_result.items():
+340:    # ── ocr_results (table markdown + structured data) ───────────────────────
+342:    for page_no_key, page_data in pages_result.items():
+358:            sb.table("ocr_results").insert({
+368:    log(f"  Inserted {ocr_count} ocr_results rows")
+400:    results = submit_and_poll(
+405:    # Save raw results alongside PDF for debugging
+406:    results_path = pdf_path.parent / f"{pdf_path.stem}_pipeline_results.json"
+407:    results_path.write_text(json.dumps(results, indent=2))
+408:    log(f"Raw results saved to {results_path}")
+411:    persist_results(sb, document_id, results)
+415:    log(f"Summary: {json.dumps(results.get('summary', {}), indent=2)}")
+(venv) root@9a1d9e0c769e:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

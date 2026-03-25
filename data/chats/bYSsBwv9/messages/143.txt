@@ -1,0 +1,142 @@
+1	# ============================================================
+     2	# reset-and-start.ps1
+     3	# Stops servers, ensures Supabase + doc-parser are running,
+     4	# resets the database, seeds users, and starts dev servers
+     5	# ============================================================
+     6
+     7	$Root = Resolve-Path "$PSScriptRoot\.."
+     8
+     9	# ── Step 0a: Ensure Supabase is running ──────────────────────────────────────
+    10	Write-Host "`n=== Step 0a: Checking Supabase ===" -ForegroundColor Cyan
+    11	try {
+    12	    $null = Invoke-WebRequest -Uri "http://localhost:54321/rest/v1/" `
+    13	        -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+    14	    Write-Host "  Supabase is already running on :54321" -ForegroundColor Green
+    15	} catch {
+    16	    Write-Host "  Supabase not detected — running 'supabase start'..." -ForegroundColor Yellow
+    17	    Push-Location $Root
+    18	    supabase start
+    19	    if ($LASTEXITCODE -ne 0) {
+    20	        Write-Host "  ERROR: 'supabase start' failed. Aborting." -ForegroundColor Red
+    21	        exit 1
+    22	    }
+    23	    Pop-Location
+    24	    # Wait for Kong to be ready
+    25	    Write-Host "  Waiting for Supabase to be ready..." -ForegroundColor Yellow
+    26	    $retries = 0
+    27	    do {
+    28	        Start-Sleep -Seconds 3
+    29	        $retries++
+    30	        try {
+    31	            $null = Invoke-WebRequest -Uri "http://localhost:54321/rest/v1/" `
+    32	                -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+    33	            Write-Host "  Supabase is ready." -ForegroundColor Green
+    34	            break
+    35	        } catch {
+    36	            Write-Host "  Still waiting... ($retries/10)" -ForegroundColor DarkGray
+    37	        }
+    38	    } while ($retries -lt 10)
+    39	    if ($retries -ge 10) {
+    40	        Write-Host "  WARNING: Supabase may not be fully ready. Continuing anyway." -ForegroundColor Yellow
+    41	    }
+    42	}
+    43
+    44	# ── Step 0b: Ensure doc-parser container is running ──────────────────────────
+    45	Write-Host "`n=== Step 0b: Checking doc-parser container ===" -ForegroundColor Cyan
+    46	$docParserDir = Join-Path $Root "doc-parser"
+    47
+    48	# Check if container is already responding
+    49	$docParserUp = $false
+    50	try {
+    51	    $null = Invoke-WebRequest -Uri "http://localhost:5000/" `
+    52	        -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+    53	    $docParserUp = $true
+    54	} catch {}
+    55
+    56	if ($docParserUp) {
+    57	    Write-Host "  doc-parser is already running on :5000" -ForegroundColor Green
+    58	} else {
+    59	    # Check if container exists but is stopped
+    60	    $containerStatus = docker ps -a --filter "name=doc-parser" --format "{{.Status}}" 2>$null
+    61	    if ($containerStatus -match "Exited") {
+    62	        Write-Host "  doc-parser container is stopped — restarting..." -ForegroundColor Yellow
+    63	        Push-Location $docParserDir
+    64	        docker compose start
+    65	        Pop-Location
+    66	    } else {
+    67	        Write-Host "  doc-parser container not found — starting with docker compose..." -ForegroundColor Yellow
+    68	        Push-Location $docParserDir
+    69	        docker compose up -d
+    70	        if ($LASTEXITCODE -ne 0) {
+    71	            Write-Host "  WARNING: docker compose up failed for doc-parser. Continuing without it." -ForegroundColor Yellow
+    72	        }
+    73	        Pop-Location
+    74	    }
+    75	    # Wait for doc-parser to be ready
+    76	    $retries = 0
+    77	    do {
+    78	        Start-Sleep -Seconds 3
+    79	        $retries++
+    80	        try {
+    81	            $null = Invoke-WebRequest -Uri "http://localhost:5000/" `
+    82	                -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+    83	            Write-Host "  doc-parser is ready on :5000" -ForegroundColor Green
+    84	            break
+    85	        } catch {
+    86	            Write-Host "  Still waiting for doc-parser... ($retries/10)" -ForegroundColor DarkGray
+    87	        }
+    88	    } while ($retries -lt 10)
+    89	    if ($retries -ge 10) {
+    90	        Write-Host "  WARNING: doc-parser may not be ready. Continuing anyway." -ForegroundColor Yellow
+    91	    }
+    92	}
+    93
+    94	# ── Step 1: Kill dev servers ──────────────────────────────────────────────────
+    95	Write-Host "`n=== Step 1: Killing dev servers ===" -ForegroundColor Cyan
+    96	& "$PSScriptRoot\kill-dev-servers.ps1"
+    97
+    98	# ── Step 2: Reset database ────────────────────────────────────────────────────
+    99	Write-Host "`n=== Step 2: Resetting database ===" -ForegroundColor Cyan
+   100	Push-Location $Root
+   101	supabase db reset
+   102	Pop-Location
+   103
+   104	# ── Step 3: Seed users (alice + eric) ────────────────────────────────────────
+   105	Write-Host "`n=== Step 3: Seeding users (alice + eric) ===" -ForegroundColor Cyan
+   106	Push-Location (Join-Path $Root "apps\api")
+   107	npx tsx scripts/create_user.ts
+   108	Pop-Location
+   109
+   110	# ── Step 4: Create sysadmin user ─────────────────────────────────────────────
+   111	Write-Host "`n=== Step 4: Creating sysadmin user ===" -ForegroundColor Cyan
+   112	$sysadminBody = @{
+   113	    email         = "sysadmin@example.com"
+   114	    password      = "sysadmin123"
+   115	    email_confirm = $true
+   116	    user_metadata = @{
+   117	        role      = "sysadmin"
+   118	        full_name = "System Administrator"
+   119	    }
+   120	} | ConvertTo-Json -Depth 3
+   121
+   122	$serviceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU"
+   123	try {
+   124	    $response = Invoke-RestMethod -Uri "http://127.0.0.1:54321/auth/v1/admin/users" `
+   125	        -Method Post `
+   126	        -Headers @{
+   127	            "apikey"        = $serviceRoleKey
+   128	            "Authorization" = "Bearer $serviceRoleKey"
+   129	            "Content-Type"  = "application/json"
+   130	        } `
+   131	        -Body $sysadminBody
+   132	    Write-Host "  Sysadmin created: $($response.email)" -ForegroundColor Green
+   133	} catch {
+   134	    Write-Host "  Sysadmin creation skipped (may already exist): $($_.Exception.Message)" -ForegroundColor Yellow
+   135	}
+   136
+   137	# ── Step 5: Start dev servers ─────────────────────────────────────────────────
+   138	Write-Host "`n=== Step 5: Starting dev servers ===" -ForegroundColor Cyan
+   139	Push-Location $Root
+   140	pnpm dev
+   141	Pop-Location
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

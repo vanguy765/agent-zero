@@ -1,0 +1,37 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# ## Live Test Results (Round 1)
+
+> **Date**: 2026-03-16 | **Agent**: Claude Opus 4.6 / Agent Zero | **Profile**: developer
+
+### Test 1.1: Greenfield Function Generation ✅
+- **First-Pass Compliance**: 80% (4/5 rules)
+- **Self-Correction**: 100% in 1 cycle
+- **Pattern Quality**: 3.0/3.0 across all metrics
+- **Code Overhead**: 24.4%
+- **Finding (F-PAT)**: Agent used `if/raise` instead of `guard_*()` in utility function.
+  Agent self-corrected by inspecting linter source code.
+
+### Test 1.2: Remediation of Existing Code ✅
+- **First-Pass Compliance**: 100% actual (0% raw due to false positives)
+- **Self-Correction**: 100% in 1 cycle
+- **Pattern Quality**: 3.0/3.0 across all metrics
+- **Code Overhead**: 24.7%
+- **Finding (F-LNT)**: Linter regex matched code in docstrings → false positives.
+
+### Improvement Actions Taken
+
+| Finding | Code | Fix | Status |
+|---------|------|-----|--------|
+| Linter string literal blind spot | F-LNT | Added `text_utils.py` — strips strings/comments before scanning | ✅ RESOLVED |
+| Guard naming convention undocumented | F-SKL | Updated BMAD skill with explicit naming requirements | ✅ RESOLVED |
+| Linter detection patterns undocumented | F-SKL | Added detection pattern column to linter rules table | ✅ RESOLVED |
+
+### Test Suite Status
+- **Linter tests**: 59/59 passing (was 56/56 before improvements)
+- **New regression tests**: 3 (docstring false positive scenarios)
+
+
+---
+
+*This document should be updated at the start of each development session
+to reflect current project state.*
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

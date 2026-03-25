@@ -1,0 +1,50 @@
+policyname                 |  cmd   |                                        qual
+-------------------------------------------+--------+------------------------------------------------------------------------------------
+ Tenant isolation for templates            | ALL    | (organization_id = current_user_organization_id())
+ app_templates_select                      | SELECT | (scope = 'app'::text)
+ company_templates_modify                  | ALL    | ((scope = 'company'::text) AND (organization_id = current_user_organization_id()))
+ company_templates_select                  | SELECT | ((scope = 'company'::text) AND (organization_id = current_user_organization_id()))
+ project_templates_modify                  | ALL    | ((scope = 'project'::text) AND (organization_id = current_user_organization_id()))
+ project_templates_select                  | SELECT | ((scope = 'project'::text) AND (organization_id = current_user_organization_id()))
+ sysadmin_full_access_work_order_templates | ALL    | is_sysadmin()
+(7 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === PostgREST test after reload ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > {}(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Schema privileges for authenticator ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > >  nspname | can_use
+---------+---------
+ public  | t
+ auth    | f
+(2 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Can authenticator switch to anon? ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > >  can_switch_to_anon | can_switch_to_authenticated
+--------------------+-----------------------------
+ t                  | t
+(1 row)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === auth schema functions ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > >  routine_name
+--------------
+(0 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === PostgREST logs (last 20 lines) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# > > -- No entries --
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Check if postgrest has any stderr output ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# total 0
+dr-x------ 2 root root 106 Mar 11 00:52 .
+dr-xr-xr-x 9 root root   0 Mar 11 00:41 ..
+lr-x------ 1 root root  64 Mar 11 00:52 0 -> /dev/null
+l-wx------ 1 root root  64 Mar 11 00:52 1 -> /tmp/postgrest.log
+l-wx------ 1 root root  64 Mar 11 00:52 10 -> pipe:[1653371]
+lr-x------ 1 root root  64 Mar 11 00:52 100 -> pipe:[1653394]
+l-wx------ 1 root root  64 Mar 11 00:52 101 -> pipe:[1653394]
+lrwx------ 1 root root  64 Mar 11 00:52 102 -> anon_inode:[eventfd]
+lrwx------ 1 root root  64 Mar 11 00:52 103 -> socket:[1653397]
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

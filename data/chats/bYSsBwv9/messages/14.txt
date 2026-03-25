@@ -1,0 +1,112 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+=== TYPE-ORDERS ROUTE ===
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from '@repo/config';
+import { authMiddleware } from '../middleware/auth';
+
+export const typeOrdersRoute = new OpenAPIHono();
+
+if (process.env.REQUIRE_AUTH === 'true') {
+    typeOrdersRoute.use('*', authMiddleware);
+}
+
+const getScopedClient = (c: any) => {
+    const token = c.req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+        return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { Authorization: `Bearer ${token}` } }
+        });
+    }
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+};
+
+typeOrdersRoute.get('/', async (c) => {
+    const supabase = getScopedClient(c);
+    const category = c.req.query('category');
+    
+    let query = supabase
+        .from('type_orders')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+        
+    if (category) {
+        query = query.eq('category', category);
+    }
+
+    const { data, error } = await query;
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+
+typeOrdersRoute.get('/:id/compositions', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('type_order_compositions')
+        .select('*, component:type_orders!component_type_order_id(*)')
+        .eq('composite_type_order_id', id)
+        .order('display_order', { ascending: true });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+
+typeOrdersRoute.get('/:id/default-work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+
+    const { data, error } = await supabase
+        .from('type_order_default_work_orders')
+        .select('*, template:work_order_templates!work_order_template_id(*)')
+        .eq('type_order_id', id)
+        .order('display_order', { ascending: true });
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json(data);
+});
+
+typeOrdersRoute.put('/:id/default-work-orders', async (c) => {
+    const supabase = getScopedClient(c);
+    const id = c.req.param('id');
+    const body: { templateIds?: string[] } = await c.req.json().catch(() => ({}));
+    const templateIds: string[] = body.templateIds || [];
+
+    // Delete existing
+    const { error: delError } = await supabase
+        .from('type_order_default_work_orders')
+        .delete()
+        .eq('type_order_id', id);
+
+    if (delError) return c.json({ error: delError.message }, 500);
+
+    // Insert new
+    if (templateIds.length > 0) {
+        const inserts = templateIds.map((templateId, index) => ({
+            type_order_id: id,
+            work_order_template_id: templateId,
+            display_order: index
+        }));
+
+        const { error: insError } = await supabase
+            .from('type_order_default_work_orders')
+            .insert(inserts);
+
+        if (insError) return c.json({ error: insError.message }, 500);
+    }
+
+    return c.json({ success: true });
+});
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

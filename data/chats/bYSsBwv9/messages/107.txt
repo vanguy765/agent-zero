@@ -1,0 +1,44 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Tables in Supabase DB (port 54322) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#            tablename
+--------------------------------
+ bom_action_requests
+ entity_creation_log
+ metric_definitions
+ organization_trades
+ organizations
+ pending_reviews
+ portal_table_config
+ project_outcomes
+ rooms
+ sop_dependencies
+ sop_detailed_steps
+ sop_executive_checklists
+ sop_recommended_videos
+ sop_ref_docs
+ sop_sections
+ sop_steps
+ sop_sync_log
+ sops
+ template_libraries
+ trade_outcome_assignments
+ trades
+ type_order_compositions
+ type_order_default_work_orders
+ type_orders
+ unit_room_calculations
+ unit_room_measurements
+ units
+ user_template_prefs
+ wo_projects
+ work_order_notes
+ work_order_step_progress
+ work_order_tasks
+ work_order_templates
+ work_orders
+(34 rows)
+
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# === Tables in PostgreSQL (port 5432) ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold# psql: error: connection to server at "127.0.0.1", port 5432 failed: FATAL:  password authentication failed for user "postgres"
+connection to server at "127.0.0.1", port 5432 failed: FATAL:  password authentication failed for user "postgres"
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

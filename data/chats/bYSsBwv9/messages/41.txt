@@ -1,0 +1,112 @@
+ON CONFLICT (trade_id, outcome_id) DO NOTHING;
+
+-- =============================================================================
+-- TYPE ORDERS (system scope)
+-- UUID pattern: c0000000-0000-0000-0000-00000000XXXX
+-- =============================================================================
+
+-- ATOMIC INTERIOR
+INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000001', 'kitchen',      'Kitchen',      'interior', 'system', false, 1),
+    ('c0000000-0000-0000-0000-000000000002', 'bathroom',     'Bathroom',     'interior', 'system', false, 2),
+    ('c0000000-0000-0000-0000-000000000003', 'bedroom',      'Bedroom',      'interior', 'system', false, 3),
+    ('c0000000-0000-0000-0000-000000000004', 'living_room',  'Living Room',  'interior', 'system', false, 4),
+    ('c0000000-0000-0000-0000-000000000005', 'dining_room',  'Dining Room',  'interior', 'system', false, 5),
+    ('c0000000-0000-0000-0000-000000000006', 'hallway',      'Hallway',      'interior', 'system', false, 6),
+    ('c0000000-0000-0000-0000-000000000007', 'closet',       'Closet',       'interior', 'system', false, 7),
+    ('c0000000-0000-0000-0000-000000000008', 'laundry',      'Laundry',      'interior', 'system', false, 8),
+    ('c0000000-0000-0000-0000-000000000009', 'entry',        'Entry/Foyer',  'interior', 'system', false, 9)
+ON CONFLICT DO NOTHING;
+
+-- ATOMIC EXTERIOR
+INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000020', 'balcony',  'Balcony',        'exterior', 'system', false, 20),
+    ('c0000000-0000-0000-0000-000000000021', 'patio',    'Patio',          'exterior', 'system', false, 21),
+    ('c0000000-0000-0000-0000-000000000022', 'parking',  'Parking Space',  'exterior', 'system', false, 22),
+    ('c0000000-0000-0000-0000-000000000023', 'storage',  'Storage Unit',   'exterior', 'system', false, 23)
+ON CONFLICT DO NOTHING;
+
+-- ATOMIC COMMON
+INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000030', 'common_hallway', 'Common Hallway', 'common', 'system', false, 30),
+    ('c0000000-0000-0000-0000-000000000031', 'common_lobby',   'Lobby',          'common', 'system', false, 31),
+    ('c0000000-0000-0000-0000-000000000032', 'common_laundry', 'Common Laundry', 'common', 'system', false, 32)
+ON CONFLICT DO NOTHING;
+
+-- ATOMIC PRE-CONSTRUCTION
+INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000040', 'demo_zone', 'Demolition Zone', 'pre_construction', 'system', false, 40),
+    ('c0000000-0000-0000-0000-000000000041', 'staging',   'Staging Area',    'pre_construction', 'system', false, 41)
+ON CONFLICT DO NOTHING;
+
+-- COMPOSITE TYPE ORDERS
+INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000050', 'studio', 'Studio',         'interior', 'system', true, 50),
+    ('c0000000-0000-0000-0000-000000000051', '1br',    'One Bedroom',    'interior', 'system', true, 51),
+    ('c0000000-0000-0000-0000-000000000052', '2br',    'Two Bedroom',    'interior', 'system', true, 52),
+    ('c0000000-0000-0000-0000-000000000053', '3br',    'Three Bedroom',  'interior', 'system', true, 53)
+ON CONFLICT DO NOTHING;
+
+-- =============================================================================
+-- TYPE ORDER COMPOSITIONS
+-- =============================================================================
+
+-- Studio = living_room(1) + kitchen(1) + bathroom(1)
+INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000050', 'c0000000-0000-0000-0000-000000000004', 1, 1),  -- living_room
+    ('c0000000-0000-0000-0000-000000000050', 'c0000000-0000-0000-0000-000000000001', 1, 2),  -- kitchen
+    ('c0000000-0000-0000-0000-000000000050', 'c0000000-0000-0000-0000-000000000002', 1, 3)   -- bathroom
+ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+
+-- 1br = living_room(1) + kitchen(1) + bathroom(1) + bedroom(1)
+INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000051', 'c0000000-0000-0000-0000-000000000004', 1, 1),  -- living_room
+    ('c0000000-0000-0000-0000-000000000051', 'c0000000-0000-0000-0000-000000000001', 1, 2),  -- kitchen
+    ('c0000000-0000-0000-0000-000000000051', 'c0000000-0000-0000-0000-000000000002', 1, 3),  -- bathroom
+    ('c0000000-0000-0000-0000-000000000051', 'c0000000-0000-0000-0000-000000000003', 1, 4)   -- bedroom
+ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+
+-- 2br = living_room(1) + kitchen(1) + bathroom(1) + bedroom(2)
+INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000052', 'c0000000-0000-0000-0000-000000000004', 1, 1),  -- living_room
+    ('c0000000-0000-0000-0000-000000000052', 'c0000000-0000-0000-0000-000000000001', 1, 2),  -- kitchen
+    ('c0000000-0000-0000-0000-000000000052', 'c0000000-0000-0000-0000-000000000002', 1, 3),  -- bathroom
+    ('c0000000-0000-0000-0000-000000000052', 'c0000000-0000-0000-0000-000000000003', 2, 4)   -- bedroom x2
+ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+
+-- 3br = living_room(1) + kitchen(1) + bathroom(2) + bedroom(3)
+INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+VALUES
+    ('c0000000-0000-0000-0000-000000000053', 'c0000000-0000-0000-0000-000000000004', 1, 1),  -- living_room
+    ('c0000000-0000-0000-0000-000000000053', 'c0000000-0000-0000-0000-000000000001', 1, 2),  -- kitchen
+    ('c0000000-0000-0000-0000-000000000053', 'c0000000-0000-0000-0000-000000000002', 2, 3),  -- bathroom x2
+    ('c0000000-0000-0000-0000-000000000053', 'c0000000-0000-0000-0000-000000000003', 3, 4)   -- bedroom x3
+ON CONFLICT (composite_type_order_id, component_type_order_id) DO NOTHING;
+
+-- =============================================================================
+-- BACKFILL: trade_id on work_order_templates
+-- Match existing trade_name text to the new trades table
+-- =============================================================================
+UPDATE public.work_order_templates wot
+SET trade_id = t.id
+FROM public.trades t
+WHERE wot.trade_name = t.name
+  AND wot.trade_id IS NULL;
+
+-- Also handle Doors -> Millwork, Closets -> Millwork for templates
+UPDATE public.work_order_templates
+SET trade_id = 'a0000000-0000-0000-0000-000000000009'
+WHERE trade_name IN ('Doors', 'Closets')
+  AND trade_id IS NULL;
+
+-- =============================================================================
+-- BACKFILL: trade_id on work_orders
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#

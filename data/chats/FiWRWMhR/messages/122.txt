@@ -1,0 +1,23 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#             return violations
+
+        # Skip: functions that ARE guard/verify/trace implementations
+        name_lower = func.name.lower()
+        if (name_lower.startswith('guard') or
+                name_lower.startswith('verify') or
+                name_lower == 'trace' or
+                name_lower.startswith('trace_')):
+            return violations
+
+        # Skip: private helpers with no real params (Python)
+        if func.language == "python" and func.name.startswith('_'):
+            real_params = _PYTHON_STRIP_SELF.sub('', func.params).strip()
+            if not real_params:
+                return violations
+
+        # Check for guard calls in function body (use clean_body to skip strings/comments)
+        if _GUARD_PATTERN.search(func.clean_body):
+            return violations
+
+        # No guard found — violation
+        fix_hint = _generate_fix_hint(func, param_names)
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

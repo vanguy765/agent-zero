@@ -1,0 +1,109 @@
+1:# Bulwark AI — A Beginner's Companion Guide
+9:## Table of Contents
+25:## 1. What Is Bulwark AI?
+35:## 2. Why Does AI Code Fail?
+41:### F1: Silent Data Shape Mismatch
+49:### F2: Unverified Side Effects
+57:### F3: Placeholder and Demo Data
+65:### F4: Confident Wrong Assumptions
+73:### F5: Happy-Path-Only Logic
+81:### F6: Stale Pattern Application
+89:### Summary: The Six Failure Modes
+102:## 3. The Three Layers Explained
+110:### 3.1 Layer 1: Guard
+114:#### Real-World Analogy
+120:#### What It Catches
+127:#### The Decision Question
+133:#### Code Example: Before and After
+138:# ❌ WITHOUT Guard — silent failure waiting to happen
+151:# ✅ WITH Guard — fails loudly with a helpful message
+189:#### Using Helper Functions (Less Boilerplate)
+194:# ✅ WITH Guard helpers — same protection, less boilerplate
+211:### 3.2 Layer 2: Trace
+215:#### Real-World Analogy
+221:#### What It Catches
+229:#### The Decision Question
+235:#### Code Example: Before and After
+240:# ❌ WITHOUT Trace — if transform_records fails, you have no idea what
+241:#    fetch_from_api or parse_response actually returned
+256:# ✅ WITH Trace — every handoff point is recorded
+307:#### Important: Shape, Not Content
+316:### 3.3 Layer 3: Verify
+320:#### Real-World Analogy
+326:#### What It Catches
+331:#### The Decision Question
+339:#### Code Example: Before and After
+344:# ❌ WITHOUT Verify — assumes the insert worked because no exception was raised
+355:# ✅ WITH Verify — confirms the write actually happened
+378:#### Another Example: File Writing
+381:# ✅ WITH Verify — confirms the file was actually written
+406:### Layer Summary
+416:## 4. The Decision Flowchart
+420:### The Three Questions
+438:### Example 1: A Function That Fetches Data from an API
+478:### Example 2: A Function That Writes a File
+531:### Example 3: A Pure Data Transformer
+577:### Example 4: A Database CRUD Function
+626:### Example 5: A Full Pipeline (All Three Layers)
+693:### Quick Reference: Which Layers Does Each Example Need?
+705:## 5. Runtime Modes: Not Everything Costs the Same
+709:### The Car Analogy
+719:### What Changes Across Environments
+727:### Guards: Never Turned Off
+738:### Traces: Always Present, Volume Adjustable
+746:### Verifies: Strategy Adapts to Throughput
+760:### 5.1 Configuring Bulwark AI
+764:#### Option A: Environment Variables
+780:# Before running your app
+802:#### Option B: Code Configuration
+811:# Call this once, at app startup, before any Bulwark-protected functions run
+836:#### The Three Verify Strategies Explained
+852:#### The `critical` Flag: Some Things Are Always Fully Verified
+859:# This verify respects the current strategy (might be sampled)
+863:# This verify is ALWAYS full — even if strategy is 'sampled' or 'adaptive'
+890:### 5.2 Availability Guards
+896:#### The Restaurant Analogy
+905:#### When to Use Availability Guards
+913:#### Code Example
+940:# Use at startup:
+944:# Then proceed with your normal Bulwark-protected functions
+982:#### Why Availability Guards Are an Extension, Not Core
+992:## 6. How to Add Bulwark to Your Project
+996:### Step 1: Copy the Helpers and Configure
+1010:# Python — at the top of your main entry point
+1025:### Step 2: Pick Your First Function
+1034:### Step 3: Add Guards at the Top
+1055:### Step 4: Add Traces at Boundaries
+1072:### Step 5: Add Verifies After Writes
+1085:### Step 6: Run Your Code
+1097:### Step 7: Repeat
+1103:## 7. Common Mistakes
+1109:### Mistake 1: Silent Coercion with `data = data or {}`
+1114:# ❌ WRONG — silently masks missing data
+1126:# ✅ RIGHT — fails loudly if config is missing
+1150:### Mistake 2: Catching Exceptions and Ignoring Them
+1155:# ❌ WRONG — swallows the error, continues with bad state
+1169:# ✅ RIGHT — catches specific errors, fails loudly for unexpected ones
+1201:### Mistake 3: Logging Actual Data Values in Traces
+1206:# ❌ WRONG — logs actual data content (security risk!)
+1211:# This might output:
+1212:# TRACE:after_fetch | data={'user': 'alice', 'ssn': '123-45-6789', 'password': 'hunter2'}
+1220:# ✅ RIGHT — logs shape only, never content
+1226:# This outputs:
+1227:# TRACE:after_fetch | dict, keys=['password', 'ssn', 'user'], len=3
+1234:### Mistake 4: Verifying the Status Code but Not the Response Body
+1239:# ❌ WRONG — trusts the status code blindly
+1251:# ✅ RIGHT — verifies the response body contains the expected result
+1284:### Mistake 5: Using Bare `assert` in Python Production Code
+1289:# ❌ WRONG — assert is stripped by python -O
+1302:# ✅ RIGHT — explicit if/raise is never stripped
+1327:# ✅ ALSO RIGHT — helpers use if/raise under the hood
+1341:## 8. Why We Made These Choices
+1345:### Why convention over library?
+1349:### Why three layers instead of just input validation?
+1353:### Why structured error messages?
+1357:### Why are Guards always on but Traces configurable?
+1361:### Why is Idempotency an extension, not core?
+1367:## 9. Glossary
+1383:## What's Next?
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

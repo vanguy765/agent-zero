@@ -1,0 +1,52 @@
+project_name: str,
+    filename: str,
+    page_no: int = 1,
+    image_type: str = "doc-parser_extraction",
+) -> Optional[str]:
+    """Upload image to Supabase Storage and return public URL."""
+    if not sb_client:
+        return None
+    try:
+        buffered = BytesIO()
+        pil_image.save(buffered, format="PNG")
+        image_bytes = buffered.getvalue()
+        path = f"{tenant_name}/{project_name}/doc-parser/{filename}"
+        upload_resp = await asyncio.to_thread(
+            lambda: sb_client.storage
+            .from_("project-documents")
+            .upload(path, image_bytes, file_options={"content-type": "image/png", "upsert": "true"})
+        )
+        if isinstance(upload_resp, dict) and upload_resp.get("error"):
+            raise Exception(f"Storage upload error: {upload_resp['error']}")
+        # Return a signed URL (bucket is private); max expiry ~68 years
+        _signed = await asyncio.to_thread(
+            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 2147483647)
+        )
+        url_response = _signed.get("signedURL") or _signed.get("signedUrl") or path
+        doc_id = project_name if _UUID_RE.match(project_name or '') else None
+        try:
+            await asyncio.to_thread(
+                lambda: sb_client.table("document_images").insert({
+                    "document_id": doc_id,
+                    "image_url": path,
+                    "page_number": page_no,
+                    "image_type": image_type,
+                    "metadata": {
+                        "type": "png", "source": "doc-parser",
+                        "width": pil_image.width, "height": pil_image.height
+                    }
+                }).execute()
+            )
+        except Exception as db_err:
+            logger.warning(f"DB record insert failed for {filename}: {db_err}")
+        return url_response
+    except Exception as e:
+        logger.warning(f"Image upload failed for {filename}: {e}")
+        return None
+
+
+async def upload_table_to_storage(
+    markdown_content: str,
+    sb_client,
+    tenant_name: str,
+(venv) root@9a1d9e0c769e:/a0/usr/workdir#

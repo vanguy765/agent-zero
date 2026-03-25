@@ -1,0 +1,24 @@
+Status: 200
+{
+  "document_id": "aefe59d7-f05e-45ce-a624-d199447a8894",
+  "job_id": "5245344a-77c6-476f-bcca-feb36521d957",
+  "engine": "hybrid",
+  "status": "completed",
+  "pages_persisted": 29,
+  "ocr_tables_persisted": 27,
+  "summary": {
+    "total_pages": 29,
+    "units_found": 17,
+    "floorplans_found": 17,
+    "floorplan_dias_found": 28,
+    "tables_found": 27,
+    "photos_found": 198,
+    "diagrams_found": 37,
+    "thumbnails_count": 29,
+    "pages_with_elements": 29
+  },
+  "poll_url": "/api/doc-parser/status/5245344a-77c6-476f-bcca-feb36521d957",
+  "results_url": "/api/doc-parser/results/5245344a-77c6-476f-bcca-feb36521d957",
+  "reprocessed": true
+}
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

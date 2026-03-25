@@ -1,0 +1,20 @@
+======================================================================
+SCENARIO A: Happy Path (no failures)
+======================================================================
+Traceback (most recent call last):
+  File "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline_resilient.py", line 549, in <module>
+    result_a = run_pipeline_resilient(test_csv, schema, db_config)
+  File "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline_resilient.py", line 459, in run_pipeline_resilient
+    cb = CircuitBreaker(
+        name="db_connection",
+        failure_threshold=max_retries,
+        reset_timeout=60.0,
+    )
+  File "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline_resilient.py", line 102, in __init__
+    guard_type(reset_timeout, (int, float), "CircuitBreaker.__init__", "reset_timeout")
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/a0/usr/workdir/bulwark-ai/test-results/csv_pipeline.py", line 72, in guard_type
+    f"'{param_name}' expected {expected_type.__name__}, "
+                               ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'tuple' object has no attribute '__name__'. Did you mean: '__ne__'?
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/test-results#

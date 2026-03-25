@@ -1,0 +1,71 @@
+}
+  });
+
+  // Reset
+  configure({ mode: "development" });
+
+  // --- Availability Guard Tests ---
+  console.log("\n--- Availability Guard Tests ---");
+
+  test("guardAvailable with true check passes", () => {
+    guardAvailable(() => true, "test", "testService");
+  });
+
+  test("guardAvailable with false check raises", () => {
+    try {
+      guardAvailable(() => false, "test", "testService");
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  test("guardAvailable with exception raises GuardError", () => {
+    try {
+      guardAvailable(
+        () => { throw new Error("connection refused"); },
+        "test",
+        "testService"
+      );
+      throw new Error("should have thrown");
+    } catch (e) {
+      if (!(e instanceof GuardError)) throw new Error("wrong error type");
+    }
+  });
+
+  // --- Pipeline Tests ---
+  console.log("\n--- Pipeline Tests ---");
+
+  const pipeline = new BulwarkPipeline("testPipeline");
+  pipeline
+    .addStage("double", (x) => (x as number[]).map((i) => i * 2), {
+      inputType: "array",
+      notEmpty: true,
+    })
+    .addStage("toObject", (x) => ({ results: x, count: (x as unknown[]).length }), {
+      inputType: "array",
+    });
+  const pipeResult = pipeline.run([1, 2, 3]);
+  test("pipeline produces correct result", () => {
+    const expected = JSON.stringify({ results: [2, 4, 6], count: 3 });
+    const actual = JSON.stringify(pipeResult);
+    if (actual !== expected) throw new Error(`wrong: ${actual}`);
+  });
+
+  // --- Summary ---
+  const total = passed + failed;
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`Results: ${passed}/${total} passed, ${failed} failed`);
+  if (failed === 0) {
+    console.log("All self-tests passed. Bulwark AI is operational.");
+  } else {
+    console.log(`WARNING: ${failed} test(s) failed!`);
+  }
+  console.log("=".repeat(60));
+}
+
+// Run self-test if executed directly
+if (require.main === module) {
+  selfTest();
+}
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

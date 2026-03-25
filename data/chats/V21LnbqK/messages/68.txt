@@ -1,0 +1,41 @@
+436:async def upload_image_to_storage(
+438:    sb_client,
+446:    if not sb_client:
+454:            lambda: sb_client.storage
+462:            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 31536000)
+468:                lambda: sb_client.table("document_images").insert({
+487:async def upload_table_to_storage(
+489:    sb_client,
+497:    if not sb_client:
+503:            lambda: sb_client.storage
+513:            lambda: sb_client.storage.from_("project-documents").create_signed_url(path, 31536000)
+519:                lambda: sb_client.table("document_images").insert({
+572:    sb_client=None,
+668:        thumbnail_urls: Dict[int, str] = {}
+680:            if sb_client:
+681:                url = await upload_image_to_storage(
+682:                    thumb, sb_client, storage_tenant, storage_project,
+687:                    thumbnail_urls[page_no] = url
+695:                thumbnail_urls[page_no] = local_path
+697:        logger.info(f"Job {job_id}: Generated {len(thumbnail_urls)} thumbnails")
+985:                    if sb_client:
+986:                        url = await upload_image_to_storage(
+987:                            cropped, sb_client, storage_tenant, storage_project,
+1014:                            if sb_client:
+1015:                                fp_url = await upload_image_to_storage(
+1016:                                    inset_crop, sb_client, storage_tenant, storage_project,
+1033:                            if sb_client:
+1034:                                d_url = await upload_image_to_storage(
+1035:                                    inset_crop, sb_client, storage_tenant, storage_project,
+1054:                    if sb_client:
+1055:                        url = await upload_image_to_storage(
+1056:                            cropped, sb_client, storage_tenant, storage_project,
+1074:                    if sb_client:
+1075:                        url = await upload_image_to_storage(
+1076:                            cropped, sb_client, storage_tenant, storage_project,
+1122:            if sb_client:
+1123:                url = await upload_table_to_storage(
+1124:                    md_text, sb_client, storage_tenant, storage_project,
+1186:            if sb_client:
+1187:                tbl_img_url = await upload_image_to_storage(
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser#

@@ -1,0 +1,13 @@
+<>:118: SyntaxWarning: invalid escape sequence '\|'
+<ipython-input-1-5f55cd0f26f4>:118: SyntaxWarning: invalid escape sequence '\|'
+  | `services.<id>.recovery` | `object \| null` | Yes | Recovery configuration, or `null` for detection-only. |
+SPEC.md updated successfully
+Total lines: 1334
+
+Section 10 headers:
+726:### 10.1 Availability Guard (RECOMMENDED for external dependencies)
+886:### 10.2 Service Manifest & Recovery Orchestration (RECOMMENDED for multi-service systems)
+1207:### 10.3 Idempotency Guard (OPTIONAL, for agentic/retry workflows)
+1235:### 10.4 Confidence Annotation (FUTURE, not yet recommended)
+
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

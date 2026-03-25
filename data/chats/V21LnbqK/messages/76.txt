@@ -1,0 +1,7 @@
+Deleted /a0/usr/projects/timesheet_app/voicelog-scaffold/scripts/reset-and-start.ps1
+Updated /a0/usr/projects/timesheet_app/voicelog-scaffold/AGENTS.md
+Updated /a0/usr/projects/timesheet_app/voicelog-scaffold/SESSION_START.md
+Updated /a0/usr/projects/timesheet_app/voicelog-scaffold/doc-parser/tests/preflight.py
+
+Scripts directory: ['apply-migration.ps1', 'create-sysadmin.sh', 'dev-health.sh', 'dev-start.sh', 'kill-dev-servers.ps1', 'reset-and-start.sh', 'sync-agent-context.ps1']
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app/voicelog-scaffold#

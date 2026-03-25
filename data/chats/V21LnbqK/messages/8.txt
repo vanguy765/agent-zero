@@ -1,0 +1,31 @@
+(venv) root@d2d162d983f0:/a0/usr/workdir# 14:  POST /parse/hybrid        - Hybrid engine (Docling + Claude)
+55:    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+83:        supabase_url=SUPABASE_URL,
+84:        supabase_key=SUPABASE_KEY,
+128:    supabase_url: Optional[str] = None,
+129:    supabase_key: Optional[str] = None,
+132:    url = supabase_url or SUPABASE_URL
+133:    key = supabase_key or SUPABASE_KEY
+169:@app.post("/parse/docling")
+174:    supabase_url: str = Form(None),
+175:    supabase_key: str = Form(None),
+176:    tenant_name: str = Form(None),
+177:    project_name: str = Form(None),
+196:        supabase_url,
+197:        supabase_key,
+198:        tenant_name or "",
+199:        project_name or "",
+214:    supabase_url: str,
+215:    supabase_key: str,
+216:    tenant_name: str,
+217:    project_name: str,
+233:                supabase_url, supabase_key,
+234:                tenant_name, project_name,
+255:    supabase_url: str,
+256:    supabase_key: str,
+257:    tenant_name: str,
+258:    project_name: str,
+262:    sb_client = get_request_supabase_client(supabase_url, supabase_key)
+281:        format_options={
+374:                    pil_img, sb_client, tenant_name, project_name,
+(venv) root@d2d162d983f0:/a0/usr/workdir#

@@ -1,0 +1,15 @@
+481:    - INFO:    Summary only (type + size)
+505:        # Summary — production verbose mode
+815:        # Recovery with a multi-step script:
+864:    # --- Recovery path ---
+1003:class BulwarkPipeline:
+1010:        pipeline = BulwarkPipeline("document_processing")
+1028:    ) -> "BulwarkPipeline":
+1267:    # --- Availability Guard Tests ---
+1268:    print("\n--- Availability Guard Tests ---")
+1304:    # --- Pipeline Tests ---
+1305:    print("\n--- Pipeline Tests ---")
+1307:    pipeline = BulwarkPipeline("test_pipeline")
+1321:    # --- Summary ---
+1324:    print(f"Results: {passed}/{total} passed, {failed} failed")
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

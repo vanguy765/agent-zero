@@ -1,0 +1,18 @@
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# > > > > > > > > > > > > > > > > > > > > > > (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# ✅ LICENSE created
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# 21 /a0/usr/workdir/bulwark-ai/LICENSE
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# === Checking for BMAD references ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter# /a0/usr/workdir/bulwark-ai/CONTINUATION_PROMPT.md:4. **BMAD Integration** — Skill-based integration spec. See OQ-3.
+/a0/usr/workdir/bulwark-ai/CONTINUATION_PROMPT.md:- OQ-3: BMAD integration depth
+/a0/usr/workdir/bulwark-ai/DECISIONS.md:19. [ADR-019: BMAD Integration as Skill](#adr-019-bmad-integration-as-skill)
+/a0/usr/workdir/bulwark-ai/DECISIONS.md:## ADR-019: BMAD Integration as Skill
+/a0/usr/workdir/bulwark-ai/DECISIONS.md:The BMAD (Breakthrough Method for Agile AI-Driven Development) framework
+/a0/usr/workdir/bulwark-ai/DECISIONS.md:Bulwark integrates as a **skill** in `.bmad/skills/`, not a core requirement.
+/a0/usr/workdir/bulwark-ai/DECISIONS.md:- Doesn't require BMAD framework modifications
+/a0/usr/workdir/bulwark-ai/PROJECT_STATUS.md:- 📋 BMAD integration concept (discussed, no implementation)
+/a0/usr/workdir/bulwark-ai/PROJECT_STATUS.md:### OQ-3: BMAD Integration Depth
+/a0/usr/workdir/bulwark-ai/PROJECT_STATUS.md:**Question**: How deep should BMAD integration go?
+/a0/usr/workdir/bulwark-ai/PROJECT_STATUS.md:**Context**: Bulwark was designed to work as a BMAD "skill" but the
+/a0/usr/workdir/bulwark-ai/PROJECT_STATUS.md:- How does Bulwark interact with BMAD's existing quality gates?
+/a0/usr/workdir/bulwark-ai/SPEC.md:| BMAD Method | `.bmad/skills/bulwark-defensive-coding.md` | Invokable by Developer, QA agents |
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/linter#

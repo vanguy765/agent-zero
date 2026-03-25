@@ -1,0 +1,28 @@
+{"swagger":"2.0","info":{"description":"","title":"standard public schema","version":"14.3"},"host":"0.0.0.0:3000","basePath":"/","schemes":["http"],"consumes":["application/json","application/vnd.pgr(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Health check ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# {"version":"v2.186.0","name":"GoTrue","description":"GoTrue is a user registration and authentication API"}(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Supabase containers ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# supabase_db_voicelog	0.0.0.0:54322->5432/tcp, [::]:54322->5432/tcp
+supabase_studio_voicelog	0.0.0.0:54323->3000/tcp, [::]:54323->3000/tcp
+supabase_pg_meta_voicelog	8080/tcp
+supabase_storage_voicelog	5000/tcp
+supabase_rest_voicelog	3000/tcp
+supabase_realtime_voicelog	4000/tcp
+supabase_inbucket_voicelog	0.0.0.0:54324->8025/tcp, [::]:54324->8025/tcp
+supabase_auth_voicelog	9999/tcp
+supabase_kong_voicelog	0.0.0.0:54321->8000/tcp, [::]:54321->8000/tcp
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# === Looking for Supabase keys ===
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# (venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai# agent-zero-agent-zero-1
+supabase_db_voicelog
+supabase_studio_voicelog
+supabase_pg_meta_voicelog
+supabase_storage_voicelog
+supabase_rest_voicelog
+supabase_realtime_voicelog
+supabase_inbucket_voicelog
+supabase_auth_voicelog
+supabase_kong_voicelog
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai#

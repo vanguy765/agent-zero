@@ -1,0 +1,192 @@
+
+/**
+ * Verify that an external dependency is reachable.
+ *
+ * Use this at service initialization, pipeline start, or health check
+ * endpoints. Do NOT use on every individual API call — that would add
+ * unacceptable latency.
+ *
+ * @param check         - A function that returns true if the dependency is available.
+ *                        Should have a timeout built in.
+ * @param functionName  - Name of the function performing the check.
+ * @param dependency    - Human-readable name of the dependency.
+ * @param message       - Optional custom error message.
+ *
+ * @example
+ * // At application startup:
+ * guardAvailable(
+ *   () => fetch("http://db:5432/health").then(r => r.status < 500),
+ *   "appStartup",
+ *   "database"
+ * );
+ *
+ * // Synchronous check:
+ * guardAvailable(
+ *   () => fs.existsSync("/mnt/data/input"),
+ *   "pipelineStart",
+ *   "input data directory"
+ * );
+ */
+/**
+ * Options for recovery behavior when a dependency is unavailable.
+ * All fields are optional — omitting them disables recovery (detection-only).
+ */
+export interface RecoveryOptions {
+  /** Shell command or script path to execute when dependency is unavailable. */
+  recoveryCommand?: string;
+  /** Maximum number of recovery attempts. Default: 3. */
+  maxRetries?: number;
+  /** Seconds to wait after recovery command before re-checking. Default: 5. */
+  retryDelay?: number;
+  /** Multiply retryDelay by this after each failed attempt. Default: 2.0. */
+  backoffMultiplier?: number;
+}
+
+/**
+ * Sleep for the given number of seconds. Returns a Promise.
+ */
+function sleepSeconds(seconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
+
+/**
+ * Execute a shell command synchronously using child_process.
+ * Returns the exit code (or -1 on error/timeout).
+ */
+function execCommandSync(command: string, timeoutMs: number = 120000): number {
+  try {
+    const { execSync } = require("child_process");
+    execSync(command, { timeout: timeoutMs, stdio: "pipe" });
+    return 0;
+  } catch (e: unknown) {
+    const err = e as { status?: number; killed?: boolean };
+    if (err.killed) {
+      return -1; // Timeout
+    }
+    return typeof err.status === "number" ? err.status : -1;
+  }
+}
+
+/**
+ * Execute a shell command asynchronously using child_process.
+ * Returns a Promise that resolves to the exit code (or -1 on error/timeout).
+ */
+function execCommandAsync(command: string, timeoutMs: number = 120000): Promise<number> {
+  return new Promise((resolve) => {
+    try {
+      const { exec } = require("child_process");
+      const proc = exec(command, { timeout: timeoutMs });
+      proc.on("close", (code: number | null) => resolve(code ?? -1));
+      proc.on("error", () => resolve(-1));
+    } catch {
+      resolve(-1);
+    }
+  });
+}
+
+export function guardAvailable(
+  check: () => boolean,
+  functionName: string,
+  dependency: string,
+  message?: string,
+  recovery?: RecoveryOptions
+): void {
+  if (!_config.guardsEnabled) return;
+
+  // --- Initial check ---
+  let available: boolean;
+  let checkError: Error | null = null;
+  try {
+    available = check();
+  } catch (e) {
+    available = false;
+    checkError = e instanceof Error ? e : new Error(String(e));
+  }
+
+  // Happy path: available on first check
+  if (available) {
+    bulwarkLog("INFO", `GUARD:AVAILABLE:${functionName} | ${dependency} — OK`);
+    return;
+  }
+
+  // --- Unavailable, no recovery ---
+  if (!recovery?.recoveryCommand) {
+    if (checkError) {
+      const diag =
+        `GUARD:AVAILABLE:${functionName} | ` +
+        `${dependency} — check raised ${checkError.name}: ${checkError.message}`;
+      bulwarkLog("ERROR", diag);
+      throw new GuardError(diag);
+    }
+    const diag =
+      `GUARD:AVAILABLE:${functionName} | ` +
+      `${dependency} — ${message || "not available"}`;
+    bulwarkLog("ERROR", diag);
+    throw new GuardError(diag);
+  }
+
+  // --- Recovery path (synchronous) ---
+  const maxRetries = recovery.maxRetries ?? 3;
+  const retryDelay = recovery.retryDelay ?? 5.0;
+  const backoff = recovery.backoffMultiplier ?? 2.0;
+  const cmd = recovery.recoveryCommand;
+
+  bulwarkLog(
+    "WARN",
+    `GUARD:AVAILABLE:${functionName} | ${dependency} — unavailable, attempting recovery`
+  );
+
+  const startTime = Date.now();
+  let currentDelay = retryDelay;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    bulwarkLog(
+      "INFO",
+      `GUARD:RECOVERY:${functionName} | ${dependency} — executing "${cmd}" (attempt ${attempt}/${maxRetries})`
+    );
+
+    const exitCode = execCommandSync(cmd);
+
+    bulwarkLog(
+      "INFO",
+      `GUARD:RECOVERY:${functionName} | ${dependency} — command exited with code ${exitCode}, waiting ${currentDelay.toFixed(1)}s`
+    );
+
+    // Synchronous sleep (blocking) — acceptable at startup
+    const { execSync: execSyncSleep } = require("child_process");
+    try {
+      execSyncSleep(`sleep ${currentDelay}`, { timeout: (currentDelay + 5) * 1000 });
+    } catch { /* timeout is fine */ }
+
+    // Re-check
+    try {
+      available = check();
+    } catch {
+      available = false;
+    }
+
+    const elapsed = (Date.now() - startTime) / 1000;
+
+    if (available) {
+      bulwarkLog(
+        "INFO",
+        `GUARD:AVAILABLE:${functionName} | ${dependency} — OK (recovered after ${attempt} attempt${attempt > 1 ? "s" : ""}, ${elapsed.toFixed(1)}s elapsed)`
+      );
+      return;
+    }
+
+    bulwarkLog(
+      "WARN",
+      `GUARD:AVAILABLE:${functionName} | ${dependency} — still unavailable after attempt ${attempt}`
+    );
+
+    currentDelay *= backoff;
+  }
+
+  // All retries exhausted
+  const elapsed = (Date.now() - startTime) / 1000;
+  const diag =
+    `GUARD:RECOVERY:${functionName} | ${dependency} — all ${maxRetries} recovery attempts failed (${elapsed.toFixed(1)}s elapsed) — FATAL`;
+  bulwarkLog("ERROR", diag);
+  throw new GuardError(diag);
+(venv) root@9a1d9e0c769e:/a0/usr/workdir/bulwark-ai/reference#

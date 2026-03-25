@@ -1,0 +1,45 @@
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# /a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000001_schema_evolution_phase1.sql:194:CREATE TABLE IF NOT EXISTS public.type_orders (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000001_schema_evolution_phase1.sql:237:CREATE POLICY "type_orders_insert_company" ON public.type_orders FOR INSERT
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000001_schema_evolution_phase1.sql:272:CREATE TABLE IF NOT EXISTS public.type_order_compositions (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000001_schema_evolution_phase1.sql:291:CREATE POLICY "type_order_comp_insert" ON public.type_order_compositions FOR INSERT
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000001_schema_evolution_phase1.sql:310:CREATE TABLE IF NOT EXISTS public.type_order_default_work_orders (
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000001_schema_evolution_phase1.sql:329:CREATE POLICY "type_order_dwo_insert" ON public.type_order_default_work_orders FOR INSERT
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:98:INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:112:INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:121:INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:129:INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:136:INSERT INTO public.type_orders (id, code, name, category, scope, is_composite, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:149:INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:157:INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:166:INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+/a0/usr/projects/timesheet_app/voicelog-scaffold/supabase/migrations/20260304000002_schema_evolution_seed.sql:175:INSERT INTO public.type_order_compositions (composite_type_order_id, component_type_order_id, quantity, display_order)
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === TypeOrder interface in api.ts ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# export interface TypeOrder {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  category: 'interior' | 'exterior' | 'pre_construction' | 'common';
+  scope: 'system' | 'company' | 'project';
+  organization_id?: string;
+  project_id?: string;
+  parent_type_order_id?: string;
+  is_composite: boolean;
+  definition?: Record<string, any>;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BomActionRequest {
+  id: string;
+  project_id: string;
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# (venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app# === getTypeOrders method ===
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#   async getTypeOrders(category?: string): Promise<TypeOrder[]> {
+    const q = category ? `?category=${category}` : '';
+    return this.request<TypeOrder[]>(`/type-orders${q}`);
+  }
+
+  async getTypeOrderCompositions(typeOrderId: string): Promise<any[]> {
+(venv) root@d2d162d983f0:/a0/usr/projects/timesheet_app#
